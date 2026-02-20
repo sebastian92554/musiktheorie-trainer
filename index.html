@@ -432,5 +432,24 @@
         <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
     </footer>
 
+    <script>
+        // Landing Page Tracking
+        document.querySelectorAll('.trainer-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const name = this.querySelector('.trainer-name').textContent;
+                const data = {
+                    eventType: 'landing_click',
+                    app: name,
+                    timestamp: new Date().toISOString(),
+                    device: window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1366 ? 'tablet' : 'desktop',
+                    referrer: new URLSearchParams(window.location.search).get('utm_source') || document.referrer || 'direct'
+                };
+                navigator.sendBeacon(
+                    'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
+                    JSON.stringify(data)
+                );
+            });
+        });
+    </script>
 </body>
 </html>

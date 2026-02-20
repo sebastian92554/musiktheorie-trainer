@@ -1573,7 +1573,22 @@
             generateSessionId() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             },
-            
+
+            getSource() {
+                const params = new URLSearchParams(window.location.search);
+                const utm = params.get('utm_source');
+                if (utm) return utm;
+                const ref = document.referrer;
+                if (!ref) return 'direct';
+                try {
+                    const host = new URL(ref).hostname;
+                    if (host.includes('google')) return 'google';
+                    if (host.includes('schillerschule')) return 'schule';
+                    if (host.includes('musiktheorie-trainer')) return 'intern';
+                    return host;
+                } catch(e) { return ref; }
+            },
+
             sendStartEvent() {
                 const data = {
                     eventType: 'session_start',
@@ -1581,7 +1596,7 @@
                     app: 'Rhythmustrainer',
                     timestamp: new Date().toISOString(),
                     device: this.getDeviceType(),
-                    referrer: document.referrer || 'direct'
+                    referrer: this.getSource()
                 };
                 navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
                 console.log('📊 Session gestartet:', data);
@@ -1610,7 +1625,7 @@
                     questionsAnswered: this.questionsAnswered,
                     successRate: successRate,
                     device: this.getDeviceType(),
-                    referrer: document.referrer || 'direct'
+                    referrer: this.getSource()
                 };
                 
                 navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
