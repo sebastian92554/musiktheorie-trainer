@@ -1,0 +1,4266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <title>Tonleitertrainer Online - Dur- und Molltonleitern bestimmen | Schillerschule Hannover</title>
+    <meta name="description" content="Kostenloser Tonleitertrainer zum Lernen und Bestimmen von Dur- und Moll-Tonleitern. Mit Ganzton-/Halbtonschritten und Klaviatur. Perfekt für Musikunterricht.">
+    <meta name="keywords" content="Tonleitertrainer, Tonleitern lernen, Musiktheorie, Dur, Moll, Halbtonschritte, Online Tonleitertraining">
+    <meta name="author" content="Schillerschule Hannover">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.schillerschule-hannover.de/tonleitertrainer/">
+    <meta property="og:title" content="Tonleitertrainer Online - Tonleitern sicher erkennen">
+    <meta property="og:description" content="Interaktiver Tonleitertrainer mit Halbtonschritten und Klaviatur. Kostenlos, DSGVO-konform und perfekt für den Musikunterricht.">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Tonleitertrainer Online">
+    <meta property="twitter:description" content="Lerne Tonleitern spielerisch im Browser - kostenlos und ohne Anmeldung">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(to bottom right, #ecfeff, #cffafe);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 0.5rem;
+                margin-bottom: 0.4rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-height: 900px) {
+            .card {
+                padding: 0.4rem;
+                margin-bottom: 0.4rem;
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #164e63;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.5rem;
+            }
+        }
+
+        .btn {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #f3f4f6;
+        }
+
+        .btn-primary {
+            background: #0891b2;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #0e7490;
+        }
+
+        .settings-panel {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .settings-panel.hidden {
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .settings-panel h3 {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.75rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .score-display {
+            background: #cffafe;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score-text {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .score-percentage {
+            font-size: 0.875rem;
+            color: #4b5563;
+            margin-left: 0.5rem;
+        }
+
+        .clef-badge {
+            display: inline-block;
+            background: #a5f3fc;
+            color: #164e63;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* =============================================
+           QUICK-START SYSTEM - CSS
+           ============================================= */
+
+        /* Level Screens */
+        .level-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .level-screen.active {
+            display: block;
+        }
+
+        /* Quick Start Container */
+        .quick-start-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .quick-start-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .quick-start-header h1 {
+            font-size: 2.5rem;
+            color: #164e63;
+            margin-bottom: 10px;
+        }
+
+        .quick-start-header p {
+            font-size: 1.2rem;
+            color: #6b7280;
+        }
+
+        /* Cards Grid - 3 Spalten */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Level Cards */
+        .level-card-new {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 3px solid transparent;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .level-card-new:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .level-card-new.einsteiger {
+            border-color: #22c55e;
+        }
+
+        .level-card-new.aufsteiger {
+            border-color: #eab308;
+        }
+
+        .level-card-new.profi {
+            border-color: #ef4444;
+        }
+
+        .level-card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .level-icon-new {
+            font-size: 2.5rem;
+        }
+
+        .level-card-header h2 {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .task-type {
+            font-size: 1rem;
+            color: #6b7280;
+            margin: 5px 0 0 0;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            background: #e5e7eb;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .einsteiger .progress-bar-fill { background: #22c55e; }
+        .aufsteiger .progress-bar-fill { background: #eab308; }
+        .profi .progress-bar-fill { background: #ef4444; }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+
+        /* Options Panel */
+        .options-panel {
+            margin-bottom: 20px;
+        }
+
+        .option-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .option-checkbox:hover {
+            background: #f3f4f6;
+        }
+
+        .option-checkbox.recommended {
+            background: #fefce8;
+            border: 1px solid #fde68a;
+        }
+
+        .option-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .option-label {
+            font-size: 0.95rem;
+            color: #374151;
+        }
+
+        .option-label.mastered {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .option-label.recommended {
+            color: #ca8a04;
+            font-weight: 600;
+        }
+
+        .options-panel {
+            flex-grow: 1;
+        }
+
+        /* Start Button */
+        .start-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: auto;
+            background: #0891b2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .start-button:hover {
+            background: #0e7490;
+            transform: scale(1.02);
+        }
+
+        /* Success Container */
+        .success-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .success-container h2 {
+            font-size: 2rem;
+            color: #164e63;
+            margin-bottom: 10px;
+        }
+
+        .level-stars {
+            font-size: 3rem;
+            margin: 20px 0;
+        }
+
+        .success-stats {
+            background: #f0fdfa;
+            border: 2px solid #99f6e4;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .success-stats p {
+            font-size: 1.1rem;
+            color: #374151;
+            margin: 5px 0;
+        }
+
+        .success-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .success-buttons button {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .success-buttons .btn-retry {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .success-buttons .btn-retry:hover {
+            background: #d1d5db;
+        }
+
+        .success-buttons .btn-next {
+            background: #0891b2;
+            color: white;
+        }
+
+        .success-buttons .btn-next:hover {
+            background: #0e7490;
+        }
+
+        /* =============================================
+           ORIGINAL APP - CSS
+           ============================================= */
+
+        .staff-card {
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        #staffSvg {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Keyboard */
+        .keyboard-card {
+            display: none;
+            padding: 0.5rem;
+            overflow: hidden;
+        }
+
+        .keyboard-card.active {
+            display: block;
+        }
+
+        .keyboard-hint {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .keyboard-container {
+            position: relative;
+            margin: 0 auto;
+            height: 120px;
+        }
+
+        .white-keys {
+            display: flex;
+            height: 100%;
+        }
+
+        .white-key {
+            height: 100%;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0 0 6px 6px;
+            position: relative;
+            cursor: default;
+            transition: background 0.15s;
+        }
+
+        .white-key.highlighted {
+            background: #cffafe;
+            border-color: #0891b2;
+        }
+
+        .white-key.highlighted-correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+        }
+
+        .white-key.highlighted-wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .black-keys {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            pointer-events: none;
+        }
+
+        .black-key {
+            height: 100%;
+            background: #1f2937;
+            border-radius: 0 0 4px 4px;
+            position: absolute;
+            cursor: default;
+            pointer-events: auto;
+            z-index: 2;
+            transition: background 0.15s;
+        }
+
+        .black-key.highlighted {
+            background: #0891b2;
+        }
+
+        .black-key.highlighted-correct {
+            background: #22c55e;
+        }
+
+        .black-key.highlighted-wrong {
+            background: #ef4444;
+        }
+
+        .white-key.aufsteiger-selected {
+            background: #fbbf24 !important;
+            border-color: #d97706 !important;
+        }
+
+        .black-key.aufsteiger-selected {
+            background: #d97706 !important;
+        }
+
+        .white-key.aufsteiger-correct {
+            background: #86efac !important;
+            border-color: #22c55e !important;
+        }
+
+        .black-key.aufsteiger-correct {
+            background: #22c55e !important;
+        }
+
+        .white-key.aufsteiger-wrong {
+            background: #fca5a5 !important;
+            border-color: #ef4444 !important;
+        }
+
+        .black-key.aufsteiger-wrong {
+            background: #ef4444 !important;
+        }
+
+        .white-key.aufsteiger-missed {
+            background: #bfdbfe !important;
+            border-color: #3b82f6 !important;
+        }
+
+        .black-key.aufsteiger-missed {
+            background: #3b82f6 !important;
+        }
+
+        /* Step Markers (Aufsteiger) */
+        .step-markers-container {
+            display: none;
+            justify-content: center;
+            gap: 2px;
+            margin-bottom: 8px;
+            flex-wrap: nowrap;
+        }
+
+        .step-markers-container.active {
+            display: flex;
+        }
+
+        .step-marker {
+            width: 55px;
+            height: 32px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #9ca3af;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .step-marker {
+                width: 42px;
+                height: 28px;
+                font-size: 0.6rem;
+            }
+        }
+
+        .step-marker:hover {
+            border-color: #0891b2;
+            color: #0891b2;
+        }
+
+        .step-marker.selected {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: white;
+            font-weight: 600;
+        }
+
+        .step-marker.correct {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+        }
+
+        .step-marker.wrong {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .step-marker.missed {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        /* Stufenpaar-Buttons (Aufsteiger: 1.-2., 2.-3., etc.) */
+        .step-pair-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .step-pair-btn {
+            min-width: 52px;
+            height: 36px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #6b7280;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .step-pair-btn:hover {
+            border-color: #0891b2;
+            color: #0891b2;
+        }
+        .step-pair-btn.selected {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: white;
+            font-weight: 600;
+        }
+        .step-pair-btn.correct {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+        }
+        .step-pair-btn.wrong {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+        .step-pair-btn.missed {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+        /* Muster lernen: Tonleiternoten markiert */
+        .white-key.scale-note-marked {
+            background: linear-gradient(to bottom, #e0f2fe 0%, #bae6fd 100%) !important;
+            border-color: #7dd3fc !important;
+        }
+        .black-key.scale-note-marked-black {
+            background: linear-gradient(to bottom, #0284c7 0%, #0369a1 100%) !important;
+            border-color: #075985 !important;
+        }
+        /* Muster lernen: Halbtonschritte vormarkiert (stärker) */
+        .white-key.halfstep-marked {
+            background: linear-gradient(to bottom, #fde68a 0%, #fbbf24 100%) !important;
+            border-color: #f59e0b !important;
+        }
+        .black-key.halfstep-marked-black {
+            background: linear-gradient(to bottom, #d97706 0%, #b45309 100%) !important;
+            border-color: #92400e !important;
+        }
+        @media (max-width: 768px) {
+            .step-pair-btn {
+                min-width: 42px;
+                height: 32px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Input Area */
+        .input-card {
+            padding: 0.75rem;
+        }
+
+        .input-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .input-buttons button {
+            flex: 1;
+            max-width: 200px;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: 3px solid #d1d5db;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #374151;
+        }
+
+        .input-buttons button:hover {
+            border-color: #0891b2;
+            color: #0891b2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-buttons button:active {
+            transform: translateY(0);
+        }
+
+        .input-buttons button.flash-correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #16a34a;
+        }
+
+        .input-buttons button.flash-incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+
+        /* Profi Input */
+        .profi-input-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profi-input-row input {
+            padding: 12px 16px;
+            font-size: 1.1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            width: 200px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .profi-input-row input:focus {
+            border-color: #0891b2;
+        }
+
+        .profi-input-row input.input-correct {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .profi-input-row input.input-incorrect {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .profi-input-row button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: #0891b2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .profi-input-row button:hover {
+            background: #0e7490;
+        }
+
+        /* Streak Display */
+        .streak-display {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .streak-display.active {
+            display: flex;
+        }
+
+        .streak-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .streak-circles {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .streak-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid #d1d5db;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .streak-circle.filled {
+            background: #0891b2;
+            border-color: #0891b2;
+            transform: scale(1.1);
+        }
+
+        .streak-circle.active {
+            border-color: #0891b2;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        /* Feedback */
+        .feedback {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .feedback.active {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .feedback.incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .feedback.info {
+            background: #e0f2fe;
+            color: #075985;
+            border: 1px solid #7dd3fc;
+        }
+
+        /* Fallback hint */
+        .fallback-hint {
+            text-align: center;
+            padding: 8px;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: none;
+        }
+
+        .fallback-hint.active {
+            display: block;
+        }
+
+        /* Quiz Overlay */
+        #quizOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 10px 16px;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        #quizOverlay.active {
+            display: block;
+        }
+
+        .quiz-overlay-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .quiz-overlay-title {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #374151;
+        }
+
+        .quiz-overlay-task {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .quiz-progress-bar {
+            background: #e5e7eb;
+            border-radius: 10px;
+            height: 6px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-fill {
+            background: #0891b2;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            font-size: 1.5rem;
+            color: #164e63;
+            margin-bottom: 15px;
+        }
+
+        .modal p {
+            color: #4b5563;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .modal .modal-section {
+            background: #f0fdfa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .modal .modal-section h3 {
+            font-size: 1rem;
+            color: #164e63;
+            margin-bottom: 8px;
+        }
+
+        .modal .modal-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .modal .modal-section li {
+            padding: 3px 0;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .modal button {
+            width: 100%;
+            padding: 12px;
+            background: #0891b2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .modal button:hover {
+            background: #0e7490;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .quick-start-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .quick-start-header p {
+                font-size: 1rem;
+            }
+
+            .level-card-new {
+                padding: 18px;
+            }
+
+            .level-icon-new {
+                font-size: 2rem;
+            }
+
+            .level-card-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .step-markers-container {
+                gap: 1px;
+            }
+
+            .input-buttons button {
+                font-size: 0.95rem;
+                padding: 12px 14px;
+            }
+
+            .profi-input-row input {
+                width: 160px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Landscape padding for quiz overlay */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .level-screen {
+                padding: 0.5rem;
+            }
+        }
+
+        /* App with quiz overlay needs top padding */
+        .app-with-overlay {
+            padding-top: 70px;
+        }
+
+        /* ======================== RESPONSIVE: MOBILE (<=768px) ======================== */
+        @media (max-width: 768px) {
+            .staff-card {
+                position: sticky;
+                top: 0;
+                z-index: 99;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                padding: 0.3rem;
+            }
+            .app-with-overlay .staff-card {
+                top: 70px;
+            }
+            #staffSvg {
+                max-height: 220px;
+                max-width: 100%;
+            }
+            .input-card {
+                margin-top: 0.5rem;
+            }
+            .feedback {
+                font-size: 0.85rem;
+                padding: 0.4rem;
+            }
+        }
+
+        /* ======================== RESPONSIVE: MOBILE PORTRAIT ======================== */
+        @media (max-width: 768px) and (orientation: portrait) {
+            #staffSvg {
+                max-height: 170px;
+            }
+            .staff-card {
+                padding: 0.25rem;
+            }
+            .main-content-wrapper {
+                display: block;
+            }
+            .keyboard-container {
+                height: 9rem !important;
+            }
+            .keyboard-card {
+                padding: 0.3rem;
+            }
+            .input-buttons button {
+                font-size: 0.9rem;
+                padding: 10px 12px;
+            }
+            .streak-circles {
+                gap: 3px;
+            }
+            .streak-circle {
+                width: 18px;
+                height: 18px;
+                border-width: 2px;
+            }
+        }
+
+        /* ======================== RESPONSIVE: MOBILE LANDSCAPE ======================== */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .main-content-wrapper {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto auto;
+                gap: 0.4rem;
+                align-items: start;
+            }
+            .staff-card {
+                grid-column: 1;
+                grid-row: 1 / -1;
+                padding: 0.2rem;
+            }
+            .keyboard-card {
+                grid-column: 2;
+                grid-row: 1;
+                padding: 0.2rem;
+            }
+            .input-card {
+                grid-column: 2;
+                grid-row: 2;
+                margin-top: 0;
+            }
+            .streak-display {
+                grid-column: 2;
+                grid-row: 3;
+            }
+            .step-markers-container {
+                grid-column: 2;
+            }
+            #staffSvg {
+                max-height: 160px;
+            }
+            .keyboard-container {
+                height: 10rem !important;
+            }
+            .level-screen {
+                padding: 0.5rem;
+            }
+        }
+
+        /* ======================== RESPONSIVE: LANDSCAPE TABLET (iPad etc.) ======================== */
+        @media (orientation: landscape) and (max-height: 1100px) {
+            .keyboard-card {
+                padding: 0.4rem;
+            }
+        }
+
+        /* Sticky staff for tablet landscape (Bug #3: keyboard covers task) */
+        @media (min-width: 769px) and (max-width: 1200px) and (orientation: landscape) {
+            .staff-card {
+                position: sticky;
+                top: 0;
+                z-index: 99;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                padding: 0.3rem;
+            }
+            .app-with-overlay .staff-card {
+                top: 70px;
+            }
+            #staffSvg {
+                max-height: 200px;
+            }
+        }
+
+        /* Also sticky for any screen with low height (e.g. landscape tablets) */
+        @media (max-height: 700px) and (min-width: 769px) {
+            .staff-card {
+                position: sticky;
+                top: 0;
+                z-index: 99;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                padding: 0.3rem;
+            }
+            .app-with-overlay .staff-card {
+                top: 70px;
+            }
+            #staffSvg {
+                max-height: 180px;
+            }
+        }
+
+        /* ======================== RESPONSIVE: TABLET (769px – 1200px) ======================== */
+        @media (max-width: 1200px) and (min-width: 769px) {
+            .cards-grid {
+                gap: 15px;
+            }
+            .level-card-new {
+                padding: 20px;
+            }
+            .level-card-header h2 {
+                font-size: 1.4rem;
+            }
+            .option-label {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* ======================== RESPONSIVE: DESKTOP COMPACT (horiz. but low height) ======================== */
+        @media (min-width: 769px) and (max-height: 900px) {
+            .keyboard-container {
+                height: 9rem !important;
+            }
+            .feedback {
+                padding: 0.4rem;
+                margin-top: 0.2rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======================== QUICK START SCREEN ======================== -->
+    <div id="quickStartScreen" class="level-screen active">
+        <div class="quick-start-container">
+            <div class="quick-start-header">
+                <h1>🪜 Tonleitertrainer</h1>
+                <p>Wähle deine Stufe und starte sofort!</p>
+            </div>
+
+            <div class="cards-grid">
+            <!-- Stufe 1: Einsteiger -->
+            <div class="level-card-new einsteiger">
+                <div class="level-card-header">
+                    <div class="level-icon-new">🟢</div>
+                    <div>
+                        <h2>EINSTEIGER</h2>
+                        <p class="task-type">Ganzton oder Halbton?</p>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressEinsteiger" style="width: 0%"></div>
+                </div>
+                <p class="progress-text" id="progressTextEinsteiger">0% (0/2 gemeistert)</p>
+
+                <div class="options-panel">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_einsteiger_basis" value="basis" checked disabled>
+                        <span class="option-label" id="label_einsteiger_basis">Stammtöne</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_einsteiger_vorzeichen" value="vorzeichen">
+                        <span class="option-label" id="label_einsteiger_vorzeichen">+ Mit Vorzeichen</span>
+                    </label>
+                </div>
+
+                <button class="start-button" onclick="quickStart.start('einsteiger')">
+                    🚀 STARTEN
+                </button>
+            </div>
+
+            <!-- Stufe 2: Aufsteiger -->
+            <div class="level-card-new aufsteiger">
+                <div class="level-card-header">
+                    <div class="level-icon-new">🟡</div>
+                    <div>
+                        <h2>AUFSTEIGER</h2>
+                        <p class="task-type">Halbtonschritte finden</p>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressAufsteiger" style="width: 0%"></div>
+                </div>
+                <p class="progress-text" id="progressTextAufsteiger">0% (0/3 gemeistert)</p>
+
+                <div class="options-panel">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_aufsteiger_basis" value="basis" checked disabled>
+                        <span class="option-label" id="label_aufsteiger_basis">HS-Stufen wählen</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_aufsteiger_stufenpaare" value="stufenpaare">
+                        <span class="option-label" id="label_aufsteiger_stufenpaare">+ HS auswählen</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_aufsteiger_mehr_tonarten" value="mehr_tonarten">
+                        <span class="option-label" id="label_aufsteiger_mehr_tonarten">+ Erweiterte Tonarten</span>
+                    </label>
+                </div>
+
+                <button class="start-button" onclick="quickStart.start('aufsteiger')">
+                    🚀 STARTEN
+                </button>
+            </div>
+
+            <!-- Stufe 3: Profi -->
+            <div class="level-card-new profi">
+                <div class="level-card-header">
+                    <div class="level-icon-new">🔴</div>
+                    <div>
+                        <h2>PROFI</h2>
+                        <p class="task-type">Tonleiter benennen</p>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressProfi" style="width: 0%"></div>
+                </div>
+                <p class="progress-text" id="progressTextProfi">0% (0/4 gemeistert)</p>
+
+                <div class="options-panel">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_profi_muster_lernen" value="muster_lernen" checked disabled>
+                        <span class="option-label" id="label_profi_muster_lernen">Tongeschlecht wählen</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_profi_muster_erkennen" value="muster_erkennen">
+                        <span class="option-label" id="label_profi_muster_erkennen">+ HS-Stufen wählen und Tonart benennen</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_profi_alles" value="alles">
+                        <span class="option-label" id="label_profi_alles">+ Alle Tonarten benennen</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="opt_profi_ohne_hilfe" value="ohne_hilfe">
+                        <span class="option-label" id="label_profi_ohne_hilfe">+ Ohne Hilfe</span>
+                    </label>
+                </div>
+
+                <button class="start-button" onclick="quickStart.start('profi')">
+                    🚀 STARTEN
+                </button>
+            </div>
+            </div>
+
+            <!-- Freies Üben Link + Reset -->
+            <div style="text-align: center; margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn" onclick="quickStart.showFreeMode()" style="background: transparent; border: 2px solid #0891b2; color: #0891b2; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem;">
+                    🎯 Freies Üben
+                </button>
+                <button class="btn" onclick="quickStart.confirmReset()" style="background: transparent; border: 2px solid #9ca3af; color: #6b7280; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                    🔄 Fortschritt zurücksetzen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== SUCCESS SCREEN ======================== -->
+    <div id="successScreen" class="level-screen">
+        <div class="success-container">
+            <div style="font-size: 4rem; margin-bottom: 20px;" id="successEmoji">🎉</div>
+            <h2 id="successTitle">SUPER GEMACHT!</h2>
+
+            <div class="level-stars" id="successStars">⭐⭐⭐</div>
+            <p id="successScore" style="font-size: 1.5rem; color: #4b5563; margin: 20px 0;">8 von 10 richtig (80%)</p>
+
+            <div class="success-stats" id="successMessage">
+                <p><strong>💡 Nächster Schritt:</strong></p>
+                <p id="successNextStep">Probiere die nächste Option!</p>
+            </div>
+
+            <div class="success-buttons" id="successButtons">
+                <!-- Buttons werden dynamisch eingefügt -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== ORIGINAL APP ======================== -->
+    <div id="originalApp" class="level-screen">
+    <div class="container" id="appContainer">
+
+        <!-- Quiz Overlay -->
+        <div id="quizOverlay">
+            <div class="quiz-overlay-content">
+                <div class="quiz-overlay-title" id="quizTitle">🟢 EINSTEIGER - Frage 1/10</div>
+                <div class="quiz-overlay-task" id="quizTask">🎵 Ganzton oder Halbton?</div>
+                <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="quizProgressFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intro/Hilfe Modal -->
+        <!-- Quick-Start Menu Info Modal -->
+        <div class="modal-overlay" id="quickStartMenuModal">
+            <div class="modal" style="max-width: 28rem; text-align: center;">
+                <h2>ℹ️ Hinweis</h2>
+                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
+                    Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
+                    Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
+                </p>
+                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.remove('active')" style="padding: 10px 30px; border-radius: 8px; border: none; background: #0891b2; color: white; font-size: 1rem; cursor: pointer;">
+                    Verstanden
+                </button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="introModal">
+            <div class="modal">
+                <h2>🪜 Tonleitertrainer – Hilfe</h2>
+
+                <div class="modal-section">
+                    <h3>🎼 Halbtonschritte</h3>
+                    <ul>
+                        <li>• <strong>Dur:</strong> Halbtonschritte zwischen 3./4. und 7./8. Stufe</li>
+                        <li>• <strong>Moll (natürlich):</strong> Halbtonschritte zwischen 2./3. und 5./6. Stufe</li>
+                        <li>• <strong>Kirchentonarten:</strong> Je nach Modus an anderen Stellen</li>
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>✍️ Drei Stufen</h3>
+                    <ul>
+                        <li>• <strong>🟢 Einsteiger:</strong> Erkenne, ob der Abstand zwischen zwei Noten ein Ganzton oder ein Halbton ist.</li>
+                        <li>• <strong>🟡 Aufsteiger:</strong> Dir wird eine Tonleiter angezeigt (Dur, Moll oder Kirchentonart). Klicke die 4 Tasten an, zwischen denen die Halbtonschritte liegen.</li>
+                        <li>• <strong>🔴 Profi:</strong> Benenne die Tonleiter oder wähle „Andere" für Kirchentonarten. Schaffe 10 richtige in Folge! Bei einem Fehler markierst du die Halbtonschritte als Wiederholung.</li>
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>💡 Tipps</h3>
+                    <ul>
+                        <li>• Auf der Tastatur ohne Vorzeichen liegen Halbtonschritte zwischen <strong>E→F</strong> und <strong>H→C</strong> (keine schwarze Taste dazwischen).</li>
+                        <li>• Bei Tonleitern mit Vorzeichen verschieben sich die Halbtonschritte entsprechend.</li>
+                        <li>• Nutze die Klaviatur als Orientierung!</li>
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>⚙️ Freies Üben</h3>
+                    <ul>
+                        <li>• Wähle „Freies Üben" im Startmenü für eigene Einstellungen.</li>
+                        <li>• Über das Zahnrad-Symbol kannst du Stufe, Tastatur und Tonarten anpassen.</li>
+                    </ul>
+                </div>
+
+                <button onclick="app.closeIntro()">Verstanden! 👍</button>
+
+                <button onclick="app.showFeedbackModal()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
+                    💬 Feedback geben
+                </button>
+            </div>
+        </div>
+
+        <!-- Feedback Modal -->
+        <div class="modal-overlay" id="feedbackModal">
+            <div class="modal">
+                <h2>💬 Feedback & Verbesserungsvorschläge</h2>
+                <p style="margin-bottom: 1rem; color: #4b5563;">
+                    Deine Meinung hilft mir, den Tonleitertrainer zu verbessern!
+                </p>
+
+                <form id="feedbackForm" onsubmit="app.sendFeedback(event)">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; color: #374151;">
+                            Was möchtest du mir mitteilen?
+                        </label>
+                        <textarea
+                            id="feedbackText"
+                            rows="6"
+                            placeholder="z.B. Ich habe einen Fehler gefunden... / Ich wünsche mir... / Die App funktioniert super!"
+                            style="width: 100%; padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 0.5rem; font-family: inherit; resize: vertical;"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; color: #374151;">
+                            Kategorie (optional)
+                        </label>
+                        <select id="feedbackCategory" style="width: 100%; max-width: 400px; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;">
+                            <option value="">Bitte wählen...</option>
+                            <option value="bug">🐛 Fehler melden</option>
+                            <option value="feature">✨ Feature-Wunsch</option>
+                            <option value="improvement">💡 Verbesserungsvorschlag</option>
+                            <option value="praise">👍 Lob</option>
+                            <option value="other">💬 Sonstiges</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="submit" class="btn-primary" style="flex: 1;">
+                            📧 Feedback senden
+                        </button>
+                        <button type="button" onclick="app.closeFeedbackModal()" style="flex: 1; padding: 0.75rem; background: #e5e7eb; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">
+                            Abbrechen
+                        </button>
+                    </div>
+                </form>
+
+                <p style="margin-top: 1rem; font-size: 0.75rem; color: #6b7280; text-align: center;">
+                    Dein Feedback wird per E-Mail an Herrn Madyda gesendet.
+                </p>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="card">
+            <div class="header">
+                <div class="title" id="appTitle">🪜 Tonleitertrainer</div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Fortschritt" style="background:transparent; border:2px solid #0891b2; color:#0891b2; margin-right:6px; padding:0.35rem 0.75rem; font-size:0.9rem;">
+                        📊 Fortschritt
+                    </button>
+                    <button class="btn" onclick="app.showIntro()" title="Hilfe anzeigen">
+                        <span style="font-size:1.3rem;">❓</span>
+                    </button>
+                    <button class="btn" onclick="app.toggleSettings()" title="Einstellungen">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="settings-panel hidden" id="settingsPanel">
+                <h3>Einstellungen</h3>
+
+                <!-- Übungsmodus -->
+                <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <label style="font-weight: 600; color: #164e63;">🎵 Schwierigkeit:</label>
+                    <select id="stageSelect" onchange="app.applySettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
+                        <option value="einsteiger">🟢 Einsteiger - Ganzton oder Halbton?</option>
+                        <option value="aufsteiger">🟡 Aufsteiger - Halbtonschritte finden</option>
+                        <option value="profi">🔴 Profi - Tonleiter benennen</option>
+                    </select>
+                </div>
+
+                <!-- Ziel-Modus (wie Dreiklangstrainer) -->
+                <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <label style="font-weight: 600; color: #7c2d12;">🎯 Übungsmodus:</label>
+                    <select id="goalModeSelect" onchange="app.updateGoalSettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
+                        <option value="free">Freies Üben (kein Ziel)</option>
+                        <option value="streak">🔥 Streak-Modus (richtige in Folge)</option>
+                        <option value="accuracy">📊 Erfolgsquoten-Modus</option>
+                    </select>
+                </div>
+
+                <!-- Streak Options -->
+                <div id="streakGoalOptions" class="hidden" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <label>Streak-Ziel:</label>
+                    <select id="goalStreakSelect" onchange="app.updateGoalSettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
+                        <option value="5">🥉 Leicht: 5 richtige in Folge</option>
+                        <option value="10" selected>🥈 Mittel: 10 richtige in Folge</option>
+                        <option value="15">🥇 Schwer: 15 richtige in Folge</option>
+                    </select>
+                </div>
+
+                <!-- Accuracy Options -->
+                <div id="accuracyGoalOptions" class="hidden" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <label>Erfolgsquoten-Ziel:</label>
+                    <select id="goalAccuracySelect" onchange="app.updateGoalSettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
+                        <option value="70-20">🥉 Bronze: 70% bei 20 Aufgaben</option>
+                        <option value="80-30" selected>🥈 Silber: 80% bei 30 Aufgaben</option>
+                        <option value="90-40">🥇 Gold: 90% bei 40 Aufgaben</option>
+                    </select>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="settingKeyboard" onchange="app.applySettings()" checked>
+                    <label for="settingKeyboard">Tastatur anzeigen</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="settingVorzeichen" onchange="app.applySettings()">
+                    <label for="settingVorzeichen">Alle Tonarten (inkl. viele Vorzeichen)</label>
+                </div>
+                <div class="checkbox-group" id="settingStufenGroup" style="display:none;">
+                    <input type="checkbox" id="settingStufen" onchange="app.applySettings()">
+                    <label for="settingStufen">HS-Stufen auswählen (Stufenpaar-Buttons)</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="settingKirchentonarten" onchange="app.applySettings()">
+                    <label for="settingKirchentonarten">Kirchentonarten einbeziehen</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="settingBass" onchange="app.applySettings()">
+                    <label for="settingBass">Bassschlüssel</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Display -->
+        <div class="card">
+            <div class="score-display" id="scoreDisplay">
+                <div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                        <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                    </svg>
+                    <span class="score-text" id="scoreText">0 / 0</span>
+                    <span class="score-percentage" id="scorePercent"></span>
+                </div>
+                <button class="btn" onclick="app.resetScore()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+                    </svg>
+                    <span style="font-size: 0.875rem;">Zurücksetzen</span>
+                </button>
+            </div>
+            <!-- Goal progress (streak/accuracy mode) -->
+            <div id="goalProgress" class="hidden" style="margin-top:8px; padding-top:8px; border-top:1px solid #e5e7eb;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="goalLabel" style="font-size:0.85rem; font-weight:600; color:#7c2d12;"></span>
+                    <div style="flex:1; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
+                        <div id="goalProgressFill" style="height:100%; background:#0891b2; border-radius:4px; transition:width 0.3s; width:0%;"></div>
+                    </div>
+                    <span id="goalValue" style="font-size:0.85rem; font-weight:600; color:#164e63;"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fallback Hint (for Profi fallback) -->
+        <div class="fallback-hint" id="fallbackHint">
+            ⚠️ Markiere die Halbtonschritte dieser Tonleiter, um weiterzumachen!
+        </div>
+
+        <!-- Task Description -->
+        <div id="taskDescription" style="text-align:center; padding:6px 10px; font-size:0.9rem; color:#6b7280; font-weight:500;"></div>
+
+        <!-- Responsive Wrapper for Landscape Grid -->
+        <div class="main-content-wrapper">
+
+        <!-- Staff Card -->
+        <div class="card staff-card">
+            <svg id="staffSvg" width="620" height="200" viewBox="20 130 600 200"></svg>
+        </div>
+
+        <!-- Step Markers (Aufsteiger) -->
+        <div class="step-markers-container" id="stepMarkersContainer">
+            <!-- 7 markers generated dynamically -->
+        </div>
+
+        <!-- Streak Display (Profi only) -->
+        <div class="streak-display" id="streakDisplay">
+            <span class="streak-label">Serie:</span>
+            <div class="streak-circles" id="streakCircles">
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+                <div class="streak-circle"></div>
+            </div>
+        </div>
+
+        <!-- Keyboard Card -->
+        <div class="card keyboard-card" id="keyboardCard">
+            <div class="keyboard-hint" id="keyboardHint">🎹 Tastatur zur Orientierung</div>
+            <div id="keyboardContainer"></div>
+        </div>
+
+        <!-- Input Card -->
+        <div class="card input-card" id="inputCard">
+            <!-- Dynamic content based on stage -->
+        </div>
+
+        </div><!-- /main-content-wrapper -->
+
+        <!-- Feedback -->
+        <div class="feedback" id="feedback"></div>
+
+    </div>
+    </div>
+
+    <!-- ======================== JAVASCRIPT ======================== -->
+    <script>
+
+    // ===================================
+    // TRACKING SYSTEM v2.2 - Google Sheets
+    // Mit Heartbeat für zuverlässiges Tablet-Tracking
+    // ===================================
+    const tracking = {
+        scriptURL: 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
+        sessionId: null,
+        sessionStart: null,
+        questionsAnswered: 0,
+        questionsCorrect: 0,
+        sessionEnded: false,
+        lastActivity: null,
+        idleTimeoutMs: 5 * 60 * 1000, // 5 Minuten Idle-Timeout
+        idleCheckInterval: null,
+        heartbeatInterval: null,
+        heartbeatIntervalMs: 30 * 1000, // Heartbeat alle 30 Sekunden
+
+        init() {
+            this.sessionId = this.generateSessionId();
+            this.sessionStart = Date.now();
+            this.lastActivity = Date.now();
+
+            this.sendStartEvent();
+
+            window.addEventListener('pagehide', () => this.endSession('pagehide'));
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') this.endSession('visibilitychange');
+            });
+            window.addEventListener('beforeunload', () => this.endSession('beforeunload'));
+
+            // Track user activity for idle timeout
+            const activityEvents = ['click', 'keydown', 'touchstart', 'scroll'];
+            activityEvents.forEach(evt => {
+                document.addEventListener(evt, () => {
+                    this.lastActivity = Date.now();
+                }, { passive: true });
+            });
+
+            // Check for idle timeout every 30 seconds
+            this.idleCheckInterval = setInterval(() => this.checkIdleTimeout(), 30000);
+
+            // Heartbeat: Alle 30 Sekunden aktuelle Daten senden
+            this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), this.heartbeatIntervalMs);
+
+            console.log('📊 Tracking v2.2 initialisiert (mit Heartbeat), Session:', this.sessionId);
+        },
+
+        checkIdleTimeout() {
+            if (this.sessionEnded) {
+                if (this.idleCheckInterval) clearInterval(this.idleCheckInterval);
+                return;
+            }
+            const idleTime = Date.now() - this.lastActivity;
+            if (idleTime >= this.idleTimeoutMs) {
+                console.log('📊 Session Timeout nach', Math.round(idleTime / 1000), 'Sekunden Inaktivität');
+                this.endSession('timeout');
+            }
+        },
+
+        generateSessionId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        },
+
+        sendStartEvent() {
+            const data = {
+                eventType: 'session_start',
+                sessionId: this.sessionId,
+                app: 'Tonleitertrainer',
+                timestamp: new Date().toISOString(),
+                device: this.getDeviceType(),
+                referrer: document.referrer || 'direct'
+            };
+            navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+            console.log('📊 Session gestartet:', data);
+        },
+
+        sendHeartbeat() {
+            if (this.sessionEnded || !this.sessionStart) return;
+
+            const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
+            const successRate = this.questionsAnswered > 0
+                ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
+                : 0;
+
+            const data = {
+                eventType: 'session_heartbeat',
+                sessionId: this.sessionId,
+                app: 'Tonleitertrainer',
+                timestamp: new Date().toISOString(),
+                duration: duration,
+                questionsAnswered: this.questionsAnswered,
+                successRate: successRate,
+                device: this.getDeviceType()
+            };
+
+            navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+        },
+
+        trackQuestion(isCorrect) {
+            this.questionsAnswered++;
+            if (isCorrect) this.questionsCorrect++;
+        },
+
+        endSession(reason) {
+            if (this.sessionEnded || !this.sessionStart || !this.scriptURL) return;
+            this.sessionEnded = true;
+
+            if (this.idleCheckInterval) {
+                clearInterval(this.idleCheckInterval);
+                this.idleCheckInterval = null;
+            }
+            if (this.heartbeatInterval) {
+                clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = null;
+            }
+
+            const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
+            const successRate = this.questionsAnswered > 0
+                ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
+                : 0;
+
+            const data = {
+                eventType: 'session_end',
+                sessionId: this.sessionId,
+                app: 'Tonleitertrainer',
+                timestamp: new Date().toISOString(),
+                duration: duration,
+                questionsAnswered: this.questionsAnswered,
+                successRate: successRate,
+                device: this.getDeviceType(),
+                referrer: document.referrer || 'direct',
+                endReason: reason || 'page_close'
+            };
+
+            navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+            console.log('📊 Session beendet:', data);
+        },
+
+        getDeviceType() {
+            const ua = navigator.userAgent.toLowerCase();
+            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const width = window.innerWidth;
+
+            const isTablet = /(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i.test(ua);
+            const isMobile = /mobile|android|iphone|ipod|blackberry|windows phone/i.test(ua);
+
+            if (isMobile && !isTablet) return 'mobile';
+            if (isTablet || (hasTouch && width >= 768 && width < 1366)) return 'tablet';
+            return 'desktop';
+        }
+    };
+
+    // =============================================
+    // SCALE DATA
+    // =============================================
+    const SCALES = {
+        dur: [
+            { root: 'C',  type: 'Dur', notes: ['C','D','E','F','G','A','H','C'],     octaves: [4,4,4,4,4,4,4,5], vorzeichen: 0 },
+            { root: 'G',  type: 'Dur', notes: ['G','A','H','C','D','E','Fis','G'],   octaves: [4,4,4,5,5,5,5,5], vorzeichen: 1 },
+            { root: 'D',  type: 'Dur', notes: ['D','E','Fis','G','A','H','Cis','D'], octaves: [4,4,4,4,4,4,5,5], vorzeichen: 2 },
+            { root: 'A',  type: 'Dur', notes: ['A','H','Cis','D','E','Fis','Gis','A'],octaves:[4,4,5,5,5,5,5,5], vorzeichen: 3 },
+            { root: 'E',  type: 'Dur', notes: ['E','Fis','Gis','A','H','Cis','Dis','E'],octaves:[4,4,4,4,4,5,5,5], vorzeichen: 4 },
+            { root: 'F',  type: 'Dur', notes: ['F','G','A','B','C','D','E','F'],     octaves: [4,4,4,4,5,5,5,5], vorzeichen: 1 },
+            { root: 'B',  type: 'Dur', notes: ['B','C','D','Es','F','G','A','B'],    octaves: [4,5,5,5,5,5,5,5], vorzeichen: 2 },
+            { root: 'Es', type: 'Dur', notes: ['Es','F','G','As','B','C','D','Es'],  octaves: [4,4,4,4,4,5,5,5], vorzeichen: 3 },
+            { root: 'As', type: 'Dur', notes: ['As','B','C','Des','Es','F','G','As'],octaves: [4,4,5,5,5,5,5,5], vorzeichen: 4 }
+        ],
+        moll: [
+            { root: 'a',   type: 'Moll', notes: ['A','H','C','D','E','F','G','A'],      octaves: [4,4,5,5,5,5,5,5], vorzeichen: 0 },
+            { root: 'e',   type: 'Moll', notes: ['E','Fis','G','A','H','C','D','E'],    octaves: [4,4,4,4,4,5,5,5], vorzeichen: 1 },
+            { root: 'h',   type: 'Moll', notes: ['H','Cis','D','E','Fis','G','A','H'],  octaves: [3,4,4,4,4,4,4,4], vorzeichen: 2 },
+            { root: 'fis', type: 'Moll', notes: ['Fis','Gis','A','H','Cis','D','E','Fis'],octaves:[4,4,4,4,5,5,5,5], vorzeichen: 3 },
+            { root: 'cis', type: 'Moll', notes: ['Cis','Dis','E','Fis','Gis','A','H','Cis'],octaves:[4,4,4,4,4,4,4,5], vorzeichen: 4 },
+            { root: 'd',   type: 'Moll', notes: ['D','E','F','G','A','B','C','D'],      octaves: [4,4,4,4,4,4,5,5], vorzeichen: 1 },
+            { root: 'g',   type: 'Moll', notes: ['G','A','B','C','D','Es','F','G'],     octaves: [4,4,4,5,5,5,5,5], vorzeichen: 2 },
+            { root: 'c',   type: 'Moll', notes: ['C','D','Es','F','G','As','B','C'],    octaves: [4,4,4,4,4,4,4,5], vorzeichen: 3 },
+            { root: 'f',   type: 'Moll', notes: ['F','G','As','B','C','Des','Es','F'],  octaves: [4,4,4,4,5,5,5,5], vorzeichen: 4 }
+        ],
+        kirchentonarten: [
+            // Dorisch (Ganz-Halb-Ganz-Ganz-Ganz-Halb-Ganz) — HS: 1,5
+            { root: 'D',  type: 'Dorisch',  notes: ['D','E','F','G','A','H','C','D'],     octaves: [4,4,4,4,4,4,5,5], vorzeichen: 0 },
+            { root: 'G',  type: 'Dorisch',  notes: ['G','A','B','C','D','E','F','G'],     octaves: [4,4,4,5,5,5,5,5], vorzeichen: 1 },
+            { root: 'A',  type: 'Dorisch',  notes: ['A','H','C','D','E','Fis','G','A'],   octaves: [4,4,5,5,5,5,5,5], vorzeichen: 1 },
+            { root: 'E',  type: 'Dorisch',  notes: ['E','Fis','G','A','H','Cis','D','E'], octaves: [4,4,4,4,4,5,5,5], vorzeichen: 2 },
+            // Phrygisch (Halb-Ganz-Ganz-Ganz-Halb-Ganz-Ganz) — HS: 0,4
+            { root: 'E',  type: 'Phrygisch', notes: ['E','F','G','A','H','C','D','E'],    octaves: [4,4,4,4,4,5,5,5], vorzeichen: 0 },
+            { root: 'A',  type: 'Phrygisch', notes: ['A','B','C','D','E','F','G','A'],    octaves: [4,4,5,5,5,5,5,5], vorzeichen: 1 },
+            { root: 'H',  type: 'Phrygisch', notes: ['H','C','D','E','Fis','G','A','H'],  octaves: [3,4,4,4,4,4,4,4], vorzeichen: 1 },
+            // Lydisch (Ganz-Ganz-Ganz-Halb-Ganz-Ganz-Halb) — HS: 3,6
+            { root: 'F',  type: 'Lydisch',  notes: ['F','G','A','H','C','D','E','F'],     octaves: [4,4,4,4,5,5,5,5], vorzeichen: 0 },
+            { root: 'C',  type: 'Lydisch',  notes: ['C','D','E','Fis','G','A','H','C'],   octaves: [4,4,4,4,4,4,4,5], vorzeichen: 1 },
+            { root: 'G',  type: 'Lydisch',  notes: ['G','A','H','Cis','D','E','Fis','G'], octaves: [4,4,4,5,5,5,5,5], vorzeichen: 2 },
+            // Mixolydisch (Ganz-Ganz-Halb-Ganz-Ganz-Halb-Ganz) — HS: 2,5
+            { root: 'G',  type: 'Mixolydisch', notes: ['G','A','H','C','D','E','F','G'],  octaves: [4,4,4,5,5,5,5,5], vorzeichen: 0 },
+            { root: 'C',  type: 'Mixolydisch', notes: ['C','D','E','F','G','A','B','C'],  octaves: [4,4,4,4,4,4,4,5], vorzeichen: 1 },
+            { root: 'D',  type: 'Mixolydisch', notes: ['D','E','Fis','G','A','H','C','D'],octaves: [4,4,4,4,4,4,5,5], vorzeichen: 1 },
+            // Lokrisch (Halb-Ganz-Ganz-Halb-Ganz-Ganz-Ganz) — HS: 0,3
+            { root: 'H',  type: 'Lokrisch', notes: ['H','C','D','E','F','G','A','H'],     octaves: [3,4,4,4,4,4,4,4], vorzeichen: 0 },
+            { root: 'E',  type: 'Lokrisch', notes: ['E','F','G','A','B','C','D','E'],     octaves: [4,4,4,4,4,5,5,5], vorzeichen: 1 },
+            { root: 'Fis',type: 'Lokrisch', notes: ['Fis','G','A','H','C','D','E','Fis'], octaves: [4,4,4,4,5,5,5,5], vorzeichen: 1 }
+        ]
+    };
+
+    // Half step positions (0-indexed: between notes i and i+1)
+    const HALF_STEPS = {
+        'Dur': [2, 6],         // 3./4. und 7./8. Stufe
+        'Moll': [1, 4],        // 2./3. und 5./6. Stufe
+        'Dorisch': [1, 5],     // 2./3. und 6./7. Stufe
+        'Phrygisch': [0, 4],   // 1./2. und 5./6. Stufe
+        'Lydisch': [3, 6],     // 4./5. und 7./8. Stufe
+        'Mixolydisch': [2, 5], // 3./4. und 6./7. Stufe
+        'Lokrisch': [0, 3]     // 1./2. und 4./5. Stufe
+    };
+
+    // Note name → staff position within octave (C=0, D=1, E=2, F=3, G=4, A=5, H/B=6)
+    function getStaffPosition(noteName) {
+        const baseMap = {
+            'C': 0, 'Cis': 0, 'Des': 1,
+            'D': 1, 'Dis': 1,
+            'E': 2, 'Es': 2,
+            'F': 3, 'Fis': 3,
+            'G': 4, 'Gis': 4, 'Ges': 4,
+            'A': 5, 'As': 5, 'Ais': 5,
+            'H': 6, 'B': 6
+        };
+        return baseMap[noteName] !== undefined ? baseMap[noteName] : 0;
+    }
+
+    // Note name → accidental type: 'sharp', 'flat', or null
+    function getAccidental(noteName) {
+        if (noteName === 'B') return 'flat';  // B = Bb in German
+        if (noteName === 'Es' || noteName === 'As' || noteName === 'Des' || noteName === 'Ges') return 'flat';
+        if (noteName.endsWith('es')) return 'flat';
+        if (noteName.endsWith('is')) return 'sharp';
+        return null;
+    }
+
+    // Note name → MIDI semitone offset from C
+    function noteToSemitone(noteName) {
+        const map = {
+            'C': 0, 'Cis': 1, 'Des': 1,
+            'D': 2, 'Dis': 3,
+            'E': 4, 'Es': 3,
+            'F': 5, 'Fis': 6,
+            'G': 7, 'Gis': 8, 'Ges': 6,
+            'A': 9, 'As': 8, 'Ais': 10,
+            'H': 11, 'B': 10
+        };
+        return map[noteName] !== undefined ? map[noteName] : 0;
+    }
+
+    function noteToMidi(noteName, octave) {
+        return (octave + 1) * 12 + noteToSemitone(noteName);
+    }
+
+    // Check if step between two notes is a half step (1 semitone)
+    function isHalfStep(note1, oct1, note2, oct2) {
+        const midi1 = noteToMidi(note1, oct1);
+        const midi2 = noteToMidi(note2, oct2);
+        return Math.abs(midi2 - midi1) === 1;
+    }
+
+    // =============================================
+    // QUICKSTART SYSTEM
+    // =============================================
+    var quickStart = {
+        isActive: false,
+        currentLevel: null,
+        currentOptions: [],
+        questionsAnswered: 0,
+        questionsCorrect: 0,
+        totalQuestions: 10,
+
+        // Profi-specific
+        profiStreak: 0,
+        profiAttempts: 0,
+        maxProfiAttempts: 40,
+        fallbackActive: false,
+        fallbackScale: null,
+
+        progress: null,
+
+        // ---- Init ----
+        init() {
+            this.loadProgress();
+            this.updateAllProgress();
+            this.showQuickStart();
+            document.getElementById('introModal').classList.remove('active');
+        },
+
+        // ---- localStorage ----
+        loadProgress() {
+            const data = localStorage.getItem('tonleitertrainer_quickstart_v1');
+            if (!data) {
+                this.progress = this.createNewProgress();
+                this.saveProgress();
+            } else {
+                const parsed = JSON.parse(data);
+                if (parsed.timestamp && Date.now() - parsed.timestamp > 7 * 24 * 60 * 60 * 1000) {
+                    this.progress = this.createNewProgress();
+                    this.saveProgress();
+                } else {
+                    this.progress = parsed;
+                }
+            }
+        },
+
+        saveProgress() {
+            this.progress.timestamp = Date.now();
+            localStorage.setItem('tonleitertrainer_quickstart_v1', JSON.stringify(this.progress));
+        },
+
+        createNewProgress() {
+            return {
+                timestamp: Date.now(),
+                einsteiger: { mastered: [], attempts: {} },
+                aufsteiger: { mastered: [], attempts: {} },
+                profi: { mastered: [], attempts: {} }
+            };
+        },
+
+        // ---- Progress UI ----
+        updateAllProgress() {
+            const levels = ['einsteiger', 'aufsteiger', 'profi'];
+            const optionMap = {
+                einsteiger: ['basis', 'vorzeichen'],
+                aufsteiger: ['basis', 'stufenpaare', 'mehr_tonarten'],
+                profi: ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe']
+            };
+
+            levels.forEach(level => {
+                const optionIds = optionMap[level];
+                const totalOptions = optionIds.length;
+                const mastered = this.progress[level].mastered || [];
+                const masteredCount = mastered.length;
+                const percentage = Math.round((masteredCount / totalOptions) * 100);
+
+                const bar = document.getElementById('progress' + level.charAt(0).toUpperCase() + level.slice(1));
+                const text = document.getElementById('progressText' + level.charAt(0).toUpperCase() + level.slice(1));
+
+                if (bar) bar.style.width = percentage + '%';
+                if (text) text.textContent = `${percentage}% (${masteredCount}/${totalOptions} gemeistert)`;
+
+                // Find next recommended
+                const nextRecommended = optionIds.find(opt => !mastered.includes(opt));
+
+                optionIds.forEach(optId => {
+                    const label = document.getElementById(`label_${level}_${optId}`);
+                    const checkbox = document.getElementById(`opt_${level}_${optId}`);
+                    const container = checkbox ? checkbox.closest('.option-checkbox') : null;
+
+                    if (label && checkbox) {
+                        // Store original text
+                        const originalTexts = {
+                            'basis': level === 'einsteiger' ? 'Stammtöne' : 'HS-Stufen wählen',
+                            'vorzeichen': '+ Mit Vorzeichen',
+                            'stufenpaare': '+ HS auswählen',
+                            'mehr_tonarten': '+ Erweiterte Tonarten',
+                            'muster_lernen': 'Tongeschlecht wählen',
+                            'muster_erkennen': '+ HS-Stufen wählen und Tonart benennen',
+                            'alles': '+ Alle Tonarten benennen',
+                            'ohne_hilfe': '+ Ohne Hilfe'
+                        };
+
+                        if (mastered.includes(optId)) {
+                            label.classList.add('mastered');
+                            label.classList.remove('recommended');
+                            if (container) container.classList.remove('recommended');
+                            label.textContent = '✓ ' + originalTexts[optId];
+                        } else if (optId === nextRecommended) {
+                            label.classList.add('recommended');
+                            label.classList.remove('mastered');
+                            if (container) container.classList.add('recommended');
+                            label.textContent = '💡 ' + originalTexts[optId];
+                        } else {
+                            label.classList.remove('mastered', 'recommended');
+                            if (container) container.classList.remove('recommended');
+                            label.textContent = originalTexts[optId];
+                        }
+                    }
+                });
+            });
+        },
+
+        // ---- Screen Management ----
+        showQuickStart() {
+            document.getElementById('quickStartScreen').classList.add('active');
+            document.getElementById('successScreen').classList.remove('active');
+            document.getElementById('originalApp').classList.remove('active');
+            this.isActive = false;
+        },
+
+        showFreeMode() {
+            document.getElementById('quickStartScreen').classList.remove('active');
+            document.getElementById('successScreen').classList.remove('active');
+            document.getElementById('originalApp').classList.add('active');
+            this.isActive = false;
+            app.quickStartMode = null;
+            app.useBassClef = false;
+            app.useAllKeys = false;
+            app.useKirchentonarten = false;
+            app.goalMode = 'free';
+            app.currentStreak = 0;
+            app.bestStreak = 0;
+
+            // Reset settings UI
+            document.getElementById('stageSelect').value = 'einsteiger';
+            document.getElementById('settingKeyboard').checked = true;
+            document.getElementById('settingVorzeichen').checked = false;
+            document.getElementById('settingKirchentonarten').checked = false;
+            if (document.getElementById('settingBass')) document.getElementById('settingBass').checked = false;
+            if (document.getElementById('goalModeSelect')) document.getElementById('goalModeSelect').value = 'free';
+            const streakOpts = document.getElementById('streakGoalOptions');
+            const accOpts = document.getElementById('accuracyGoalOptions');
+            if (streakOpts) streakOpts.classList.add('hidden');
+            if (accOpts) accOpts.classList.add('hidden');
+
+            app.configureForStage('einsteiger', true);
+            app.generateNewTask();
+        },
+
+        backToStart() {
+            this.updateAllProgress();
+            this.showQuickStart();
+        },
+
+        // ---- Start Quiz ----
+        start(level) {
+            this.currentLevel = level;
+            this.questionsAnswered = 0;
+            this.questionsCorrect = 0;
+            this.profiStreak = 0;
+            this.profiAttempts = 0;
+            this.fallbackActive = false;
+            this.fallbackScale = null;
+            this.isActive = true;
+
+            // Collect options
+            this.currentOptions = [];
+            if (level === 'profi') {
+                // Profi: erste aktive Option bestimmt den Modus
+                const profiOpts = ['muster_lernen', 'muster_erkennen', 'alles'];
+                profiOpts.forEach(optId => {
+                    const cb = document.getElementById(`opt_profi_${optId}`);
+                    if (cb && cb.checked) this.currentOptions.push(optId);
+                });
+                if (this.currentOptions.length === 0) this.currentOptions.push('muster_lernen');
+                // Bestimme den aktiven Profi-Modus (höchste freigeschaltete Option)
+                if (this.currentOptions.includes('alles')) {
+                    this.profiMode = 'alles';
+                } else if (this.currentOptions.includes('muster_erkennen')) {
+                    this.profiMode = 'muster_erkennen';
+                } else {
+                    this.profiMode = 'muster_lernen';
+                }
+                // Ohne Hilfe separat (wie zuvor Bassschlüssel)
+                const ohCb = document.getElementById('opt_profi_ohne_hilfe');
+                if (ohCb && ohCb.checked) this.currentOptions.push('ohne_hilfe');
+            } else {
+                this.currentOptions = ['basis'];
+                const optionMap = {
+                    einsteiger: ['vorzeichen'],
+                    aufsteiger: ['stufenpaare', 'mehr_tonarten']
+                };
+                (optionMap[level] || []).forEach(optId => {
+                    const cb = document.getElementById(`opt_${level}_${optId}`);
+                    if (cb && cb.checked) this.currentOptions.push(optId);
+                });
+            }
+
+            if (level === 'profi') {
+                this.totalQuestions = this.maxProfiAttempts;
+            } else {
+                this.totalQuestions = 10;
+            }
+
+            // Switch screens
+            document.getElementById('quickStartScreen').classList.remove('active');
+            document.getElementById('successScreen').classList.remove('active');
+            document.getElementById('originalApp').classList.add('active');
+
+            // Configure app
+            app.quickStartMode = level;
+            const showKeyboard = !this.currentOptions.includes('ohne_hilfe');
+            app.useBassClef = false;
+            app.useAllKeys = this.currentOptions.includes('alle_tonarten') || this.currentOptions.includes('vorzeichen') || this.currentOptions.includes('mehr_tonarten') || this.currentOptions.includes('alles') || this.currentOptions.includes('muster_erkennen');
+            app.configureForStage(level, showKeyboard);
+
+            // Show quiz overlay
+            this.showQuizOverlay();
+
+            // Generate first task
+            app.generateNewTask();
+        },
+
+        // ---- Quiz Overlay ----
+        showQuizOverlay() {
+            const overlay = document.getElementById('quizOverlay');
+            overlay.classList.add('active');
+            document.getElementById('appContainer').classList.add('app-with-overlay');
+            this.updateQuizOverlay();
+        },
+
+        updateQuizOverlay() {
+            const icon = this.currentLevel === 'einsteiger' ? '🟢' :
+                        this.currentLevel === 'aufsteiger' ? '🟡' : '🔴';
+            const name = this.currentLevel === 'einsteiger' ? 'EINSTEIGER' :
+                        this.currentLevel === 'aufsteiger' ? 'AUFSTEIGER' : 'PROFI';
+
+            const profiTaskTexts = {
+                muster_lernen: '🎯 Welche Tonart?',
+                muster_erkennen: '🎯 Wähle HS-Stufen & benenne die Tonleiter!',
+                alles: '🎯 Benenne die Tonleiter!'
+            };
+            const taskTexts = {
+                einsteiger: '🎵 Ganzton oder Halbton?',
+                aufsteiger: '🎹 Wähle die Halbtonschritt-Paare!',
+                profi: profiTaskTexts[this.profiMode || 'alles'] || '🎯 Benenne die Tonleiter!'
+            };
+
+            const title = document.getElementById('quizTitle');
+            const task = document.getElementById('quizTask');
+            const progressFill = document.getElementById('quizProgressFill');
+
+            if (this.currentLevel === 'profi') {
+                title.textContent = `${icon} ${name} - Serie: ${this.profiStreak}/10`;
+                if (this.fallbackActive) {
+                    task.textContent = '⚠️ Markiere die Halbtonschritte!';
+                } else {
+                    task.textContent = taskTexts.profi;
+                }
+                progressFill.style.width = ((this.profiStreak / 10) * 100) + '%';
+            } else {
+                title.textContent = `${icon} ${name} - ${this.questionsAnswered}/${this.totalQuestions} beantwortet`;
+                task.textContent = taskTexts[this.currentLevel];
+                progressFill.style.width = ((this.questionsAnswered / this.totalQuestions) * 100) + '%';
+            }
+        },
+
+        // ---- Handle Answer ----
+        handleAnswer(isCorrect) {
+            if (!this.isActive) return;
+
+            this.questionsAnswered++;
+            if (isCorrect) this.questionsCorrect++;
+
+            if (this.currentLevel === 'profi' && !this.fallbackActive) {
+                this.profiAttempts++;
+                if (isCorrect) {
+                    this.profiStreak++;
+                    if (this.profiStreak >= 10) {
+                        // Profi passed!
+                        setTimeout(() => this.showSuccess(), 1500);
+                        return;
+                    }
+                } else {
+                    this.profiStreak = 0;
+                    // Fallback will be triggered by app.checkProfi
+                }
+
+                if (this.profiAttempts >= this.maxProfiAttempts) {
+                    setTimeout(() => this.showSuccess(), 1500);
+                    return;
+                }
+            } else if (!this.fallbackActive) {
+                if (this.questionsAnswered >= this.totalQuestions) {
+                    setTimeout(() => this.showSuccess(), 1500);
+                    return;
+                }
+            }
+
+            this.updateQuizOverlay();
+        },
+
+        // ---- Show Success ----
+        showSuccess() {
+            const overlay = document.getElementById('quizOverlay');
+            overlay.classList.remove('active');
+            document.getElementById('appContainer').classList.remove('app-with-overlay');
+
+            let percentage, scoreText;
+            if (this.currentLevel === 'profi') {
+                const passed = this.profiStreak >= 10;
+                percentage = passed ? 100 : Math.round((this.profiStreak / 10) * 100);
+                scoreText = passed ?
+                    'Serie von 10 geschafft! 🔥' :
+                    `Serie: ${this.profiStreak}/10 (${this.profiAttempts} Versuche)`;
+            } else {
+                percentage = Math.round((this.questionsCorrect / this.questionsAnswered) * 100);
+                scoreText = `${this.questionsCorrect} von ${this.questionsAnswered} richtig (${percentage}%)`;
+            }
+
+            // Determine result (9/10 = 90% zum Bestehen)
+            let emoji, title, stars;
+            if (percentage === 100) {
+                emoji = '🏆'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
+            } else if (percentage >= 90) {
+                emoji = '🎉'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+            } else if (percentage >= 70) {
+                emoji = '✨'; title = 'KNAPP DANEBEN!'; stars = '⭐';
+            } else {
+                emoji = '💪'; title = 'WEITER ÜBEN!'; stars = '';
+            }
+
+            document.getElementById('successEmoji').textContent = emoji;
+            document.getElementById('successTitle').textContent = title;
+            document.getElementById('successStars').textContent = stars;
+            document.getElementById('successScore').textContent = scoreText;
+
+            // Save progress if passed (90% = 9/10 für Einsteiger/Aufsteiger, 10er-Streak für Profi)
+            const passed = (this.currentLevel === 'profi') ?
+                (this.profiStreak >= 10) : (percentage >= 90);
+
+            if (passed) {
+                this.markCurrentOptionAsMastered();
+                const nextStep = this.getNextStepText();
+                document.getElementById('successNextStep').textContent = nextStep;
+
+                // Check if all profi options are mastered → hint about Freies Üben + Bassschlüssel
+                if (this.currentLevel === 'profi') {
+                    const allProfiOptions = this.getOptionsForLevel('profi');
+                    const profiMastered = this.progress.profi.mastered;
+                    const allDone = allProfiOptions.every(opt => profiMastered.includes(opt));
+                    if (allDone) {
+                        document.getElementById('successNextStep').innerHTML =
+                            'Alle Stufen gemeistert! 🎉<br><br>💡 <strong>Tipp:</strong> Im „Freien Üben" kannst du den Bassschlüssel aktivieren und noch mehr üben!';
+                    }
+                }
+            } else {
+                document.getElementById('successNextStep').textContent = 'Probiere es noch einmal!';
+            }
+
+            // Buttons
+            const buttonsDiv = document.getElementById('successButtons');
+            buttonsDiv.innerHTML = `
+                <button class="btn-retry" onclick="quickStart.retry()">🔄 Nochmal</button>
+                <button class="btn-next" onclick="quickStart.backToStart()">🏠 Zur Übersicht</button>
+            `;
+
+            document.getElementById('originalApp').classList.remove('active');
+            document.getElementById('successScreen').classList.add('active');
+        },
+
+        markCurrentOptionAsMastered() {
+            // Determine which options were active in this session
+            const activeOptions = [...this.currentOptions];
+            const mastered = this.progress[this.currentLevel].mastered;
+            const allOptions = this.getOptionsForLevel(this.currentLevel);
+
+            // If a higher option was active and passed,
+            // it implies all lower options are also mastered
+            // Einsteiger/Aufsteiger: basis < vorzeichen/mehr_tonarten < ...
+            // Profi: muster_lernen < muster_erkennen < alles
+            const higherOptions = ['vorzeichen', 'stufenpaare', 'mehr_tonarten', 'muster_erkennen', 'alles', 'ohne_hilfe'];
+            const hasHigherOption = activeOptions.some(opt => higherOptions.includes(opt));
+
+            if (hasHigherOption) {
+                // Find the highest active option's index in allOptions
+                let highestIdx = -1;
+                for (const opt of activeOptions) {
+                    const idx = allOptions.indexOf(opt);
+                    if (idx > highestIdx) highestIdx = idx;
+                }
+                // Mark all options up to (but not including) the highest as mastered
+                for (let i = 0; i < highestIdx; i++) {
+                    if (!mastered.includes(allOptions[i])) {
+                        mastered.push(allOptions[i]);
+                    }
+                }
+            }
+
+            // Now mark the next unmastered option
+            const nextUnmastered = allOptions.find(opt => !mastered.includes(opt));
+
+            if (nextUnmastered) {
+                mastered.push(nextUnmastered);
+            }
+
+            this.saveProgress();
+        },
+
+        getOptionsForLevel(level) {
+            if (level === 'einsteiger') return ['basis', 'vorzeichen'];
+            if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten'];
+            return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe'];
+        },
+
+        getNextStepText() {
+            const options = this.getOptionsForLevel(this.currentLevel);
+            const mastered = this.progress[this.currentLevel].mastered;
+            const nextUnmastered = options.find(opt => !mastered.includes(opt));
+
+            if (!nextUnmastered) {
+                // All mastered in this level
+                const levels = ['einsteiger', 'aufsteiger', 'profi'];
+                const currentIdx = levels.indexOf(this.currentLevel);
+                if (currentIdx < levels.length - 1) {
+                    return `Probiere jetzt die Stufe "${levels[currentIdx + 1].toUpperCase()}"!`;
+                }
+                return 'Alle Stufen gemeistert! 🎉';
+            }
+
+            const labels = {
+                'vorzeichen': 'Jetzt mit Vorzeichen!',
+                'stufenpaare': 'Jetzt HS auswählen!',
+                'mehr_tonarten': 'Jetzt erweiterte Tonarten!',
+                'muster_lernen': 'Jetzt Tongeschlecht wählen!',
+                'muster_erkennen': 'Jetzt HS-Stufen wählen und Tonart benennen!',
+                'alles': 'Jetzt alle Tonarten benennen!',
+                'ohne_hilfe': 'Jetzt ohne Hilfe!'
+            };
+            return labels[nextUnmastered] || 'Weiter so!';
+        },
+
+        retry() {
+            this.start(this.currentLevel);
+        },
+
+        // Reset progress for shared devices (Tabletkoffer)
+        confirmReset() {
+            if (confirm('Fortschritt zurücksetzen?\n\nAlle gemeisterten Stufen werden gelöscht. Das ist z.B. nützlich, wenn ein neuer Schüler das Gerät nutzt.')) {
+                this.progress = this.createNewProgress();
+                this.saveProgress();
+                this.updateAllProgress();
+            }
+        }
+    };
+
+    // =============================================
+    // MAIN APP
+    // =============================================
+    var app = {
+        quickStartMode: null,
+        currentStage: 'einsteiger',     // 'einsteiger', 'aufsteiger', 'profi'
+        showKeyboard: true,
+        useBassClef: false,
+        useAllKeys: false,
+        useKirchentonarten: false,
+
+        // Goal mode (freies Üben)
+        goalMode: 'free',               // 'free', 'streak', 'accuracy'
+        goalStreak: 10,
+        goalAccuracyPercent: 80,
+        goalAccuracyTotal: 30,
+        currentStreak: 0,
+        bestStreak: 0,
+
+        // Current task data
+        currentScale: null,             // { root, type, notes[], octaves[], displayName, vorzeichen }
+        currentPairIndex: -1,           // For einsteiger: which pair of notes
+        stepMarkerSelections: [],       // For aufsteiger/fallback: array of 8 booleans (one per scale note)
+
+        score: { correct: 0, total: 0 },
+        inputLocked: false,             // Prevent double-clicks during feedback
+
+        // ---- Init / Configure ----
+        init() {
+            tracking.init();
+        },
+
+        configureForStage(stage, showKeyboard) {
+            this.currentStage = stage;
+            this.showKeyboard = showKeyboard;
+            this.score = { correct: 0, total: 0 };
+            this.inputLocked = false;
+
+            // Title
+            const profiTitles = {
+                muster_lernen: '🔴 Welche Tonart?',
+                muster_erkennen: '🔴 HS-Stufen & Tonart',
+                alles: '🔴 Tonleiter benennen'
+            };
+            const titles = {
+                einsteiger: '🟢 Ganzton oder Halbton?',
+                aufsteiger: '🟡 Halbtonschritte finden',
+                profi: profiTitles[quickStart.profiMode || 'alles'] || '🔴 Tonleiter benennen'
+            };
+            document.getElementById('appTitle').textContent = '🪜 ' + (titles[stage] || 'Tonleitertrainer');
+
+            // Keyboard
+            const kbCard = document.getElementById('keyboardCard');
+            if (showKeyboard) {
+                kbCard.classList.add('active');
+            } else {
+                kbCard.classList.remove('active');
+            }
+
+            // Step markers container (no longer used, input is via keyboard clicks)
+            const markersContainer = document.getElementById('stepMarkersContainer');
+            markersContainer.classList.remove('active');
+
+            // Streak display
+            const streakDisplay = document.getElementById('streakDisplay');
+            if (stage === 'profi' && !quickStart.fallbackActive) {
+                streakDisplay.classList.add('active');
+            } else {
+                streakDisplay.classList.remove('active');
+            }
+
+            // Fallback hint
+            document.getElementById('fallbackHint').classList.remove('active');
+
+            // Score display
+            this.updateScoreDisplay();
+
+            // Setup input
+            this.setupInput();
+        },
+
+        setupInput() {
+            const inputCard = document.getElementById('inputCard');
+
+            if (this.currentStage === 'einsteiger') {
+                inputCard.innerHTML = `
+                    <div class="input-buttons">
+                        <button type="button" onclick="app.answerEinsteiger('ganzton')" id="btnGanzton">GANZTON</button>
+                        <button type="button" onclick="app.answerEinsteiger('halbton')" id="btnHalbton">HALBTON</button>
+                    </div>
+                `;
+            } else if (this.currentStage === 'aufsteiger') {
+                const useButtons = (quickStart.isActive && quickStart.currentOptions.includes('stufenpaare')) || (!quickStart.isActive && this.useStufenButtons);
+                if (useButtons) {
+                    // Stufenpaar-Buttons: User wählt welche Paare Halbtonschritte sind
+                    let pairButtons = '<div class="step-pair-buttons">';
+                    for (let i = 0; i < 7; i++) {
+                        pairButtons += `<button type="button" class="step-pair-btn" id="stepPair${i}" onclick="app.toggleStepPair(${i})">${i+1}.–${i+2}.</button>`;
+                    }
+                    pairButtons += '</div>';
+                    inputCard.innerHTML = `
+                        ${pairButtons}
+                        <div class="input-buttons" style="margin-top:8px;">
+                            <button type="button" onclick="app.checkAufsteiger()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                    this.stepPairSelections = [false, false, false, false, false, false, false];
+                } else {
+                    // Basis: Tastatur-Klick — User markiert Halbtonschritt-Noten auf der Tastatur
+                    inputCard.innerHTML = `
+                        <div class="input-buttons">
+                            <button type="button" onclick="app.checkAufsteigerKeyboard()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                }
+            } else if (this.currentStage === 'profi') {
+                if (quickStart.fallbackActive) {
+                    // Fallback: Halbtonschritte finden (nur in 'alles'-Modus)
+                    inputCard.innerHTML = `
+                        <div class="input-buttons">
+                            <button type="button" onclick="app.checkFallback()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                } else if (quickStart.profiMode === 'muster_lernen') {
+                    // Muster lernen: Noten + HS vormarkiert auf Tastatur, Tonart wählen
+                    inputCard.innerHTML = `
+                        <div class="input-buttons" style="gap:10px;flex-wrap:wrap;justify-content:center;">
+                            <button type="button" onclick="app.checkProfiMuster('Dur')" class="btn-primary" style="padding:12px 30px;font-size:1rem;min-width:100px;">DUR</button>
+                            <button type="button" onclick="app.checkProfiMuster('Moll')" class="btn-primary" style="padding:12px 30px;font-size:1rem;min-width:100px;">MOLL</button>
+                            <button type="button" onclick="app.checkProfiMuster('Kein Dur/Moll')" class="btn-primary" style="padding:12px 30px;font-size:1rem;min-width:130px;">KEIN DUR/MOLL</button>
+                        </div>
+                    `;
+                } else if (quickStart.profiMode === 'muster_erkennen') {
+                    // Muster erkennen: Stufenpaare + Eingabe in einem Schritt
+                    let pairButtons = '<div class="step-pair-buttons">';
+                    for (let i = 0; i < 7; i++) {
+                        pairButtons += `<button type="button" class="step-pair-btn" id="stepPair${i}" onclick="app.toggleStepPair(${i})">${i+1}.–${i+2}.</button>`;
+                    }
+                    pairButtons += '</div>';
+                    inputCard.innerHTML = `
+                        ${pairButtons}
+                        <div class="profi-input-row" style="margin-top:8px;">
+                            <input type="text" id="profiInput" placeholder="z.B. C-Dur, a-Moll"
+                                   onkeypress="if(event.key==='Enter') app.checkProfiKombiniert()" autocomplete="off" spellcheck="false">
+                            <button type="button" onclick="document.getElementById('profiInput').value='Kein Dur/Moll'; app.checkProfiKombiniert();" style="background:#6b7280;color:#fff;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-size:0.85rem;" title="Weder Dur noch Moll">Kein Dur/Moll</button>
+                            <button type="button" onclick="app.checkProfiKombiniert()">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                    this.stepPairSelections = [false, false, false, false, false, false, false];
+                    setTimeout(() => {
+                        const input = document.getElementById('profiInput');
+                        if (input) input.focus();
+                    }, 200);
+                } else if (!quickStart.isActive && this.useStufenButtons) {
+                    // Freies Üben mit Stufenpaar-Buttons: wie muster_erkennen
+                    let pairButtons = '<div class="step-pair-buttons">';
+                    for (let i = 0; i < 7; i++) {
+                        pairButtons += `<button type="button" class="step-pair-btn" id="stepPair${i}" onclick="app.toggleStepPair(${i})">${i+1}.–${i+2}.</button>`;
+                    }
+                    pairButtons += '</div>';
+                    inputCard.innerHTML = `
+                        ${pairButtons}
+                        <div class="profi-input-row" style="margin-top:8px;">
+                            <input type="text" id="profiInput" placeholder="z.B. C-Dur, a-Moll"
+                                   onkeypress="if(event.key==='Enter') app.checkProfiKombiniert()" autocomplete="off" spellcheck="false">
+                            <button type="button" onclick="document.getElementById('profiInput').value='Kein Dur/Moll'; app.checkProfiKombiniert();" style="background:#6b7280;color:#fff;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-size:0.85rem;" title="Weder Dur noch Moll">Kein Dur/Moll</button>
+                            <button type="button" onclick="app.checkProfiKombiniert()">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                    this.stepPairSelections = [false, false, false, false, false, false, false];
+                    setTimeout(() => {
+                        const input = document.getElementById('profiInput');
+                        if (input) input.focus();
+                    }, 200);
+                } else {
+                    // Alles: Texteingabe wie bisher
+                    inputCard.innerHTML = `
+                        <div class="profi-input-row">
+                            <input type="text" id="profiInput" placeholder="z.B. C-Dur, a-Moll"
+                                   onkeypress="if(event.key==='Enter') app.checkProfi()" autocomplete="off" spellcheck="false">
+                            <button type="button" onclick="document.getElementById('profiInput').value='Kein Dur/Moll'; app.checkProfi();" style="background:#6b7280;color:#fff;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-size:0.85rem;" title="Weder Dur noch Moll">Kein Dur/Moll</button>
+                            <button type="button" onclick="app.checkProfi()">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        const input = document.getElementById('profiInput');
+                        if (input) input.focus();
+                    }, 200);
+                }
+            }
+        },
+
+        // ---- Generate New Task ----
+        // Weighted random pick: scales with more accidentals get higher weight
+        weightedRandomScale(scales) {
+            if (!scales || scales.length === 0) return null;
+            // Weight: vorzeichen 0 → weight 1, vorzeichen 1 → 2, vorzeichen 2 → 3, etc.
+            const weighted = [];
+            for (const s of scales) {
+                const w = (s.vorzeichen || 0) + 1;
+                for (let i = 0; i < w; i++) weighted.push(s);
+            }
+            return weighted[Math.floor(Math.random() * weighted.length)];
+        },
+
+        generateNewTask() {
+            this.inputLocked = false;
+            this.hideFeedback();
+
+            // Determine if we should weight toward more accidentals
+            const useWeighting = (
+                (this.currentStage === 'einsteiger' && quickStart.isActive && quickStart.currentOptions.includes('vorzeichen')) ||
+                (this.currentStage === 'aufsteiger' && quickStart.isActive && quickStart.currentOptions.includes('mehr_tonarten'))
+            );
+
+            // Get available scales, avoid repeating the same task
+            const scaleData = this.getAvailableScales();
+            let allScales;
+            if (Array.isArray(scaleData)) {
+                // Simple array (Einsteiger, no Kirchentonarten)
+                allScales = scaleData;
+            } else {
+                // Balanced selection: Aufsteiger = 2:1 Dur/Moll:Andere, Profi = 2:1
+                const { durMoll, kirchen } = scaleData;
+                if (this.currentStage === 'aufsteiger') {
+                    // 2:1 ratio Dur/Moll vs Kirchentonart, then equal mode probability within group
+                    if (kirchen.length > 0 && Math.random() < 0.33) {
+                        // Pick Kirchentonart with equal mode probability
+                        const modeGroups = {};
+                        kirchen.forEach(s => {
+                            if (!modeGroups[s.type]) modeGroups[s.type] = [];
+                            modeGroups[s.type].push(s);
+                        });
+                        const modeTypes = Object.keys(modeGroups);
+                        const chosenType = modeTypes[Math.floor(Math.random() * modeTypes.length)];
+                        allScales = modeGroups[chosenType];
+                    } else {
+                        // Dur/Moll with equal type probability
+                        const modeGroups = {};
+                        durMoll.forEach(s => {
+                            if (!modeGroups[s.type]) modeGroups[s.type] = [];
+                            modeGroups[s.type].push(s);
+                        });
+                        const modeTypes = Object.keys(modeGroups);
+                        const chosenType = modeTypes[Math.floor(Math.random() * modeTypes.length)];
+                        allScales = modeGroups[chosenType];
+                    }
+                } else if (this.currentStage === 'profi') {
+                    // Alle Profi-Modi: 2:1 Dur/Moll vs Kirchentonart
+                    {
+                        if (!this._lastTypeHistory) this._lastTypeHistory = [];
+                        const last2 = this._lastTypeHistory.slice(-2);
+                        const sameType2 = last2.length === 2 && last2[0] === last2[1];
+
+                        let pickKirchen;
+                        if (sameType2 && last2[0] === 'durMoll' && kirchen.length > 0) {
+                            pickKirchen = true; // Force Kirchentonart after 2× Dur/Moll
+                        } else if (sameType2 && last2[0] === 'kirchen') {
+                            pickKirchen = false; // Force Dur/Moll after 2× Kirchen
+                        } else {
+                            pickKirchen = kirchen.length > 0 && Math.random() < 0.33;
+                        }
+
+                        if (pickKirchen) {
+                            allScales = kirchen;
+                            this._lastTypeHistory.push('kirchen');
+                        } else {
+                            allScales = durMoll;
+                            this._lastTypeHistory.push('durMoll');
+                        }
+                        // Keep history short
+                        if (this._lastTypeHistory.length > 5) this._lastTypeHistory.shift();
+                    }
+                } else {
+                    allScales = [...durMoll, ...kirchen];
+                }
+            }
+
+            let scale;
+            // Avoid same exact scale AND avoid same sub-type (Dur/Moll) 3+ times
+            let pool = allScales;
+            if (pool.length > 1 && this.currentScale) {
+                const lastKey = this.currentScale.root + '-' + this.currentScale.type;
+                pool = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
+                if (pool.length === 0) pool = allScales;
+            }
+            // After 2× same sub-type in a row, try to pick a different one
+            if (!this._lastSubTypeHistory) this._lastSubTypeHistory = [];
+            const lastSub2 = this._lastSubTypeHistory.slice(-2);
+            if (pool.length > 1 && lastSub2.length === 2 && lastSub2[0] === lastSub2[1]) {
+                const diffType = pool.filter(s => s.type !== lastSub2[0]);
+                if (diffType.length > 0) pool = diffType;
+            }
+            scale = useWeighting ? this.weightedRandomScale(pool) : pool[Math.floor(Math.random() * pool.length)];
+            this._lastSubTypeHistory.push(scale.type);
+            if (this._lastSubTypeHistory.length > 5) this._lastSubTypeHistory.shift();
+
+            // For bass clef in Profi, shift octaves down to fit bass staff (max 1 ledger line)
+            let octaves = scale.octaves;
+            if (this.useBassClef) {
+                // Bass clef: fullPos = (oct-2)*7 + staffPos - 4
+                // Valid range: fullPos -2 (1 ledger below) to +10 (1 ledger above)
+                // Try shifts -1 and -2, pick the one that fits best
+                const bestShift = (() => {
+                    for (const shift of [-2, -1]) {
+                        const positions = scale.notes.map((n, i) => {
+                            const sp = getStaffPosition(n);
+                            return ((scale.octaves[i] + shift) - 2) * 7 + sp - 4;
+                        });
+                        const minP = Math.min(...positions);
+                        const maxP = Math.max(...positions);
+                        if (minP >= -2 && maxP <= 10) return shift;
+                    }
+                    return -1; // Fallback: shift by -1 to stay closer to staff
+                })();
+                octaves = scale.octaves.map(o => o + bestShift);
+            }
+
+            this.currentScale = {
+                root: scale.root,
+                type: scale.type,
+                notes: scale.notes,
+                octaves: octaves,
+                displayName: scale.root + '-' + scale.type,
+                vorzeichen: scale.vorzeichen,
+                halfSteps: HALF_STEPS[scale.type]
+            };
+
+            if (this.currentStage === 'einsteiger') {
+                // Pick random pair, avoid same scale+pair as last task
+                let newPair;
+                const lastPair = this.currentPairIndex;
+                const lastScaleKey = this._lastEinsteigerKey || '';
+                const thisScaleKey = this.currentScale.root + '-' + this.currentScale.type;
+                do {
+                    newPair = Math.floor(Math.random() * 7);
+                } while (thisScaleKey === lastScaleKey && newPair === lastPair && 7 > 1);
+                this.currentPairIndex = newPair;
+                this._lastEinsteigerKey = thisScaleKey;
+            }
+
+            // Update task description
+            this.updateTaskDescription();
+
+            // Render
+            this.drawStaff();
+            if (this.showKeyboard) this.renderKeyboard();
+
+            // Init step markers for keyboard-click modes (Aufsteiger Basis + Profi Fallback)
+            const aufsteigerUsesKb = this.currentStage === 'aufsteiger' && !((quickStart.isActive && quickStart.currentOptions.includes('stufenpaare')) || (!quickStart.isActive && this.useStufenButtons));
+            if (aufsteigerUsesKb || (this.currentStage === 'profi' && quickStart.fallbackActive)) {
+                this.initStepMarkers();
+            }
+
+            // Reset step-pair buttons and note highlights for Aufsteiger and muster_erkennen
+            if (this.stepPairSelections) {
+                this.stepPairSelections = [false, false, false, false, false, false, false];
+                for (let i = 0; i < 7; i++) {
+                    const btn = document.getElementById(`stepPair${i}`);
+                    if (btn) btn.classList.remove('selected', 'correct', 'wrong', 'missed');
+                }
+            }
+            document.querySelectorAll('.steppair-highlight').forEach(el => el.remove());
+
+            if (this.currentStage === 'profi') {
+                this.updateStreakDisplay();
+                const input = document.getElementById('profiInput');
+                if (input) {
+                    input.value = '';
+                    input.className = '';
+                    input.focus();
+                }
+            }
+        },
+
+        updateTaskDescription() {
+            const el = document.getElementById('taskDescription');
+            if (!el) return;
+            if (this.currentStage === 'einsteiger') {
+                el.textContent = '🎵 Ganzton oder Halbton?';
+            } else if (this.currentStage === 'aufsteiger') {
+                el.textContent = '🎹 Markiere die Halbtonschritte! (Dur, Moll und andere Modi)';
+            } else if (this.currentStage === 'profi') {
+                if (quickStart.fallbackActive) {
+                    el.textContent = '⚠️ Markiere die Halbtonschritte auf der Tastatur!';
+                } else if (quickStart.profiMode === 'muster_lernen') {
+                    el.textContent = '🎯 Welche Tonart? Schau dir die markierten Halbtonschritte an!';
+                } else if (quickStart.profiMode === 'muster_erkennen') {
+                    el.textContent = '🎯 Markiere die Halbtonschritte und benenne die Tonleiter!';
+                } else {
+                    el.textContent = '🎯 Benenne die Tonleiter! (Dur, Moll oder Kein Dur/Moll)';
+                }
+            }
+        },
+
+        getAvailableScales() {
+            let durMollScales = [...SCALES.dur, ...SCALES.moll];
+            let kirchenScales = [...SCALES.kirchentonarten];
+            let includeKirchentonarten = false;
+
+            if (quickStart.isActive) {
+                if (this.currentStage === 'einsteiger') {
+                    if (!quickStart.currentOptions.includes('vorzeichen')) {
+                        // Basis: only scales with 0 accidentals (C-Dur, a-Moll)
+                        durMollScales = durMollScales.filter(s => s.vorzeichen === 0);
+                    }
+                    // else: all Dur/Moll scales (vorzeichen option = all accidentals)
+                    // Einsteiger: only Dur/Moll, no church modes
+                } else if (this.currentStage === 'aufsteiger') {
+                    if (!quickStart.currentOptions.includes('mehr_tonarten')) {
+                        // Basis: 0-1 accidentals
+                        durMollScales = durMollScales.filter(s => s.vorzeichen <= 1);
+                    }
+                    // else: all Dur/Moll scales (mehr_tonarten = all accidentals)
+                    // Aufsteiger always includes church modes
+                    includeKirchentonarten = true;
+                } else if (this.currentStage === 'profi') {
+                    // Alle Profi-Modi inkl. Kirchentonarten
+                    includeKirchentonarten = true;
+                    if (quickStart.profiMode !== 'alles') {
+                        durMollScales = durMollScales.filter(s => s.vorzeichen <= 2);
+                    }
+                }
+            } else {
+                // Free mode
+                if (!this.useAllKeys) {
+                    durMollScales = durMollScales.filter(s => s.vorzeichen <= 2);
+                }
+                if (this.useKirchentonarten || this.currentStage === 'aufsteiger' || this.currentStage === 'profi') {
+                    includeKirchentonarten = true;
+                }
+            }
+
+            if (!includeKirchentonarten) {
+                return durMollScales;
+            }
+
+            // Filter Kirchentonarten by vorzeichen - match same filter as Dur/Moll
+            if (quickStart.isActive) {
+                if (this.currentStage === 'aufsteiger' && !quickStart.currentOptions.includes('mehr_tonarten')) {
+                    kirchenScales = kirchenScales.filter(s => s.vorzeichen <= 1);
+                } else if (this.currentStage === 'profi' && quickStart.profiMode !== 'alles') {
+                    kirchenScales = kirchenScales.filter(s => s.vorzeichen <= 2);
+                }
+            } else if (!this.useAllKeys) {
+                kirchenScales = kirchenScales.filter(s => s.vorzeichen <= 2);
+            }
+
+            // Return combined with balanced mode selection info
+            durMollScales._isDurMoll = true;
+            kirchenScales._isKirchen = true;
+            return { durMoll: durMollScales, kirchen: kirchenScales };
+        },
+
+        // ---- SVG Staff Drawing ----
+        drawStaff() {
+            const svg = document.getElementById('staffSvg');
+            const baseY = 260;
+            const useBass = this.useBassClef;
+            const staffLines = [260, 240, 220, 200, 180];
+
+            let svgContent = '';
+
+            // Staff lines
+            staffLines.forEach(ly => {
+                svgContent += `<line x1="80" y1="${ly}" x2="590" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+            });
+
+            // Clef (SVG paths for consistent cross-device rendering)
+            if (useBass) {
+                svgContent += this.drawBassClefSVG(88, 198);
+            } else {
+                svgContent += this.drawTrebleClefSVG(100, 260);
+            }
+
+            if (this.currentStage === 'einsteiger') {
+                // Draw 2 notes
+                const i = this.currentPairIndex;
+                svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], 220, baseY);
+                svgContent += this.drawNoteAt(this.currentScale.notes[i+1], this.currentScale.octaves[i+1], 300, baseY);
+            } else {
+                // Draw 8 notes
+                const startX = 185;
+                const spacing = 52;
+
+                // muster_lernen: Halbtonschritt-Noten und Ganztonschritt-Noten farbig markieren
+                const isMusterLernen = (this.currentStage === 'profi' && quickStart.isActive && quickStart.profiMode === 'muster_lernen');
+                let halfStepNoteIndices = new Set();
+                if (isMusterLernen && this.currentScale && this.currentScale.halfSteps) {
+                    for (const hsIdx of this.currentScale.halfSteps) {
+                        halfStepNoteIndices.add(hsIdx);
+                        halfStepNoteIndices.add(hsIdx + 1);
+                    }
+                }
+
+                for (let i = 0; i < 8; i++) {
+                    const x = startX + i * spacing;
+                    // Im muster_lernen: Farbiger Kreis hinter der Note
+                    if (isMusterLernen) {
+                        const noteName = this.currentScale.notes[i];
+                        const octave = this.currentScale.octaves[i];
+                        const staffPos = getStaffPosition(noteName);
+                        let fullPos;
+                        if (useBass) {
+                            fullPos = (octave - 2) * 7 + staffPos - 4;
+                        } else {
+                            fullPos = (octave - 4) * 7 + staffPos - 2;
+                        }
+                        const ny = baseY - (fullPos * 10);
+                        if (halfStepNoteIndices.has(i)) {
+                            // Halbtonschritt-Note: orange (einheitlich)
+                            svgContent += `<ellipse cx="${x}" cy="${ny}" rx="17" ry="14" fill="rgba(251,191,36,0.4)" stroke="#d97706" stroke-width="2" transform="rotate(-20 ${x} ${ny})"/>`;
+                        }
+                        // Ganztöne: nicht markieren
+                    }
+                    svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], x, baseY);
+                }
+            }
+
+            svg.innerHTML = svgContent;
+        },
+
+        drawNoteAt(noteName, octave, x, baseY) {
+            let svg = '';
+            const staffPos = getStaffPosition(noteName);
+            const useBass = this.useBassClef;
+            let fullPos;
+            if (useBass) {
+                // Bass clef: bottom line (y=260) = G2. G has staffPos=4, so offset -4
+                fullPos = (octave - 2) * 7 + staffPos - 4;
+            } else {
+                // Treble clef: bottom line (y=260) = E4. E has staffPos=2, so offset -2
+                fullPos = (octave - 4) * 7 + staffPos - 2;
+            }
+            const y = baseY - (fullPos * 10);
+
+            // Ledger lines
+            // Below staff: baseY = 260 is E4 (pos 2). C4 (pos 0) is at y=280, needs ledger line at y=280
+            if (y >= 280) {
+                for (let ly = 280; ly <= y; ly += 20) {
+                    svg += `<line x1="${x - 19}" y1="${ly}" x2="${x + 19}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+                }
+            }
+            // Above staff: 180 is F5 (pos 10). Above that needs ledger lines
+            if (y <= 160) {
+                for (let ly = 160; ly >= y; ly -= 20) {
+                    svg += `<line x1="${x - 19}" y1="${ly}" x2="${x + 19}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+                }
+            }
+
+            // Accidental (offsets match Dreiklangstrainer)
+            const acc = getAccidental(noteName);
+            if (acc === 'sharp') {
+                svg += `<text x="${x - 33}" y="${y + 13}" font-size="42" font-family="serif">♯</text>`;
+            } else if (acc === 'flat') {
+                svg += `<text x="${x - 41}" y="${y + 10}" font-size="38" font-family="serif">♭</text>`;
+            }
+
+            // Note head
+            svg += `<ellipse cx="${x}" cy="${y}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x} ${y})"/>`;
+
+            return svg;
+        },
+
+        // ---- SVG Clef Paths (OpenClipart, public domain) ----
+        drawTrebleClefSVG(x, y) {
+            // Treble (G) clef — zeimusu/OpenClipart
+            // Raw path needs original matrix(.21599 0 0 .21546 -250.44 -1202.6) → viewBox 321x888
+            // Then scale(0.18) → 160px height, translate positions G-curl on G4 line (y=240)
+            return `<g transform="translate(85, 158) scale(0.15)"><g transform="matrix(.21599 0 0 .21546 -250.44 -1202.6)"><path d="m2002 7851c-61 17-116 55-167 113-51 59-76 124-76 194 0 44 15 94 44 147 29 54 73 93 130 118 19 4 28 14 28 28 0 5-7 10-24 14-91-23-166-72-224-145-58-74-88-158-90-254 3-103 34-199 93-287 60-89 137-152 231-189l-69-355c-154 128-279 261-376 401-97 139-147 290-151 453 2 73 17 144 45 212 28 69 70 131 126 188 113 113 260 172 439 178 61-4 126-15 196-33l-155-783zm72-10l156 769c154-62 231-197 231-403-9-69-29-131-63-186-33-56-77-100-133-132s-119-48-191-48zm-205-1040c33-20 71-55 112-104 41-48 81-105 119-169 39-65 70-131 93-198 23-66 34-129 34-187 0-25-2-50-7-72-4-36-15-64-34-83-19-18-43-28-73-28-60 0-114 37-162 111-37 64-68 140-90 226-23 87-36 173-38 260 5 99 21 180 46 244zm-63 58c-45-162-70-327-75-495 1-108 12-209 33-303 20-94 49-175 87-245 37-70 80-123 128-159 43-32 74-49 91-49 13 0 24 5 34 14s23 24 39 44c119 169 179 373 179 611 0 113-15 223-45 333-29 109-72 213-129 310-58 98-126 183-205 256l81 394c44-5 74-9 91-9 76 0 144 16 207 48s117 75 161 130c44 54 78 116 102 186 23 70 36 143 36 219 0 118-31 226-93 323s-155 168-280 214c8 49 22 120 43 211 20 92 35 165 45 219s14 106 14 157c0 79-19 149-57 211-39 62-91 110-157 144-65 34-137 51-215 51-110 0-206-31-288-92-82-62-126-145-130-251 3-47 14-91 34-133s47-76 82-102c34-27 75-41 122-44 39 0 76 11 111 32 34 22 62 51 83 88 20 37 31 78 31 122 0 59-20 109-60 150s-91 62-152 62h-23c39 60 103 91 192 91 45 0 91-10 137-28 47-19 86-44 119-76s55-66 64-102c17-41 25-98 25-169 0-48-5-96-14-144-9-47-23-110-42-188-19-77-33-137-41-178-60 15-122 23-187 23-109 0-212-22-309-67s-182-107-256-187c-73-80-130-170-171-272-40-101-61-207-62-317 4-102 23-200 59-292 36-93 82-181 139-263s116-157 177-224c62-66 143-151 245-254z" fill="#000" stroke="#000" stroke-width="53"/></g></g>`;
+        },
+
+        drawBassClefSVG(x, y) {
+            // Bass (F) clef — jaschon/OpenClipart
+            // Dots at cy=361 and cy=498, midpoint≈430. F3 line=y200: tY=200-430*0.155=133
+            return `<g transform="translate(60, 144) scale(0.13)"><path d="m190.85 451.25c11.661 14.719 32.323 24.491 55.844 24.491 36.401 0 65.889-23.372 65.889-52.214s-29.488-52.214-65.889-52.214c-20.314 4.1522-28.593 9.0007-33.143-2.9091 17.976-54.327 46.918-66.709 96.546-66.709 65.914 0 96.969 59.897 96.969 142.97-18.225 190.63-205.95 286.75-246.57 316.19 5.6938 13.103 5.3954 12.631 5.3954 12.009 189.78-86.203 330.69-204.43 330.69-320.74 0-92.419-58.579-175.59-187.72-172.8-77.575 0-170.32 86.203-118 171.93z" fill="#000" stroke="#000" stroke-width="1"/><circle cx="551.27" cy="361.37" r="32.323" fill="#000"/><circle cx="551.27" cy="498.12" r="32.323" fill="#000"/></g>`;
+        },
+
+        // ---- Keyboard ----
+        renderKeyboard() {
+            const container = document.getElementById('keyboardContainer');
+            if (!container) return;
+
+            // 4-tier keyboard sizing (like Dreiklangstrainer)
+            if (!this.keyboardSizes) {
+                this.keyboardSizes = {
+                    width: window.screen.width,
+                    height: window.screen.height,
+                    isPortrait: window.screen.width < window.screen.height
+                };
+            }
+            const ks = this.keyboardSizes;
+            const isMobilePortrait = ks.width <= 768 && ks.isPortrait;
+            const isMobileLandscape = ks.width <= 768 && !ks.isPortrait;
+            const isDesktopCompact = ks.width > 768 && ks.height <= 900;
+
+            let whiteKeyWidth, blackKeyWidth;
+            if (isMobilePortrait) {
+                whiteKeyWidth = 35; blackKeyWidth = 22;
+            } else if (isMobileLandscape) {
+                whiteKeyWidth = 45; blackKeyWidth = 28;
+            } else if (isDesktopCompact) {
+                whiteKeyWidth = 50; blackKeyWidth = 32;
+            } else {
+                whiteKeyWidth = 60; blackKeyWidth = 36;
+            }
+            const gap = 2;
+
+            // Build scale MIDI set for highlighting
+            let scaleMidis = new Set();
+            if (this.currentScale) {
+                for (let i = 0; i < this.currentScale.notes.length; i++) {
+                    scaleMidis.add(noteToMidi(this.currentScale.notes[i], this.currentScale.octaves[i]));
+                }
+            }
+
+            // In Aufsteiger-Basis / Profi-Fallback: build map of MIDI → scale index (for click handling)
+            let midiToScaleIndex = {};
+            const aufsteigerUsesKeyboard = this.currentStage === 'aufsteiger' && !((quickStart.isActive && quickStart.currentOptions.includes('stufenpaare')) || (!quickStart.isActive && this.useStufenButtons));
+            const isClickableMode = aufsteigerUsesKeyboard || (this.currentStage === 'profi' && quickStart.fallbackActive);
+            if (isClickableMode && this.currentScale) {
+                for (let i = 0; i < this.currentScale.notes.length; i++) {
+                    const midi = noteToMidi(this.currentScale.notes[i], this.currentScale.octaves[i]);
+                    midiToScaleIndex[midi] = i;
+                }
+            }
+
+            // (Muster lernen: Markierung erfolgt jetzt auf dem Notenblatt, nicht auf der Tastatur)
+
+            // Build white/black key arrays
+            const whiteNoteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+            const whiteNoteMidi = [0, 2, 4, 5, 7, 9, 11];
+            const blackPattern = [true, true, false, true, true, true, false];
+            const blackMidiOffsets = [1, 3, -1, 6, 8, 10, -1];
+
+            const whiteKeys = [];
+            const blackKeys = [];
+
+            // Determine keyboard range: exactly the scale's actual octave range
+            // Uses currentScale.octaves which already includes bass clef shifts
+            let startOct = 4, endOct = 5, addHighC = true;
+            if (this.currentScale) {
+                const minOct = Math.min(...this.currentScale.octaves);
+                const maxOct = Math.max(...this.currentScale.octaves);
+                startOct = minOct;
+                endOct = maxOct;
+                addHighC = true; // always add the C above the last octave
+            }
+
+            for (let oct = startOct; oct <= endOct; oct++) {
+                for (let i = 0; i < 7; i++) {
+                    const midi = (oct + 1) * 12 + whiteNoteMidi[i];
+                    whiteKeys.push({ name: whiteNoteNames[i], oct, midi });
+                    if (blackPattern[i]) {
+                        const bMidi = (oct + 1) * 12 + blackMidiOffsets[i];
+                        blackKeys.push({ afterWhiteIndex: whiteKeys.length - 1, midi: bMidi });
+                    }
+                }
+            }
+            if (addHighC) {
+                whiteKeys.push({ name: 'C', oct: endOct + 1, midi: (endOct + 2) * 12 });
+            }
+
+            const totalWidth = whiteKeys.length * (whiteKeyWidth + gap) - gap;
+            const keyboardHeight = isMobilePortrait ? 100 : (isMobileLandscape ? 110 : (isDesktopCompact ? 100 : 120));
+
+            let html = `<div class="keyboard-container" style="width:${totalWidth}px; height:${keyboardHeight}px;">`;
+            html += `<div class="white-keys" style="height:100%; gap:${gap}px;">`;
+
+            whiteKeys.forEach((key) => {
+                const isClickable = isClickableMode &&
+                    midiToScaleIndex[key.midi] !== undefined;
+                let selClass = '';
+                if (isClickable && this.stepMarkerSelections && this.stepMarkerSelections[midiToScaleIndex[key.midi]]) {
+                    selClass = ' aufsteiger-selected';
+                }
+                const clickAttr = isClickable ? ` onclick="app.toggleAufsteigerKey(${midiToScaleIndex[key.midi]})" style="width:${whiteKeyWidth}px; cursor:pointer;"` : ` style="width:${whiteKeyWidth}px;"`;
+                html += `<div class="white-key${selClass}"${clickAttr}></div>`;
+            });
+
+            html += `</div><div class="black-keys" style="height:60%;">`;
+
+            blackKeys.forEach(bk => {
+                const leftPos = bk.afterWhiteIndex * (whiteKeyWidth + gap) + whiteKeyWidth + gap / 2 - blackKeyWidth / 2;
+                const isClickable = isClickableMode &&
+                    midiToScaleIndex[bk.midi] !== undefined;
+                let selClass = '';
+                if (isClickable && this.stepMarkerSelections && this.stepMarkerSelections[midiToScaleIndex[bk.midi]]) {
+                    selClass = ' aufsteiger-selected';
+                }
+                const clickAttr = isClickable ? ` onclick="app.toggleAufsteigerKey(${midiToScaleIndex[bk.midi]})"` : '';
+                html += `<div class="black-key${selClass}" style="left:${leftPos}px; width:${blackKeyWidth}px;${isClickable ? ' cursor:pointer;' : ''}"${clickAttr}></div>`;
+            });
+
+            html += '</div>';
+
+            // C-markers with Helmholtz notation
+            // C1=C,, C2=C, C3=C (große Okt.), c4=c, c5=c', c6=c''
+            whiteKeys.forEach((key, idx) => {
+                if (key.name === 'C') {
+                    const markerX = idx * (whiteKeyWidth + gap) + whiteKeyWidth / 2;
+                    let label;
+                    if (key.oct <= 1) label = 'C,,';
+                    else if (key.oct === 2) label = 'C,';
+                    else if (key.oct === 3) label = 'C';
+                    else if (key.oct === 4) label = 'c';
+                    else if (key.oct === 5) label = "c'";
+                    else if (key.oct === 6) label = "c''";
+                    else label = "c'''";
+                    const fontSize = isMobilePortrait ? '0.65rem' : (isMobileLandscape ? '0.8rem' : '0.95rem');
+                    html += `<div style="position:absolute; bottom:8%; left:${markerX}px; transform:translateX(-50%); font-size:${fontSize}; color:#0891b2; font-weight:bold; background:rgba(255,255,255,0.9); padding:2px 4px; border-radius:4px; pointer-events:none;">${label}</div>`;
+                }
+            });
+
+            html += '</div>';
+
+            // Wrap in a scaler div if keyboard is wider than card
+            const cardEl = container.parentElement;
+            const maxWidth = cardEl ? cardEl.clientWidth - 20 : totalWidth;
+            if (totalWidth > maxWidth && maxWidth > 0) {
+                const scaleFactor = maxWidth / totalWidth;
+                container.innerHTML = `<div style="transform:scale(${scaleFactor.toFixed(3)});transform-origin:top center;width:${totalWidth}px;height:${keyboardHeight}px;margin:0 auto;">${html}</div>`;
+                container.style.height = Math.round(keyboardHeight * scaleFactor + 10) + 'px';
+                container.style.overflow = 'hidden';
+            } else {
+                container.innerHTML = html;
+                container.style.height = '';
+                container.style.overflow = '';
+            }
+        },
+
+        // Aufsteiger: toggle step pair selection (1.-2., 2.-3., etc.)
+        toggleStepPair(index) {
+            if (this.inputLocked) return;
+            if (!this.stepPairSelections) return;
+            this.stepPairSelections[index] = !this.stepPairSelections[index];
+            const btn = document.getElementById(`stepPair${index}`);
+            if (btn) btn.classList.toggle('selected', this.stepPairSelections[index]);
+            // Markiere die zugehörigen Noten auf dem Notenblatt
+            this.highlightStepPairNotes();
+        },
+
+        // Markiere Notenpaare auf dem Staff entsprechend der Stufenpaar-Auswahl
+        highlightStepPairNotes() {
+            document.querySelectorAll('.steppair-highlight').forEach(el => el.remove());
+            if (!this.currentScale || !this.stepPairSelections) return;
+            const svgEl = document.getElementById('staffSvg');
+            if (!svgEl) return;
+
+            const baseY = 260;
+            const startX = 185;
+            const spacing = 52;
+            const useBass = this.useBassClef;
+
+            for (let pair = 0; pair < 7; pair++) {
+                if (!this.stepPairSelections[pair]) continue;
+                // Beide Noten des Paars markieren (Index pair und pair+1)
+                for (const i of [pair, pair + 1]) {
+                    if (i >= this.currentScale.notes.length) continue;
+                    const noteName = this.currentScale.notes[i];
+                    const octave = this.currentScale.octaves[i];
+                    const staffPos = getStaffPosition(noteName);
+                    let fullPos;
+                    if (useBass) {
+                        fullPos = (octave - 2) * 7 + staffPos - 4;
+                    } else {
+                        fullPos = (octave - 4) * 7 + staffPos - 2;
+                    }
+                    const x = startX + i * spacing;
+                    const y = baseY - (fullPos * 10);
+
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', x);
+                    circle.setAttribute('cy', y);
+                    circle.setAttribute('r', '15');
+                    circle.setAttribute('fill', 'rgba(251, 191, 36, 0.4)');
+                    circle.setAttribute('stroke', '#d97706');
+                    circle.setAttribute('stroke-width', '2');
+                    circle.setAttribute('class', 'steppair-highlight');
+                    svgEl.appendChild(circle);
+                }
+            }
+        },
+
+        // Legacy: toggle half-step marking via keyboard click (only used in Profi fallback)
+        toggleAufsteigerKey(scaleIndex) {
+            if (this.inputLocked) return;
+            if (!this.stepMarkerSelections) return;
+            this.stepMarkerSelections[scaleIndex] = !this.stepMarkerSelections[scaleIndex];
+            this.renderKeyboard();
+            this.highlightSelectedNotes();
+        },
+
+        // Highlight selected notes on the staff (Aufsteiger/Fallback only)
+        highlightSelectedNotes() {
+            if (!this.currentScale || !this.stepMarkerSelections) return;
+            // Remove old highlights
+            document.querySelectorAll('.note-highlight').forEach(el => el.remove());
+            const svgEl = document.getElementById('staffSvg');
+            if (!svgEl) return;
+
+            const isEinsteiger = (this.currentStage === 'einsteiger');
+            if (isEinsteiger) return; // No highlights in Einsteiger
+
+            const baseY = 260;
+            const startX = 185;
+            const spacing = 52;
+            const useBass = this.useBassClef;
+
+            for (let i = 0; i < 8; i++) {
+                if (!this.stepMarkerSelections[i]) continue;
+                const noteName = this.currentScale.notes[i];
+                const octave = this.currentScale.octaves[i];
+                const staffPos = getStaffPosition(noteName);
+                let fullPos;
+                if (useBass) {
+                    fullPos = (octave - 2) * 7 + staffPos - 4;
+                } else {
+                    fullPos = (octave - 4) * 7 + staffPos - 2;
+                }
+                const x = startX + i * spacing;
+                const y = baseY - (fullPos * 10);
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', '14');
+                circle.setAttribute('fill', 'rgba(251, 191, 36, 0.4)');
+                circle.setAttribute('stroke', '#d97706');
+                circle.setAttribute('stroke-width', '2');
+                circle.setAttribute('class', 'note-highlight');
+                svgEl.appendChild(circle);
+            }
+        },
+
+        // ---- Step Markers (Aufsteiger & Fallback) ----
+        initStepMarkers() {
+            this.stepMarkerSelections = [false, false, false, false, false, false, false, false];
+            // Input is always via keyboard clicks (no separate step marker buttons)
+            const container = document.getElementById('stepMarkersContainer');
+            container.classList.remove('active');
+            container.innerHTML = '';
+            // Re-render keyboard to show clickable state
+            if (this.showKeyboard) this.renderKeyboard();
+        },
+
+        toggleStepMarker(index) {
+            this.stepMarkerSelections[index] = !this.stepMarkerSelections[index];
+            const markers = document.querySelectorAll('.step-marker');
+            if (markers[index]) {
+                markers[index].classList.toggle('selected', this.stepMarkerSelections[index]);
+            }
+        },
+
+        resetStepMarkerStyles() {
+            const markers = document.querySelectorAll('.step-marker');
+            markers.forEach(m => {
+                m.classList.remove('selected', 'correct', 'wrong', 'missed');
+            });
+        },
+
+        // ---- Streak Display (Profi) ----
+        updateStreakDisplay() {
+            const circles = document.querySelectorAll('.streak-circle');
+            circles.forEach((circle, i) => {
+                circle.classList.remove('filled', 'active');
+                if (i < quickStart.profiStreak) {
+                    circle.classList.add('filled');
+                } else if (i === quickStart.profiStreak) {
+                    circle.classList.add('active');
+                }
+            });
+        },
+
+        // ---- Score Display ----
+        updateScoreDisplay() {
+            const scoreText = document.getElementById('scoreText');
+            const percent = document.getElementById('scorePercent');
+            const goalProgress = document.getElementById('goalProgress');
+            const goalLabel = document.getElementById('goalLabel');
+            const goalValue = document.getElementById('goalValue');
+            const goalFill = document.getElementById('goalProgressFill');
+
+            if (scoreText) {
+                scoreText.textContent = `Richtig: ${this.score.correct} / ${this.score.total}`;
+            }
+            if (percent && this.score.total > 0) {
+                percent.textContent = ` (${Math.round(this.score.correct / this.score.total * 100)}%)`;
+            }
+
+            // Goal progress (only in free mode, not QuickStart)
+            if (!quickStart.isActive && goalProgress) {
+                if (this.goalMode === 'streak') {
+                    goalProgress.classList.remove('hidden');
+                    goalLabel.textContent = '🔥 Streak:';
+                    goalValue.textContent = `${this.currentStreak} / ${this.goalStreak}`;
+                    goalFill.style.width = Math.min(100, (this.currentStreak / this.goalStreak) * 100) + '%';
+                    goalFill.style.background = this.currentStreak >= this.goalStreak ? '#10b981' : '#0891b2';
+                } else if (this.goalMode === 'accuracy') {
+                    goalProgress.classList.remove('hidden');
+                    goalLabel.textContent = '📊 Quote:';
+                    const pct = this.score.total > 0 ? Math.round(this.score.correct / this.score.total * 100) : 0;
+                    goalValue.textContent = `${pct}% (${this.score.total}/${this.goalAccuracyTotal})`;
+                    goalFill.style.width = Math.min(100, (this.score.total / this.goalAccuracyTotal) * 100) + '%';
+                    const reached = this.score.total >= this.goalAccuracyTotal && pct >= this.goalAccuracyPercent;
+                    goalFill.style.background = reached ? '#10b981' : '#0891b2';
+                } else {
+                    goalProgress.classList.add('hidden');
+                }
+            } else if (goalProgress) {
+                goalProgress.classList.add('hidden');
+            }
+        },
+
+        // Track streak for goal mode
+        trackGoalAnswer(isCorrect) {
+            if (quickStart.isActive) return;
+            if (isCorrect) {
+                this.currentStreak++;
+                if (this.currentStreak > this.bestStreak) this.bestStreak = this.currentStreak;
+            } else {
+                this.currentStreak = 0;
+            }
+
+            // Check if goal reached
+            if (this.goalMode === 'streak' && this.currentStreak >= this.goalStreak) {
+                setTimeout(() => {
+                    this.showGoalReached(`🔥 Streak von ${this.goalStreak} geschafft!`);
+                }, 1200);
+            } else if (this.goalMode === 'accuracy' && this.score.total >= this.goalAccuracyTotal) {
+                const pct = Math.round(this.score.correct / this.score.total * 100);
+                if (pct >= this.goalAccuracyPercent) {
+                    setTimeout(() => {
+                        this.showGoalReached(`📊 ${pct}% bei ${this.score.total} Aufgaben!`);
+                    }, 1200);
+                }
+            }
+        },
+
+        showGoalReached(msg) {
+            this.showFeedback(true, `🏆 Ziel erreicht! ${msg}`);
+        },
+
+        resetScore() {
+            this.score = { correct: 0, total: 0 };
+            this.previousTask = null;
+            this.currentStreak = 0;
+            this.bestStreak = 0;
+            this.goalAchieved = false;
+            this._lastTypeHistory = [];
+            this._lastSubTypeHistory = [];
+            this.updateScoreDisplay();
+            this.generateNewTask();
+        },
+
+        updateGoalSettings() {
+            const goalMode = document.getElementById('goalModeSelect').value;
+            this.goalMode = goalMode;
+
+            const streakOpts = document.getElementById('streakGoalOptions');
+            const accOpts = document.getElementById('accuracyGoalOptions');
+
+            if (goalMode === 'streak') {
+                streakOpts.classList.remove('hidden');
+                accOpts.classList.add('hidden');
+                this.goalStreak = parseInt(document.getElementById('goalStreakSelect').value);
+            } else if (goalMode === 'accuracy') {
+                streakOpts.classList.add('hidden');
+                accOpts.classList.remove('hidden');
+                const [pct, total] = document.getElementById('goalAccuracySelect').value.split('-');
+                this.goalAccuracyPercent = parseInt(pct);
+                this.goalAccuracyTotal = parseInt(total);
+            } else {
+                streakOpts.classList.add('hidden');
+                accOpts.classList.add('hidden');
+            }
+
+            this.resetScore();
+        },
+
+        // ---- Answer Handling: EINSTEIGER ----
+        answerEinsteiger(answer) {
+            if (this.inputLocked) return;
+            this.inputLocked = true;
+
+            const i = this.currentPairIndex;
+            const n1 = this.currentScale.notes[i];
+            const o1 = this.currentScale.octaves[i];
+            const n2 = this.currentScale.notes[i + 1];
+            const o2 = this.currentScale.octaves[i + 1];
+
+            const actuallyHalfStep = isHalfStep(n1, o1, n2, o2);
+            const userSaysHalfStep = (answer === 'halbton');
+            const isCorrect = (userSaysHalfStep === actuallyHalfStep);
+
+            this.score.total++;
+            if (isCorrect) this.score.correct++;
+            tracking.trackQuestion(isCorrect);
+            this.trackGoalAnswer(isCorrect);
+            this.updateScoreDisplay();
+
+            // Flash buttons
+            const btnG = document.getElementById('btnGanzton');
+            const btnH = document.getElementById('btnHalbton');
+
+            if (isCorrect) {
+                const clickedBtn = (answer === 'ganzton') ? btnG : btnH;
+                clickedBtn.classList.add('flash-correct');
+                this.showFeedback(true, `Richtig! ${n1}→${n2} = ${actuallyHalfStep ? 'Halbton' : 'Ganzton'}`);
+            } else {
+                const clickedBtn = (answer === 'ganzton') ? btnG : btnH;
+                clickedBtn.classList.add('flash-incorrect');
+                this.showFeedback(false, `${n1}→${n2} ist ein ${actuallyHalfStep ? 'Halbton' : 'Ganzton'}!`);
+            }
+
+            if (quickStart.isActive) {
+                quickStart.handleAnswer(isCorrect);
+            }
+
+            // Auto-advance: 1s for correct, longer on error + repeat
+            const delay = isCorrect ? 1000 : 3000;
+            setTimeout(() => {
+                if (btnG) btnG.classList.remove('flash-correct', 'flash-incorrect');
+                if (btnH) btnH.classList.remove('flash-correct', 'flash-incorrect');
+                if (isCorrect) {
+                    this.generateNewTask();
+                } else {
+                    // Repeat same task: just unlock input and hide feedback
+                    this.inputLocked = false;
+                    this.hideFeedback();
+                }
+            }, delay);
+        },
+
+        // ---- Answer Handling: AUFSTEIGER (Stufenpaar-Auswahl) ----
+        // ---- Aufsteiger Basis: Keyboard-Klick Prüfung ----
+        checkAufsteigerKeyboard() {
+            if (this.inputLocked) return;
+            this.inputLocked = true;
+
+            const halfSteps = this.currentScale.halfSteps;
+            // Korrekte Noten: beide Noten jedes Halbtonschritt-Paars
+            const correctNotes = new Set();
+            for (const hs of halfSteps) {
+                correctNotes.add(hs);
+                correctNotes.add(hs + 1);
+            }
+
+            let allCorrect = true;
+            for (let i = 0; i < 8; i++) {
+                const shouldBeSelected = correctNotes.has(i);
+                const isSelected = this.stepMarkerSelections[i];
+                if (shouldBeSelected !== isSelected) {
+                    allCorrect = false;
+                }
+            }
+
+            // Visuelles Feedback auf Tasten
+            const allKeys = document.querySelectorAll('.white-key, .black-key');
+            allKeys.forEach(keyEl => {
+                const onclick = keyEl.getAttribute('onclick');
+                if (!onclick) return;
+                const match = onclick.match(/toggleAufsteigerKey\((\d+)\)/);
+                if (!match) return;
+                const idx = parseInt(match[1]);
+                const shouldBeSelected = correctNotes.has(idx);
+                const isSelected = this.stepMarkerSelections[idx];
+                keyEl.classList.remove('aufsteiger-selected');
+                if (shouldBeSelected && isSelected) {
+                    keyEl.classList.add('aufsteiger-correct');
+                } else if (shouldBeSelected && !isSelected) {
+                    keyEl.classList.add('aufsteiger-missed');
+                } else if (!shouldBeSelected && isSelected) {
+                    keyEl.classList.add('aufsteiger-wrong');
+                }
+            });
+
+            this.score.total++;
+            if (allCorrect) this.score.correct++;
+            tracking.trackQuestion(allCorrect);
+            this.trackGoalAnswer(allCorrect);
+            this.updateScoreDisplay();
+
+            if (allCorrect) {
+                this.showFeedback(true, `Richtig! Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(true);
+                }
+
+                setTimeout(() => {
+                    this.generateNewTask();
+                }, 1000);
+            } else {
+                this.showFeedback(false, `Die Halbtonschritte liegen bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(false);
+                }
+
+                setTimeout(() => {
+                    this.inputLocked = false;
+                    this.hideFeedback();
+                    this.initStepMarkers();
+                }, 3000);
+            }
+        },
+
+        // ---- Aufsteiger Stufenpaare: Button-Prüfung ----
+        checkAufsteiger() {
+            if (this.inputLocked) return;
+            if (!this.stepPairSelections) return;
+            this.inputLocked = true;
+
+            const halfSteps = this.currentScale.halfSteps; // e.g. [2, 6] for Dur
+            // halfSteps[i] = Index des Stufenpaars (0 = 1.–2., 2 = 3.–4., etc.)
+            const correctPairs = new Set(halfSteps);
+
+            let allCorrect = true;
+
+            // Prüfe alle 7 Stufenpaare
+            for (let i = 0; i < 7; i++) {
+                const shouldBeSelected = correctPairs.has(i);
+                const isSelected = this.stepPairSelections[i];
+                const btn = document.getElementById(`stepPair${i}`);
+
+                if (shouldBeSelected && isSelected) {
+                    if (btn) btn.classList.add('correct');
+                } else if (shouldBeSelected && !isSelected) {
+                    if (btn) btn.classList.add('missed');
+                    allCorrect = false;
+                } else if (!shouldBeSelected && isSelected) {
+                    if (btn) btn.classList.add('wrong');
+                    allCorrect = false;
+                }
+            }
+
+            this.score.total++;
+            if (allCorrect) this.score.correct++;
+            tracking.trackQuestion(allCorrect);
+            this.trackGoalAnswer(allCorrect);
+            this.updateScoreDisplay();
+
+            if (allCorrect) {
+                this.showFeedback(true, `Richtig! Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
+            } else {
+                this.showFeedback(false, `Die Halbtonschritte liegen bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
+            }
+
+            if (quickStart.isActive && !quickStart.fallbackActive) {
+                quickStart.handleAnswer(allCorrect);
+            }
+
+            if (allCorrect) {
+                setTimeout(() => {
+                    this.generateNewTask();
+                }, 1000);
+            } else {
+                // Bei Fehler: Feedback länger zeigen, dann gleiche Aufgabe wiederholen
+                setTimeout(() => {
+                    this.inputLocked = false;
+                    this.stepPairSelections = [false, false, false, false, false, false, false];
+                    for (let i = 0; i < 7; i++) {
+                        const btn = document.getElementById(`stepPair${i}`);
+                        if (btn) btn.classList.remove('selected', 'correct', 'wrong', 'missed');
+                    }
+                    this.hideFeedback();
+                }, 3000);
+            }
+        },
+
+        // ---- Answer Handling: PROFI ----
+        checkProfi() {
+            if (this.inputLocked) return;
+
+            const input = document.getElementById('profiInput');
+            if (!input) return;
+
+            const raw = input.value.trim();
+            if (!raw) return;
+
+            this.inputLocked = true;
+
+            const parsed = this.parseScaleName(raw);
+            if (!parsed) {
+                this.showFeedback(false, 'Ungültiges Format. Versuche z.B. "C-Dur", "a-Moll" oder "Kein Dur/Moll"');
+                this.inputLocked = false;
+                return;
+            }
+
+            // "Andere" is correct if the scale is a Kirchentonart (not Dur or Moll)
+            const isKirchentonart = !['Dur', 'Moll'].includes(this.currentScale.type);
+            let isCorrect;
+            if (parsed.type === '_Other') {
+                isCorrect = isKirchentonart;
+            } else {
+                isCorrect = (parsed.root === this.currentScale.root && parsed.type === this.currentScale.type);
+            }
+
+            this.score.total++;
+            if (isCorrect) this.score.correct++;
+            tracking.trackQuestion(isCorrect);
+            this.trackGoalAnswer(isCorrect);
+            this.updateScoreDisplay();
+
+            if (isCorrect) {
+                input.classList.add('input-correct');
+                this.showFeedback(true, `Richtig! ${this.currentScale.displayName}`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(true);
+                }
+
+                setTimeout(() => {
+                    this.generateNewTask();
+                }, 1000);
+            } else {
+                input.classList.add('input-incorrect');
+                this.showFeedback(false, `Falsch! Das war ${this.currentScale.displayName}`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(false);
+
+                    // Trigger fallback after longer delay
+                    setTimeout(() => {
+                        this.enterFallbackMode();
+                    }, 3000);
+                } else {
+                    // Repeat same task after longer feedback
+                    setTimeout(() => {
+                        this.inputLocked = false;
+                        this.hideFeedback();
+                        const inp = document.getElementById('profiInput');
+                        if (inp) { inp.value = ''; inp.className = ''; inp.focus(); }
+                    }, 3000);
+                }
+            }
+        },
+
+        // ---- Answer Handling: PROFI — Muster lernen (Dur/Moll Buttons) ----
+        checkProfiMuster(answer) {
+            if (this.inputLocked) return;
+            this.inputLocked = true;
+
+            const correctType = this.currentScale.type;
+            const isKirchentonart = !['Dur', 'Moll'].includes(correctType);
+
+            // Prüfe Antwort: 'Dur', 'Moll' oder 'Kein Dur/Moll'
+            let isCorrect;
+            if (answer === 'Kein Dur/Moll') {
+                isCorrect = isKirchentonart;
+            } else {
+                isCorrect = (answer === correctType);
+            }
+
+            this.score.total++;
+            if (isCorrect) this.score.correct++;
+            tracking.trackQuestion(isCorrect);
+            this.trackGoalAnswer(isCorrect);
+            this.updateScoreDisplay();
+
+            // Visual feedback on all 3 buttons
+            const allBtns = document.querySelectorAll('#inputCard .input-buttons button');
+            allBtns.forEach(btn => {
+                const btnText = btn.textContent.trim();
+                let btnType;
+                if (btnText === 'DUR') btnType = 'Dur';
+                else if (btnText === 'MOLL') btnType = 'Moll';
+                else btnType = 'Kein Dur/Moll';
+
+                const isCorrectBtn = isKirchentonart ? (btnType === 'Kein Dur/Moll') : (btnType === correctType);
+                if (isCorrectBtn) {
+                    btn.style.background = '#22c55e'; btn.style.borderColor = '#22c55e';
+                } else if (btnType === answer && !isCorrect) {
+                    btn.style.background = '#ef4444'; btn.style.borderColor = '#ef4444';
+                }
+            });
+
+            // Feedback text includes half-step info
+            const hs = this.currentScale.halfSteps;
+            const hsText = hs.map(h => `${h+1}.–${h+2}.`).join(' und ');
+
+            if (isCorrect) {
+                this.showFeedback(true, `Richtig! ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(true);
+                }
+
+                setTimeout(() => {
+                    // Buttons zurücksetzen (inline-Styles entfernen)
+                    this.setupInput();
+                    this.generateNewTask();
+                }, 1000);
+            } else {
+                this.showFeedback(false, `Falsch! Das war ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(false);
+                }
+
+                setTimeout(() => {
+                    this.inputLocked = false;
+                    this.hideFeedback();
+                    this.setupInput();
+                }, 3000);
+            }
+        },
+
+        // ---- Answer Handling: PROFI — Muster erkennen (Stufenpaare + Name) ----
+        checkProfiKombiniert() {
+            if (this.inputLocked) return;
+
+            const input = document.getElementById('profiInput');
+            if (!input) return;
+
+            const raw = input.value.trim();
+            if (!raw && !this.stepPairSelections) return;
+            if (!raw) return;
+
+            // Check if step pairs have been selected at all
+            const anyPairSelected = this.stepPairSelections && this.stepPairSelections.some(s => s);
+            if (!anyPairSelected) {
+                // Hint: step pairs must be selected first — no error, no counter impact
+                this.showFeedback(false, '💡 Wähle zuerst die Halbtonschritt-Stufen aus!');
+                // Reset input if "Kein Dur/Moll" button was pressed
+                if (input.value === 'Kein Dur/Moll') input.value = '';
+                // Don't lock input — let user continue working on the task
+                return;
+            }
+
+            this.inputLocked = true;
+
+            // 1. Parse the scale name
+            const parsed = this.parseScaleName(raw);
+            if (!parsed) {
+                this.showFeedback(false, 'Ungültiges Format. Versuche z.B. "C-Dur", "a-Moll" oder "Kein Dur/Moll"');
+                this.inputLocked = false;
+                return;
+            }
+
+            // 2. Check name
+            const isKirchentonart = !['Dur', 'Moll'].includes(this.currentScale.type);
+            let nameCorrect;
+            if (parsed.type === '_Other') {
+                nameCorrect = isKirchentonart;
+            } else {
+                nameCorrect = (parsed.root === this.currentScale.root && parsed.type === this.currentScale.type);
+            }
+
+            // 3. Check step pairs
+            const halfSteps = this.currentScale.halfSteps;
+            const correctPairs = new Set(halfSteps);
+            let pairsCorrect = true;
+
+            for (let i = 0; i < 7; i++) {
+                const shouldBeSelected = correctPairs.has(i);
+                const isSelected = this.stepPairSelections ? this.stepPairSelections[i] : false;
+                const btn = document.getElementById(`stepPair${i}`);
+
+                if (shouldBeSelected && isSelected) {
+                    if (btn) btn.classList.add('correct');
+                } else if (shouldBeSelected && !isSelected) {
+                    if (btn) btn.classList.add('missed');
+                    pairsCorrect = false;
+                } else if (!shouldBeSelected && isSelected) {
+                    if (btn) btn.classList.add('wrong');
+                    pairsCorrect = false;
+                }
+            }
+
+            const isCorrect = nameCorrect && pairsCorrect;
+            this.score.total++;
+            if (isCorrect) this.score.correct++;
+            tracking.trackQuestion(isCorrect);
+            this.trackGoalAnswer(isCorrect);
+            this.updateScoreDisplay();
+
+            const hs = this.currentScale.halfSteps;
+            const hsText = hs.map(h => `${h+1}.–${h+2}.`).join(' und ');
+
+            if (isCorrect) {
+                input.classList.add('input-correct');
+                this.showFeedback(true, `Richtig! ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(true);
+                }
+
+                setTimeout(() => {
+                    this.generateNewTask();
+                }, 1000);
+            } else {
+                input.classList.add('input-incorrect');
+                let msg = `Falsch! Das war ${this.currentScale.displayName}`;
+                if (!nameCorrect && !pairsCorrect) {
+                    msg += ` — Name und Halbtonschritte falsch`;
+                } else if (!nameCorrect) {
+                    msg += ` — Halbtonschritte richtig, aber Name falsch`;
+                } else {
+                    msg += ` — Name richtig, aber Halbtonschritte bei ${hsText}. Stufe`;
+                }
+                this.showFeedback(false, msg);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(false);
+                }
+
+                setTimeout(() => {
+                    this.inputLocked = false;
+                    this.hideFeedback();
+                    // Reset step-pair buttons
+                    this.stepPairSelections = [false, false, false, false, false, false, false];
+                    for (let i = 0; i < 7; i++) {
+                        const btn = document.getElementById(`stepPair${i}`);
+                        if (btn) btn.classList.remove('selected', 'correct', 'wrong', 'missed');
+                    }
+                    const inp = document.getElementById('profiInput');
+                    if (inp) { inp.value = ''; inp.className = ''; inp.focus(); }
+                }, 3000);
+            }
+        },
+
+        // ---- Profi Fallback Mode ----
+        enterFallbackMode() {
+            this.inputLocked = false;
+            quickStart.fallbackActive = true;
+            quickStart.fallbackScale = this.currentScale;
+
+            // Show fallback hint
+            document.getElementById('fallbackHint').classList.add('active');
+
+            // Hide streak
+            document.getElementById('streakDisplay').classList.remove('active');
+
+            // Fallback ALWAYS needs keyboard (for half-step marking), even if ohne_hilfe was active
+            this.showKeyboard = true;
+            const kbCard = document.getElementById('keyboardCard');
+            kbCard.classList.add('active');
+
+            // Setup input for fallback (check button — input via keyboard clicks)
+            const inputCard = document.getElementById('inputCard');
+            inputCard.innerHTML = `
+                <div class="input-buttons">
+                    <button type="button" onclick="app.checkFallback()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                </div>
+            `;
+
+            // Init step markers (resets selections, re-renders keyboard as clickable)
+            this.initStepMarkers();
+            this.hideFeedback();
+
+            quickStart.updateQuizOverlay();
+        },
+
+        checkFallback() {
+            if (this.inputLocked) return;
+            this.inputLocked = true;
+
+            const halfSteps = this.currentScale.halfSteps;
+            // Correct notes: both notes of each half-step pair
+            const correctNotes = new Set();
+            for (const hs of halfSteps) {
+                correctNotes.add(hs);
+                correctNotes.add(hs + 1);
+            }
+
+            let allCorrect = true;
+            for (let i = 0; i < 8; i++) {
+                const shouldBeSelected = correctNotes.has(i);
+                const isSelected = this.stepMarkerSelections[i];
+                if (shouldBeSelected !== isSelected) {
+                    allCorrect = false;
+                }
+            }
+
+            // Show feedback on keyboard keys
+            const allKeys = document.querySelectorAll('.white-key, .black-key');
+            allKeys.forEach(keyEl => {
+                const onclick = keyEl.getAttribute('onclick');
+                if (!onclick) return;
+                const match = onclick.match(/toggleAufsteigerKey\((\d+)\)/);
+                if (!match) return;
+                const idx = parseInt(match[1]);
+                const shouldBeSelected = correctNotes.has(idx);
+                const isSelected = this.stepMarkerSelections[idx];
+                keyEl.classList.remove('aufsteiger-selected');
+                if (shouldBeSelected && isSelected) {
+                    keyEl.classList.add('aufsteiger-correct');
+                } else if (shouldBeSelected && !isSelected) {
+                    keyEl.classList.add('aufsteiger-missed');
+                } else if (!shouldBeSelected && isSelected) {
+                    keyEl.classList.add('aufsteiger-wrong');
+                }
+            });
+
+            if (allCorrect) {
+                this.showFeedback(true, `Gut! Diese Tonleiter war ${this.currentScale.displayName}. Weiter geht's!`);
+
+                setTimeout(() => {
+                    this.exitFallbackMode();
+                }, 1000);
+            } else {
+                this.showFeedback(false, `Nicht ganz. Halbtonschritte zwischen ${halfSteps[0]+1}./${halfSteps[0]+2}. und ${halfSteps[1]+1}./${halfSteps[1]+2}. Stufe. Probiere nochmal!`);
+
+                // Reset for retry after 3s
+                setTimeout(() => {
+                    this.inputLocked = false;
+                    this.stepMarkerSelections = [false, false, false, false, false, false, false, false];
+                    // Reset keyboard feedback classes
+                    document.querySelectorAll('.white-key, .black-key').forEach(k => {
+                        k.classList.remove('aufsteiger-correct', 'aufsteiger-wrong', 'aufsteiger-missed');
+                    });
+                    this.renderKeyboard();
+                    this.hideFeedback();
+                }, 3000);
+            }
+        },
+
+        exitFallbackMode() {
+            quickStart.fallbackActive = false;
+            quickStart.fallbackScale = null;
+
+            // Hide fallback hint
+            document.getElementById('fallbackHint').classList.remove('active');
+
+            // Hide step markers
+            document.getElementById('stepMarkersContainer').classList.remove('active');
+
+            // Show streak
+            document.getElementById('streakDisplay').classList.add('active');
+
+            // Restore keyboard state: hide if ohne_hilfe was originally active
+            const ohneT = quickStart.currentOptions.includes('ohne_hilfe');
+            this.showKeyboard = !ohneT;
+            const kbCard = document.getElementById('keyboardCard');
+            if (ohneT) {
+                kbCard.classList.remove('active');
+            } else {
+                kbCard.classList.add('active');
+            }
+
+            // Restore profi input
+            this.setupInput();
+
+            quickStart.updateQuizOverlay();
+
+            // Generate new profi task
+            this.generateNewTask();
+        },
+
+        // ---- Parse Scale Name ----
+        parseScaleName(input) {
+            // Normalize: trim, remove hyphens/spaces, lowercase
+            let s = input.trim().toLowerCase().replace(/[-\s]+/g, '');
+            if (!s) return null;
+
+            // Special: "Andere" / "Kein Dur/Moll" / "x" for non-Dur/Moll scales
+            if (s === 'andere' || s === 'x' || s === 'anderes' || s === 'kirche' || s === 'modal' || s === 'keindur/moll' || s === 'keindur' || s === 'keindur/mol') {
+                return { root: '_other', type: '_Other' };
+            }
+
+            // Known roots (lowercase)
+            const allRoots = ['fis', 'cis', 'gis', 'dis', 'ais', 'es', 'as', 'des', 'ges', 'c', 'g', 'd', 'a', 'e', 'f', 'b', 'h'];
+
+            // Try to match root at start
+            let rawRoot = null;
+            for (const r of allRoots) {
+                if (s.startsWith(r)) {
+                    rawRoot = r;
+                    break;
+                }
+            }
+            if (!rawRoot) return null;
+
+            // Remaining after root
+            let remaining = s.substring(rawRoot.length);
+
+            // Determine type - accept various abbreviations
+            let type;
+            if (remaining === 'dur' || remaining === 'd') {
+                type = 'Dur';
+            } else if (remaining === 'moll' || remaining === 'm' || remaining === 'mol') {
+                type = 'Moll';
+            } else if (remaining === 'dorisch' || remaining === 'dor') {
+                type = 'Dorisch';
+            } else if (remaining === 'phrygisch' || remaining === 'phryg' || remaining === 'phr') {
+                type = 'Phrygisch';
+            } else if (remaining === 'lydisch' || remaining === 'lyd') {
+                type = 'Lydisch';
+            } else if (remaining === 'mixolydisch' || remaining === 'mixo' || remaining === 'mix') {
+                type = 'Mixolydisch';
+            } else if (remaining === 'lokrisch' || remaining === 'lok') {
+                type = 'Lokrisch';
+            } else {
+                return null;
+            }
+
+            // Map to correct root format
+            const kirchenRoots = {
+                'Dorisch': ['D', 'G', 'A', 'E'],
+                'Phrygisch': ['E', 'A', 'H'],
+                'Lydisch': ['F', 'C', 'G'],
+                'Mixolydisch': ['G', 'C', 'D'],
+                'Lokrisch': ['H', 'E', 'Fis']
+            };
+            const durRoots = ['C', 'G', 'D', 'A', 'E', 'F', 'B', 'Es', 'As'];
+            const mollRoots = ['a', 'e', 'h', 'fis', 'cis', 'd', 'g', 'c', 'f'];
+
+            let root;
+            if (type === 'Dur') {
+                root = durRoots.find(r => r.toLowerCase() === rawRoot);
+            } else if (type === 'Moll') {
+                root = mollRoots.find(r => r.toLowerCase() === rawRoot);
+            } else {
+                const roots = kirchenRoots[type] || [];
+                root = roots.find(r => r.toLowerCase() === rawRoot);
+            }
+
+            if (!root) return null;
+
+            return { root, type };
+        },
+
+        // ---- Feedback ----
+        showFeedback(isCorrect, message) {
+            const fb = document.getElementById('feedback');
+            fb.textContent = message;
+            fb.className = 'feedback active ' + (isCorrect ? 'correct' : 'incorrect');
+        },
+
+        showInfoFeedback(message) {
+            const fb = document.getElementById('feedback');
+            fb.textContent = message;
+            fb.className = 'feedback active info';
+        },
+
+        hideFeedback() {
+            const fb = document.getElementById('feedback');
+            fb.className = 'feedback';
+        },
+
+        // ---- Settings ----
+        toggleSettings() {
+            if (this.quickStartMode) {
+                // In Quick-Start mode: show modal instead of settings
+                document.getElementById('quickStartMenuModal').classList.add('active');
+                return;
+            }
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('hidden');
+        },
+
+        applySettings() {
+            const stage = document.getElementById('stageSelect').value;
+            const showKb = document.getElementById('settingKeyboard').checked;
+            const allKeys = document.getElementById('settingVorzeichen').checked;
+            const useBass = document.getElementById('settingBass') ? document.getElementById('settingBass').checked : false;
+            const kirchentonarten = document.getElementById('settingKirchentonarten') ? document.getElementById('settingKirchentonarten').checked : false;
+            const useStufen = document.getElementById('settingStufen') ? document.getElementById('settingStufen').checked : false;
+
+            // Show/hide HS-Stufen checkbox depending on stage
+            const stufenGroup = document.getElementById('settingStufenGroup');
+            if (stufenGroup) {
+                stufenGroup.style.display = (stage === 'aufsteiger' || stage === 'profi') ? 'flex' : 'none';
+            }
+
+            this.useBassClef = useBass;
+            this.useAllKeys = allKeys;
+            this.useKirchentonarten = kirchentonarten;
+            this.useStufenButtons = useStufen && (stage === 'aufsteiger' || stage === 'profi');
+            this.configureForStage(stage, showKb);
+            this.generateNewTask();
+        },
+
+        // ---- Modals ----
+        showIntro() {
+            document.getElementById('introModal').classList.add('active');
+        },
+
+        closeIntro() {
+            document.getElementById('introModal').classList.remove('active');
+        },
+
+        // ---- Feedback Modal ----
+        showFeedbackModal() {
+            document.getElementById('introModal').classList.remove('active');
+            document.getElementById('feedbackModal').classList.add('active');
+        },
+
+        closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('active');
+            document.getElementById('feedbackForm').reset();
+        },
+
+        sendFeedback(e) {
+            e.preventDefault();
+            const text = document.getElementById('feedbackText').value;
+            const category = document.getElementById('feedbackCategory').value;
+
+            const categoryLabels = {
+                'bug': '🐛 Fehler',
+                'feature': '✨ Feature-Wunsch',
+                'improvement': '💡 Verbesserung',
+                'praise': '👍 Lob',
+                'other': '💬 Sonstiges'
+            };
+
+            const subject = category ? `Tonleitertrainer Feedback: ${categoryLabels[category]}` : 'Tonleitertrainer Feedback';
+
+            const sessionInfo = `
+---
+Session-Info:
+- Richtig: ${this.score.correct}
+- Gesamt: ${this.score.total}
+- Erfolgsquote: ${this.score.total > 0 ? Math.round(this.score.correct / this.score.total * 100) : 0}%
+
+Einstellungen:
+- Stufe: ${this.currentStage}
+- Bassschlüssel: ${this.useBass ? 'Ja' : 'Nein'}
+- QuickStart: ${this.quickStartMode ? 'Ja' : 'Nein'}
+
+Gerät:
+- Typ: ${window.innerWidth <= 768 ? 'Mobil/Tablet' : 'Desktop'}
+- Bildschirmgröße: ${window.innerWidth}x${window.innerHeight}
+- Browser: ${navigator.userAgent}
+`;
+
+            const body = `Kategorie: ${category ? categoryLabels[category] : 'Keine Angabe'}\n\nNachricht:\n${text}${sessionInfo}`;
+
+            const email = 'sebastian.madyda@iserv-schillerschule.de';
+            const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            window.location.href = mailtoLink;
+
+            setTimeout(() => {
+                const feedbackText = `An: ${email}\nBetreff: ${subject}\n\n${body}`;
+
+                navigator.clipboard.writeText(feedbackText).then(() => {
+                    const fb = document.getElementById('feedback');
+                    if (fb) {
+                        fb.className = 'feedback correct';
+                        fb.textContent = '✓ Feedback wurde in die Zwischenablage kopiert! Du kannst es jetzt in eine E-Mail einfügen.';
+                        fb.classList.remove('hidden');
+                        setTimeout(() => fb.classList.add('hidden'), 5000);
+                    }
+                }).catch(() => {
+                    alert(`Bitte sende dein Feedback per E-Mail an:\n\n${email}\n\nBetreff: ${subject}\n\nNachricht:\n${text}`);
+                });
+            }, 500);
+
+            this.closeFeedbackModal();
+        }
+    };
+
+    // =============================================
+    // INITIALIZATION
+    // =============================================
+    window.addEventListener('load', () => {
+        quickStart.init();
+        app.init();
+        document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
+
+        // SETTINGS-PANEL AUTO-CLOSE (wie im Dreiklangstrainer)
+        const settingsPanel = document.getElementById('settingsPanel');
+        let mouseLeaveTimeout = null;
+
+        // Close on mouseleave (Desktop) - with 1 second delay
+        settingsPanel.addEventListener('mouseleave', () => {
+            if (!settingsPanel.classList.contains('hidden')) {
+                mouseLeaveTimeout = setTimeout(() => {
+                    settingsPanel.classList.add('hidden');
+                }, 1000);
+            }
+        });
+
+        // Cancel close if mouse returns
+        settingsPanel.addEventListener('mouseenter', () => {
+            if (mouseLeaveTimeout) {
+                clearTimeout(mouseLeaveTimeout);
+                mouseLeaveTimeout = null;
+            }
+        });
+
+        // Close on click outside panel (wichtig für Tablets!)
+        document.addEventListener('click', (e) => {
+            if (!settingsPanel.classList.contains('hidden') &&
+                !settingsPanel.contains(e.target) &&
+                !e.target.closest('button[onclick*="toggleSettings"]')) {
+                settingsPanel.classList.add('hidden');
+            }
+        });
+    });
+
+    // Resize handler: detect orientation change and re-render keyboard
+    window.addEventListener('resize', () => {
+        const newIsPortrait = window.screen.width < window.screen.height;
+        if (app.keyboardSizes &&
+            (app.keyboardSizes.width !== window.screen.width ||
+             app.keyboardSizes.isPortrait !== newIsPortrait)) {
+            app.keyboardSizes = {
+                width: window.screen.width,
+                height: window.screen.height,
+                isPortrait: newIsPortrait
+            };
+            if (app.showKeyboard) app.renderKeyboard();
+        }
+    });
+
+    </script>
+</body>
+</html>

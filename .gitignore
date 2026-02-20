@@ -1,0 +1,10 @@
+# Entwicklung & Archiv (nicht für die Website)
+_entwicklung/
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*.swo
+*~
