@@ -1652,17 +1652,18 @@
             questionsAnswered: 0,
             questionsCorrect: 0,
             sessionEnded: false,
-            lastActivity: null,
-            idleTimeoutMs: 5 * 60 * 1000, // 5 minutes idle timeout
-            idleCheckInterval: null,
+            heartbeatInterval: null,
+            heartbeatIntervalMs: 30 * 1000, // Heartbeat alle 30 Sekunden
 
             init() {
                 this.sessionId = this.generateSessionId();
                 this.sessionStart = Date.now();
-                this.lastActivity = Date.now();
 
                 // SOFORT Session-Start senden (für Mobile!)
                 this.sendStartEvent();
+
+                // Heartbeat: Alle 30 Sekunden aktuelle Daten senden
+                this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), this.heartbeatIntervalMs);
 
                 // Mehrere End-Events für bessere Kompatibilität
                 window.addEventListener('pagehide', () => this.endSession());
@@ -1671,30 +1672,29 @@
                 });
                 window.addEventListener('beforeunload', () => this.endSession());
 
-                // Track user activity for idle timeout
-                const activityEvents = ['click', 'keydown', 'touchstart', 'scroll'];
-                activityEvents.forEach(evt => {
-                    document.addEventListener(evt, () => {
-                        this.lastActivity = Date.now();
-                    }, { passive: true });
-                });
-
-                // Check for idle timeout every 30 seconds
-                this.idleCheckInterval = setInterval(() => this.checkIdleTimeout(), 30000);
-
-                console.log('📊 Tracking v2.1 initialisiert (mit Session-Timeout), Session:', this.sessionId);
+                console.log('📊 Tracking v2.2 initialisiert (mit Heartbeat), Session:', this.sessionId);
             },
 
-            checkIdleTimeout() {
-                if (this.sessionEnded) {
-                    if (this.idleCheckInterval) clearInterval(this.idleCheckInterval);
-                    return;
-                }
-                const idleTime = Date.now() - this.lastActivity;
-                if (idleTime >= this.idleTimeoutMs) {
-                    console.log('📊 Session Timeout nach', Math.round(idleTime / 1000), 'Sekunden Inaktivität');
-                    this.endSession('timeout');
-                }
+            sendHeartbeat() {
+                if (this.sessionEnded || !this.sessionStart) return;
+
+                const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
+                const successRate = this.questionsAnswered > 0
+                    ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
+                    : 0;
+
+                const data = {
+                    eventType: 'session_heartbeat',
+                    sessionId: this.sessionId,
+                    app: 'Notentrainer',
+                    timestamp: new Date().toISOString(),
+                    duration: duration,
+                    questionsAnswered: this.questionsAnswered,
+                    successRate: successRate,
+                    device: this.getDeviceType()
+                };
+
+                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
             },
             
             generateSessionId() {
@@ -1738,9 +1738,9 @@
                 if (this.sessionEnded || !this.sessionStart || !this.scriptURL) return;
                 this.sessionEnded = true;
 
-                if (this.idleCheckInterval) {
-                    clearInterval(this.idleCheckInterval);
-                    this.idleCheckInterval = null;
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                    this.heartbeatInterval = null;
                 }
 
                 const duration = Math.floor((Date.now() - this.sessionStart) / 1000);

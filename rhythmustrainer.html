@@ -1551,25 +1551,30 @@
             sessionStart: null,
             questionsAnswered: 0,
             questionsCorrect: 0,
-            sessionEnded: false, // Verhindert mehrfaches Senden
-            
+            sessionEnded: false,
+            heartbeatInterval: null,
+            heartbeatIntervalMs: 30 * 1000, // Heartbeat alle 30 Sekunden
+
             init() {
                 this.sessionId = this.generateSessionId();
                 this.sessionStart = Date.now();
-                
+
                 // SOFORT Session-Start senden (für Mobile!)
                 this.sendStartEvent();
-                
+
+                // Heartbeat: Alle 30 Sekunden aktuelle Daten senden
+                this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), this.heartbeatIntervalMs);
+
                 // Mehrere End-Events für bessere Kompatibilität
                 window.addEventListener('pagehide', () => this.endSession());
                 document.addEventListener('visibilitychange', () => {
                     if (document.visibilityState === 'hidden') this.endSession();
                 });
                 window.addEventListener('beforeunload', () => this.endSession());
-                
-                console.log('📊 Tracking v2.0 initialisiert, Session:', this.sessionId);
+
+                console.log('📊 Tracking v2.2 initialisiert (mit Heartbeat), Session:', this.sessionId);
             },
-            
+
             generateSessionId() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             },
@@ -1601,21 +1606,48 @@
                 navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
                 console.log('📊 Session gestartet:', data);
             },
-            
+
+            sendHeartbeat() {
+                if (this.sessionEnded || !this.sessionStart) return;
+
+                const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
+                const successRate = this.questionsAnswered > 0
+                    ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
+                    : 0;
+
+                const data = {
+                    eventType: 'session_heartbeat',
+                    sessionId: this.sessionId,
+                    app: 'Rhythmustrainer',
+                    timestamp: new Date().toISOString(),
+                    duration: duration,
+                    questionsAnswered: this.questionsAnswered,
+                    successRate: successRate,
+                    device: this.getDeviceType()
+                };
+
+                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+            },
+
             trackQuestion(isCorrect) {
                 this.questionsAnswered++;
                 if (isCorrect) this.questionsCorrect++;
             },
-            
+
             endSession() {
                 if (this.sessionEnded || !this.sessionStart || !this.scriptURL) return;
-                this.sessionEnded = true; // Nur einmal senden
-                
+                this.sessionEnded = true;
+
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                    this.heartbeatInterval = null;
+                }
+
                 const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
-                const successRate = this.questionsAnswered > 0 
-                    ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100) 
+                const successRate = this.questionsAnswered > 0
+                    ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
                     : 0;
-                
+
                 const data = {
                     eventType: 'session_end',
                     sessionId: this.sessionId,
@@ -1625,9 +1657,10 @@
                     questionsAnswered: this.questionsAnswered,
                     successRate: successRate,
                     device: this.getDeviceType(),
-                    referrer: this.getSource()
+                    referrer: this.getSource(),
+                    endReason: 'page_close'
                 };
-                
+
                 navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
                 console.log('📊 Session beendet:', data);
             },
