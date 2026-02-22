@@ -13,7 +13,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://musiktheorie-trainer.de/tonleitertrainer.html">
+    <meta property="og:url" content="https://www.schillerschule-hannover.de/tonleitertrainer/">
     <meta property="og:title" content="Tonleitertrainer Online - Tonleitern sicher erkennen">
     <meta property="og:description" content="Interaktiver Tonleitertrainer mit Halbtonschritten und Klaviatur. Kostenlos, DSGVO-konform und perfekt für den Musikunterricht.">
 
@@ -1541,7 +1541,7 @@
                 </form>
 
                 <p style="margin-top: 1rem; font-size: 0.75rem; color: #6b7280; text-align: center;">
-                    Dein Feedback wird per E-Mail an Herrn Madyda gesendet.
+                    Dein Feedback wird per E-Mail an Sebastian Madyda gesendet.
                 </p>
             </div>
         </div>
@@ -1787,21 +1787,6 @@
             return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         },
 
-        getSource() {
-            const params = new URLSearchParams(window.location.search);
-            const utm = params.get('utm_source');
-            if (utm) return utm;
-            const ref = document.referrer;
-            if (!ref) return 'direct';
-            try {
-                const host = new URL(ref).hostname;
-                if (host.includes('google')) return 'google';
-                if (host.includes('schillerschule')) return 'schule';
-                if (host.includes('musiktheorie-trainer')) return 'intern';
-                return host;
-            } catch(e) { return ref; }
-        },
-
         sendStartEvent() {
             const data = {
                 eventType: 'session_start',
@@ -1809,7 +1794,7 @@
                 app: 'Tonleitertrainer',
                 timestamp: new Date().toISOString(),
                 device: this.getDeviceType(),
-                referrer: this.getSource()
+                referrer: document.referrer || 'direct'
             };
             navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
             console.log('📊 Session gestartet:', data);
@@ -1869,7 +1854,7 @@
                 questionsAnswered: this.questionsAnswered,
                 successRate: successRate,
                 device: this.getDeviceType(),
-                referrer: this.getSource(),
+                referrer: document.referrer || 'direct',
                 endReason: reason || 'page_close'
             };
 
@@ -2462,6 +2447,14 @@
             if (confirm('Fortschritt zurücksetzen?\n\nAlle gemeisterten Stufen werden gelöscht. Das ist z.B. nützlich, wenn ein neuer Schüler das Gerät nutzt.')) {
                 this.progress = this.createNewProgress();
                 this.saveProgress();
+
+                // Falls Quiz aktiv: Zähler auf 0 und zurück zum Menü
+                if (this.isActive) {
+                    this.questionsAnswered = 0;
+                    this.questionsCorrect = 0;
+                    this.showQuickStart();
+                }
+
                 this.updateAllProgress();
             }
         }
