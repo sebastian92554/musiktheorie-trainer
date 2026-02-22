@@ -177,6 +177,10 @@
             align-items: center;
         }
 
+        .score-display.hidden-in-quiz {
+            display: none !important;
+        }
+
         .score-text {
             font-size: 1.125rem;
             font-weight: 600;
@@ -1917,13 +1921,16 @@
                 document.getElementById('quickStartScreen').classList.remove('active');
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('originalApp').classList.add('active');
-                
+
+                // Score-Counter wieder einblenden für Freies Üben
+                document.querySelector('.score-display').classList.remove('hidden-in-quiz');
+
                 // Quiz-Overlay entfernen falls vorhanden
                 const overlay = document.getElementById('quizOverlay');
                 if (overlay) overlay.remove();
-                
+
                 this.isActive = false;
-                
+
                 // App auf Standard-Modus setzen
                 app.quickStartMode = null;
                 
@@ -1997,10 +2004,13 @@
                 document.getElementById('quickStartScreen').classList.remove('active');
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('originalApp').classList.add('active');
-                
+
+                // Score-Counter ausblenden im Quiz-Modus
+                document.querySelector('.score-display').classList.add('hidden-in-quiz');
+
                 // Quiz-Overlay anzeigen
                 this.showQuizOverlay();
-                
+
                 // Erste Aufgabe generieren
                 app.generateNote();
             },
@@ -2137,10 +2147,18 @@
                     : '🎵 Wie heißt diese Note?';
                 
                 overlay.innerHTML = `
-                    <div style="font-weight: bold;">${icon} ${levelName} - Frage <span id="quizQuestionNum">1</span>/${this.totalQuestions}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-weight: bold;">${icon} ${levelName} - Frage <span id="quizQuestionNum">0</span>/${this.totalQuestions}</div>
+                        <button onclick="app.resetScore()" style="background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; margin-left: 12px;" title="Zurücksetzen">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle;">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                        </button>
+                    </div>
                     <div style="font-size: 0.85rem; color: #6b7280; margin-top: 4px;">${taskText}</div>
                     <div style="background: #e5e7eb; border-radius: 10px; height: 6px; margin-top: 8px; overflow: hidden;">
-                        <div id="quizProgressBar" style="background: #4f46e5; height: 100%; width: 10%; transition: width 0.3s ease;"></div>
+                        <div id="quizProgressBar" style="background: #4f46e5; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
                     </div>
                 `;
                 document.body.appendChild(overlay);
@@ -3332,9 +3350,23 @@
             resetScore() {
                 this.score = { correct: 0, total: 0 };
                 this.previousNotes = [];
+                this.currentStreak = 0;
+                this.bestStreak = 0;
+                this.goalAchieved = false;
                 this.updateScore();
-                this.selectedKey = null;
-                this.renderKeyboard();
+
+                // Falls Quiz aktiv: Zähler auf 0 und Overlay komplett neu erstellen
+                if (quickStart.isActive) {
+                    quickStart.questionsAnswered = 0;
+                    quickStart.questionsCorrect = 0;
+                    // Overlay komplett neu erstellen (robuster als nur width zurücksetzen)
+                    quickStart.showQuizOverlay();
+                }
+
+                // WICHTIG: Generiere IMMER neue Aufgabe
+                // UX: Frischer Start nach Reset
+                // SICHERHEIT: Panikbutton bei potenziellen Bugs/Freeze
+                this.generateNote();
             },
 
             // FIX #5: Reset Goal Progress

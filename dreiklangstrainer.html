@@ -170,6 +170,10 @@
             align-items: center;
         }
 
+        .score-display.hidden-in-quiz {
+            display: none !important;
+        }
+
         .score-text {
             font-size: 1.125rem;
             font-weight: 600;
@@ -2061,11 +2065,14 @@
                 if (overlay) overlay.remove();
                 
                 this.isActive = false;
-                
+
+                // Score-Counter wieder einblenden für Freies Üben
+                document.querySelector('.score-display').classList.remove('hidden-in-quiz');
+
                 // App auf Standard-Modus setzen
                 app.quickStartMode = null;
                 app.keyboardViewOnly = false;
-                
+
                 // Layout-Reorder entfernen
                 document.querySelector('.staff-and-keyboard-wrapper').classList.remove('quickstart-reorder');
                 
@@ -2134,9 +2141,12 @@
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('originalApp').classList.add('active');
                 
+                // Score-Counter ausblenden im Quiz-Modus
+                document.querySelector('.score-display').classList.add('hidden-in-quiz');
+
                 // Quiz-Overlay anzeigen
                 this.showQuizOverlay();
-                
+
                 // Erste Aufgabe generieren
                 app.generateChord();
             },
@@ -2325,10 +2335,18 @@
                                 '🎯 Bestimme Stellung + Dreiklang!';
                 
                 overlay.innerHTML = `
-                    <div style="font-weight: bold;">${icon} ${levelName} - Frage <span id="quizQuestionNum">1</span>/${this.totalQuestions}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-weight: bold;">${icon} ${levelName} - Frage <span id="quizQuestionNum">0</span>/${this.totalQuestions}</div>
+                        <button onclick="app.resetScore()" style="background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; margin-left: 12px;" title="Zurücksetzen">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle;">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                        </button>
+                    </div>
                     <div style="font-size: 0.85rem; color: #6b7280; margin-top: 4px;">${taskText}</div>
                     <div style="background: #e5e7eb; border-radius: 10px; height: 6px; margin-top: 8px; overflow: hidden;">
-                        <div id="quizProgressBar" style="background: #10b981; height: 100%; width: 10%; transition: width 0.3s ease;"></div>
+                        <div id="quizProgressBar" style="background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
                     </div>
                 `;
                 document.body.appendChild(overlay);
@@ -2339,7 +2357,7 @@
                 const progressBar = document.getElementById('quizProgressBar');
                 
                 if (questionNum) {
-                    questionNum.textContent = Math.min(this.questionsAnswered + 1, this.totalQuestions);
+                    questionNum.textContent = this.questionsAnswered;
                 }
                 if (progressBar) {
                     progressBar.style.width = ((this.questionsAnswered / this.totalQuestions) * 100) + '%';
@@ -3766,6 +3784,12 @@
                         const x2 = x + 12;
                         const x3 = x + 12;
                         
+                        // Prüfe ob äußere Noten Vorzeichen haben (für Staffelung)
+                        const hasAcc1 = hasSharp1 || hasFlat1 || hasDoubleSharp1 || hasDoubleFlat1;
+                        const hasAcc3 = hasSharp3 || hasFlat3 || hasDoubleSharp3 || hasDoubleFlat3;
+                        // Mittlere Note nur versetzen wenn mind. eine äußere Note auch ein Vorzeichen hat
+                        const midOffset = (hasAcc1 || hasAcc3) ? 20 : 0;
+
                         // Vorzeichen
                         if (hasDoubleSharp1) {
                             svg += `<text x="${x1 - 55}" y="${y1 + 15}" font-size="48" font-family="serif">𝄪</text>`;
@@ -3777,16 +3801,16 @@
                         } else if (hasFlat1) {
                             svg += `<text x="${x1 - 55}" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
                         }
-                        
+
                         if (hasDoubleSharp2) {
-                            svg += `<text x="${x2 - 75}" y="${y2 + 15}" font-size="48" font-family="serif">𝄪</text>`;
+                            svg += `<text x="${x2 - 55 - midOffset}" y="${y2 + 15}" font-size="48" font-family="serif">𝄪</text>`;
                         } else if (hasSharp2) {
-                            svg += `<text x="${x2 - 65}" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
+                            svg += `<text x="${x2 - 45 - midOffset}" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
                         }
                         if (hasDoubleFlat2) {
-                            svg += `<text x="${x2 - 85}" y="${y2 + 7}" font-size="48" font-family="serif">𝄫</text>`;
+                            svg += `<text x="${x2 - 65 - midOffset}" y="${y2 + 7}" font-size="48" font-family="serif">𝄫</text>`;
                         } else if (hasFlat2) {
-                            svg += `<text x="${x2 - 75}" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
+                            svg += `<text x="${x2 - 55 - midOffset}" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
                         }
                         
                         if (hasDoubleSharp3) {
@@ -3826,6 +3850,15 @@
                         }
                     } else {
                         // Normale harmonische Darstellung
+                        // Prüfe ob äußere Noten Vorzeichen haben (für Staffelung der mittleren Note)
+                        const hasAccidental1 = hasSharp1 || hasFlat1 || hasDoubleSharp1 || hasDoubleFlat1;
+                        const hasAccidental3 = hasSharp3 || hasFlat3 || hasDoubleSharp3 || hasDoubleFlat3;
+                        // Mittlere Note nur versetzen wenn mind. eine äußere Note auch ein Vorzeichen hat
+                        const note2SharpX = (hasAccidental1 || hasAccidental3) ? 135 : 155;
+                        const note2FlatX = (hasAccidental1 || hasAccidental3) ? 125 : 145;
+                        const note2DSharpX = (hasAccidental1 || hasAccidental3) ? 135 : 155;
+                        const note2DFlatX = (hasAccidental1 || hasAccidental3) ? 125 : 145;
+
                         // Note 1 (Grundton): Alle Vorzeichen auf gleicher X-Position
                         if (hasDoubleSharp1) {
                             svg += `<text x="155" y="${y1 + 15}" font-size="48" font-family="serif">𝄪</text>`;
@@ -3837,19 +3870,19 @@
                         } else if (hasFlat1) {
                             svg += `<text x="145" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
                         }
-                        
-                        // Note 2 (Terzton): Gestaffelt, alle Vorzeichen auf gleicher X-Position
+
+                        // Note 2 (Terzton): Nur gestaffelt wenn andere Noten auch Vorzeichen haben
                         if (hasDoubleSharp2) {
-                            svg += `<text x="135" y="${y2 + 15}" font-size="48" font-family="serif">𝄪</text>`;
+                            svg += `<text x="${note2DSharpX}" y="${y2 + 15}" font-size="48" font-family="serif">𝄪</text>`;
                         } else if (hasSharp2) {
-                            svg += `<text x="135" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
+                            svg += `<text x="${note2SharpX}" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
                         }
                         if (hasDoubleFlat2) {
-                            svg += `<text x="125" y="${y2 + 7}" font-size="48" font-family="serif">𝄫</text>`;
+                            svg += `<text x="${note2DFlatX}" y="${y2 + 7}" font-size="48" font-family="serif">𝄫</text>`;
                         } else if (hasFlat2) {
-                            svg += `<text x="125" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
+                            svg += `<text x="${note2FlatX}" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
                         }
-                        
+
                         // Note 3 (Quintton): Alle Vorzeichen auf gleicher X-Position
                         if (hasDoubleSharp3) {
                             svg += `<text x="155" y="${y3 + 15}" font-size="48" font-family="serif">𝄪</text>`;
@@ -4265,30 +4298,14 @@
                             feedbackEl.className = 'feedback incorrect';
                             feedbackEl.textContent = '✗ Klaviatur: falsche Tasten! (HS Grundton→Terz ist richtig)';
                             
-                            if (!this.validationState.hasBeenChecked) {
-                                this.validationState.hasBeenChecked = true;
-                                this.score.total++;
-                                tracking.trackQuestion(false);
-                                if (this.settings.goalMode === 'streak') {
-                                    this.currentStreak = 0;
-                                }
-                                this.updateScore();
-                            }
+                            this.recordAnswer(false);
                         } else if (!this.validationState.keyboard && semitones1AlsoEntered && !semitones1Correct) {
                             feedbackEl.classList.remove('hidden');
                             feedbackEl.className = 'feedback incorrect';
                             feedbackEl.innerHTML = '✗ Klaviatur: falsche Tasten!<br>✗ HS Grundton→Terz: falsch!';
                             
-                            if (!this.validationState.hasBeenChecked) {
-                                this.validationState.hasBeenChecked = true;
-                                this.score.total++;
-                                tracking.trackQuestion(false);
-                                if (this.settings.goalMode === 'streak') {
-                                    this.currentStreak = 0;
-                                }
-                                this.updateScore();
-                            }
-                            
+                            this.recordAnswer(false);
+
                             setTimeout(() => {
                                 semitones1Input.value = '';
                                 semitones1Input.classList.remove('input-validated-incorrect');
@@ -4301,15 +4318,7 @@
                             feedbackEl.className = 'feedback incorrect';
                             feedbackEl.textContent = '✗ Klaviatur: falsche Tasten! Versuche es nochmal.';
                             
-                            if (!this.validationState.hasBeenChecked) {
-                                this.validationState.hasBeenChecked = true;
-                                this.score.total++;
-                                tracking.trackQuestion(false);
-                                if (this.settings.goalMode === 'streak') {
-                                    this.currentStreak = 0;
-                                }
-                                this.updateScore();
-                            }
+                            this.recordAnswer(false);
                         }
                         return;
                     }
@@ -4354,16 +4363,8 @@
                         feedbackEl.className = 'feedback incorrect';
                         feedbackEl.textContent = `✗ HS Grundton→Terz falsch! Versuche es nochmal.`;
                         
-                        if (!this.validationState.hasBeenChecked) {
-                            this.validationState.hasBeenChecked = true;
-                            this.score.total++;
-                            tracking.trackQuestion(false);
-                            if (this.settings.goalMode === 'streak') {
-                                this.currentStreak = 0;
-                            }
-                            this.updateScore();
-                        }
-                        
+                        this.recordAnswer(false);
+
                         setTimeout(() => {
                             semitones1Input.value = '';
                             semitones1Input.classList.remove('input-validated-incorrect');
@@ -4431,17 +4432,9 @@
                         feedbackEl.classList.remove('hidden');
                         feedbackEl.className = 'feedback incorrect';
                         feedbackEl.textContent = `✗ HS Terz→Quint falsch! Versuche es nochmal.`;
-                        
-                        if (!this.validationState.hasBeenChecked) {
-                            this.validationState.hasBeenChecked = true;
-                            this.score.total++;
-                            tracking.trackQuestion(false);
-                            if (this.settings.goalMode === 'streak') {
-                                this.currentStreak = 0;
-                            }
-                            this.updateScore();
-                        }
-                        
+
+                        this.recordAnswer(false);
+
                         setTimeout(() => {
                             semitones2Input.value = '';
                             semitones2Input.classList.remove('input-validated-incorrect');
@@ -4517,18 +4510,10 @@
                             feedbackEl.className = 'feedback incorrect';
                             feedbackEl.textContent = '✗ Klaviatur: falsche Tasten! Versuche es nochmal.';
                             
-                            if (!this.validationState.hasBeenChecked) {
-                                this.validationState.hasBeenChecked = true;
-                                this.score.total++;
-                                tracking.trackQuestion(false);
-                                if (this.settings.goalMode === 'streak') {
-                                    this.currentStreak = 0;
-                                }
-                                this.updateScore();
-                            }
+                            this.recordAnswer(false);
                             return;
                         }
-                        
+
                         this.renderKeyboard();
 
                         // Dreiklang-Input + Stellung-Dropdown freischalten
@@ -4708,18 +4693,7 @@
                     this.validationState.allCorrect = true;
 
                     // Score Update
-                    if (!this.validationState.hasBeenChecked) {
-                        this.validationState.hasBeenChecked = true;
-                        this.score.correct++;
-                        this.score.total++;
-                        tracking.trackQuestion(true);
-
-                        if (this.settings.goalMode === 'streak') {
-                            this.currentStreak++;
-                        }
-
-                        this.updateScore();
-                    }
+                    this.recordAnswer(true);
 
                     // Feedback
                     const correctChordName = `${correctRootNote.charAt(0).toUpperCase() + correctRootNote.slice(1)}-${correctType.charAt(0).toUpperCase() + correctType.slice(1)}`;
@@ -4764,17 +4738,7 @@
                     }
 
                     // Score Update
-                    if (!this.validationState.hasBeenChecked) {
-                        this.validationState.hasBeenChecked = true;
-                        this.score.total++;
-                        tracking.trackQuestion(false);
-
-                        if (this.settings.goalMode === 'streak') {
-                            this.currentStreak = 0;
-                        }
-
-                        this.updateScore();
-                    }
+                    this.recordAnswer(false);
 
                     // Differenziertes Feedback
                     let feedbackParts = [];
@@ -5163,11 +5127,7 @@
                 }
                 
                 // ===== ERGEBNIS VERARBEITEN =====
-                if (!this.validationState.hasBeenChecked) {
-                    this.validationState.hasBeenChecked = true;
-                    tracking.trackQuestion(isCorrect);
-                    quickStart.handleAnswer(isCorrect);
-                }
+                this.recordAnswer(isCorrect);
                 
                 // Auto-Continue bei richtiger Antwort
                 if (isCorrect) {
@@ -5202,6 +5162,25 @@
                     'vermindert': 'verminderte'
                 };
                 return forms[quality] || quality;
+            },
+
+            // Zentrale Methode: Score + QuickStart-Counter synchron aktualisieren
+            recordAnswer(isCorrect) {
+                if (this.validationState.hasBeenChecked) return; // Nur beim ersten Versuch
+                this.validationState.hasBeenChecked = true;
+
+                this.score.total++;
+                if (isCorrect) this.score.correct++;
+
+                tracking.trackQuestion(isCorrect);
+                quickStart.handleAnswer(isCorrect);
+
+                if (this.settings.goalMode === 'streak') {
+                    if (isCorrect) this.currentStreak++;
+                    else this.currentStreak = 0;
+                }
+
+                this.updateScoreDisplay();
             },
 
             updateScore() {
@@ -5357,7 +5336,15 @@
                 this.bestStreak = 0;
                 this.goalAchieved = false;
                 this.updateScore();
-                
+
+                // Falls Quiz aktiv: Zähler auf 0 und Overlay komplett neu erstellen
+                if (quickStart.isActive) {
+                    quickStart.questionsAnswered = 0;
+                    quickStart.questionsCorrect = 0;
+                    // Overlay komplett neu erstellen (robuster als nur width zurücksetzen)
+                    quickStart.showQuizOverlay();
+                }
+
                 // WICHTIG: Generiere IMMER neue Aufgabe
                 // UX: Frischer Start nach Reset
                 // SICHERHEIT: Panikbutton bei potenziellen Bugs/Freeze

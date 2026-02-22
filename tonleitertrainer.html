@@ -158,6 +158,10 @@
             align-items: center;
         }
 
+        .score-display.hidden-in-quiz {
+            display: none !important;
+        }
+
         .score-text {
             font-size: 1.125rem;
             font-weight: 600;
@@ -1424,7 +1428,15 @@
         <!-- Quiz Overlay -->
         <div id="quizOverlay">
             <div class="quiz-overlay-content">
-                <div class="quiz-overlay-title" id="quizTitle">🟢 EINSTEIGER - Frage 1/10</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="quiz-overlay-title" id="quizTitle">🟢 EINSTEIGER - Frage 1/10</div>
+                    <button onclick="app.resetScore()" style="background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; margin-left: 12px;" title="Zurücksetzen">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle;">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="quiz-overlay-task" id="quizTask">🎵 Ganzton oder Halbton?</div>
                 <div class="quiz-progress-bar">
                     <div class="quiz-progress-fill" id="quizProgressFill" style="width: 0%"></div>
@@ -2120,6 +2132,10 @@
             document.getElementById('quickStartScreen').classList.remove('active');
             document.getElementById('successScreen').classList.remove('active');
             document.getElementById('originalApp').classList.add('active');
+
+            // Score-Counter wieder einblenden für Freies Üben
+            document.querySelector('.score-display').classList.remove('hidden-in-quiz');
+
             this.isActive = false;
             app.quickStartMode = null;
             app.useBassClef = false;
@@ -2204,6 +2220,9 @@
             document.getElementById('quickStartScreen').classList.remove('active');
             document.getElementById('successScreen').classList.remove('active');
             document.getElementById('originalApp').classList.add('active');
+
+            // Score-Counter ausblenden im Quiz-Modus
+            document.querySelector('.score-display').classList.add('hidden-in-quiz');
 
             // Configure app
             app.quickStartMode = level;
@@ -3412,6 +3431,18 @@
             this._lastTypeHistory = [];
             this._lastSubTypeHistory = [];
             this.updateScoreDisplay();
+
+            // Falls Quiz aktiv: Zähler auf 0 und Overlay komplett neu erstellen
+            if (quickStart.isActive) {
+                quickStart.questionsAnswered = 0;
+                quickStart.questionsCorrect = 0;
+                // Overlay komplett neu erstellen (robuster als nur width zurücksetzen)
+                quickStart.showQuizOverlay();
+            }
+
+            // WICHTIG: Generiere IMMER neue Aufgabe
+            // UX: Frischer Start nach Reset
+            // SICHERHEIT: Panikbutton bei potenziellen Bugs/Freeze
             this.generateNewTask();
         },
 
