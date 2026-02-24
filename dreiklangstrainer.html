@@ -4199,35 +4199,41 @@
 
                 html += '</div>';
 
-                // Auto-scale if wider than container
-                const cardEl = container.parentElement;
-                let maxWidth = cardEl ? cardEl.clientWidth - 20 : totalWidth;
-                // Fallback: Layout noch nicht fertig → Retry (max 10x, um endlose Schleifen zu verhindern)
-                if (maxWidth <= 0) {
-                    this._renderRetryCount = (this._renderRetryCount || 0) + 1;
-                    if (dbg) {
-                        console.log('⚠️ maxWidth <= 0, retry', this._renderRetryCount, '/ 10');
-                        console.groupEnd();
-                    }
-                    if (this._renderRetryCount < 10) {
-                        requestAnimationFrame(() => this.renderKeyboard());
-                    }
-                    return;
-                }
-                this._renderRetryCount = 0;
-                let scaleFactor = 1;
-                if (totalWidth > maxWidth && maxWidth > 0) {
-                    scaleFactor = maxWidth / totalWidth;
-                    // Erst unscaled rendern um CSS-Höhe zu lesen, dann mit Scale wrappen
-                    container.innerHTML = html;
-                    const cssHeight = container.querySelector('.keyboard-container')?.offsetHeight || 224;
-                    container.innerHTML = '<div style="transform:scale(' + scaleFactor.toFixed(3) + ');transform-origin:top center;width:' + totalWidth + 'px;height:' + cssHeight + 'px;margin:0 auto;">' + html + '</div>';
-                    container.style.height = Math.round(cssHeight * scaleFactor + 10) + 'px';
-                    container.style.overflow = 'hidden';
-                } else {
+                // Auto-scale if wider than container (nur Tablet/Desktop — Mobile scrollt per CSS)
+                if (isMobilePortrait || isMobileLandscape) {
+                    // Mobile: direkt rendern, CSS overflow-x: auto macht Keyboard scrollbar
                     container.innerHTML = html;
                     container.style.height = '';
                     container.style.overflow = '';
+                } else {
+                    const cardEl = container.parentElement;
+                    let maxWidth = cardEl ? cardEl.clientWidth - 20 : totalWidth;
+                    // Fallback: Layout noch nicht fertig → Retry (max 10x, um endlose Schleifen zu verhindern)
+                    if (maxWidth <= 0) {
+                        this._renderRetryCount = (this._renderRetryCount || 0) + 1;
+                        if (dbg) {
+                            console.log('⚠️ maxWidth <= 0, retry', this._renderRetryCount, '/ 10');
+                            console.groupEnd();
+                        }
+                        if (this._renderRetryCount < 10) {
+                            requestAnimationFrame(() => this.renderKeyboard());
+                        }
+                        return;
+                    }
+                    this._renderRetryCount = 0;
+                    let scaleFactor = 1;
+                    if (totalWidth > maxWidth && maxWidth > 0) {
+                        scaleFactor = maxWidth / totalWidth;
+                        container.innerHTML = html;
+                        const cssHeight = container.querySelector('.keyboard-container')?.offsetHeight || 224;
+                        container.innerHTML = '<div style="transform:scale(' + scaleFactor.toFixed(3) + ');transform-origin:top center;width:' + totalWidth + 'px;height:' + cssHeight + 'px;margin:0 auto;">' + html + '</div>';
+                        container.style.height = Math.round(cssHeight * scaleFactor + 10) + 'px';
+                        container.style.overflow = 'hidden';
+                    } else {
+                        container.innerHTML = html;
+                        container.style.height = '';
+                        container.style.overflow = '';
+                    }
                 }
 
                 if (dbg) {

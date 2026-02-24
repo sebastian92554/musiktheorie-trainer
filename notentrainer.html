@@ -2719,6 +2719,7 @@
                 }
 
                 // Portrait: 2 Oktaven bleiben, Keyboard ist horizontal scrollbar (CSS overflow-x: auto)
+                const isPortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
 
                 // Ensure correct note is always within keyboard range (safety)
                 if (currentPitch < adjustedStartPitch) adjustedStartPitch = Math.max(0, currentPitch - 2);
