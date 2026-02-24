@@ -2718,27 +2718,7 @@
                     }
                 }
 
-                // Portrait: nur 1 Oktave zeigen (Tasten sonst zu klein)
-                // Fester Oktavbereich, NICHT zentriert auf die Note
-                const isPortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
-                if (isPortrait) {
-                    // Finde die Oktavgrenze (C), die den Ton enthält
-                    // Oktavstart = nächstes C unterhalb des Bereichsstarts
-                    const rangeOctaves = [];
-                    for (let c = adjustedStartPitch; c < adjustedEndPitch; c += 12) {
-                        if (c % 12 === 0) rangeOctaves.push(c);
-                    }
-                    // Wähle die Oktave, die den korrekten Ton enthält
-                    let octaveStart = rangeOctaves[0] || adjustedStartPitch;
-                    for (const c of rangeOctaves) {
-                        if (currentPitch >= c && currentPitch < c + 12) {
-                            octaveStart = c;
-                            break;
-                        }
-                    }
-                    adjustedStartPitch = octaveStart;
-                    adjustedEndPitch = octaveStart + 12; // C bis C (1 Oktave)
-                }
+                // Portrait: 2 Oktaven bleiben, Keyboard ist horizontal scrollbar (CSS overflow-x: auto)
 
                 // Ensure correct note is always within keyboard range (safety)
                 if (currentPitch < adjustedStartPitch) adjustedStartPitch = Math.max(0, currentPitch - 2);
@@ -2790,14 +2770,15 @@
                 
                 const gap = 2;
 
-                // Dynamische Skalierung: Keyboard darf nicht breiter als Container werden
-                // Portrait zeigt nur 1 Oktave → braucht wenig Platz
-                // Landscape/Desktop: großzügiger, da Viewport breiter
-                const maxKeyboardWidth = isMobilePortrait ? 340 : isMobileLandscape ? 500 : isTabletLandscape ? 700 : isDesktopCompact ? 800 : 1000;
-                const rawWidth = whiteKeys.length * (whiteKeyWidth + gap) - gap;
-                if (rawWidth > maxKeyboardWidth && whiteKeys.length > 0) {
-                    whiteKeyWidth = Math.floor((maxKeyboardWidth + gap) / whiteKeys.length) - gap;
-                    blackKeyWidth = Math.round(whiteKeyWidth * 0.58);
+                // Dynamische Skalierung: Nur auf Tablet/Desktop begrenzen
+                // Mobile: Keyboard darf breiter als Container sein (horizontal scrollbar via CSS overflow-x: auto)
+                if (!isMobilePortrait && !isMobileLandscape) {
+                    const maxKeyboardWidth = isTabletLandscape ? 700 : isDesktopCompact ? 800 : 1000;
+                    const rawWidth = whiteKeys.length * (whiteKeyWidth + gap) - gap;
+                    if (rawWidth > maxKeyboardWidth && whiteKeys.length > 0) {
+                        whiteKeyWidth = Math.floor((maxKeyboardWidth + gap) / whiteKeys.length) - gap;
+                        blackKeyWidth = Math.round(whiteKeyWidth * 0.58);
+                    }
                 }
 
                 const totalWidth = whiteKeys.length * (whiteKeyWidth + gap) - gap;
