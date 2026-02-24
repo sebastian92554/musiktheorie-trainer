@@ -2424,7 +2424,8 @@
                             keyboardContainer.classList.remove('keyboard-view-only');
                         }
 
-                        // Einheitlich: Zentrierter Button wie Knoten 1+2
+                        // Meister: Eingabefelder zentrieren + zentrierter Button
+                        if (inputSplit) inputSplit.classList.add('input-centered');
                         normalCheckBtn.style.display = 'none';
                         centeredCheckBtn.style.display = 'block';
                         break;
@@ -3394,8 +3395,8 @@
 
                 let startPitch, endPitch;
 
-                // Klickbare Tastatur (Knoten 2, Freies Üben): 2 Oktaven für echte Auswahl
-                if (this.quickStartMode === 'aufsteiger' || (!this.quickStartMode && this.settings.requireKeyboard)) {
+                // 2 Oktaven für alle Quiz-Modi (Knoten 1-4) und Freies Üben mit Tastatur
+                if (this.quickStartMode || this.settings.requireKeyboard) {
                     const noteOctStart = Math.floor(minPitch / 12) * 12;
                     startPitch = noteOctStart;
                     endPitch = noteOctStart + 24;
@@ -3406,7 +3407,7 @@
                     if (maxPitch > endPitch) { endPitch = maxPitch + 2; }
                     if (minPitch < startPitch) { startPitch = minPitch - 2; }
                 } else {
-                    // Orientierungstastatur: Kompakte Darstellung um die Noten herum
+                    // Freies Üben ohne Tastatur-Checkbox: Kompakte Darstellung
                     startPitch = Math.max(0, minPitch - 2);
                     endPitch = Math.min(72, Math.max(maxPitch + 2, startPitch + 12));
                 }
