@@ -868,14 +868,6 @@
             margin-top: 0.5rem;
         }
 
-        .input-split {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
-            flex-wrap: wrap;
-        }
-
-        /* NT verwendet input-row statt input-split */
         .input-row {
             display: flex;
             gap: 0.5rem;
@@ -883,45 +875,23 @@
             flex-wrap: wrap;
         }
 
+        .input-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
         @media (max-width: 768px) {
-            .input-split {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            /* NT verwendet input-row statt input-split */
             .input-row {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
-            .input-split .input-group {
-                flex: 1 1 auto !important;
-            }
-            
-            .input-split > div:last-child {
-                margin-top: 0.5rem;
-            }
-            
-            /* NT Button-Styling */
+
             .input-row button {
                 align-self: flex-start;
                 margin-top: 0.5rem;
                 height: 42px;
             }
-        }
-
-        .input-split .input-group {
-            flex: 1;
-            margin-top: 0;
-        }
-
-        .input-split .input-group:last-child {
-            flex: 0 0 150px;
-        }
-
-        .input-split .input-group:last-child input {
-            width: 100%;
         }
 
         /* Klaviatur */
@@ -1493,29 +1463,9 @@
                 <div id="keyboard"></div>
             </div>
 
-            <!-- Input -->
+            <!-- Input (dynamisch per setupInput) -->
             <div class="card input-card">
-                <div class="input-group" id="noteInputGroup">
-                    <label for="noteInput" id="noteInputLabel">Wie heißt diese Note?<span id="octaveHint"></span></label>
-                    <div class="input-row">
-                        <div class="input-with-status" id="noteInputWrapper">
-                            <input type="text" id="noteInput" placeholder="z.B. c, fis" autocomplete="off" autocapitalize="none" autocorrect="off">
-                            <span class="input-status-icon pending" id="noteInputStatus"></span>
-                        </div>
-                        <!-- Octave Dropdown (nur sichtbar wenn Lagen-Option aktiv) -->
-                        <select id="octaveDropdown" style="display: none; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; min-width: 140px;">
-                            <option value="" disabled selected>Lage wählen...</option>
-                        </select>
-                        <button class="btn-primary" id="checkButton" onclick="app.checkAnswer()" style="padding: 12px 30px; font-size: 1.1rem;">✓ Prüfen</button>
-                    </div>
-                    <p class="hint-text hidden" id="inputHint">Tipp: Verwende Striche für Oktaven (z.B. c', c'')</p>
-                </div>
-                <!-- Profi-Modus: Zentrierter Prüfen-Button -->
-                <div id="profiCheckContainer" style="display: none; text-align: center; padding: 1rem 0;">
-                    <button class="btn-primary" onclick="app.checkAnswer()" style="padding: 12px 30px; font-size: 1.1rem;">
-                        ✓ Prüfen
-                    </button>
-                </div>
+                <div id="inputCard"><!-- Wird dynamisch befüllt --></div>
                 <div class="keyboard-status" id="keyboardStatus"></div>
                 <div class="feedback hidden" id="feedback"></div>
             </div>
@@ -1961,6 +1911,9 @@
                 document.getElementById('requireKeyboard').checked = false;
                 document.getElementById('showCMarker').checked = true;
 
+                // Dynamisches Input-Rendering
+                app.setupInput();
+
                 app.score = { correct: 0, total: 0 };
                 app.updateScore();
                 app.generateNote();
@@ -2048,26 +2001,18 @@
                 document.getElementById('extendedRange').checked = app.settings.extendedRange;
                 document.getElementById('requireOctave').checked = app.settings.requireOctave;
 
-                const noteInputGroup = document.getElementById('noteInputGroup');
-                const profiCheckContainer = document.getElementById('profiCheckContainer');
                 const keyboardHint = document.getElementById('keyboardHint');
 
                 if (level === 'einsteiger') {
                     app.settings.clef = 'treble';
                     app.settings.requireKeyboard = false;
                     app.settings.showCMarker = true;
-
-                    if (noteInputGroup) noteInputGroup.style.display = 'block';
-                    if (profiCheckContainer) profiCheckContainer.style.display = 'none';
                     if (keyboardHint) keyboardHint.textContent = '🎹 Tastatur zur Orientierung';
 
                 } else if (level === 'aufsteiger') {
                     app.settings.clef = 'bass';
                     app.settings.requireKeyboard = false;
                     app.settings.showCMarker = true;
-
-                    if (noteInputGroup) noteInputGroup.style.display = 'block';
-                    if (profiCheckContainer) profiCheckContainer.style.display = 'none';
                     if (keyboardHint) keyboardHint.textContent = '🎹 Tastatur zur Orientierung';
 
                 } else if (level === 'profi') {
@@ -2075,9 +2020,6 @@
                     app.settings.requireKeyboard = true;
                     app.settings.requireOctave = false;
                     app.settings.showCMarker = true;
-
-                    if (noteInputGroup) noteInputGroup.style.display = 'none';
-                    if (profiCheckContainer) profiCheckContainer.style.display = 'block';
                     if (keyboardHint) keyboardHint.textContent = '🎹 Klicke die richtige Taste!';
                 }
 
@@ -2088,7 +2030,8 @@
                 app.score = { correct: 0, total: 0 };
                 app.freeRetry = false;
 
-                this.updateOctaveDropdown(level, options);
+                // Dynamisches Input-Rendering
+                app.setupInput();
             },
 
             // ---- Octave Dropdown aktualisieren ----
@@ -2380,25 +2323,9 @@
 
             init() {
                 tracking.init(); // TRACKING INITIALISIEREN
+                this.setupInput(); // Dynamisches Input-Rendering
                 this.generateNote();
                 this.renderKeyboard();
-                
-                const noteInput = document.getElementById('noteInput');
-                
-                noteInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.checkAnswer();
-                });
-                
-                noteInput.addEventListener('focus', () => {
-                    if (window.innerWidth <= 768) {
-                        setTimeout(() => {
-                            const staffCard = document.querySelector('.staff-card');
-                            if (staffCard) {
-                                staffCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        }, 300);
-                    }
-                });
                 
                 // UX IMPROVEMENT: Smart settings panel auto-close
                 const settingsPanel = document.getElementById('settingsPanel');
@@ -2447,6 +2374,91 @@
                 
                 // FIX #3: Scroll to top on page load to ensure header is visible
                 window.scrollTo(0, 0);
+            },
+
+            // ---- Dynamisches Input-Rendering (DT/IT-Pattern) ----
+            setupInput() {
+                const inputCard = document.getElementById('inputCard');
+                if (!inputCard) return;
+
+                const btnHTML = `<div class="input-buttons">
+                    <button type="button" onclick="app.checkAnswer()" class="btn-primary"
+                        style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                </div>`;
+
+                if (this.quickStartMode === 'profi') {
+                    // Profi: Nur Button (Keyboard liefert Eingabe)
+                    inputCard.innerHTML = btnHTML;
+
+                } else if (this.quickStartMode) {
+                    // Quiz-Modus (Einsteiger/Aufsteiger): Textfeld + ggf. Oktav-Dropdown
+                    const showDropdown = quickStart.currentOptions && quickStart.currentOptions.includes('lagen');
+                    let dropdownHTML = '';
+                    if (showDropdown) {
+                        dropdownHTML = `<select id="octaveDropdown" style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; min-width: 140px;">
+                            <option value="" disabled selected>Lage wählen...</option>
+                        </select>`;
+                    }
+
+                    inputCard.innerHTML = `
+                        <div class="input-group">
+                            <label for="noteInput" id="noteInputLabel">Wie heißt diese Note?<span id="octaveHint"></span></label>
+                            <div class="input-row">
+                                <div class="input-with-status" id="noteInputWrapper">
+                                    <input type="text" id="noteInput" placeholder="z.B. c, fis"
+                                        autocomplete="off" autocapitalize="none" autocorrect="off">
+                                    <span class="input-status-icon pending" id="noteInputStatus"></span>
+                                </div>
+                                ${dropdownHTML}
+                                <button class="btn-primary" id="checkButton" onclick="app.checkAnswer()"
+                                    style="padding: 12px 30px; font-size: 1.1rem;">✓ Prüfen</button>
+                            </div>
+                            <p class="hint-text hidden" id="inputHint"></p>
+                        </div>`;
+
+                    // Oktav-Dropdown befüllen (falls aktiv)
+                    if (showDropdown) {
+                        quickStart.updateOctaveDropdown(this.quickStartMode, quickStart.currentOptions);
+                    }
+
+                } else {
+                    // Freies Üben: Textfeld + Button (Oktavlage per Strichnotation)
+                    inputCard.innerHTML = `
+                        <div class="input-group">
+                            <label for="noteInput" id="noteInputLabel">Wie heißt diese Note?<span id="octaveHint"></span></label>
+                            <div class="input-row">
+                                <div class="input-with-status" id="noteInputWrapper">
+                                    <input type="text" id="noteInput" placeholder="z.B. c, fis"
+                                        autocomplete="off" autocapitalize="none" autocorrect="off">
+                                    <span class="input-status-icon pending" id="noteInputStatus"></span>
+                                </div>
+                                <button class="btn-primary" id="checkButton" onclick="app.checkAnswer()"
+                                    style="padding: 12px 30px; font-size: 1.1rem;">✓ Prüfen</button>
+                            </div>
+                            <p class="hint-text hidden" id="inputHint"></p>
+                        </div>`;
+                }
+
+                this._attachInputListeners();
+            },
+
+            _attachInputListeners() {
+                const noteInput = document.getElementById('noteInput');
+                if (noteInput) {
+                    noteInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.checkAnswer();
+                    });
+                    noteInput.addEventListener('focus', () => {
+                        if (window.innerWidth <= 768) {
+                            setTimeout(() => {
+                                const staffCard = document.querySelector('.staff-card');
+                                if (staffCard) {
+                                    staffCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                            }, 300);
+                        }
+                    });
+                }
             },
 
             generateNote() {
@@ -2519,7 +2531,8 @@
                 }
                 
                 this.selectedKey = null;
-                document.getElementById('noteInput').value = '';
+                const _ni = document.getElementById('noteInput');
+                if (_ni) _ni.value = '';
                 document.getElementById('feedback').classList.add('hidden');
                 
                 // Reset validation state
@@ -2543,27 +2556,32 @@
                     qsOctaveCorrect: null   // Quick-Start Lagen-Modus
                 };
                 
-                // Reset visual indicators
+                // Reset visual indicators (null-safe: Elemente existieren nur in bestimmten Modi)
                 const noteInput = document.getElementById('noteInput');
                 const noteInputStatus = document.getElementById('noteInputStatus');
                 const keyboardStatus = document.getElementById('keyboardStatus');
                 const octaveDropdown = document.getElementById('octaveDropdown');
-                
-                noteInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
-                noteInput.disabled = false;
-                
-                noteInputStatus.className = 'input-status-icon pending';
-                noteInputStatus.textContent = '';
-                
+
+                if (noteInput) {
+                    noteInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                    noteInput.disabled = false;
+                }
+
+                if (noteInputStatus) {
+                    noteInputStatus.className = 'input-status-icon pending';
+                    noteInputStatus.textContent = '';
+                }
+
                 // Octave Dropdown zurücksetzen
                 if (octaveDropdown) {
                     octaveDropdown.style.borderColor = '#d1d5db';
-                    // Platzhalter wieder auswählen
                     octaveDropdown.selectedIndex = 0;
                 }
-                
-                keyboardStatus.className = 'keyboard-status';
-                keyboardStatus.textContent = '';
+
+                if (keyboardStatus) {
+                    keyboardStatus.className = 'keyboard-status';
+                    keyboardStatus.textContent = '';
+                }
             },
 
             drawStaff() {
@@ -2929,7 +2947,10 @@
                 const noteInputStatus = document.getElementById('noteInputStatus');
                 const keyboardStatus = document.getElementById('keyboardStatus');
                 const feedbackEl = document.getElementById('feedback');
-                
+
+                // Defensive: Ohne Textfeld kein Text-Check möglich
+                if (!noteInput) return;
+
                 let userInput = noteInput.value.trim();
                 if (!userInput) return;
                 
@@ -3400,26 +3421,28 @@
                 const clefBadge = document.getElementById('clefBadge');
                 clefBadge.textContent = this.currentNote.clef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
                 
+                // Null-safe: Elemente existieren nur in Text-Input-Modi (nicht im Profi)
                 const octaveHint = document.getElementById('octaveHint');
                 const inputHint = document.getElementById('inputHint');
                 const noteInput = document.getElementById('noteInput');
-                
-                // Quick-Start mit Lagen: Dropdown nutzen, anderen Tipp zeigen
-                if (this.quickStartMode && this.quickStartMode !== 'profi' && quickStart.currentOptions.includes('lagen')) {
-                    octaveHint.textContent = ' (+ Lage im Dropdown)';
-                    inputHint.textContent = '💡 Tipp: Wähle die Oktavlage im Dropdown rechts!';
-                    inputHint.classList.remove('hidden');
-                    noteInput.placeholder = "z.B. c, fis";
-                } else if (this.settings.requireOctave) {
-                    // Freies Üben mit Oktavlage
-                    octaveHint.textContent = ' (mit Oktavlage)';
-                    inputHint.textContent = 'Tipp: Verwende Striche für Oktaven (z.B. c\', c\'\')';
-                    inputHint.classList.remove('hidden');
-                    noteInput.placeholder = "z.B. c', fis''";
-                } else {
-                    octaveHint.textContent = '';
-                    inputHint.classList.add('hidden');
-                    noteInput.placeholder = "z.B. c, fis";
+
+                if (octaveHint && inputHint && noteInput) {
+                    // Quick-Start mit Lagen: Dropdown nutzen, anderen Tipp zeigen
+                    if (this.quickStartMode && this.quickStartMode !== 'profi' && quickStart.currentOptions.includes('lagen')) {
+                        octaveHint.textContent = ' (+ Lage im Dropdown)';
+                        inputHint.textContent = '💡 Tipp: Wähle die Oktavlage im Dropdown rechts!';
+                        inputHint.classList.remove('hidden');
+                        noteInput.placeholder = "z.B. c, fis";
+                    } else if (this.settings.requireOctave) {
+                        octaveHint.textContent = ' (mit Oktavlage)';
+                        inputHint.textContent = 'Tipp: Verwende Striche für Oktaven (z.B. c\', c\'\')';
+                        inputHint.classList.remove('hidden');
+                        noteInput.placeholder = "z.B. c', fis''";
+                    } else {
+                        octaveHint.textContent = '';
+                        inputHint.classList.add('hidden');
+                        noteInput.placeholder = "z.B. c, fis";
+                    }
                 }
                 
                 const keyboardHint = document.getElementById('keyboardHint');
@@ -3610,23 +3633,9 @@ Gerät:
             // App initialisieren (aber nicht starten - Quick-Start steuert das)
             tracking.init();
             app.renderKeyboard();
-            
-            // Event Listeners aus app.init() übernehmen
-            const noteInput = document.getElementById('noteInput');
-            noteInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') app.checkAnswer();
-            });
-            
-            noteInput.addEventListener('focus', () => {
-                if (window.innerWidth <= 768) {
-                    setTimeout(() => {
-                        const staffCard = document.querySelector('.staff-card');
-                        if (staffCard) {
-                            staffCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }, 300);
-                }
-            });
+
+            // Event Listeners werden jetzt in _attachInputListeners() registriert
+            // (aufgerufen durch setupInput() bei jedem Moduswechsel)
             
             // Settings panel auto-close
             const settingsPanel = document.getElementById('settingsPanel');
