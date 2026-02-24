@@ -999,34 +999,6 @@
             margin-top: 0.35rem;
         }
 
-        /* Legende */
-        .st-legend {
-            margin-top: 1rem;
-            padding: 0.75rem;
-            background: #f8fafc;
-            border-radius: 0.5rem;
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .st-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.65rem;
-            color: #64748b;
-        }
-        .st-legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        .st-legend-dot.m { background: #8b5cf6; }
-        .st-legend-dot.a { background: white; border: 2px solid #94a3b8; }
-        .st-legend-dot.l { background: #f1f5f9; border: 2px dashed #cbd5e1; }
-        .st-legend-dot.c { background: #4f46e5; }
-
         /* Freies Üben Link */
         .st-free-practice {
             text-align: center;
@@ -1205,12 +1177,6 @@
                     <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #8b5cf6; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
                     <span style="color: #d1d5db;">|</span>
                     <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
-                </div>
-
-                <div class="st-legend">
-                    <div class="st-legend-item"><div class="st-legend-dot m"></div> Gemeistert</div>
-                    <div class="st-legend-item"><div class="st-legend-dot a"></div> Verfügbar</div>
-                    <div class="st-legend-item"><div class="st-legend-dot l"></div> Gesperrt</div>
                 </div>
 
             </div>
@@ -2904,15 +2870,46 @@
                     // Menü-Ansicht: Allgemeine Hilfe
                     titleEl.textContent = 'Rhythmustrainer – Hilfe';
 
+                    const sym = (t, w=40, h=40) => this.renderLegendSymbol(t, w, h);
+
                     contentEl.innerHTML = `
-                        <p>Willkommen im <strong>Rhythmustrainer</strong>! Hier lernst du Schritt für Schritt, Rhythmen zu lesen und zu verstehen.</p>
-                        <p><strong>So funktioniert's:</strong></p>
-                        <p>Dein Lernpfad besteht aus drei Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor.</p>
-                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
-                        <p><strong>Die drei Übungstypen:</strong></p>
+                        <p>Die Aufgaben funktionieren wie <strong>Matheaufgaben</strong>: Du siehst Notenwerte und rechnest ihre Dauer zusammen, bestimmst Positionen im Takt oder sprichst Rhythmussilben.</p>
+
+                        <p><strong>Die drei Kompetenzknoten:</strong></p>
                         <p>1. <strong>Notenwerte addieren</strong> — Rechne die Dauern zusammen<br>
                         2. <strong>Zählzeiten bestimmen</strong> — Finde die Position im Takt<br>
                         3. <strong>Rhythmussprache</strong> — Sprich die richtige Silbe</p>
+
+                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+
+                        <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+
+                        <p><strong>Notenwert-Legende:</strong></p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin: 0.5rem 0;">
+                            <div style="text-align: center;">${sym('whole')}<div style="font-size: 0.8rem;">Ganze (4)</div></div>
+                            <div style="text-align: center;">${sym('half')}<div style="font-size: 0.8rem;">Halbe (2)</div></div>
+                            <div style="text-align: center;">${sym('quarter')}<div style="font-size: 0.8rem;">Viertel (1)</div></div>
+                            <div style="text-align: center;">${sym('eighth')}<div style="font-size: 0.8rem;">Achtel (0,5)</div></div>
+                            <div style="text-align: center;">${sym('sixteenth')}<div style="font-size: 0.8rem;">16tel (0,25)</div></div>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin: 0.5rem 0;">
+                            <div style="text-align: center;">${sym('dotted-half',45,40)}<div style="font-size: 0.8rem;">P. Halbe (3)</div></div>
+                            <div style="text-align: center;">${sym('dotted-quarter',45,40)}<div style="font-size: 0.8rem;">P. Viertel (1,5)</div></div>
+                            <div style="text-align: center;">${sym('dotted-eighth',45,40)}<div style="font-size: 0.8rem;">P. Achtel (0,75)</div></div>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #6b7280; text-align: center;">Punkt = +50% des Werts &nbsp;|&nbsp; Pausen haben dieselbe Dauer</p>
+
+                        <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+
+                        <p><strong>Rhythmussilben:</strong></p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin: 0.5rem 0;">
+                            <div style="text-align: center; padding: 0.3rem;"><span style="font-weight: 700; color: #8b5cf6; font-size: 1.2rem;">du</span><div style="font-size: 0.75rem;">Schlag</div></div>
+                            <div style="text-align: center; padding: 0.3rem;"><span style="font-weight: 700; color: #8b5cf6; font-size: 1.2rem;">dei</span><div style="font-size: 0.75rem;">"und"</div></div>
+                            <div style="text-align: center; padding: 0.3rem;"><span style="font-weight: 700; color: #8b5cf6; font-size: 1.2rem;">te</span><div style="font-size: 0.75rem;">"e"/"te"</div></div>
+                            <div style="text-align: center; padding: 0.3rem;"><span style="font-weight: 700; color: #8b5cf6; font-size: 1rem;">du-da-di</span><div style="font-size: 0.75rem;">Triolen</div></div>
+                        </div>
+
+                        <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">Tipp: Im Quiz zeigt dir der <strong>?</strong>-Button passende Hilfen zur aktuellen Aufgabe.</p>
                     `;
                 }
 
@@ -2989,14 +2986,7 @@ Gerät:
                 this.closeFeedback();
             },
 
-            showLegend() {
-                // Legende ist jetzt im Hilfe-Menü integriert
-                this.showHelp();
-            },
-
-            closeLegend() {
-                // Nicht mehr separat nötig
-            },
+            // showLegend/closeLegend entfernt — Legende ist im Hilfe-Menü integriert
 
             // Rendert ein einzelnes Notensymbol für die Legende
             // Verwendet dieselben SVG-Pfade wie renderBar()
@@ -3231,163 +3221,7 @@ Gerät:
                 return svg;
             },
 
-            renderLegendModal() {
-                const container = document.getElementById('legendModalContent');
-                
-                let html = '';
-                
-                // Grundwerte - immer anzeigen
-                html += `
-                    <div class="modal-section intro" style="padding: 1rem;">
-                        <h3 style="margin-bottom: 0.75rem;">🎵 Grundwerte</h3>
-                        <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
-                            <div style="text-align: center;">
-                                ${this.renderLegendSymbol('whole', 50, 50)}
-                                <div style="font-size: 0.875rem;">Ganze (4)</div>
-                            </div>
-                            <div style="text-align: center;">
-                                ${this.renderLegendSymbol('half', 50, 50)}
-                                <div style="font-size: 0.875rem;">Halbe (2)</div>
-                            </div>
-                            <div style="text-align: center;">
-                                ${this.renderLegendSymbol('quarter', 50, 50)}
-                                <div style="font-size: 0.875rem;">Viertel (1)</div>
-                            </div>
-                            <div style="text-align: center;">
-                                ${this.renderLegendSymbol('eighth', 50, 50)}
-                                <div style="font-size: 0.875rem;">Achtel (0.5)</div>
-                            </div>
-                            <div style="text-align: center;">
-                                ${this.renderLegendSymbol('sixteenth', 50, 50)}
-                                <div style="font-size: 0.875rem;">16tel (0.25)</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Punktierte Noten - nur wenn aktiviert
-                if (this.settings.includeDotted) {
-                    html += `
-                        <div class="modal-section settings" style="padding: 1rem; margin-top: 0.75rem;">
-                            <h3 style="margin-bottom: 0.75rem;">🔸 Punktierte Noten</h3>
-                            <p style="font-size: 0.8rem; margin-bottom: 0.5rem; opacity: 0.8;">Punkt = + halber Wert</p>
-                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('dotted-half', 55, 50)}
-                                    <div style="font-size: 0.875rem;">P. Halbe (3)</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('dotted-quarter', 55, 50)}
-                                    <div style="font-size: 0.875rem;">P. Viertel (1.5)</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('dotted-eighth', 55, 50)}
-                                    <div style="font-size: 0.875rem;">P. Achtel (0.75)</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Pausen - nur wenn aktiviert
-                if (this.settings.includeRests) {
-                    html += `
-                        <div class="modal-section" style="padding: 1rem; margin-top: 0.75rem; background: #fef3c7; border-radius: 0.5rem;">
-                            <h3 style="margin-bottom: 0.75rem; color: #78350f;">🤫 Pausen (Stille)</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('half-rest', 50, 50)}
-                                    <div style="font-size: 0.875rem;">Halbe (2)</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('quarter-rest', 50, 50)}
-                                    <div style="font-size: 0.875rem;">Viertel (1)</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('eighth-rest', 50, 50)}
-                                    <div style="font-size: 0.875rem;">Achtel (0.5)</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('sixteenth-rest', 50, 50)}
-                                    <div style="font-size: 0.875rem;">16tel (0.25)</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Triolen - nur wenn aktiviert (alle zusammen)
-                if (this.settings.includeTriplets) {
-                    html += `
-                        <div class="modal-section tips" style="padding: 1rem; margin-top: 0.75rem;">
-                            <h3 style="margin-bottom: 0.75rem;">🎶 Triolen (3 = 2)</h3>
-                            <p style="font-size: 0.8rem; margin-bottom: 0.5rem; opacity: 0.8;">3 Noten in der Zeit von 2</p>
-                            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center;">
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('eighth-triplet', 55, 55)}
-                                    <div style="font-size: 0.875rem;">Achtel-Triole</div>
-                                    <div style="font-size: 0.75rem; opacity: 0.7;">je ≈0.33</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('quarter-triplet', 60, 55)}
-                                    <div style="font-size: 0.875rem;">Viertel-Triole</div>
-                                    <div style="font-size: 0.75rem; opacity: 0.7;">je ≈0.67</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    ${this.renderLegendSymbol('half-triplet', 65, 55)}
-                                    <div style="font-size: 0.875rem;">Halbe-Triole</div>
-                                    <div style="font-size: 0.75rem; opacity: 0.7;">je ≈1.33</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                html += `
-                            </div>
-                        </div>
-                    `;
-                
-                // Rhythmussilben - nur bei Rhythmussilben-Aufgabe
-                if (this.settings.taskType === 'rhythm-syllable') {
-                    html += `
-                        <div class="modal-section" style="padding: 1rem; margin-top: 0.75rem; background: #dcfce7; border-radius: 0.5rem;">
-                            <h3 style="margin-bottom: 0.75rem; color: #166534;">🎤 Rhythmussilben</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
-                                <div style="text-align: center; padding: 0.5rem;">
-                                    <span style="font-weight: 700; color: #059669; font-size: 1.5rem;">du</span>
-                                    <div style="font-size: 0.8rem;">Grundschlag</div>
-                                </div>
-                                <div style="text-align: center; padding: 0.5rem;">
-                                    <span style="font-weight: 700; color: #059669; font-size: 1.5rem;">dei</span>
-                                    <div style="font-size: 0.8rem;">"und"</div>
-                                </div>
-                                <div style="text-align: center; padding: 0.5rem;">
-                                    <span style="font-weight: 700; color: #059669; font-size: 1.5rem;">te</span>
-                                    <div style="font-size: 0.8rem;">"e"/"te"</div>
-                                </div>
-                                <div style="text-align: center; padding: 0.5rem;">
-                                    <span style="font-weight: 700; color: #059669; font-size: 1.25rem;">du-da-di</span>
-                                    <div style="font-size: 0.8rem;">Triolen</div>
-                                </div>
-                                <div style="text-align: center; padding: 0.5rem;">
-                                    <span style="font-weight: 700; color: #9ca3af; font-size: 1.5rem;">—</span>
-                                    <div style="font-size: 0.8rem;">Pause</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Hinweis
-                html += `
-                    <p style="text-align: center; font-size: 0.8rem; color: #6b7280; margin-top: 1rem;">
-                        💡 Die Zahlen zeigen die Dauer in Viertelnoten
-                    </p>
-                `;
-                
-                container.innerHTML = html;
-            },
+            // renderLegendModal entfernt — Legende ist jetzt im Hilfe-Menü integriert
 
             updateSettings() {
                 this.settings.taskType = document.getElementById('taskTypeSelect').value;
