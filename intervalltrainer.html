@@ -473,47 +473,28 @@
             margin-top: 0.5rem;
         }
 
-        .input-split {
+        /* Dynamisches Input-Layout (wie DT) */
+        .input-row {
             display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
+            justify-content: center;
+            gap: 0.75rem;
             flex-wrap: wrap;
         }
 
-        .input-split.input-centered {
-            justify-content: center;
-        }
-
-        .input-split.input-centered .input-group {
+        .input-row .input-group {
             flex: 0 1 280px;
-        }
-
-        @media (max-width: 768px) {
-            .input-split {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .input-split .input-group {
-                flex: 1 1 auto !important;
-            }
-            
-            .input-split > div:last-child {
-                margin-top: 0.5rem;
-            }
-        }
-
-        .input-split .input-group {
-            flex: 1;
             margin-top: 0;
         }
 
-        .input-split .input-group:last-child {
-            flex: 0 0 150px;
-        }
-
-        .input-split .input-group:last-child input {
-            width: 100%;
+        @media (max-width: 768px) {
+            .input-row {
+                flex-direction: column;
+                align-items: center;
+            }
+            .input-row .input-group {
+                width: 100%;
+                max-width: 320px;
+            }
         }
 
         .input-buttons {
@@ -1680,63 +1661,9 @@
                 <div id="keyboardContainer"></div>
             </div>
 
-            <!-- Input -->
+            <!-- Input (dynamisch per setupInput) -->
             <div class="card input-card">
-                <div class="input-split" id="inputContainer">
-                    <!-- HALBTONSCHRITTE - Links/Oben -->
-                    <div class="input-group hidden" id="semitonesInputGroup" style="flex: 0 0 150px;">
-                        <label for="semitonesInput">Halbtonschritte <span style="color: #ea580c;">*</span></label>
-                        <div class="input-with-status">
-                            <input type="number" id="semitonesInput" placeholder="z.B. 7" autocomplete="off" min="0" max="25">
-                            <span class="input-status-icon pending" id="semitonesInputStatus"></span>
-                        </div>
-                        <p class="hint-text" id="semitonesHint" style="margin-top: 0.25rem; font-size: 0.7rem; min-height: 2.4em;">Pflichtfeld (zuerst bestimmen!)</p>
-                    </div>
-                    
-                    <!-- INTERVALLNAME - Rechts/Unten -->
-                    <div class="input-group" id="intervallnameGroup" style="flex: 0 1 300px;">
-                        <label for="intervalInput">Intervallname<span id="qualityHint"></span></label>
-                        
-                        <!-- Dropdown für Einsteiger-Modus -->
-                        <select id="intervalDropdown" class="interval-dropdown" style="display: none;">
-                            <option value="">-- Intervall wählen --</option>
-                            <option value="1">Prime</option>
-                            <option value="2">Sekunde</option>
-                            <option value="3">Terz</option>
-                            <option value="4">Quarte</option>
-                            <option value="5">Quinte</option>
-                            <option value="6">Sexte</option>
-                            <option value="7">Septime</option>
-                            <option value="8">Oktave</option>
-                            <!-- Erweiterte Intervalle (werden bei Bedarf per JS eingeblendet) -->
-                            <option value="9" class="extended-option" hidden>None</option>
-                            <option value="10" class="extended-option" hidden>Dezime</option>
-                            <option value="11" class="extended-option" hidden>Undezime</option>
-                            <option value="12" class="extended-option" hidden>Duodezime</option>
-                        </select>
-                        
-                        <!-- Normales Input-Feld -->
-                        <div class="input-with-status" id="intervalInputContainer">
-                            <input type="text" id="intervalInput" placeholder="z.B. Terz" autocomplete="off" autocapitalize="none" autocorrect="off">
-                            <span class="input-status-icon pending" id="intervalInputStatus"></span>
-                        </div>
-                        <p class="hint-text" id="inputHint" style="min-height: 2.4em;">Kurzform möglich: g3, k6, r5</p>
-                    </div>
-                    
-                    <!-- PRÜFEN-BUTTON (inline, für Profi/Meister mit mehreren Feldern) -->
-                    <div style="flex: 0 0 auto; display: flex; align-items: flex-end;" id="normalCheckButton">
-                        <button class="btn-primary" onclick="app.checkAnswer()" style="height: 42px; white-space: nowrap;">Prüfen</button>
-                    </div>
-                </div>
-
-                <!-- ZENTRIERTER PRÜFEN-BUTTON (für Einsteiger/Aufsteiger: großer Button unter Input/Keyboard) -->
-                <div id="centeredCheckButton" style="display: none;">
-                    <div class="input-buttons">
-                        <button type="button" onclick="app.checkAnswer()" class="btn-primary"
-                            style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
-                    </div>
-                </div>
-                
+                <div id="inputCard"><!-- Wird dynamisch befüllt --></div>
                 <div class="keyboard-status" id="keyboardStatus"></div>
                 <div class="feedback hidden" id="feedback"></div>
             </div>
@@ -2173,16 +2100,8 @@
                 app.settings.clef = document.getElementById('clefSelect').value;
                 app.settings.displayMode = document.getElementById('displayMode').value;
 
-                // Einheitlich: Zentrierter Button wie in allen Knoten (Fix #6)
-                document.getElementById('normalCheckButton').style.display = 'none';
-                document.getElementById('centeredCheckButton').style.display = 'block';
-                // Intervallname-Gruppe und Dropdown/Input je nach Settings
-                const intervallnameGroup = document.getElementById('intervallnameGroup');
-                if (intervallnameGroup) intervallnameGroup.style.display = 'block';
-                const dd = document.getElementById('intervalDropdown');
-                const ic = document.getElementById('intervalInputContainer');
-                if (dd) dd.style.display = 'none';
-                if (ic) ic.style.display = 'flex';
+                // Dynamisches Input-Rendering basierend auf Settings
+                app.setupInput();
 
                 // Keyboard-View-Only basierend auf Setting
                 const kbContainer = document.getElementById('keyboardContainer');
@@ -2282,154 +2201,43 @@
                 app.settings.clef = 'treble';
                 app.settings.displayMode = 'melodic';
 
-                // UI-Elemente zurücksetzen
-                const dropdown = document.getElementById('intervalDropdown');
-                const inputContainer = document.getElementById('intervalInputContainer');
-                const extendedOptions = document.querySelectorAll('.extended-option');
-                const intervallnameGroup = document.getElementById('intervallnameGroup');
-                const normalCheckBtn = document.getElementById('normalCheckButton');
-                const centeredCheckBtn = document.getElementById('centeredCheckButton');
-                const inputSplit = document.getElementById('inputContainer');
-
-                // Standard: Input anzeigen, Dropdown verstecken, Inline-Button, keine Zentrierung
-                dropdown.style.display = 'none';
-                inputContainer.style.display = 'flex';
-                if (intervallnameGroup) intervallnameGroup.style.display = 'block';
-                if (inputSplit) inputSplit.classList.remove('input-centered');
-                normalCheckBtn.style.display = 'flex';
-                centeredCheckBtn.style.display = 'none';
-
-                extendedOptions.forEach(opt => opt.hidden = true);
-
                 // Keyboard-View-Only Modus standardmäßig deaktivieren
                 const keyboardContainer = document.getElementById('keyboardContainer');
-                if (keyboardContainer) {
-                    keyboardContainer.classList.remove('keyboard-view-only');
-                }
+                if (keyboardContainer) keyboardContainer.classList.remove('keyboard-view-only');
 
-                // Level-spezifische Konfiguration
+                // Level-spezifische Settings
                 switch (level) {
                     case 'einsteiger':
-                        if (options.includes('nohelp')) {
-                            dropdown.style.display = 'none';
-                            inputContainer.style.display = 'flex';
-                        } else {
-                            dropdown.style.display = 'block';
-                            inputContainer.style.display = 'none';
-
-                            if (options.includes('extended')) {
-                                dropdown.innerHTML = `
-                                    <option value="">-- Intervall wählen --</option>
-                                    <option value="1">Prime</option>
-                                    <option value="2">Sekunde</option>
-                                    <option value="3">Terz</option>
-                                    <option value="4">Quarte</option>
-                                    <option value="5">Quinte</option>
-                                    <option value="6">Sexte</option>
-                                    <option value="7">Septime</option>
-                                    <option value="8">Oktave</option>
-                                    <option value="9">None</option>
-                                    <option value="10">Dezime</option>
-                                    <option value="11">Undezime</option>
-                                    <option value="12">Duodezime</option>
-                                `;
-                                app.settings.showLargeIntervals = true;
-                            } else {
-                                dropdown.innerHTML = `
-                                    <option value="">-- Intervall wählen --</option>
-                                    <option value="1">Prime</option>
-                                    <option value="2">Sekunde</option>
-                                    <option value="3">Terz</option>
-                                    <option value="4">Quarte</option>
-                                    <option value="5">Quinte</option>
-                                    <option value="6">Sexte</option>
-                                    <option value="7">Septime</option>
-                                    <option value="8">Oktave</option>
-                                `;
-                            }
-                        }
-
-                        if (options.includes('extended')) {
-                            app.settings.showLargeIntervals = true;
-                        }
-
-                        if (keyboardContainer) {
-                            keyboardContainer.classList.add('keyboard-view-only');
-                        }
-
-                        // Einsteiger: Nur Dropdown → zentrieren
-                        if (inputSplit) inputSplit.classList.add('input-centered');
-                        normalCheckBtn.style.display = 'none';
-                        centeredCheckBtn.style.display = 'block';
+                        if (options.includes('extended')) app.settings.showLargeIntervals = true;
+                        if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
                         break;
 
                     case 'aufsteiger':
                         app.settings.requireKeyboard = true;
-
-                        if (options.includes('augdim')) {
-                            app.settings.onlyAugDim = true;
-                        }
-                        if (options.includes('bothclefs')) {
-                            app.settings.clef = 'both';
-                        }
-
-                        if (keyboardContainer) {
-                            keyboardContainer.classList.remove('keyboard-view-only');
-                        }
-
-                        // Aufsteiger: Zentrierter großer Button, kein Inline-Button
-                        // Intervallname-Gruppe verstecken (nur Tastatur)
-                        if (intervallnameGroup) intervallnameGroup.style.display = 'none';
-                        normalCheckBtn.style.display = 'none';
-                        centeredCheckBtn.style.display = 'block';
+                        if (options.includes('augdim')) app.settings.onlyAugDim = true;
+                        if (options.includes('bothclefs')) app.settings.clef = 'both';
                         break;
 
                     case 'profi':
                         app.settings.showSemitones = true;
                         app.settings.requireKeyboard = false;
-
-                        if (options.includes('augdim')) {
-                            app.settings.onlyAugDim = true;
-                        }
-                        if (options.includes('bothclefs')) {
-                            app.settings.clef = 'both';
-                        }
-
-                        if (keyboardContainer) {
-                            keyboardContainer.classList.add('keyboard-view-only');
-                        }
-
-                        // Profi: Nur Halbtonschritte — Intervallname-Gruppe verstecken + zentrieren
-                        if (intervallnameGroup) intervallnameGroup.style.display = 'none';
-                        if (inputSplit) inputSplit.classList.add('input-centered');
-                        // Einheitlich: Zentrierter Button wie Knoten 1+2
-                        normalCheckBtn.style.display = 'none';
-                        centeredCheckBtn.style.display = 'block';
+                        if (options.includes('augdim')) app.settings.onlyAugDim = true;
+                        if (options.includes('bothclefs')) app.settings.clef = 'both';
+                        if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
                         break;
 
                     case 'meister':
                         app.settings.requireQuality = true;
-
-                        if (options.includes('augdim')) {
-                            app.settings.onlyAugDim = true;
-                        }
-                        if (options.includes('extended')) {
-                            app.settings.showLargeIntervals = true;
-                        }
-                        if (options.includes('bothclefs')) {
-                            app.settings.clef = 'both';
-                        }
-
-                        if (keyboardContainer) {
-                            keyboardContainer.classList.remove('keyboard-view-only');
-                        }
-
-                        // Meister: Eingabefelder zentrieren + zentrierter Button
-                        if (inputSplit) inputSplit.classList.add('input-centered');
-                        normalCheckBtn.style.display = 'none';
-                        centeredCheckBtn.style.display = 'block';
+                        app.settings.requireKeyboard = false;
+                        if (options.includes('augdim')) app.settings.onlyAugDim = true;
+                        if (options.includes('extended')) app.settings.showLargeIntervals = true;
+                        if (options.includes('bothclefs')) app.settings.clef = 'both';
+                        if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
                         break;
                 }
+
+                // Dynamisches Input-Rendering (DT-Pattern)
+                app.setupInput();
 
                 app.score = { correct: 0, total: 0 };
                 app.freeRetry = false;
@@ -2765,72 +2573,10 @@
 
                 // Im Quick-Start Modus: Keine Aufgabe generieren (Quick-Start macht das)
                 // generateInterval() wird von quickStart.start() aufgerufen
-                
-                const intervalInput = document.getElementById('intervalInput');
-                const semitonesInput = document.getElementById('semitonesInput');
-                
-                intervalInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.checkAnswer();
-                });
-                
-                semitonesInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.checkAnswer();
-                });
-                
-                // Reset validation state when user modifies a validated field
-                intervalInput.addEventListener('input', () => {
-                    if (this.validationState.intervalName !== null) {
-                        // User is modifying a validated field - reset it
-                        this.validationState.intervalName = null;
-                        intervalInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
-                        const intervalInputStatus = document.getElementById('intervalInputStatus');
-                        intervalInputStatus.className = 'input-status-icon pending';
-                        intervalInputStatus.textContent = '';
-                    }
-                });
-                
-                semitonesInput.addEventListener('input', () => {
-                    if (this.validationState.semitones !== null) {
-                        // User is modifying a validated field - reset it
-                        this.validationState.semitones = null;
-                        semitonesInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
-                        const semitonesInputStatus = document.getElementById('semitonesInputStatus');
-                        semitonesInputStatus.className = 'input-status-icon pending';
-                        semitonesInputStatus.textContent = '';
-                        
-                        // In gestuftem Modus: Intervallname wieder disablen wenn HS geändert wird
-                        if (this.settings.showSemitones) {
-                            intervalInput.disabled = true;
-                            intervalInput.placeholder = 'Zuerst Halbtonschritte bestimmen!';
-                            // Reset auch Intervallname-Validierung
-                            this.validationState.intervalName = null;
-                            intervalInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
-                            const intervalInputStatus = document.getElementById('intervalInputStatus');
-                            intervalInputStatus.className = 'input-status-icon pending';
-                            intervalInputStatus.textContent = '';
-                            intervalInput.value = '';
-                        }
-                    }
-                });
-                
-                // Schließe Einstellungen beim Fokus auf Input
-                intervalInput.addEventListener('focus', () => {
-                    const settingsPanel = document.getElementById('settingsPanel');
-                    if (settingsPanel && !settingsPanel.classList.contains('hidden')) {
-                        settingsPanel.classList.add('hidden');
-                    }
-                    
-                    // Scroll zum Notensystem wenn Tastatur erscheint (mobil)
-                    if (window.innerWidth <= 768) {
-                        setTimeout(() => {
-                            const staffCard = document.querySelector('.staff-card');
-                            if (staffCard) {
-                                staffCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        }, 300);
-                    }
-                });
-                
+
+                // Initiales Input-Rendering (Freies Üben)
+                this.setupInput();
+
                 // SETTINGS-PANEL AUTO-CLOSE (wie im Notentrainer)
                 const settingsPanel = document.getElementById('settingsPanel');
                 let mouseLeaveTimeout = null;
@@ -2865,6 +2611,182 @@
                 window.scrollTo(0, 0);
             },
 
+            // ---- Dynamisches Input-Rendering (DT-Pattern) ----
+            setupInput() {
+                const inputCard = document.getElementById('inputCard');
+                if (!inputCard) return;
+
+                const btnHTML = `<div class="input-buttons">
+                    <button type="button" onclick="app.checkAnswer()" class="btn-primary"
+                        style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                </div>`;
+
+                if (this.quickStartMode === 'einsteiger') {
+                    const opts = quickStart.currentOptions || [];
+                    if (opts.includes('nohelp')) {
+                        // Freie Eingabe (Text-Input)
+                        inputCard.innerHTML = `
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="intervalInput">Intervallname</label>
+                                    <div class="input-with-status">
+                                        <input type="text" id="intervalInput" placeholder="z.B. Terz" autocomplete="off" autocapitalize="none" autocorrect="off">
+                                        <span class="input-status-icon pending" id="intervalInputStatus"></span>
+                                    </div>
+                                </div>
+                            </div>${btnHTML}`;
+                        setTimeout(() => { const el = document.getElementById('intervalInput'); if (el) el.focus(); }, 200);
+                    } else {
+                        // Dropdown
+                        const extOpts = this.settings.showLargeIntervals
+                            ? '<option value="9">None</option><option value="10">Dezime</option><option value="11">Undezime</option><option value="12">Duodezime</option>'
+                            : '';
+                        inputCard.innerHTML = `
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="intervalDropdown">Intervallname</label>
+                                    <select id="intervalDropdown" class="interval-dropdown">
+                                        <option value="">-- Intervall wählen --</option>
+                                        <option value="1">Prime</option>
+                                        <option value="2">Sekunde</option>
+                                        <option value="3">Terz</option>
+                                        <option value="4">Quarte</option>
+                                        <option value="5">Quinte</option>
+                                        <option value="6">Sexte</option>
+                                        <option value="7">Septime</option>
+                                        <option value="8">Oktave</option>
+                                        ${extOpts}
+                                    </select>
+                                </div>
+                            </div>${btnHTML}`;
+                    }
+
+                } else if (this.quickStartMode === 'aufsteiger') {
+                    // Nur Tastatur-Input + Button
+                    inputCard.innerHTML = btnHTML;
+
+                } else if (this.quickStartMode === 'profi') {
+                    // Nur Halbtonschritte
+                    inputCard.innerHTML = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="semitonesInput">Halbtonschritte</label>
+                                <div class="input-with-status">
+                                    <input type="number" id="semitonesInput" placeholder="z.B. 7" autocomplete="off" min="0" max="25">
+                                    <span class="input-status-icon pending" id="semitonesInputStatus"></span>
+                                </div>
+                            </div>
+                        </div>${btnHTML}`;
+                    setTimeout(() => { const el = document.getElementById('semitonesInput'); if (el) el.focus(); }, 200);
+
+                } else if (this.quickStartMode === 'meister') {
+                    // Nur Intervallname mit Feinbestimmung
+                    const placeholder = this.settings.onlyAugDim
+                        ? 'z.B. überm. Quarte, ü4'
+                        : 'z.B. große Terz, g3, k6';
+                    inputCard.innerHTML = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="intervalInput">Intervallname (mit Feinbestimmung)</label>
+                                <div class="input-with-status">
+                                    <input type="text" id="intervalInput" placeholder="${placeholder}" autocomplete="off" autocapitalize="none" autocorrect="off">
+                                    <span class="input-status-icon pending" id="intervalInputStatus"></span>
+                                </div>
+                            </div>
+                        </div>${btnHTML}`;
+                    setTimeout(() => { const el = document.getElementById('intervalInput'); if (el) el.focus(); }, 200);
+
+                } else {
+                    // Freies Üben: Alle Inputs basierend auf Settings
+                    const showHS = this.settings.showSemitones;
+                    const showKB = this.settings.requireKeyboard;
+                    const showQuality = this.settings.requireQuality || this.settings.onlyAugDim;
+
+                    let html = '<div class="input-row">';
+
+                    if (showHS) {
+                        html += `
+                            <div class="input-group" id="semitonesInputGroup">
+                                <label for="semitonesInput">Halbtonschritte <span style="color: #ea580c;">*</span></label>
+                                <div class="input-with-status">
+                                    <input type="number" id="semitonesInput" placeholder="z.B. 7" autocomplete="off" min="0" max="25">
+                                    <span class="input-status-icon pending" id="semitonesInputStatus"></span>
+                                </div>
+                                <p class="hint-text" id="semitonesHint" style="font-size:0.7rem;">Pflichtfeld (zuerst bestimmen!)</p>
+                            </div>`;
+                    }
+
+                    // Intervallname immer im Freien Üben (außer requireKeyboard-only)
+                    const qualityLabel = showQuality ? ' (mit Feinbestimmung)' : '';
+                    const placeholder = showQuality ? 'z.B. große Terz, g3, k6' : 'z.B. Terz, Quinte';
+                    const hintText = showQuality ? 'Kurzform möglich: g3, k6, r5' : 'Vollständiger Intervallname erforderlich';
+                    html += `
+                        <div class="input-group" id="intervallnameGroup">
+                            <label for="intervalInput">Intervallname${qualityLabel}</label>
+                            <div class="input-with-status">
+                                <input type="text" id="intervalInput" placeholder="${placeholder}" autocomplete="off" autocapitalize="none" autocorrect="off">
+                                <span class="input-status-icon pending" id="intervalInputStatus"></span>
+                            </div>
+                            <p class="hint-text" id="inputHint">${hintText}</p>
+                        </div>`;
+
+                    html += '</div>' + btnHTML;
+                    inputCard.innerHTML = html;
+                }
+
+                // Event-Listener nach DOM-Erstellung
+                this._attachInputListeners();
+            },
+
+            _attachInputListeners() {
+                const intervalInput = document.getElementById('intervalInput');
+                const semitonesInput = document.getElementById('semitonesInput');
+
+                if (intervalInput) {
+                    intervalInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.checkAnswer(); });
+                    intervalInput.addEventListener('input', () => {
+                        if (this.validationState.intervalName !== null) {
+                            this.validationState.intervalName = null;
+                            intervalInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                            const st = document.getElementById('intervalInputStatus');
+                            if (st) { st.className = 'input-status-icon pending'; st.textContent = ''; }
+                        }
+                    });
+                    intervalInput.addEventListener('focus', () => {
+                        const sp = document.getElementById('settingsPanel');
+                        if (sp && !sp.classList.contains('hidden')) sp.classList.add('hidden');
+                        if (window.innerWidth <= 768) {
+                            setTimeout(() => {
+                                const sc = document.querySelector('.staff-card');
+                                if (sc) sc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 300);
+                        }
+                    });
+                }
+
+                if (semitonesInput) {
+                    semitonesInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.checkAnswer(); });
+                    semitonesInput.addEventListener('input', () => {
+                        if (this.validationState.semitones !== null) {
+                            this.validationState.semitones = null;
+                            semitonesInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                            const st = document.getElementById('semitonesInputStatus');
+                            if (st) { st.className = 'input-status-icon pending'; st.textContent = ''; }
+                            // Gestufte Abfrage: Intervallname zurücksetzen
+                            if (this.settings.showSemitones && intervalInput) {
+                                intervalInput.disabled = true;
+                                intervalInput.placeholder = 'Zuerst Halbtonschritte bestimmen!';
+                                this.validationState.intervalName = null;
+                                intervalInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                                intervalInput.value = '';
+                                const ist = document.getElementById('intervalInputStatus');
+                                if (ist) { ist.className = 'input-status-icon pending'; ist.textContent = ''; }
+                            }
+                        }
+                    });
+                }
+            },
+
             generateInterval() {
                 // RESET VALIDATION STATE
                 this.validationState = {
@@ -2878,45 +2800,36 @@
                 // Retry-Hinweis immer entfernen bei neuer Aufgabe
                 document.getElementById('headerRetryHint').classList.remove('active');
 
-                // RESET INPUTS
+                // RESET INPUTS (null-safe für dynamisches Rendering)
                 const intervalInput = document.getElementById('intervalInput');
                 const semitonesInput = document.getElementById('semitonesInput');
                 const intervalInputStatus = document.getElementById('intervalInputStatus');
                 const semitonesInputStatus = document.getElementById('semitonesInputStatus');
-                
-                intervalInput.value = '';
-                semitonesInput.value = '';
-                intervalInput.disabled = false;
-                semitonesInput.disabled = false;
-                intervalInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
-                semitonesInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
-                intervalInputStatus.className = 'input-status-icon pending';
-                semitonesInputStatus.className = 'input-status-icon pending';
-                intervalInputStatus.textContent = '';
-                semitonesInputStatus.textContent = '';
-                
-                // GESTUFTE ABFRAGE: Setup basierend auf Modus
-                if (this.settings.showSemitones) {
-                    intervalInput.disabled = true;
-                    intervalInput.placeholder = 'Zuerst Halbtonschritte bestimmen!';
-                    
-                    // HS-Input nur disabled wenn Klaviatur erforderlich
-                    if (this.settings.requireKeyboard) {
-                        semitonesInput.disabled = true;
-                    } else {
-                        // Explizit: HS-Input enabled wenn keine Klaviatur
-                        semitonesInput.disabled = false;
-                    }
-                } else if (this.settings.requireKeyboard) {
-                    // Gestufte Abfrage: Keyboard zuerst, dann Intervallname
-                    intervalInput.disabled = true;
-                    intervalInput.placeholder = 'Zuerst Tasten auf der Klaviatur klicken!';
-                } else {
-                    // Placeholder abhängig von Feinbestimmung
-                    if (this.settings.requireQuality || this.settings.onlyAugDim) {
-                        intervalInput.placeholder = 'z.B. große Terz';
-                    } else {
-                        intervalInput.placeholder = 'z.B. Terz';
+
+                if (intervalInput) {
+                    intervalInput.value = '';
+                    intervalInput.disabled = false;
+                    intervalInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                }
+                if (semitonesInput) {
+                    semitonesInput.value = '';
+                    semitonesInput.disabled = false;
+                    semitonesInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                }
+                if (intervalInputStatus) { intervalInputStatus.className = 'input-status-icon pending'; intervalInputStatus.textContent = ''; }
+                if (semitonesInputStatus) { semitonesInputStatus.className = 'input-status-icon pending'; semitonesInputStatus.textContent = ''; }
+
+                // GESTUFTE ABFRAGE: Setup basierend auf Modus (nur Freies Üben)
+                if (!this.quickStartMode) {
+                    if (this.settings.showSemitones && intervalInput) {
+                        intervalInput.disabled = true;
+                        intervalInput.placeholder = 'Zuerst Halbtonschritte bestimmen!';
+                        if (this.settings.requireKeyboard && semitonesInput) {
+                            semitonesInput.disabled = true;
+                        }
+                    } else if (this.settings.requireKeyboard && intervalInput) {
+                        intervalInput.disabled = true;
+                        intervalInput.placeholder = 'Zuerst Tasten auf der Klaviatur klicken!';
                     }
                 }
                 
@@ -3145,28 +3058,26 @@
                 // VARIANZ: Letzten Schlüssel speichern (für Wechsel-Tendenz)
                 this.lastClef = newInterval.note1.clef;
                 
-                document.getElementById('intervalInput').value = '';
-                document.getElementById('semitonesInput').value = '';
+                const _ii = document.getElementById('intervalInput');
+                const _si = document.getElementById('semitonesInput');
+                if (_ii) _ii.value = '';
+                if (_si) _si.value = '';
                 document.getElementById('feedback').classList.add('hidden');
                 this.selectedKeys = [];
-                
-                // WICHTIG: disabled-Status NACH allen Resets setzen
-                // Damit sichergestellt ist dass es wirklich angewendet wird
-                // KEINE neue const-Deklaration! Verwende existierende Variablen (Zeilen 1345-1346)
-                
-                if (this.settings.showSemitones) {
-                    intervalInput.disabled = true;
-                    
-                    // HS-Input nur disabled wenn Klaviatur erforderlich
-                    if (this.settings.requireKeyboard) {
-                        semitonesInput.disabled = true;
+
+                // disabled-Status (nur Freies Üben, Quiz-Modi haben dedizierte Inputs)
+                if (!this.quickStartMode) {
+                    if (this.settings.showSemitones) {
+                        if (_ii) { _ii.disabled = true; }
+                        if (this.settings.requireKeyboard) {
+                            if (_si) _si.disabled = true;
+                        } else {
+                            if (_si) _si.disabled = false;
+                        }
                     } else {
-                        // Explizit: HS-Input enabled wenn keine Klaviatur (Bug #7 Fix)
-                        semitonesInput.disabled = false;
+                        if (_ii) _ii.disabled = false;
+                        if (_si) _si.disabled = false;
                     }
-                } else {
-                    intervalInput.disabled = false;
-                    semitonesInput.disabled = false;
                 }
                 
                 this.updateUI();
@@ -3803,7 +3714,7 @@
 
             checkAnswer() {
                 // QUICK-START MODI: Weiterleitung an spezielle Handler
-                if (this.quickStartMode === 'einsteiger' && document.getElementById('intervalDropdown').style.display !== 'none') {
+                if (this.quickStartMode === 'einsteiger' && document.getElementById('intervalDropdown')) {
                     this.checkDropdownAnswer();
                     return;
                 }
@@ -3817,21 +3728,23 @@
                 }
                 
                 // MULTI-INPUT VALIDIERUNG mit GESTUFTER ABFRAGE
-                
+
                 // Mobile: Tastatur schließen
                 if (window.innerWidth <= 768) {
-                    document.getElementById('intervalInput').blur();
-                    document.getElementById('semitonesInput').blur();
+                    const ii = document.getElementById('intervalInput');
+                    const si = document.getElementById('semitonesInput');
+                    if (ii) ii.blur();
+                    if (si) si.blur();
                 }
-                
+
                 const intervalInput = document.getElementById('intervalInput');
                 const semitonesInput = document.getElementById('semitonesInput');
                 const intervalInputStatus = document.getElementById('intervalInputStatus');
                 const semitonesInputStatus = document.getElementById('semitonesInputStatus');
                 const feedbackEl = document.getElementById('feedback');
-                
-                const userInput = intervalInput.value.trim().toLowerCase();
-                const semitonesValue = semitonesInput.value.trim();
+
+                const userInput = intervalInput ? intervalInput.value.trim().toLowerCase() : '';
+                const semitonesValue = semitonesInput ? semitonesInput.value.trim() : '';
                 
                 // WICHTIG: hasBeenChecked wird SPÄTER gesetzt, wenn alle Validierungen durchlaufen
                 // Nicht hier, weil im HS-Modus die Funktion frühzeitig mit return endet
@@ -4557,8 +4470,17 @@
                     this.previousTask = null;
                 }
                 
+                // Input-Layout neu rendern bei Settings-Änderung
+                this.setupInput();
+
+                // Keyboard-View-Only aktualisieren
+                const kbc = document.getElementById('keyboardContainer');
+                if (kbc) {
+                    kbc.classList.toggle('keyboard-view-only', !this.settings.requireKeyboard);
+                }
+
                 this.updateUI();
-                
+
                 if (onlyDisplayChanged && this.currentInterval) {
                     // Nur Display-Modus geändert: Behalte Aufgabe, nur neu zeichnen
                     this.currentInterval.displayMode = this.settings.displayMode;
@@ -4566,68 +4488,29 @@
                     this.renderKeyboard();
                 } else {
                     // Alle anderen Fälle: Neue Aufgabe generieren
-                    // WICHTIG: Auch bei onlyKeyboardChanged, damit disabled-Stati und hasBeenChecked korrekt aktualisiert werden
                     this.generateInterval();
                 }
             },
 
             updateUI() {
                 const clefBadge = document.getElementById('clefBadge');
-                clefBadge.textContent = this.currentInterval.note1.clef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
-                
+                if (clefBadge && this.currentInterval) {
+                    clefBadge.textContent = this.currentInterval.note1.clef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
+                }
+
                 const displayBadge = document.getElementById('displayBadge');
-                displayBadge.textContent = this.currentInterval.displayMode === 'harmonic' ? 'Harmonisch' : 'Melodisch';
-                
-                const qualityHint = document.getElementById('qualityHint');
-                const inputHint = document.getElementById('inputHint');
-                const intervalInput = document.getElementById('intervalInput');
-                const semitonesInputGroup = document.getElementById('semitonesInputGroup');
-                
-                if (this.settings.showSemitones) {
-                    semitonesInputGroup.classList.remove('hidden');
-                    inputHint.style.visibility = 'visible';
-                } else {
-                    semitonesInputGroup.classList.add('hidden');
-                    inputHint.style.visibility = 'hidden';
+                if (displayBadge && this.currentInterval) {
+                    displayBadge.textContent = this.currentInterval.displayMode === 'harmonic' ? 'Harmonisch' : 'Melodisch';
                 }
-                
-                if (this.settings.requireQuality) {
-                    qualityHint.textContent = ' (mit Feinbestimmung)';
-                    intervalInput.placeholder = "z.B. große Terz, g3, k6";
-                    if (this.settings.showSemitones) {
-                        inputHint.textContent = "Kurzform möglich: g3, k6, r5";
-                    } else {
-                        inputHint.textContent = "Kurzform möglich: g3, k6, r5";
-                    }
-                } else if (this.settings.onlyAugDim) {
-                    qualityHint.textContent = ' (mit Feinbestimmung)';
-                    intervalInput.placeholder = "z.B. überm. Quarte, ü4";
-                    if (this.settings.showSemitones) {
-                        inputHint.textContent = "Kurzform möglich: ü4, v5, v7";
-                    } else {
-                        inputHint.textContent = "Kurzform möglich: ü4, v5, v7";
-                    }
-                } else if (this.settings.showSemitones) {
-                    qualityHint.textContent = '';
-                    intervalInput.placeholder = "z.B. Terz, Quinte, Septime";
-                    inputHint.textContent = "Vollständiger Intervallname erforderlich";
-                } else {
-                    qualityHint.textContent = '';
-                    intervalInput.placeholder = "z.B. Terz, Quinte, Septime";
-                    inputHint.textContent = "Vollständiger Intervallname erforderlich (z.B. Terz, Quinte)";
-                }
-                
-                // HS-HINT: Unterschiedlicher Text je nach Tastatur-Modus
+
+                // Im Quiz-Modus: Input wird von setupInput() gesteuert — nichts weiter nötig
+                // Im Freien Üben: HS-Hint aktualisieren
                 const semitonesHint = document.getElementById('semitonesHint');
-                if (this.settings.showSemitones && semitonesHint) {
-                    if (this.settings.requireKeyboard) {
-                        semitonesHint.textContent = 'Erst Töne auf der Klaviatur angeben!';
-                    } else {
-                        semitonesHint.textContent = 'Pflichtfeld (zuerst bestimmen!)';
-                    }
+                if (semitonesHint && this.settings.showSemitones) {
+                    semitonesHint.textContent = this.settings.requireKeyboard
+                        ? 'Erst Töne auf der Klaviatur angeben!'
+                        : 'Pflichtfeld (zuerst bestimmen!)';
                 }
-                
-                // Tastatur: isClickable in renderKeyboard() steuert Klickbarkeit + visuelles Feedback
             },
 
             toggleSettings() {
@@ -4690,7 +4573,18 @@
                             'basis': `<p><strong>Grundbestimmung (rein, groß, klein)</strong></p>
                                 <p>Bestimme das Intervall mit seiner genauen Qualität: reine Quarte, große Terz, kleine Sexte usw.</p>
                                 <p><strong>Reine Intervalle:</strong> Prime, Quarte, Quinte, Oktave.</p>
-                                <p><strong>Große/Kleine:</strong> Sekunde, Terz, Sexte, Septime.</p>`,
+                                <p><strong>Große/Kleine:</strong> Sekunde, Terz, Sexte, Septime.</p>
+                                <p style="margin-top:0.75rem"><strong>Halbtonschritte als Orientierung:</strong></p>
+                                <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:0.25rem">
+                                <tr style="background:#f3f4f6"><th style="text-align:left;padding:3px 6px">Intervall</th><th style="padding:3px 6px">HT</th><th style="text-align:left;padding:3px 6px">Intervall</th><th style="padding:3px 6px">HT</th></tr>
+                                <tr><td style="padding:2px 6px">reine Prime</td><td style="text-align:center">0</td><td style="padding:2px 6px">reine Quinte</td><td style="text-align:center">7</td></tr>
+                                <tr><td style="padding:2px 6px">kleine Sekunde</td><td style="text-align:center">1</td><td style="padding:2px 6px">kleine Sexte</td><td style="text-align:center">8</td></tr>
+                                <tr><td style="padding:2px 6px">große Sekunde</td><td style="text-align:center">2</td><td style="padding:2px 6px">große Sexte</td><td style="text-align:center">9</td></tr>
+                                <tr><td style="padding:2px 6px">kleine Terz</td><td style="text-align:center">3</td><td style="padding:2px 6px">kleine Septime</td><td style="text-align:center">10</td></tr>
+                                <tr><td style="padding:2px 6px">große Terz</td><td style="text-align:center">4</td><td style="padding:2px 6px">große Septime</td><td style="text-align:center">11</td></tr>
+                                <tr><td style="padding:2px 6px">reine Quarte</td><td style="text-align:center">5</td><td style="padding:2px 6px">reine Oktave</td><td style="text-align:center">12</td></tr>
+                                <tr><td style="padding:2px 6px">Tritonus</td><td style="text-align:center">6</td><td style="padding:2px 6px"></td><td></td></tr>
+                                </table>`,
                             'augdim': `<p><strong>Mit übermäßig/vermindert</strong></p>
                                 <p>Zusätzlich kommen übermäßige und verminderte Intervalle vor. Ein übermäßiges Intervall ist einen Halbton größer, ein vermindertes einen Halbton kleiner als die Grundform.</p>`,
                             'extended': `<p><strong>Erweiterte Intervalle</strong></p>
