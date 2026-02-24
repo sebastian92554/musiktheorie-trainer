@@ -3436,26 +3436,11 @@
 
             html += '</div>';
 
-            // Wrap in a scaler div if keyboard is wider than card (nur Tablet/Desktop — Mobile scrollt per CSS)
-            if (isMobilePortrait || isMobileLandscape) {
-                // Mobile: direkt rendern, CSS overflow-x: auto macht Keyboard scrollbar
-                container.innerHTML = html;
-                container.style.height = '';
-                container.style.overflow = '';
-            } else {
-                const cardEl = container.parentElement;
-                const maxWidth = cardEl ? cardEl.clientWidth - 20 : totalWidth;
-                if (totalWidth > maxWidth && maxWidth > 0) {
-                    const scaleFactor = maxWidth / totalWidth;
-                    container.innerHTML = `<div style="transform:scale(${scaleFactor.toFixed(3)});transform-origin:top center;width:${totalWidth}px;height:${keyboardHeight}px;margin:0 auto;">${html}</div>`;
-                    container.style.height = Math.round(keyboardHeight * scaleFactor + 10) + 'px';
-                    container.style.overflow = 'hidden';
-                } else {
-                    container.innerHTML = html;
-                    container.style.height = '';
-                    container.style.overflow = '';
-                }
-            }
+            // Direkt rendern (IT-Pattern): CSS overflow-x: auto + min-width: fit-content
+            // sorgt für horizontales Scrolling wenn Keyboard breiter als Container
+            container.innerHTML = html;
+            container.style.height = '';
+            container.style.overflow = '';
         },
 
         // Aufsteiger: toggle step pair selection (1.-2., 2.-3., etc.)
