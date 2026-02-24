@@ -480,6 +480,14 @@
             flex-wrap: wrap;
         }
 
+        .input-split.input-centered {
+            justify-content: center;
+        }
+
+        .input-split.input-centered .input-group {
+            flex: 0 1 280px;
+        }
+
         @media (max-width: 768px) {
             .input-split {
                 flex-direction: column;
@@ -2281,11 +2289,13 @@
                 const intervallnameGroup = document.getElementById('intervallnameGroup');
                 const normalCheckBtn = document.getElementById('normalCheckButton');
                 const centeredCheckBtn = document.getElementById('centeredCheckButton');
+                const inputSplit = document.getElementById('inputContainer');
 
-                // Standard: Input anzeigen, Dropdown verstecken, Inline-Button
+                // Standard: Input anzeigen, Dropdown verstecken, Inline-Button, keine Zentrierung
                 dropdown.style.display = 'none';
                 inputContainer.style.display = 'flex';
                 if (intervallnameGroup) intervallnameGroup.style.display = 'block';
+                if (inputSplit) inputSplit.classList.remove('input-centered');
                 normalCheckBtn.style.display = 'flex';
                 centeredCheckBtn.style.display = 'none';
 
@@ -2347,7 +2357,8 @@
                             keyboardContainer.classList.add('keyboard-view-only');
                         }
 
-                        // Einsteiger: Zentrierter großer Button, kein Inline-Button
+                        // Einsteiger: Nur Dropdown → zentrieren
+                        if (inputSplit) inputSplit.classList.add('input-centered');
                         normalCheckBtn.style.display = 'none';
                         centeredCheckBtn.style.display = 'block';
                         break;
@@ -2388,6 +2399,9 @@
                             keyboardContainer.classList.add('keyboard-view-only');
                         }
 
+                        // Profi: Nur Halbtonschritte — Intervallname-Gruppe verstecken + zentrieren
+                        if (intervallnameGroup) intervallnameGroup.style.display = 'none';
+                        if (inputSplit) inputSplit.classList.add('input-centered');
                         // Einheitlich: Zentrierter Button wie Knoten 1+2
                         normalCheckBtn.style.display = 'none';
                         centeredCheckBtn.style.display = 'block';
