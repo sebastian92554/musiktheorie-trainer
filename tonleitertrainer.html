@@ -22,6 +22,8 @@
     <meta property="twitter:title" content="Tonleitertrainer Online">
     <meta property="twitter:description" content="Lerne Tonleitern spielerisch im Browser - kostenlos und ohne Anmeldung">
 
+    <link rel="canonical" href="https://musiktheorie-trainer.de/tonleitertrainer.html">
+
     <style>
         * {
             margin: 0;
@@ -158,7 +160,7 @@
             align-items: center;
         }
 
-        .score-display.hidden-in-quiz {
+        #scoreCard.hidden-in-quiz {
             display: none !important;
         }
 
@@ -185,7 +187,7 @@
         }
 
         /* =============================================
-           QUICK-START SYSTEM - CSS
+           QUICK-START SYSTEM - CSS (Skilltree)
            ============================================= */
 
         /* Level Screens */
@@ -199,183 +201,352 @@
             display: block;
         }
 
-        /* Quick Start Container */
-        .quick-start-container {
-            max-width: 1200px;
+        /* Skilltree Container */
+        .skilltree-container {
+            max-width: 480px;
             margin: 0 auto;
-            padding: 20px;
         }
 
-        .quick-start-header {
+        .skilltree-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 1.25rem;
         }
 
-        .quick-start-header h1 {
-            font-size: 2.5rem;
+        .skilltree-header h1 {
+            font-size: 1.5rem;
             color: #164e63;
-            margin-bottom: 10px;
+            font-weight: 700;
         }
 
-        .quick-start-header p {
-            font-size: 1.2rem;
-            color: #6b7280;
-        }
-
-        /* Cards Grid - 3 Spalten */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        /* Level Cards */
-        .level-card-new {
+        /* Skilltree Card */
+        .skilltree-card {
             background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border: 3px solid transparent;
-            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 1.25rem;
+        }
+
+        .skilltree-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 1rem;
+        }
+
+        /* Skilltree Layout */
+        .skilltree {
             display: flex;
             flex-direction: column;
+            gap: 0.25rem;
         }
 
-        .level-card-new:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .level-card-new.einsteiger {
-            border-color: #22c55e;
-        }
-
-        .level-card-new.aufsteiger {
-            border-color: #eab308;
-        }
-
-        .level-card-new.profi {
-            border-color: #ef4444;
-        }
-
-        .level-card-header {
+        /* Verbindungslinien */
+        .st-connector {
             display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            justify-content: center;
+            height: 20px;
         }
-
-        .level-icon-new {
-            font-size: 2.5rem;
-        }
-
-        .level-card-header h2 {
-            font-size: 1.5rem;
-            color: #1f2937;
-            margin: 0;
-        }
-
-        .task-type {
-            font-size: 1rem;
-            color: #6b7280;
-            margin: 5px 0 0 0;
-        }
-
-        /* Progress Bar */
-        .progress-bar-container {
-            background: #e5e7eb;
-            border-radius: 10px;
-            height: 8px;
-            margin-bottom: 8px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
+        .st-connector::before {
+            content: '';
+            width: 2px;
             height: 100%;
-            border-radius: 10px;
-            transition: width 0.5s ease;
+            background: #d1d5db;
+        }
+        .st-connector.mastered::before {
+            background: #0891b2;
         }
 
-        .einsteiger .progress-bar-fill { background: #22c55e; }
-        .aufsteiger .progress-bar-fill { background: #eab308; }
-        .profi .progress-bar-fill { background: #ef4444; }
-
-        .progress-text {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-bottom: 15px;
-        }
-
-        /* Options Panel */
-        .options-panel {
-            margin-bottom: 20px;
-        }
-
-        .option-checkbox {
+        /* Skill-Knoten */
+        .st-node {
+            border-radius: 0.65rem;
+            padding: 0.75rem 0.85rem;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            border-radius: 8px;
+            gap: 0.65rem;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        .st-node:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Knoten-Icon (Platzhalter) */
+        .st-node-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .st-node-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .st-node-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .st-node-desc {
+            font-size: 0.7rem;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+        .st-node-action {
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        /* Zustand: Gemeistert */
+        .st-node.mastered {
+            background: #ecfeff;
+            border: 2px solid #0891b2;
+        }
+        .st-node.mastered .st-node-icon {
+            background: #0891b2;
+            color: white;
+        }
+        .st-node.mastered .st-node-name { color: #164e63; }
+        .st-node.mastered .st-node-desc { color: #0e7490; }
+        .st-node.mastered .st-node-action { color: #0891b2; }
+
+        /* Zustand: Verfügbar */
+        .st-node.available {
+            background: white;
+            border: 2px solid #d1d5db;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+        .st-node.available .st-node-icon {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .st-node.available .st-node-name { color: #1e293b; }
+        .st-node.available .st-node-desc { color: #64748b; }
+        .st-node.available .st-node-action { color: #64748b; }
+
+        /* Zustand: Ausgewählt */
+        .st-node.available.selected {
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
+        }
+        .st-node.available.selected .st-node-icon {
+            background: #0891b2;
+            color: white;
+            animation: st-pulse 2.5s ease-in-out infinite;
+        }
+        .st-node.mastered.selected {
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
+        }
+
+        @keyframes st-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(8, 145, 178, 0); }
+        }
+
+        /* Zustand: Gesperrt (reaktiv) */
+        .st-node.locked {
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            opacity: 0.5;
+            cursor: default;
+        }
+        .st-node.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        .st-node.locked .st-node-icon { background: #f1f5f9; color: #cbd5e1; }
+        .st-node.locked .st-node-name { color: #94a3b8; }
+        .st-node.locked .st-node-desc { color: #cbd5e1; }
+        .st-node.locked .st-node-action { color: #cbd5e1; }
+
+        /* Cross-App Abhängigkeit */
+        .st-cross-app {
+            margin-bottom: 0.75rem;
+        }
+        .st-cross-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border-radius: 4px;
             margin-bottom: 4px;
+            display: inline-block;
+            background: #eef2ff;
+            color: #4f46e5;
         }
-
-        .option-checkbox:hover {
-            background: #f3f4f6;
+        .st-cross-app .st-node {
+            border-style: dashed;
         }
-
-        .option-checkbox.recommended {
-            background: #fefce8;
-            border: 1px solid #fde68a;
+        .st-cross-app .st-node.mastered {
+            border-color: #4f46e5;
+            background: #eef2ff;
         }
+        .st-cross-app .st-node.mastered .st-node-icon { background: #4f46e5; }
+        .st-cross-app .st-node.mastered .st-node-name { color: #3730a3; }
+        .st-cross-app .st-node.mastered .st-node-desc { color: #4338ca; }
+        .st-cross-app .st-node.mastered .st-node-action { color: #4f46e5; }
 
-        .option-checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+        /* Sub-Skills (Aufklapp) */
+        .st-sub-skills {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.65rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .st-node-wrapper.expanded .st-sub-skills {
+            display: block;
+        }
+        .st-sub-skill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.4rem;
+            font-size: 0.75rem;
+            color: #475569;
             cursor: pointer;
+            border-radius: 0.35rem;
+            transition: background 0.1s;
         }
-
-        .option-label {
-            font-size: 0.95rem;
-            color: #374151;
+        .st-sub-skill:hover {
+            background: #e0f2fe;
         }
-
-        .option-label.mastered {
-            color: #16a34a;
+        .st-sub-skill.sub-selected {
+            background: #cffafe;
             font-weight: 600;
         }
-
-        .option-label.recommended {
-            color: #ca8a04;
-            font-weight: 600;
+        .st-sub-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.5rem;
+        }
+        .st-sub-dot.done {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: white;
+        }
+        .st-sub-dot.current {
+            border-color: #0891b2;
+            background: white;
+        }
+        .st-sub-dot.current::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #0891b2;
+        }
+        .st-sub-stars {
+            margin-left: auto;
+            font-size: 0.65rem;
+            color: #f59e0b;
+            letter-spacing: 1px;
+            flex-shrink: 0;
         }
 
-        .options-panel {
-            flex-grow: 1;
-        }
-
-        /* Start Button */
-        .start-button {
+        /* Start-Button */
+        .st-start-btn {
+            display: block;
             width: 100%;
-            padding: 12px;
-            margin-top: auto;
+            margin-top: 1.25rem;
+            padding: 0.75rem;
             background: #0891b2;
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
+        }
+        .st-start-btn:hover {
+            background: #0e7490;
         }
 
-        .start-button:hover {
-            background: #0e7490;
-            transform: scale(1.02);
+        /* Fortschritt */
+        .st-progress-info {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.75rem;
         }
+        .st-progress-bar-bg {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 0.4rem;
+            overflow: hidden;
+        }
+        .st-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0891b2, #06b6d4);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Hilfe-Hinweis */
+        .st-help-hint {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 0.35rem;
+        }
+
+        /* Legende */
+        .st-legend {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .st-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.65rem;
+            color: #64748b;
+        }
+        .st-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .st-legend-dot.m { background: #0891b2; }
+        .st-legend-dot.a { background: white; border: 2px solid #94a3b8; }
+        .st-legend-dot.l { background: #f1f5f9; border: 2px dashed #cbd5e1; }
+        .st-legend-dot.c { background: #4f46e5; }
+
+        /* Freies Üben Link */
+        .st-free-practice {
+            text-align: center;
+            margin-top: 0.75rem;
+        }
+        .st-free-practice a {
+            font-size: 0.75rem;
+            color: #0891b2;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .st-free-practice a:hover { text-decoration: underline; }
 
         /* Success Container */
         .success-container {
@@ -482,7 +653,7 @@
         .keyboard-container {
             position: relative;
             margin: 0 auto;
-            height: 120px;
+            height: 180px;
         }
 
         .white-keys {
@@ -817,52 +988,7 @@
             background: #0e7490;
         }
 
-        /* Streak Display */
-        .streak-display {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
-        }
-
-        .streak-display.active {
-            display: flex;
-        }
-
-        .streak-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .streak-circles {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .streak-circle {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 3px solid #d1d5db;
-            background: white;
-            transition: all 0.3s;
-        }
-
-        .streak-circle.filled {
-            background: #0891b2;
-            border-color: #0891b2;
-            transform: scale(1.1);
-        }
-
-        .streak-circle.active {
-            border-color: #0891b2;
-            animation: pulse 1s infinite;
-        }
-
+        /* (Streak-Display CSS entfernt)
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.15); }
@@ -917,53 +1043,98 @@
             display: block;
         }
 
-        /* Quiz Overlay */
-        #quizOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-bottom: 2px solid #e5e7eb;
-            padding: 10px 16px;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        /* Header: Übungsmodus-Erweiterung */
+        .header-exercise-info {
             display: none;
+            width: 100%;
+            margin-top: 0.4rem;
         }
-
-        #quizOverlay.active {
+        .header-exercise-info.active {
+            display: block;
+        }
+        .header-exercise-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+        .header-exercise-task {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        .header-progress-dual {
+            position: relative;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .header-progress-total {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: #fca5a5;
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .header-progress-correct {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: #10b981;
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        /* Retry-Hinweis */
+        .header-retry-hint {
+            display: none;
+            font-size: 0.75rem;
+            color: #ef4444;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+        .header-retry-hint.active {
+            display: block;
+        }
+        .free-retry-hint {
+            display: none;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #ef4444;
+            font-weight: 600;
+            padding: 0.4rem;
+        }
+        .free-retry-hint.active {
             display: block;
         }
 
-        .quiz-overlay-content {
-            max-width: 600px;
-            margin: 0 auto;
+        /* Header: Responsive Layout */
+        .header {
+            flex-wrap: wrap;
         }
-
-        .quiz-overlay-title {
-            font-weight: bold;
-            font-size: 0.95rem;
-            color: #374151;
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
-
-        .quiz-overlay-task {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-top: 4px;
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
-
-        .quiz-progress-bar {
-            background: #e5e7eb;
-            border-radius: 10px;
-            height: 6px;
-            margin-top: 8px;
-            overflow: hidden;
+        .header-reset-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            display: none;
         }
-
-        .quiz-progress-fill {
-            background: #0891b2;
-            height: 100%;
-            transition: width 0.3s ease;
+        .header-reset-btn.active {
+            display: inline-flex;
         }
 
         /* Modal */
@@ -1096,10 +1267,7 @@
             }
         }
 
-        /* App with quiz overlay needs top padding */
-        .app-with-overlay {
-            padding-top: 70px;
-        }
+        /* (ehemals app-with-overlay — nicht mehr nötig) */
 
         /* ======================== RESPONSIVE: MOBILE (<=768px) ======================== */
         @media (max-width: 768px) {
@@ -1110,9 +1278,6 @@
                 background: white;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 padding: 0.3rem;
-            }
-            .app-with-overlay .staff-card {
-                top: 70px;
             }
             #staffSvg {
                 max-height: 220px;
@@ -1148,14 +1313,6 @@
                 font-size: 0.9rem;
                 padding: 10px 12px;
             }
-            .streak-circles {
-                gap: 3px;
-            }
-            .streak-circle {
-                width: 18px;
-                height: 18px;
-                border-width: 2px;
-            }
         }
 
         /* ======================== RESPONSIVE: MOBILE LANDSCAPE ======================== */
@@ -1181,10 +1338,6 @@
                 grid-column: 2;
                 grid-row: 2;
                 margin-top: 0;
-            }
-            .streak-display {
-                grid-column: 2;
-                grid-row: 3;
             }
             .step-markers-container {
                 grid-column: 2;
@@ -1217,9 +1370,6 @@
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 padding: 0.3rem;
             }
-            .app-with-overlay .staff-card {
-                top: 70px;
-            }
             #staffSvg {
                 max-height: 200px;
             }
@@ -1235,29 +1385,12 @@
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 padding: 0.3rem;
             }
-            .app-with-overlay .staff-card {
-                top: 70px;
-            }
             #staffSvg {
                 max-height: 180px;
             }
         }
 
         /* ======================== RESPONSIVE: TABLET (769px – 1200px) ======================== */
-        @media (max-width: 1200px) and (min-width: 769px) {
-            .cards-grid {
-                gap: 15px;
-            }
-            .level-card-new {
-                padding: 20px;
-            }
-            .level-card-header h2 {
-                font-size: 1.4rem;
-            }
-            .option-label {
-                font-size: 0.9rem;
-            }
-        }
 
         /* ======================== RESPONSIVE: DESKTOP COMPACT (horiz. but low height) ======================== */
         @media (min-width: 769px) and (max-height: 900px) {
@@ -1274,129 +1407,108 @@
 </head>
 <body>
 
-    <!-- ======================== QUICK START SCREEN ======================== -->
+    <!-- ======================== QUICK START SCREEN (Skilltree) ======================== -->
     <div id="quickStartScreen" class="level-screen active">
-        <div class="quick-start-container">
-            <div class="quick-start-header">
-                <h1>🪜 Tonleitertrainer</h1>
-                <p>Wähle deine Stufe und starte sofort!</p>
+        <div class="skilltree-container">
+
+            <div class="skilltree-header">
+                <h1>Tonleitertrainer</h1>
             </div>
 
-            <div class="cards-grid">
-            <!-- Stufe 1: Einsteiger -->
-            <div class="level-card-new einsteiger">
-                <div class="level-card-header">
-                    <div class="level-icon-new">🟢</div>
-                    <div>
-                        <h2>EINSTEIGER</h2>
-                        <p class="task-type">Ganzton oder Halbton?</p>
+            <div class="skilltree-card">
+                <div class="skilltree-title">Dein Lernpfad</div>
+
+                <div class="skilltree" id="skilltreeView">
+
+                    <!-- Cross-App: Notentrainer -->
+                    <div class="st-cross-app">
+                        <span class="st-cross-label">Notentrainer</span>
+                        <div class="st-node mastered" id="stNodeCross" onclick="quickStart.openCrossApp('notentrainer')">
+                            <div class="st-node-icon">&#10003;</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Noten lesen</div>
+                                <div class="st-node-desc">Noten im Violin- und Bassschlüssel sicher lesen</div>
+                            </div>
+                            <div class="st-node-action">&nearr;</div>
+                        </div>
+                    </div>
+
+                    <div class="st-connector mastered"></div>
+
+                    <!-- Knoten 1: Ganzton / Halbton -->
+                    <div class="st-node-wrapper" id="stNode-ton1">
+                        <div class="st-node available" onclick="quickStart.selectNode('ton1')">
+                            <div class="st-node-icon">1</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Ganzton / Halbton</div>
+                                <div class="st-node-desc">Tonabstände zwischen zwei Noten bestimmen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-ton1"></div>
+                    </div>
+
+                    <div class="st-connector" id="stConn-ton1-ton2"></div>
+
+                    <!-- Knoten 2: Halbtonschritte finden -->
+                    <div class="st-node-wrapper" id="stNode-ton2">
+                        <div class="st-node available" onclick="quickStart.selectNode('ton2')">
+                            <div class="st-node-icon">2</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Halbtonschritte finden</div>
+                                <div class="st-node-desc">Position der Halbtonschritte in Tonleitern bestimmen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-ton2"></div>
+                    </div>
+
+                    <div class="st-connector" id="stConn-ton2-ton3"></div>
+
+                    <!-- Knoten 3: Tonleiter benennen -->
+                    <div class="st-node-wrapper" id="stNode-ton3">
+                        <div class="st-node available" onclick="quickStart.selectNode('ton3')">
+                            <div class="st-node-icon">3</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Tonleiter benennen</div>
+                                <div class="st-node-desc">Tonleitern anhand ihres Musters erkennen und benennen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-ton3"></div>
+                    </div>
+
+                </div>
+
+                <!-- Fortschritt -->
+                <div class="st-progress-info" id="stProgressInfo">
+                    0 von 9 Teilkompetenzen gemeistert
+                    <div class="st-progress-bar-bg">
+                        <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
                     </div>
                 </div>
 
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progressEinsteiger" style="width: 0%"></div>
-                </div>
-                <p class="progress-text" id="progressTextEinsteiger">0% (0/2 gemeistert)</p>
-
-                <div class="options-panel">
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_basis" value="basis" checked disabled>
-                        <span class="option-label" id="label_einsteiger_basis">Stammtöne</span>
-                    </label>
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_vorzeichen" value="vorzeichen">
-                        <span class="option-label" id="label_einsteiger_vorzeichen">+ Mit Vorzeichen</span>
-                    </label>
-                </div>
-
-                <button class="start-button" onclick="quickStart.start('einsteiger')">
-                    🚀 STARTEN
+                <!-- Start-Button -->
+                <button class="st-start-btn" id="stStartBtn" onclick="quickStart.startFromSkilltree()">
+                    Kompetenz auswählen...
                 </button>
-            </div>
+                <div class="st-help-hint" id="stHelpHint">Klicke auf eine Kompetenz, um sie auszuwählen</div>
 
-            <!-- Stufe 2: Aufsteiger -->
-            <div class="level-card-new aufsteiger">
-                <div class="level-card-header">
-                    <div class="level-icon-new">🟡</div>
-                    <div>
-                        <h2>AUFSTEIGER</h2>
-                        <p class="task-type">Halbtonschritte finden</p>
-                    </div>
+                <!-- Freies Üben + Reset -->
+                <div style="text-align: center; margin-top: 0.75rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #0891b2; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
+                    <span style="color: #d1d5db;">|</span>
+                    <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
                 </div>
 
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progressAufsteiger" style="width: 0%"></div>
-                </div>
-                <p class="progress-text" id="progressTextAufsteiger">0% (0/3 gemeistert)</p>
-
-                <div class="options-panel">
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_aufsteiger_basis" value="basis" checked disabled>
-                        <span class="option-label" id="label_aufsteiger_basis">HS-Stufen wählen</span>
-                    </label>
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_aufsteiger_stufenpaare" value="stufenpaare">
-                        <span class="option-label" id="label_aufsteiger_stufenpaare">+ HS auswählen</span>
-                    </label>
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_aufsteiger_mehr_tonarten" value="mehr_tonarten">
-                        <span class="option-label" id="label_aufsteiger_mehr_tonarten">+ Erweiterte Tonarten</span>
-                    </label>
+                <!-- Legende -->
+                <div class="st-legend">
+                    <div class="st-legend-item"><div class="st-legend-dot m"></div> Gemeistert</div>
+                    <div class="st-legend-item"><div class="st-legend-dot a"></div> Verfügbar</div>
+                    <div class="st-legend-item"><div class="st-legend-dot l"></div> Lücke erkannt</div>
+                    <div class="st-legend-item"><div class="st-legend-dot c"></div> Andere App</div>
                 </div>
 
-                <button class="start-button" onclick="quickStart.start('aufsteiger')">
-                    🚀 STARTEN
-                </button>
-            </div>
-
-            <!-- Stufe 3: Profi -->
-            <div class="level-card-new profi">
-                <div class="level-card-header">
-                    <div class="level-icon-new">🔴</div>
-                    <div>
-                        <h2>PROFI</h2>
-                        <p class="task-type">Tonleiter benennen</p>
-                    </div>
-                </div>
-
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progressProfi" style="width: 0%"></div>
-                </div>
-                <p class="progress-text" id="progressTextProfi">0% (0/4 gemeistert)</p>
-
-                <div class="options-panel">
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_muster_lernen" value="muster_lernen" checked disabled>
-                        <span class="option-label" id="label_profi_muster_lernen">Tongeschlecht wählen</span>
-                    </label>
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_muster_erkennen" value="muster_erkennen">
-                        <span class="option-label" id="label_profi_muster_erkennen">+ HS-Stufen wählen und Tonart benennen</span>
-                    </label>
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_alles" value="alles">
-                        <span class="option-label" id="label_profi_alles">+ Alle Tonarten benennen</span>
-                    </label>
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_ohne_hilfe" value="ohne_hilfe">
-                        <span class="option-label" id="label_profi_ohne_hilfe">+ Ohne Hilfe</span>
-                    </label>
-                </div>
-
-                <button class="start-button" onclick="quickStart.start('profi')">
-                    🚀 STARTEN
-                </button>
-            </div>
-            </div>
-
-            <!-- Freies Üben Link + Reset -->
-            <div style="text-align: center; margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <button class="btn" onclick="quickStart.showFreeMode()" style="background: transparent; border: 2px solid #0891b2; color: #0891b2; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem;">
-                    🎯 Freies Üben
-                </button>
-                <button class="btn" onclick="quickStart.confirmReset()" style="background: transparent; border: 2px solid #9ca3af; color: #6b7280; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
-                    🔄 Fortschritt zurücksetzen
-                </button>
             </div>
         </div>
     </div>
@@ -1425,24 +1537,7 @@
     <div id="originalApp" class="level-screen">
     <div class="container" id="appContainer">
 
-        <!-- Quiz Overlay -->
-        <div id="quizOverlay">
-            <div class="quiz-overlay-content">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div class="quiz-overlay-title" id="quizTitle">🟢 EINSTEIGER - Frage 1/10</div>
-                    <button onclick="app.resetScore()" style="background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; margin-left: 12px;" title="Zurücksetzen">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle;">
-                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                            <path d="M3 3v5h5"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="quiz-overlay-task" id="quizTask">🎵 Ganzton oder Halbton?</div>
-                <div class="quiz-progress-bar">
-                    <div class="quiz-progress-fill" id="quizProgressFill" style="width: 0%"></div>
-                </div>
-            </div>
-        </div>
+        <!-- (Quiz-Overlay entfernt — Header übernimmt) -->
 
         <!-- Intro/Hilfe Modal -->
         <!-- Quick-Start Menu Info Modal -->
@@ -1461,47 +1556,16 @@
 
         <div class="modal-overlay" id="introModal">
             <div class="modal">
-                <h2>🪜 Tonleitertrainer – Hilfe</h2>
+                <h2 id="introModalTitle">Tonleitertrainer – Hilfe</h2>
 
-                <div class="modal-section">
-                    <h3>🎼 Halbtonschritte</h3>
-                    <ul>
-                        <li>• <strong>Dur:</strong> Halbtonschritte zwischen 3./4. und 7./8. Stufe</li>
-                        <li>• <strong>Moll (natürlich):</strong> Halbtonschritte zwischen 2./3. und 5./6. Stufe</li>
-                        <li>• <strong>Kirchentonarten:</strong> Je nach Modus an anderen Stellen</li>
-                    </ul>
+                <div id="introModalContent">
+                    <!-- Wird dynamisch befüllt je nach aktiver Übung -->
                 </div>
 
-                <div class="modal-section">
-                    <h3>✍️ Drei Stufen</h3>
-                    <ul>
-                        <li>• <strong>🟢 Einsteiger:</strong> Erkenne, ob der Abstand zwischen zwei Noten ein Ganzton oder ein Halbton ist.</li>
-                        <li>• <strong>🟡 Aufsteiger:</strong> Dir wird eine Tonleiter angezeigt (Dur, Moll oder Kirchentonart). Klicke die 4 Tasten an, zwischen denen die Halbtonschritte liegen.</li>
-                        <li>• <strong>🔴 Profi:</strong> Benenne die Tonleiter oder wähle „Andere" für Kirchentonarten. Schaffe 10 richtige in Folge! Bei einem Fehler markierst du die Halbtonschritte als Wiederholung.</li>
-                    </ul>
-                </div>
-
-                <div class="modal-section">
-                    <h3>💡 Tipps</h3>
-                    <ul>
-                        <li>• Auf der Tastatur ohne Vorzeichen liegen Halbtonschritte zwischen <strong>E→F</strong> und <strong>H→C</strong> (keine schwarze Taste dazwischen).</li>
-                        <li>• Bei Tonleitern mit Vorzeichen verschieben sich die Halbtonschritte entsprechend.</li>
-                        <li>• Nutze die Klaviatur als Orientierung!</li>
-                    </ul>
-                </div>
-
-                <div class="modal-section">
-                    <h3>⚙️ Freies Üben</h3>
-                    <ul>
-                        <li>• Wähle „Freies Üben" im Startmenü für eigene Einstellungen.</li>
-                        <li>• Über das Zahnrad-Symbol kannst du Stufe, Tastatur und Tonarten anpassen.</li>
-                    </ul>
-                </div>
-
-                <button onclick="app.closeIntro()">Verstanden! 👍</button>
+                <button onclick="app.closeIntro()">Verstanden!</button>
 
                 <button onclick="app.showFeedbackModal()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
-                    💬 Feedback geben
+                    Feedback geben
                 </button>
             </div>
         </div>
@@ -1561,20 +1625,36 @@
         <!-- Header -->
         <div class="card">
             <div class="header">
-                <div class="title" id="appTitle">🪜 Tonleitertrainer</div>
-                <div style="display:flex;align-items:center;gap:4px;">
-                    <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Fortschritt" style="background:transparent; border:2px solid #0891b2; color:#0891b2; margin-right:6px; padding:0.35rem 0.75rem; font-size:0.9rem;">
-                        📊 Fortschritt
-                    </button>
-                    <button class="btn" onclick="app.showIntro()" title="Hilfe anzeigen">
-                        <span style="font-size:1.3rem;">❓</span>
-                    </button>
-                    <button class="btn" onclick="app.toggleSettings()" title="Einstellungen">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                    </button>
+                <div class="header-top">
+                    <div class="title" id="appTitle">Tonleitertrainer</div>
+                    <div class="header-buttons">
+                        <button class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Zurücksetzen">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                        </button>
+                        <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Lernpfad" style="background:transparent; border:2px solid #0891b2; color:#0891b2; margin-right:2px; padding:0.35rem 0.75rem; font-size:0.9rem;">
+                            Lernpfad
+                        </button>
+                        <button class="btn" onclick="app.showIntro()" title="Hilfe anzeigen" style="font-size: 1.4rem; font-weight: 700; color: #dc2626; line-height: 1;">?</button>
+                        <button class="btn" onclick="app.toggleSettings()" title="Einstellungen">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Übungsinfo: erscheint nur während Quiz/Freies Üben -->
+                <div class="header-exercise-info" id="headerExerciseInfo">
+                    <div class="header-exercise-label" id="headerExerciseLabel"></div>
+                    <div class="header-exercise-task" id="headerExerciseTask"></div>
+                    <div class="header-progress-dual">
+                        <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
+                        <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
+                    </div>
+                    <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
                 </div>
             </div>
 
@@ -1586,39 +1666,9 @@
                 <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
                     <label style="font-weight: 600; color: #164e63;">🎵 Schwierigkeit:</label>
                     <select id="stageSelect" onchange="app.applySettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
-                        <option value="einsteiger">🟢 Einsteiger - Ganzton oder Halbton?</option>
-                        <option value="aufsteiger">🟡 Aufsteiger - Halbtonschritte finden</option>
-                        <option value="profi">🔴 Profi - Tonleiter benennen</option>
-                    </select>
-                </div>
-
-                <!-- Ziel-Modus (wie Dreiklangstrainer) -->
-                <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
-                    <label style="font-weight: 600; color: #7c2d12;">🎯 Übungsmodus:</label>
-                    <select id="goalModeSelect" onchange="app.updateGoalSettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
-                        <option value="free">Freies Üben (kein Ziel)</option>
-                        <option value="streak">🔥 Streak-Modus (richtige in Folge)</option>
-                        <option value="accuracy">📊 Erfolgsquoten-Modus</option>
-                    </select>
-                </div>
-
-                <!-- Streak Options -->
-                <div id="streakGoalOptions" class="hidden" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
-                    <label>Streak-Ziel:</label>
-                    <select id="goalStreakSelect" onchange="app.updateGoalSettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
-                        <option value="5">🥉 Leicht: 5 richtige in Folge</option>
-                        <option value="10" selected>🥈 Mittel: 10 richtige in Folge</option>
-                        <option value="15">🥇 Schwer: 15 richtige in Folge</option>
-                    </select>
-                </div>
-
-                <!-- Accuracy Options -->
-                <div id="accuracyGoalOptions" class="hidden" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
-                    <label>Erfolgsquoten-Ziel:</label>
-                    <select id="goalAccuracySelect" onchange="app.updateGoalSettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
-                        <option value="70-20">🥉 Bronze: 70% bei 20 Aufgaben</option>
-                        <option value="80-30" selected>🥈 Silber: 80% bei 30 Aufgaben</option>
-                        <option value="90-40">🥇 Gold: 90% bei 40 Aufgaben</option>
+                        <option value="einsteiger">Ganzton oder Halbton?</option>
+                        <option value="aufsteiger">Halbtonschritte finden</option>
+                        <option value="profi">Tonleiter benennen</option>
                     </select>
                 </div>
 
@@ -1635,18 +1685,14 @@
                     <label for="settingStufen">HS-Stufen auswählen (Stufenpaar-Buttons)</label>
                 </div>
                 <div class="checkbox-group">
-                    <input type="checkbox" id="settingKirchentonarten" onchange="app.applySettings()">
-                    <label for="settingKirchentonarten">Kirchentonarten einbeziehen</label>
-                </div>
-                <div class="checkbox-group">
                     <input type="checkbox" id="settingBass" onchange="app.applySettings()">
                     <label for="settingBass">Bassschlüssel</label>
                 </div>
             </div>
         </div>
 
-        <!-- Score Display -->
-        <div class="card">
+        <!-- Score Display (nur im freien Modus sichtbar) -->
+        <div class="card" id="scoreCard">
             <div class="score-display" id="scoreDisplay">
                 <div>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
@@ -1664,17 +1710,11 @@
                     <span style="font-size: 0.875rem;">Zurücksetzen</span>
                 </button>
             </div>
-            <!-- Goal progress (streak/accuracy mode) -->
-            <div id="goalProgress" class="hidden" style="margin-top:8px; padding-top:8px; border-top:1px solid #e5e7eb;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span id="goalLabel" style="font-size:0.85rem; font-weight:600; color:#7c2d12;"></span>
-                    <div style="flex:1; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
-                        <div id="goalProgressFill" style="height:100%; background:#0891b2; border-radius:4px; transition:width 0.3s; width:0%;"></div>
-                    </div>
-                    <span id="goalValue" style="font-size:0.85rem; font-weight:600; color:#164e63;"></span>
-                </div>
-            </div>
+            <!-- (Goal-Progress entfernt — kein Streak/Accuracy im freien Modus) -->
         </div>
+
+        <!-- Retry-Hint (freier Modus) -->
+        <div class="free-retry-hint" id="freeRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
 
         <!-- Fallback Hint (for Profi fallback) -->
         <div class="fallback-hint" id="fallbackHint">
@@ -1697,22 +1737,7 @@
             <!-- 7 markers generated dynamically -->
         </div>
 
-        <!-- Streak Display (Profi only) -->
-        <div class="streak-display" id="streakDisplay">
-            <span class="streak-label">Serie:</span>
-            <div class="streak-circles" id="streakCircles">
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-                <div class="streak-circle"></div>
-            </div>
-        </div>
+        <!-- (Streak-Display entfernt) -->
 
         <!-- Keyboard Card -->
         <div class="card keyboard-card" id="keyboardCard">
@@ -2007,16 +2032,45 @@
         currentOptions: [],
         questionsAnswered: 0,
         questionsCorrect: 0,
+        isRetry: false,  // true wenn aktuelle Aufgabe eine Wiederholung nach Fehler ist
         totalQuestions: 10,
 
         // Profi-specific
-        profiStreak: 0,
-        profiAttempts: 0,
-        maxProfiAttempts: 40,
+        // (profiStreak/profiAttempts entfernt — einheitlich 10 Fragen)
         fallbackActive: false,
         fallbackScale: null,
 
         progress: null,
+
+        // ---- Skilltree State ----
+        selectedNode: null,  // 'ton1', 'ton2', 'ton3'
+        selectedSub: null,   // { nodeId, index }
+
+        // Knoten → Level Mapping
+        nodeToLevel: {
+            'ton1': 'einsteiger',
+            'ton2': 'aufsteiger',
+            'ton3': 'profi'
+        },
+
+        // Sub-Skills pro Knoten (bilden auf bestehende option-IDs ab)
+        nodeSubSkills: {
+            'ton1': [
+                { id: 'basis', label: 'Stammtöne (C, D, E, F, G, A, H)' },
+                { id: 'vorzeichen', label: 'Mit Vorzeichen' }
+            ],
+            'ton2': [
+                { id: 'basis', label: 'HS-Stufen wählen (Dur & Moll)' },
+                { id: 'stufenpaare', label: 'HS-Paare auswählen' },
+                { id: 'mehr_tonarten', label: 'Erweiterte Tonarten' }
+            ],
+            'ton3': [
+                { id: 'muster_lernen', label: 'Tongeschlecht bestimmen (Dur / Moll / Andere)' },
+                { id: 'muster_erkennen', label: 'HS-Stufen finden + Tonleiter benennen' },
+                { id: 'alles', label: 'Alle Tonleitern benennen' },
+                { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe' }
+            ]
+        },
 
         // ---- Init ----
         init() {
@@ -2051,73 +2105,221 @@
         createNewProgress() {
             return {
                 timestamp: Date.now(),
-                einsteiger: { mastered: [], attempts: {} },
-                aufsteiger: { mastered: [], attempts: {} },
-                profi: { mastered: [], attempts: {} }
+                einsteiger: { mastered: [], attempts: {}, scores: {} },
+                aufsteiger: { mastered: [], attempts: {}, scores: {} },
+                profi: { mastered: [], attempts: {}, scores: {} }
             };
         },
 
-        // ---- Progress UI ----
+        // ---- Progress UI (Skilltree) ----
         updateAllProgress() {
-            const levels = ['einsteiger', 'aufsteiger', 'profi'];
-            const optionMap = {
-                einsteiger: ['basis', 'vorzeichen'],
-                aufsteiger: ['basis', 'stufenpaare', 'mehr_tonarten'],
-                profi: ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe']
-            };
+            const nodes = ['ton1', 'ton2', 'ton3'];
+            let totalSubs = 0;
+            let totalMastered = 0;
+            let firstAvailableNode = null;
 
-            levels.forEach(level => {
-                const optionIds = optionMap[level];
-                const totalOptions = optionIds.length;
+            nodes.forEach(nodeId => {
+                const level = this.nodeToLevel[nodeId];
+                const subs = this.nodeSubSkills[nodeId];
                 const mastered = this.progress[level].mastered || [];
-                const masteredCount = mastered.length;
-                const percentage = Math.round((masteredCount / totalOptions) * 100);
+                const allMastered = subs.every(s => mastered.includes(s.id));
+                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
 
-                const bar = document.getElementById('progress' + level.charAt(0).toUpperCase() + level.slice(1));
-                const text = document.getElementById('progressText' + level.charAt(0).toUpperCase() + level.slice(1));
+                totalSubs += subs.length;
+                totalMastered += subs.filter(s => mastered.includes(s.id)).length;
 
-                if (bar) bar.style.width = percentage + '%';
-                if (text) text.textContent = `${percentage}% (${masteredCount}/${totalOptions} gemeistert)`;
+                // Knoten-Zustand bestimmen
+                const wrapper = document.getElementById('stNode-' + nodeId);
+                const node = wrapper ? wrapper.querySelector('.st-node') : null;
+                if (!node) return;
 
-                // Find next recommended
-                const nextRecommended = optionIds.find(opt => !mastered.includes(opt));
+                node.classList.remove('mastered', 'available', 'locked');
+                if (allMastered) {
+                    node.classList.add('mastered');
+                    node.querySelector('.st-node-icon').textContent = '✓';
+                } else {
+                    node.classList.add('available');
+                    node.querySelector('.st-node-icon').textContent = nodes.indexOf(nodeId) + 1;
+                    if (!firstAvailableNode) firstAvailableNode = nodeId;
+                }
 
-                optionIds.forEach(optId => {
-                    const label = document.getElementById(`label_${level}_${optId}`);
-                    const checkbox = document.getElementById(`opt_${level}_${optId}`);
-                    const container = checkbox ? checkbox.closest('.option-checkbox') : null;
+                // Connector-Zustand
+                const prevConn = nodeId === 'ton2' ? document.getElementById('stConn-ton1-ton2') :
+                                 nodeId === 'ton3' ? document.getElementById('stConn-ton2-ton3') : null;
+                if (prevConn) {
+                    const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
+                    const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
+                    const prevMastered = this.progress[prevLevel].mastered || [];
+                    const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
+                    prevConn.classList.toggle('mastered', prevAllDone);
+                }
 
-                    if (label && checkbox) {
-                        // Store original text
-                        const originalTexts = {
-                            'basis': level === 'einsteiger' ? 'Stammtöne' : 'HS-Stufen wählen',
-                            'vorzeichen': '+ Mit Vorzeichen',
-                            'stufenpaare': '+ HS auswählen',
-                            'mehr_tonarten': '+ Erweiterte Tonarten',
-                            'muster_lernen': 'Tongeschlecht wählen',
-                            'muster_erkennen': '+ HS-Stufen wählen und Tonart benennen',
-                            'alles': '+ Alle Tonarten benennen',
-                            'ohne_hilfe': '+ Ohne Hilfe'
-                        };
-
-                        if (mastered.includes(optId)) {
-                            label.classList.add('mastered');
-                            label.classList.remove('recommended');
-                            if (container) container.classList.remove('recommended');
-                            label.textContent = '✓ ' + originalTexts[optId];
-                        } else if (optId === nextRecommended) {
-                            label.classList.add('recommended');
-                            label.classList.remove('mastered');
-                            if (container) container.classList.add('recommended');
-                            label.textContent = '💡 ' + originalTexts[optId];
-                        } else {
-                            label.classList.remove('mastered', 'recommended');
-                            if (container) container.classList.remove('recommended');
-                            label.textContent = originalTexts[optId];
-                        }
-                    }
-                });
+                // Sub-Skills rendern
+                const scores = this.progress[level].scores || {};
+                const subsContainer = document.getElementById('stSubs-' + nodeId);
+                if (subsContainer) {
+                    subsContainer.innerHTML = subs.map((sub, idx) => {
+                        const isDone = mastered.includes(sub.id);
+                        const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
+                        const dotClass = isDone ? 'st-sub-dot done' : (isCurrent ? 'st-sub-dot current' : 'st-sub-dot');
+                        const dotContent = isDone ? '✓' : '';
+                        // Sterne-Anzeige für gemeisterte Teilkompetenzen
+                        const starCount = scores[sub.id] || 0;
+                        const starsHtml = isDone && starCount > 0
+                            ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
+                            : '';
+                        return `<div class="st-sub-skill" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
+                            <div class="${dotClass}">${dotContent}</div>
+                            <span>${sub.label}</span>
+                            ${starsHtml}
+                        </div>`;
+                    }).join('');
+                }
             });
+
+            // Gesamt-Fortschritt
+            const percentage = Math.round((totalMastered / totalSubs) * 100);
+            const progressInfo = document.getElementById('stProgressInfo');
+            if (progressInfo) {
+                progressInfo.innerHTML = `${totalMastered} von ${totalSubs} Teilkompetenzen gemeistert
+                    <div class="st-progress-bar-bg">
+                        <div class="st-progress-bar-fill" id="stProgressFill" style="width: ${percentage}%"></div>
+                    </div>`;
+            }
+
+            // Auto-select ersten verfügbaren Knoten (nur wenn noch nichts gewählt)
+            if (!this.selectedNode && firstAvailableNode) {
+                this.selectNode(firstAvailableNode);
+            } else if (this.selectedNode) {
+                // Button-Text aktualisieren
+                this._updateStartButton();
+            }
+        },
+
+        // ---- Skilltree: Knoten auswählen ----
+        selectNode(nodeId) {
+            // Deselect all
+            document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
+            document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+            this.selectedSub = null;
+
+            // Close all expanded
+            document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
+
+            // Select & expand this one
+            const wrapper = document.getElementById('stNode-' + nodeId);
+            if (!wrapper) return;
+            const node = wrapper.querySelector('.st-node');
+            if (node.classList.contains('locked')) return;
+
+            node.classList.add('selected');
+            wrapper.classList.add('expanded');
+            this.selectedNode = nodeId;
+
+            // Dot bei empfohlener Sub-Skill auf "current" setzen
+            this._updateSubDotSelection(nodeId);
+
+            this._updateStartButton();
+        },
+
+        // ---- Skilltree: Sub-Skill auswählen ----
+        selectSubSkill(nodeId, subIndex) {
+            // Erst Knoten auswählen falls nötig
+            if (this.selectedNode !== nodeId) {
+                this.selectNode(nodeId);
+            }
+
+            // Alle Sub-Selections entfernen
+            document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+
+            // Diese Sub-Skill markieren
+            const wrapper = document.getElementById('stNode-' + nodeId);
+            const subs = wrapper.querySelectorAll('.st-sub-skill');
+            if (subs[subIndex]) {
+                subs[subIndex].classList.add('sub-selected');
+            }
+
+            this.selectedSub = { nodeId, index: subIndex };
+
+            // Dot zur selektierten Sub-Skill verschieben
+            this._updateSubDotSelection(nodeId, subIndex);
+
+            this._updateStartButton();
+        },
+
+        // ---- Start-Button aktualisieren ----
+        _updateStartButton() {
+            const btn = document.getElementById('stStartBtn');
+            const hint = document.getElementById('stHelpHint');
+            if (!btn || !this.selectedNode) return;
+
+            const nodeId = this.selectedNode;
+            const level = this.nodeToLevel[nodeId];
+            const subs = this.nodeSubSkills[nodeId];
+            const mastered = this.progress[level].mastered || [];
+            const allMastered = subs.every(s => mastered.includes(s.id));
+
+            if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
+                // Manuell gewählte Teilkompetenz
+                const sub = subs[this.selectedSub.index];
+                btn.textContent = sub.label.split('(')[0].trim() + ' starten';
+                hint.textContent = 'Teilkompetenz manuell gewählt';
+            } else if (allMastered) {
+                const nodeName = document.querySelector('#stNode-' + nodeId + ' .st-node-name').textContent;
+                btn.textContent = nodeName + ' wiederholen';
+                hint.textContent = 'Bereits gemeistert — zum Auffrischen';
+            } else {
+                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+                const nodeName = document.querySelector('#stNode-' + nodeId + ' .st-node-name').textContent;
+                btn.textContent = nodeName + ' starten';
+                hint.textContent = nextUnmastered ? 'Nächste Teilkompetenz: ' + nextUnmastered.label.split('(')[0].trim() : '';
+            }
+        },
+
+        // ---- Cross-App Link ----
+        openCrossApp(trainer) {
+            window.location.href = trainer + '.html';
+        },
+
+        // ---- Sub-Dot Selektion: Dot wandert zur gewählten Sub-Skill ----
+        _updateSubDotSelection(nodeId, selectedIndex) {
+            const wrapper = document.getElementById('stNode-' + nodeId);
+            if (!wrapper) return;
+            const dots = wrapper.querySelectorAll('.st-sub-dot');
+            const level = this.nodeToLevel[nodeId];
+            const subs = this.nodeSubSkills[nodeId];
+            const mastered = this.progress[level].mastered || [];
+
+            const recommendedIdx = subs.findIndex(s => !mastered.includes(s.id));
+            const activeIdx = (selectedIndex !== undefined) ? selectedIndex : Math.max(0, recommendedIdx);
+
+            dots.forEach((dot, idx) => {
+                const isDone = mastered.includes(subs[idx].id);
+                if (isDone) return;
+                dot.classList.remove('current');
+                if (idx === activeIdx) {
+                    dot.classList.add('current');
+                }
+            });
+        },
+
+        // ---- Sterne-Score speichern ----
+        _saveSubSkillScore(stars) {
+            if (!this.progress[this.currentLevel].scores) {
+                this.progress[this.currentLevel].scores = {};
+            }
+            // Bestimme welche Teilkompetenz gerade gemeistert wurde
+            const subs = this.nodeSubSkills[Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel)];
+            const mastered = this.progress[this.currentLevel].mastered;
+            const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+            const optId = nextUnmastered ? nextUnmastered.id : subs[subs.length - 1].id;
+
+            // Nur besseren Score speichern
+            const existing = this.progress[this.currentLevel].scores[optId] || 0;
+            if (stars > existing) {
+                this.progress[this.currentLevel].scores[optId] = stars;
+            }
+            this.saveProgress();
         },
 
         // ---- Screen Management ----
@@ -2133,8 +2335,8 @@
             document.getElementById('successScreen').classList.remove('active');
             document.getElementById('originalApp').classList.add('active');
 
-            // Score-Counter wieder einblenden für Freies Üben
-            document.querySelector('.score-display').classList.remove('hidden-in-quiz');
+            // Score-Counter einblenden für Freies Üben
+            document.getElementById('scoreCard').classList.remove('hidden-in-quiz');
 
             this.isActive = false;
             app.quickStartMode = null;
@@ -2142,52 +2344,105 @@
             app.useAllKeys = false;
             app.useKirchentonarten = false;
             app.goalMode = 'free';
-            app.currentStreak = 0;
-            app.bestStreak = 0;
+
+            // Header: Freies Üben anzeigen
+            document.getElementById('appTitle').textContent = 'Freies Üben';
+            document.getElementById('headerExerciseInfo').classList.remove('active');
+            document.getElementById('headerResetBtn').classList.remove('active');
 
             // Reset settings UI
             document.getElementById('stageSelect').value = 'einsteiger';
             document.getElementById('settingKeyboard').checked = true;
             document.getElementById('settingVorzeichen').checked = false;
-            document.getElementById('settingKirchentonarten').checked = false;
+            // (Kirchentonarten-Setting entfernt)
             if (document.getElementById('settingBass')) document.getElementById('settingBass').checked = false;
-            if (document.getElementById('goalModeSelect')) document.getElementById('goalModeSelect').value = 'free';
-            const streakOpts = document.getElementById('streakGoalOptions');
-            const accOpts = document.getElementById('accuracyGoalOptions');
-            if (streakOpts) streakOpts.classList.add('hidden');
-            if (accOpts) accOpts.classList.add('hidden');
 
             app.configureForStage('einsteiger', true);
             app.generateNewTask();
         },
 
         backToStart() {
+            this.selectedNode = null;
+            this.selectedSub = null;
+            this.hideQuizOverlay();
+            document.getElementById('appTitle').textContent = 'Tonleitertrainer';
             this.updateAllProgress();
             this.showQuickStart();
         },
 
+        // ---- Start from Skilltree ----
+        startFromSkilltree() {
+            if (!this.selectedNode) return;
+
+            const nodeId = this.selectedNode;
+            const level = this.nodeToLevel[nodeId];
+            const subs = this.nodeSubSkills[nodeId];
+            const mastered = this.progress[level].mastered || [];
+
+            // Bestimme welche Optionen aktiv sein sollen
+            let activeOptions = ['basis']; // Basis immer dabei (für Einsteiger/Aufsteiger)
+
+            if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
+                // Manuell gewählte Teilkompetenz: alle bis einschließlich dieser aktivieren
+                const targetSub = subs[this.selectedSub.index];
+                if (level === 'profi') {
+                    activeOptions = [];
+                    for (let i = 0; i <= this.selectedSub.index; i++) {
+                        activeOptions.push(subs[i].id);
+                    }
+                } else {
+                    for (let i = 1; i <= this.selectedSub.index; i++) {
+                        activeOptions.push(subs[i].id);
+                    }
+                }
+            } else {
+                // Automatisch: nächste nicht-gemeisterte Option
+                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+                if (nextUnmastered) {
+                    const targetIdx = subs.findIndex(s => s.id === nextUnmastered.id);
+                    if (level === 'profi') {
+                        activeOptions = [];
+                        for (let i = 0; i <= targetIdx; i++) {
+                            activeOptions.push(subs[i].id);
+                        }
+                    } else {
+                        for (let i = 1; i <= targetIdx; i++) {
+                            activeOptions.push(subs[i].id);
+                        }
+                    }
+                } else {
+                    // Alle gemeistert → alle Optionen aktivieren zum Wiederholen
+                    if (level === 'profi') {
+                        activeOptions = subs.map(s => s.id);
+                    } else {
+                        activeOptions = subs.map(s => s.id);
+                    }
+                }
+            }
+
+            this.start(level, activeOptions);
+        },
+
         // ---- Start Quiz ----
-        start(level) {
+        start(level, optionsFromSkilltree) {
             this.currentLevel = level;
             this.questionsAnswered = 0;
             this.questionsCorrect = 0;
-            this.profiStreak = 0;
-            this.profiAttempts = 0;
+            this.isRetry = false;
             this.fallbackActive = false;
             this.fallbackScale = null;
             this.isActive = true;
 
-            // Collect options
-            this.currentOptions = [];
+            // Collect options — aus Skilltree-State oder Fallback
+            if (optionsFromSkilltree) {
+                this.currentOptions = [...optionsFromSkilltree];
+            } else {
+                // Fallback für eventuelle direkte Aufrufe
+                this.currentOptions = ['basis'];
+            }
+
+            // Profi-Modus bestimmen
             if (level === 'profi') {
-                // Profi: erste aktive Option bestimmt den Modus
-                const profiOpts = ['muster_lernen', 'muster_erkennen', 'alles'];
-                profiOpts.forEach(optId => {
-                    const cb = document.getElementById(`opt_profi_${optId}`);
-                    if (cb && cb.checked) this.currentOptions.push(optId);
-                });
-                if (this.currentOptions.length === 0) this.currentOptions.push('muster_lernen');
-                // Bestimme den aktiven Profi-Modus (höchste freigeschaltete Option)
                 if (this.currentOptions.includes('alles')) {
                     this.profiMode = 'alles';
                 } else if (this.currentOptions.includes('muster_erkennen')) {
@@ -2195,26 +2450,9 @@
                 } else {
                     this.profiMode = 'muster_lernen';
                 }
-                // Ohne Hilfe separat (wie zuvor Bassschlüssel)
-                const ohCb = document.getElementById('opt_profi_ohne_hilfe');
-                if (ohCb && ohCb.checked) this.currentOptions.push('ohne_hilfe');
-            } else {
-                this.currentOptions = ['basis'];
-                const optionMap = {
-                    einsteiger: ['vorzeichen'],
-                    aufsteiger: ['stufenpaare', 'mehr_tonarten']
-                };
-                (optionMap[level] || []).forEach(optId => {
-                    const cb = document.getElementById(`opt_${level}_${optId}`);
-                    if (cb && cb.checked) this.currentOptions.push(optId);
-                });
             }
 
-            if (level === 'profi') {
-                this.totalQuestions = this.maxProfiAttempts;
-            } else {
-                this.totalQuestions = 10;
-            }
+            this.totalQuestions = 10;
 
             // Switch screens
             document.getElementById('quickStartScreen').classList.remove('active');
@@ -2222,7 +2460,7 @@
             document.getElementById('originalApp').classList.add('active');
 
             // Score-Counter ausblenden im Quiz-Modus
-            document.querySelector('.score-display').classList.add('hidden-in-quiz');
+            document.getElementById('scoreCard').classList.add('hidden-in-quiz');
 
             // Configure app
             app.quickStartMode = level;
@@ -2238,77 +2476,84 @@
             app.generateNewTask();
         },
 
-        // ---- Quiz Overlay ----
+        // ---- Header-Übungsinfo (ersetzt ehemaliges Quiz-Overlay) ----
         showQuizOverlay() {
-            const overlay = document.getElementById('quizOverlay');
-            overlay.classList.add('active');
-            document.getElementById('appContainer').classList.add('app-with-overlay');
+            document.getElementById('headerExerciseInfo').classList.add('active');
+            document.getElementById('headerResetBtn').classList.add('active');
             this.updateQuizOverlay();
         },
 
+        hideQuizOverlay() {
+            document.getElementById('headerExerciseInfo').classList.remove('active');
+            document.getElementById('headerResetBtn').classList.remove('active');
+            document.getElementById('headerRetryHint').classList.remove('active');
+        },
+
         updateQuizOverlay() {
-            const icon = this.currentLevel === 'einsteiger' ? '🟢' :
-                        this.currentLevel === 'aufsteiger' ? '🟡' : '🔴';
-            const name = this.currentLevel === 'einsteiger' ? 'EINSTEIGER' :
-                        this.currentLevel === 'aufsteiger' ? 'AUFSTEIGER' : 'PROFI';
+            // Kompetenz-basierte Bezeichnungen
+            const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+            const nodeIdx = ['ton1', 'ton2', 'ton3'].indexOf(nodeId) + 1;
+            const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen' };
+            const nodeName = nodeNames[nodeId] || '';
 
-            const profiTaskTexts = {
-                muster_lernen: '🎯 Welche Tonart?',
-                muster_erkennen: '🎯 Wähle HS-Stufen & benenne die Tonleiter!',
-                alles: '🎯 Benenne die Tonleiter!'
-            };
+            // Teilkompetenz-Kürzel (z.B. "1a", "2b")
+            const subs = this.nodeSubSkills[nodeId];
+            const highestOpt = this.currentOptions.filter(o => o !== 'basis').pop() || this.currentOptions[0];
+            const subIdx = subs.findIndex(s => s.id === highestOpt);
+            const subLetter = String.fromCharCode(97 + Math.max(0, subIdx));
+            const subLabel = `${nodeIdx}${subLetter}`;
+
             const taskTexts = {
-                einsteiger: '🎵 Ganzton oder Halbton?',
-                aufsteiger: '🎹 Wähle die Halbtonschritt-Paare!',
-                profi: profiTaskTexts[this.profiMode || 'alles'] || '🎯 Benenne die Tonleiter!'
+                einsteiger: 'Ganzton oder Halbton?',
+                aufsteiger: 'Wähle die Halbtonschritt-Paare!',
+                profi: this.profiMode === 'muster_erkennen' ? 'Wähle HS-Stufen & benenne die Tonleiter!' :
+                       this.profiMode === 'alles' ? 'Benenne die Tonleiter!' : 'Welche Tonart?'
             };
 
-            const title = document.getElementById('quizTitle');
-            const task = document.getElementById('quizTask');
-            const progressFill = document.getElementById('quizProgressFill');
+            const label = document.getElementById('headerExerciseLabel');
+            const task = document.getElementById('headerExerciseTask');
+            const segContainer = document.getElementById('headerProgressSegments');
 
-            if (this.currentLevel === 'profi') {
-                title.textContent = `${icon} ${name} - Serie: ${this.profiStreak}/10`;
-                if (this.fallbackActive) {
-                    task.textContent = '⚠️ Markiere die Halbtonschritte!';
-                } else {
-                    task.textContent = taskTexts.profi;
-                }
-                progressFill.style.width = ((this.profiStreak / 10) * 100) + '%';
-            } else {
-                title.textContent = `${icon} ${name} - ${this.questionsAnswered}/${this.totalQuestions} beantwortet`;
-                task.textContent = taskTexts[this.currentLevel];
-                progressFill.style.width = ((this.questionsAnswered / this.totalQuestions) * 100) + '%';
-            }
+            label.textContent = `${subLabel} ${nodeName} — ${this.questionsAnswered}/${this.totalQuestions}`;
+            task.textContent = this.fallbackActive ? 'Markiere die Halbtonschritte!' : (taskTexts[this.currentLevel] || '');
+
+            // Dual-Bar: Hintergrund = Gesamtfortschritt (rot bei Fehlern), Vordergrund = nur richtige
+            const totalPct = (this.questionsAnswered / this.totalQuestions) * 100;
+            const correctPct = (this.questionsCorrect / this.totalQuestions) * 100;
+            document.getElementById('headerProgressTotal').style.width = totalPct + '%';
+            document.getElementById('headerProgressCorrect').style.width = correctPct + '%';
         },
 
         // ---- Handle Answer ----
         handleAnswer(isCorrect) {
             if (!this.isActive) return;
 
-            this.questionsAnswered++;
-            if (isCorrect) this.questionsCorrect++;
-
-            if (this.currentLevel === 'profi' && !this.fallbackActive) {
-                this.profiAttempts++;
+            if (this.isRetry) {
+                // Wiederholung nach Fehler — zählt nicht zum Fortschritt
                 if (isCorrect) {
-                    this.profiStreak++;
-                    if (this.profiStreak >= 10) {
-                        // Profi passed!
-                        setTimeout(() => this.showSuccess(), 1500);
-                        return;
-                    }
-                } else {
-                    this.profiStreak = 0;
-                    // Fallback will be triggered by app.checkProfi
+                    this.isRetry = false;
+                    document.getElementById('headerRetryHint').classList.remove('active');
                 }
+                // Bei erneutem Fehler: isRetry bleibt true, Aufgabe wird nochmal wiederholt
+                this.updateQuizOverlay();
+                return;
+            }
 
-                if (this.profiAttempts >= this.maxProfiAttempts) {
-                    setTimeout(() => this.showSuccess(), 1500);
-                    return;
-                }
-            } else if (!this.fallbackActive) {
+            // Regulärer Versuch
+            this.questionsAnswered++;
+            if (isCorrect) {
+                this.questionsCorrect++;
+            } else {
+                // Nächster Versuch ist ein Retry
+                this.isRetry = true;
+                document.getElementById('headerRetryHint').classList.add('active');
+            }
+
+            if (!this.fallbackActive) {
                 if (this.questionsAnswered >= this.totalQuestions) {
+                    this.isRetry = false;
+                    document.getElementById('headerRetryHint').classList.remove('active');
+                    this.updateQuizOverlay();
                     setTimeout(() => this.showSuccess(), 1500);
                     return;
                 }
@@ -2319,32 +2564,21 @@
 
         // ---- Show Success ----
         showSuccess() {
-            const overlay = document.getElementById('quizOverlay');
-            overlay.classList.remove('active');
-            document.getElementById('appContainer').classList.remove('app-with-overlay');
+            this.hideQuizOverlay();
 
-            let percentage, scoreText;
-            if (this.currentLevel === 'profi') {
-                const passed = this.profiStreak >= 10;
-                percentage = passed ? 100 : Math.round((this.profiStreak / 10) * 100);
-                scoreText = passed ?
-                    'Serie von 10 geschafft! 🔥' :
-                    `Serie: ${this.profiStreak}/10 (${this.profiAttempts} Versuche)`;
-            } else {
-                percentage = Math.round((this.questionsCorrect / this.questionsAnswered) * 100);
-                scoreText = `${this.questionsCorrect} von ${this.questionsAnswered} richtig (${percentage}%)`;
-            }
+            const percentage = Math.round((this.questionsCorrect / this.questionsAnswered) * 100);
+            const scoreText = `${this.questionsCorrect} von ${this.questionsAnswered} richtig (${percentage}%)`;
 
-            // Determine result (9/10 = 90% zum Bestehen)
+            // Determine result (80% zum Bestehen)
             let emoji, title, stars;
             if (percentage === 100) {
-                emoji = '🏆'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
+                emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
             } else if (percentage >= 90) {
-                emoji = '🎉'; title = 'GESCHAFFT!'; stars = '⭐⭐';
-            } else if (percentage >= 70) {
-                emoji = '✨'; title = 'KNAPP DANEBEN!'; stars = '⭐';
+                emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+            } else if (percentage >= 80) {
+                emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
             } else {
-                emoji = '💪'; title = 'WEITER ÜBEN!'; stars = '';
+                emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
             }
 
             document.getElementById('successEmoji').textContent = emoji;
@@ -2352,11 +2586,14 @@
             document.getElementById('successStars').textContent = stars;
             document.getElementById('successScore').textContent = scoreText;
 
-            // Save progress if passed (90% = 9/10 für Einsteiger/Aufsteiger, 10er-Streak für Profi)
-            const passed = (this.currentLevel === 'profi') ?
-                (this.profiStreak >= 10) : (percentage >= 90);
+            // Save progress if passed (80% = 8/10)
+            const passed = percentage >= 80;
 
             if (passed) {
+                // Sterne-Score für diese Teilkompetenz speichern
+                const stars = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
+                this._saveSubSkillScore(stars);
+
                 this.markCurrentOptionAsMastered();
                 const nextStep = this.getNextStepText();
                 document.getElementById('successNextStep').textContent = nextStep;
@@ -2368,7 +2605,7 @@
                     const allDone = allProfiOptions.every(opt => profiMastered.includes(opt));
                     if (allDone) {
                         document.getElementById('successNextStep').innerHTML =
-                            'Alle Stufen gemeistert! 🎉<br><br>💡 <strong>Tipp:</strong> Im „Freien Üben" kannst du den Bassschlüssel aktivieren und noch mehr üben!';
+                            'Alle Kompetenzen gemeistert! 🎉<br><br>💡 <strong>Tipp:</strong> Im „Freien Üben" kannst du den Bassschlüssel aktivieren und noch mehr üben!';
                     }
                 }
             } else {
@@ -2436,29 +2673,31 @@
             const nextUnmastered = options.find(opt => !mastered.includes(opt));
 
             if (!nextUnmastered) {
-                // All mastered in this level
-                const levels = ['einsteiger', 'aufsteiger', 'profi'];
-                const currentIdx = levels.indexOf(this.currentLevel);
-                if (currentIdx < levels.length - 1) {
-                    return `Probiere jetzt die Stufe "${levels[currentIdx + 1].toUpperCase()}"!`;
+                // Alle in diesem Knoten gemeistert → nächsten Knoten empfehlen
+                const nodes = ['ton1', 'ton2', 'ton3'];
+                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen' };
+                const currentNode = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+                const currentIdx = nodes.indexOf(currentNode);
+                if (currentIdx < nodes.length - 1) {
+                    return `Weiter mit: ${nodeNames[nodes[currentIdx + 1]]}`;
                 }
-                return 'Alle Stufen gemeistert! 🎉';
+                return 'Alle Kompetenzen gemeistert!';
             }
 
             const labels = {
-                'vorzeichen': 'Jetzt mit Vorzeichen!',
-                'stufenpaare': 'Jetzt HS auswählen!',
-                'mehr_tonarten': 'Jetzt erweiterte Tonarten!',
-                'muster_lernen': 'Jetzt Tongeschlecht wählen!',
-                'muster_erkennen': 'Jetzt HS-Stufen wählen und Tonart benennen!',
-                'alles': 'Jetzt alle Tonarten benennen!',
-                'ohne_hilfe': 'Jetzt ohne Hilfe!'
+                'vorzeichen': 'Nächste Teilkompetenz: Mit Vorzeichen',
+                'stufenpaare': 'Nächste Teilkompetenz: HS-Paare auswählen',
+                'mehr_tonarten': 'Nächste Teilkompetenz: Erweiterte Tonarten',
+                'muster_lernen': 'Nächste Teilkompetenz: Tongeschlecht bestimmen',
+                'muster_erkennen': 'Nächste Teilkompetenz: HS-Stufen + Tonleiter benennen',
+                'alles': 'Nächste Teilkompetenz: Alle Tonleitern benennen',
+                'ohne_hilfe': 'Nächste Teilkompetenz: Ohne Klaviatur-Hilfe'
             };
             return labels[nextUnmastered] || 'Weiter so!';
         },
 
         retry() {
-            this.start(this.currentLevel);
+            this.start(this.currentLevel, [...this.currentOptions]);
         },
 
         // Reset progress for shared devices (Tabletkoffer)
@@ -2466,6 +2705,8 @@
             if (confirm('Fortschritt zurücksetzen?\n\nAlle gemeisterten Stufen werden gelöscht. Das ist z.B. nützlich, wenn ein neuer Schüler das Gerät nutzt.')) {
                 this.progress = this.createNewProgress();
                 this.saveProgress();
+                this.selectedNode = null;
+                this.selectedSub = null;
 
                 // Falls Quiz aktiv: Zähler auf 0 und zurück zum Menü
                 if (this.isActive) {
@@ -2490,13 +2731,8 @@
         useAllKeys: false,
         useKirchentonarten: false,
 
-        // Goal mode (freies Üben)
-        goalMode: 'free',               // 'free', 'streak', 'accuracy'
-        goalStreak: 10,
-        goalAccuracyPercent: 80,
-        goalAccuracyTotal: 30,
-        currentStreak: 0,
-        bestStreak: 0,
+        // Freies Üben
+        goalMode: 'free',
 
         // Current task data
         currentScale: null,             // { root, type, notes[], octaves[], displayName, vorzeichen }
@@ -2505,6 +2741,7 @@
 
         score: { correct: 0, total: 0 },
         inputLocked: false,             // Prevent double-clicks during feedback
+        freeRetry: false,               // true wenn im freien Modus eine Aufgabe wiederholt wird
 
         // ---- Init / Configure ----
         init() {
@@ -2517,18 +2754,8 @@
             this.score = { correct: 0, total: 0 };
             this.inputLocked = false;
 
-            // Title
-            const profiTitles = {
-                muster_lernen: '🔴 Welche Tonart?',
-                muster_erkennen: '🔴 HS-Stufen & Tonart',
-                alles: '🔴 Tonleiter benennen'
-            };
-            const titles = {
-                einsteiger: '🟢 Ganzton oder Halbton?',
-                aufsteiger: '🟡 Halbtonschritte finden',
-                profi: profiTitles[quickStart.profiMode || 'alles'] || '🔴 Tonleiter benennen'
-            };
-            document.getElementById('appTitle').textContent = '🪜 ' + (titles[stage] || 'Tonleitertrainer');
+            // Titel bleibt neutral — Übungsdetails stehen in der Header-Übungsinfo
+            document.getElementById('appTitle').textContent = 'Tonleitertrainer';
 
             // Keyboard
             const kbCard = document.getElementById('keyboardCard');
@@ -2541,14 +2768,6 @@
             // Step markers container (no longer used, input is via keyboard clicks)
             const markersContainer = document.getElementById('stepMarkersContainer');
             markersContainer.classList.remove('active');
-
-            // Streak display
-            const streakDisplay = document.getElementById('streakDisplay');
-            if (stage === 'profi' && !quickStart.fallbackActive) {
-                streakDisplay.classList.add('active');
-            } else {
-                streakDisplay.classList.remove('active');
-            }
 
             // Fallback hint
             document.getElementById('fallbackHint').classList.remove('active');
@@ -2844,7 +3063,6 @@
             document.querySelectorAll('.steppair-highlight').forEach(el => el.remove());
 
             if (this.currentStage === 'profi') {
-                this.updateStreakDisplay();
                 const input = document.getElementById('profiInput');
                 if (input) {
                     input.value = '';
@@ -3143,7 +3361,7 @@
             }
 
             const totalWidth = whiteKeys.length * (whiteKeyWidth + gap) - gap;
-            const keyboardHeight = isMobilePortrait ? 100 : (isMobileLandscape ? 110 : (isDesktopCompact ? 100 : 120));
+            const keyboardHeight = isMobilePortrait ? 100 : (isMobileLandscape ? 110 : (isDesktopCompact ? 140 : 180));
 
             let html = `<div class="keyboard-container" style="width:${totalWidth}px; height:${keyboardHeight}px;">`;
             html += `<div class="white-keys" style="height:100%; gap:${gap}px;">`;
@@ -3340,135 +3558,46 @@
             });
         },
 
-        // ---- Streak Display (Profi) ----
-        updateStreakDisplay() {
-            const circles = document.querySelectorAll('.streak-circle');
-            circles.forEach((circle, i) => {
-                circle.classList.remove('filled', 'active');
-                if (i < quickStart.profiStreak) {
-                    circle.classList.add('filled');
-                } else if (i === quickStart.profiStreak) {
-                    circle.classList.add('active');
-                }
-            });
+        // Retry-Hint Steuerung (freier Modus)
+        setFreeRetry(isRetry) {
+            this.freeRetry = isRetry;
+            if (!quickStart.isActive) {
+                const hint = document.getElementById('freeRetryHint');
+                if (hint) hint.classList.toggle('active', isRetry);
+            }
         },
 
         // ---- Score Display ----
         updateScoreDisplay() {
             const scoreText = document.getElementById('scoreText');
             const percent = document.getElementById('scorePercent');
-            const goalProgress = document.getElementById('goalProgress');
-            const goalLabel = document.getElementById('goalLabel');
-            const goalValue = document.getElementById('goalValue');
-            const goalFill = document.getElementById('goalProgressFill');
-
             if (scoreText) {
                 scoreText.textContent = `Richtig: ${this.score.correct} / ${this.score.total}`;
             }
             if (percent && this.score.total > 0) {
                 percent.textContent = ` (${Math.round(this.score.correct / this.score.total * 100)}%)`;
             }
-
-            // Goal progress (only in free mode, not QuickStart)
-            if (!quickStart.isActive && goalProgress) {
-                if (this.goalMode === 'streak') {
-                    goalProgress.classList.remove('hidden');
-                    goalLabel.textContent = '🔥 Streak:';
-                    goalValue.textContent = `${this.currentStreak} / ${this.goalStreak}`;
-                    goalFill.style.width = Math.min(100, (this.currentStreak / this.goalStreak) * 100) + '%';
-                    goalFill.style.background = this.currentStreak >= this.goalStreak ? '#10b981' : '#0891b2';
-                } else if (this.goalMode === 'accuracy') {
-                    goalProgress.classList.remove('hidden');
-                    goalLabel.textContent = '📊 Quote:';
-                    const pct = this.score.total > 0 ? Math.round(this.score.correct / this.score.total * 100) : 0;
-                    goalValue.textContent = `${pct}% (${this.score.total}/${this.goalAccuracyTotal})`;
-                    goalFill.style.width = Math.min(100, (this.score.total / this.goalAccuracyTotal) * 100) + '%';
-                    const reached = this.score.total >= this.goalAccuracyTotal && pct >= this.goalAccuracyPercent;
-                    goalFill.style.background = reached ? '#10b981' : '#0891b2';
-                } else {
-                    goalProgress.classList.add('hidden');
-                }
-            } else if (goalProgress) {
-                goalProgress.classList.add('hidden');
-            }
-        },
-
-        // Track streak for goal mode
-        trackGoalAnswer(isCorrect) {
-            if (quickStart.isActive) return;
-            if (isCorrect) {
-                this.currentStreak++;
-                if (this.currentStreak > this.bestStreak) this.bestStreak = this.currentStreak;
-            } else {
-                this.currentStreak = 0;
-            }
-
-            // Check if goal reached
-            if (this.goalMode === 'streak' && this.currentStreak >= this.goalStreak) {
-                setTimeout(() => {
-                    this.showGoalReached(`🔥 Streak von ${this.goalStreak} geschafft!`);
-                }, 1200);
-            } else if (this.goalMode === 'accuracy' && this.score.total >= this.goalAccuracyTotal) {
-                const pct = Math.round(this.score.correct / this.score.total * 100);
-                if (pct >= this.goalAccuracyPercent) {
-                    setTimeout(() => {
-                        this.showGoalReached(`📊 ${pct}% bei ${this.score.total} Aufgaben!`);
-                    }, 1200);
-                }
-            }
-        },
-
-        showGoalReached(msg) {
-            this.showFeedback(true, `🏆 Ziel erreicht! ${msg}`);
         },
 
         resetScore() {
             this.score = { correct: 0, total: 0 };
             this.previousTask = null;
-            this.currentStreak = 0;
-            this.bestStreak = 0;
-            this.goalAchieved = false;
+            this.setFreeRetry(false);
             this._lastTypeHistory = [];
             this._lastSubTypeHistory = [];
             this.updateScoreDisplay();
 
-            // Falls Quiz aktiv: Zähler auf 0 und Overlay komplett neu erstellen
+            // Falls Quiz aktiv: Zähler auf 0 und Header-Info neu aufbauen
             if (quickStart.isActive) {
                 quickStart.questionsAnswered = 0;
                 quickStart.questionsCorrect = 0;
-                // Overlay komplett neu erstellen (robuster als nur width zurücksetzen)
+                quickStart.isRetry = false;
+                document.getElementById('headerRetryHint').classList.remove('active');
                 quickStart.showQuizOverlay();
             }
 
             // WICHTIG: Generiere IMMER neue Aufgabe
-            // UX: Frischer Start nach Reset
-            // SICHERHEIT: Panikbutton bei potenziellen Bugs/Freeze
             this.generateNewTask();
-        },
-
-        updateGoalSettings() {
-            const goalMode = document.getElementById('goalModeSelect').value;
-            this.goalMode = goalMode;
-
-            const streakOpts = document.getElementById('streakGoalOptions');
-            const accOpts = document.getElementById('accuracyGoalOptions');
-
-            if (goalMode === 'streak') {
-                streakOpts.classList.remove('hidden');
-                accOpts.classList.add('hidden');
-                this.goalStreak = parseInt(document.getElementById('goalStreakSelect').value);
-            } else if (goalMode === 'accuracy') {
-                streakOpts.classList.add('hidden');
-                accOpts.classList.remove('hidden');
-                const [pct, total] = document.getElementById('goalAccuracySelect').value.split('-');
-                this.goalAccuracyPercent = parseInt(pct);
-                this.goalAccuracyTotal = parseInt(total);
-            } else {
-                streakOpts.classList.add('hidden');
-                accOpts.classList.add('hidden');
-            }
-
-            this.resetScore();
         },
 
         // ---- Answer Handling: EINSTEIGER ----
@@ -3486,24 +3615,28 @@
             const userSaysHalfStep = (answer === 'halbton');
             const isCorrect = (userSaysHalfStep === actuallyHalfStep);
 
-            this.score.total++;
-            if (isCorrect) this.score.correct++;
-            tracking.trackQuestion(isCorrect);
-            this.trackGoalAnswer(isCorrect);
-            this.updateScoreDisplay();
+            // Score nur beim ersten Versuch zählen
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (isCorrect) this.score.correct++;
+                tracking.trackQuestion(isCorrect);
+                this.updateScoreDisplay();
+            }
 
             // Flash buttons
             const btnG = document.getElementById('btnGanzton');
             const btnH = document.getElementById('btnHalbton');
 
             if (isCorrect) {
+                this.setFreeRetry(false);
                 const clickedBtn = (answer === 'ganzton') ? btnG : btnH;
                 clickedBtn.classList.add('flash-correct');
                 this.showFeedback(true, `Richtig! ${n1}→${n2} = ${actuallyHalfStep ? 'Halbton' : 'Ganzton'}`);
             } else {
+                this.setFreeRetry(true);
                 const clickedBtn = (answer === 'ganzton') ? btnG : btnH;
                 clickedBtn.classList.add('flash-incorrect');
-                this.showFeedback(false, `${n1}→${n2} ist ein ${actuallyHalfStep ? 'Halbton' : 'Ganzton'}!`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonschritt: <span style="color:#ef4444;">✗</span> (${n1}→${n2} = ${actuallyHalfStep ? 'Halbton' : 'Ganzton'})`);
             }
 
             if (quickStart.isActive) {
@@ -3568,13 +3701,15 @@
                 }
             });
 
-            this.score.total++;
-            if (allCorrect) this.score.correct++;
-            tracking.trackQuestion(allCorrect);
-            this.trackGoalAnswer(allCorrect);
-            this.updateScoreDisplay();
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (allCorrect) this.score.correct++;
+                tracking.trackQuestion(allCorrect);
+                this.updateScoreDisplay();
+            }
 
             if (allCorrect) {
+                this.setFreeRetry(false);
                 this.showFeedback(true, `Richtig! Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
 
                 if (quickStart.isActive) {
@@ -3585,7 +3720,8 @@
                     this.generateNewTask();
                 }, 1000);
             } else {
-                this.showFeedback(false, `Die Halbtonschritte liegen bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
+                this.setFreeRetry(true);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Markierung: <span style="color:#ef4444;">✗</span> (Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe)`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -3628,16 +3764,19 @@
                 }
             }
 
-            this.score.total++;
-            if (allCorrect) this.score.correct++;
-            tracking.trackQuestion(allCorrect);
-            this.trackGoalAnswer(allCorrect);
-            this.updateScoreDisplay();
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (allCorrect) this.score.correct++;
+                tracking.trackQuestion(allCorrect);
+                this.updateScoreDisplay();
+            }
 
             if (allCorrect) {
+                this.setFreeRetry(false);
                 this.showFeedback(true, `Richtig! Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
             } else {
-                this.showFeedback(false, `Die Halbtonschritte liegen bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
+                this.setFreeRetry(true);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Stufenpaare: <span style="color:#ef4444;">✗</span> (Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe)`);
             }
 
             if (quickStart.isActive && !quickStart.fallbackActive) {
@@ -3649,7 +3788,6 @@
                     this.generateNewTask();
                 }, 1000);
             } else {
-                // Bei Fehler: Feedback länger zeigen, dann gleiche Aufgabe wiederholen
                 setTimeout(() => {
                     this.inputLocked = false;
                     this.stepPairSelections = [false, false, false, false, false, false, false];
@@ -3690,13 +3828,15 @@
                 isCorrect = (parsed.root === this.currentScale.root && parsed.type === this.currentScale.type);
             }
 
-            this.score.total++;
-            if (isCorrect) this.score.correct++;
-            tracking.trackQuestion(isCorrect);
-            this.trackGoalAnswer(isCorrect);
-            this.updateScoreDisplay();
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (isCorrect) this.score.correct++;
+                tracking.trackQuestion(isCorrect);
+                this.updateScoreDisplay();
+            }
 
             if (isCorrect) {
+                this.setFreeRetry(false);
                 input.classList.add('input-correct');
                 this.showFeedback(true, `Richtig! ${this.currentScale.displayName}`);
 
@@ -3708,8 +3848,9 @@
                     this.generateNewTask();
                 }, 1000);
             } else {
+                this.setFreeRetry(true);
                 input.classList.add('input-incorrect');
-                this.showFeedback(false, `Falsch! Das war ${this.currentScale.displayName}`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonleiter: <span style="color:#ef4444;">✗</span> (${this.currentScale.displayName})`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -3719,7 +3860,6 @@
                         this.enterFallbackMode();
                     }, 3000);
                 } else {
-                    // Repeat same task after longer feedback
                     setTimeout(() => {
                         this.inputLocked = false;
                         this.hideFeedback();
@@ -3746,11 +3886,12 @@
                 isCorrect = (answer === correctType);
             }
 
-            this.score.total++;
-            if (isCorrect) this.score.correct++;
-            tracking.trackQuestion(isCorrect);
-            this.trackGoalAnswer(isCorrect);
-            this.updateScoreDisplay();
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (isCorrect) this.score.correct++;
+                tracking.trackQuestion(isCorrect);
+                this.updateScoreDisplay();
+            }
 
             // Visual feedback on all 3 buttons
             const allBtns = document.querySelectorAll('#inputCard .input-buttons button');
@@ -3774,6 +3915,7 @@
             const hsText = hs.map(h => `${h+1}.–${h+2}.`).join(' und ');
 
             if (isCorrect) {
+                this.setFreeRetry(false);
                 this.showFeedback(true, `Richtig! ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
 
                 if (quickStart.isActive) {
@@ -3781,12 +3923,12 @@
                 }
 
                 setTimeout(() => {
-                    // Buttons zurücksetzen (inline-Styles entfernen)
                     this.setupInput();
                     this.generateNewTask();
                 }, 1000);
             } else {
-                this.showFeedback(false, `Falsch! Das war ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
+                this.setFreeRetry(true);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tongeschlecht: <span style="color:#ef4444;">✗</span> (${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe)`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -3863,16 +4005,18 @@
             }
 
             const isCorrect = nameCorrect && pairsCorrect;
-            this.score.total++;
-            if (isCorrect) this.score.correct++;
-            tracking.trackQuestion(isCorrect);
-            this.trackGoalAnswer(isCorrect);
-            this.updateScoreDisplay();
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (isCorrect) this.score.correct++;
+                tracking.trackQuestion(isCorrect);
+                this.updateScoreDisplay();
+            }
 
             const hs = this.currentScale.halfSteps;
             const hsText = hs.map(h => `${h+1}.–${h+2}.`).join(' und ');
 
             if (isCorrect) {
+                this.setFreeRetry(false);
                 input.classList.add('input-correct');
                 this.showFeedback(true, `Richtig! ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
 
@@ -3884,16 +4028,11 @@
                     this.generateNewTask();
                 }, 1000);
             } else {
+                this.setFreeRetry(true);
                 input.classList.add('input-incorrect');
-                let msg = `Falsch! Das war ${this.currentScale.displayName}`;
-                if (!nameCorrect && !pairsCorrect) {
-                    msg += ` — Name und Halbtonschritte falsch`;
-                } else if (!nameCorrect) {
-                    msg += ` — Halbtonschritte richtig, aber Name falsch`;
-                } else {
-                    msg += ` — Name richtig, aber Halbtonschritte bei ${hsText}. Stufe`;
-                }
-                this.showFeedback(false, msg);
+                const nameIcon = nameCorrect ? '<span style="color:#22c55e;">✓</span>' : '<span style="color:#ef4444;">✗</span>';
+                const pairsIcon = pairsCorrect ? '<span style="color:#22c55e;">✓</span>' : '<span style="color:#ef4444;">✗</span>';
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Halbtonschritte: ${pairsIcon}<br>Tonleiter: ${nameIcon} (${this.currentScale.displayName})`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -3922,9 +4061,6 @@
 
             // Show fallback hint
             document.getElementById('fallbackHint').classList.add('active');
-
-            // Hide streak
-            document.getElementById('streakDisplay').classList.remove('active');
 
             // Fallback ALWAYS needs keyboard (for half-step marking), even if ohne_hilfe was active
             this.showKeyboard = true;
@@ -3994,7 +4130,7 @@
                     this.exitFallbackMode();
                 }, 1000);
             } else {
-                this.showFeedback(false, `Nicht ganz. Halbtonschritte zwischen ${halfSteps[0]+1}./${halfSteps[0]+2}. und ${halfSteps[1]+1}./${halfSteps[1]+2}. Stufe. Probiere nochmal!`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Markierung: <span style="color:#ef4444;">✗</span> (Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe)`);
 
                 // Reset for retry after 3s
                 setTimeout(() => {
@@ -4019,9 +4155,6 @@
 
             // Hide step markers
             document.getElementById('stepMarkersContainer').classList.remove('active');
-
-            // Show streak
-            document.getElementById('streakDisplay').classList.add('active');
 
             // Restore keyboard state: hide if ohne_hilfe was originally active
             const ohneT = quickStart.currentOptions.includes('ohne_hilfe');
@@ -4118,7 +4251,7 @@
         // ---- Feedback ----
         showFeedback(isCorrect, message) {
             const fb = document.getElementById('feedback');
-            fb.textContent = message;
+            fb.innerHTML = message;
             fb.className = 'feedback active ' + (isCorrect ? 'correct' : 'incorrect');
         },
 
@@ -4149,7 +4282,7 @@
             const showKb = document.getElementById('settingKeyboard').checked;
             const allKeys = document.getElementById('settingVorzeichen').checked;
             const useBass = document.getElementById('settingBass') ? document.getElementById('settingBass').checked : false;
-            const kirchentonarten = document.getElementById('settingKirchentonarten') ? document.getElementById('settingKirchentonarten').checked : false;
+            const kirchentonarten = false; // Kirchentonarten nur im Skilltree (Profi)
             const useStufen = document.getElementById('settingStufen') ? document.getElementById('settingStufen').checked : false;
 
             // Show/hide HS-Stufen checkbox depending on stage
@@ -4168,6 +4301,88 @@
 
         // ---- Modals ----
         showIntro() {
+            const titleEl = document.getElementById('introModalTitle');
+            const contentEl = document.getElementById('introModalContent');
+
+            // Prüfe ob wir in einer Übung sind oder im Menü
+            const inExercise = quickStart.currentLevel !== null &&
+                !document.getElementById('quickStartScreen').classList.contains('active');
+
+            if (inExercise) {
+                const level = quickStart.currentLevel;
+                const opts = quickStart.currentOptions;
+                const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
+                const subs = quickStart.nodeSubSkills[nodeId];
+                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen' };
+                const nodeName = nodeNames[nodeId] || '';
+
+                titleEl.textContent = `Hilfe: ${nodeName}`;
+
+                const helpTexts = {
+                    'einsteiger': {
+                        'basis': `<p><strong>Stammtöne (C, D, E, F, G, A, H)</strong></p>
+                            <p>Du hörst zwei Töne nacheinander. Entscheide: Ist der Abstand ein <strong>Ganztonschritt</strong> (2 Halbtonschritte) oder ein <strong>Halbtonschritt</strong> (1 Halbtonschritt)?</p>
+                            <p><strong>Merkhilfe:</strong> Zwischen E–F und H–C liegt immer ein Halbtonschritt. Alle anderen Nachbartöne (C–D, D–E, F–G, G–A, A–H) sind Ganztonschritte.</p>
+                            <p>Nutze die Klaviatur unten als Orientierung!</p>`,
+                        'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
+                            <p>Jetzt kommen auch Töne mit ♯ und ♭ vor. Der Abstand zwischen zwei Tönen kann ein Ganzton- oder Halbtonschritt sein.</p>
+                            <p><strong>Tipp:</strong> Schau auf die Klaviatur – schwarze Tasten liegen immer einen Halbtonschritt neben weißen Tasten.</p>`
+                    },
+                    'aufsteiger': {
+                        'basis': `<p><strong>Halbtonschritte wählen (Dur &amp; Moll)</strong></p>
+                            <p>Du siehst eine Tonleiter und musst die Stufen markieren, an denen ein <strong>Halbtonschritt</strong> liegt.</p>
+                            <p><strong>Dur-Tonleiter:</strong> Halbtonschritte zwischen Stufe 3–4 und 7–8.</p>
+                            <p><strong>Moll-Tonleiter (natürlich):</strong> Halbtonschritte zwischen Stufe 2–3 und 5–6.</p>`,
+                        'stufenpaare': `<p><strong>Halbton-Paare auswählen</strong></p>
+                            <p>Wähle die richtigen Stufenpaare aus, an denen die Halbtonschritte liegen. Du musst beide Paare korrekt markieren.</p>
+                            <p><strong>Tipp:</strong> Zähle die Stufen der Tonleiter durch und prüfe an jeder Stelle, ob der nächste Ton einen halben oder ganzen Schritt entfernt ist.</p>`,
+                        'mehr_tonarten': `<p><strong>Erweiterte Tonarten</strong></p>
+                            <p>Zusätzlich zu den Grundtonarten kommen jetzt weitere Tonarten mit mehreren Vorzeichen dazu.</p>
+                            <p>Die Regel bleibt gleich – finde die Halbtonschritte!</p>`
+                    },
+                    'profi': {
+                        'muster_lernen': `<p><strong>Tongeschlecht bestimmen (Dur / Moll / Andere)</strong></p>
+                            <p>Du siehst eine Tonleiter und musst erkennen, ob es sich um <strong>Dur</strong>, <strong>Moll</strong> oder eine <strong>andere Tonleiter</strong> handelt.</p>
+                            <p><strong>Tipp:</strong> Schau dir die Halbtonschritte an – sie verraten das Tongeschlecht!</p>`,
+                        'muster_erkennen': `<p><strong>Halbtonschritte finden + Tonleiter benennen</strong></p>
+                            <p>Finde zuerst die Halbtonschritte, dann benenne die Tonleiter (z.B. „C-Dur" oder „a-Moll").</p>
+                            <p>Du brauchst beides: die Halbtonschritt-Positionen UND den Grundton.</p>`,
+                        'alles': `<p><strong>Alle Tonleitern benennen</strong></p>
+                            <p>Jetzt kommen alle Tonleitern vor – Dur, Moll und weitere. Benenne die Tonleiter korrekt.</p>
+                            <p>Du musst Tongeschlecht und Grundton erkennen.</p>`,
+                        'ohne_hilfe': `<p><strong>Ohne Klaviatur-Hilfe</strong></p>
+                            <p>Die Klaviatur wird ausgeblendet. Du musst die Halbtonschritte und Tonleitern aus dem Kopf erkennen.</p>
+                            <p><strong>Tipp:</strong> Denke dir die Klaviatur vor deinem inneren Auge vor!</p>`
+                    }
+                };
+
+                // Zeige Hilfe für die aktive(n) Option(en)
+                let html = '';
+                const levelHelp = helpTexts[level] || {};
+                if (opts && opts.length > 0) {
+                    for (const opt of opts) {
+                        if (levelHelp[opt]) {
+                            html += levelHelp[opt];
+                        }
+                    }
+                }
+                if (!html) {
+                    html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Teilkompetenz als bestanden.</p>';
+                }
+                contentEl.innerHTML = html;
+
+            } else {
+                // Menü-Ansicht: Allgemeine Hilfe
+                titleEl.textContent = 'Tonleitertrainer – Hilfe';
+                contentEl.innerHTML = `
+                    <p>Willkommen im <strong>Tonleitertrainer</strong>! Hier lernst du Schritt für Schritt, Tonleitern zu erkennen und zu benennen.</p>
+                    <p><strong>So funktioniert's:</strong></p>
+                    <p>Dein Lernpfad besteht aus drei Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
+                    <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+                    <p><strong>Voraussetzung:</strong> Grundlegende Notenkenntnisse (Notentrainer: Vorzeichen &amp; Bassschlüssel).</p>
+                `;
+            }
+
             document.getElementById('introModal').classList.add('active');
         },
 

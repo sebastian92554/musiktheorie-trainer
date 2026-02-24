@@ -11,6 +11,8 @@
     <meta name="author" content="Schillerschule Hannover">
     <meta name="robots" content="index, follow">
 
+    <link rel="canonical" href="https://musiktheorie-trainer.de/rhythmustrainer.html">
+
     <style>
         * {
             margin: 0;
@@ -65,6 +67,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
 
         .title {
@@ -302,106 +305,83 @@
         }
 
         .modal-overlay {
+            display: none;
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
+            z-index: 200;
             justify-content: center;
-            z-index: 1000;
-            padding: 1rem;
+            align-items: center;
         }
 
-        .modal-overlay.hidden {
-            display: none;
+        .modal-overlay.active {
+            display: flex;
         }
 
         .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
             background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
-            max-width: 36rem;
-            width: 100%;
-            padding: 2rem;
-            max-height: 90vh;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
             overflow-y: auto;
         }
 
-        @media (max-width: 768px) {
-            .modal-content {
-                padding: 1.5rem;
-                max-height: 95vh;
-            }
-        }
-
-        .modal-header {
-            margin-bottom: 1rem;
-        }
-
-        .modal-title {
-            font-size: 1.75rem;
-            font-weight: bold;
-            color: #4c1d95;
-            margin-bottom: 0.5rem;
-        }
-
-        .modal-section {
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .modal-section h3 {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .modal-section ul {
-            padding-left: 0;
-            list-style: none;
-        }
-
-        .modal-section li {
-            margin-bottom: 0.5rem;
-        }
-
-        .modal-section.intro {
-            background: #ede9fe;
-            color: #4c1d95;
-        }
-
-        .modal-section.settings {
-            background: #f3e8ff;
-            color: #6b21a8;
-        }
-
-        .modal-section.tips {
-            background: #fef3c7;
-            color: #78350f;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
+        .modal h2 {
             font-size: 1.5rem;
+            color: #4c1d95;
+            margin-bottom: 15px;
+        }
+
+        .modal p {
+            color: #4b5563;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .modal .modal-section {
+            background: #ede9fe;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .modal .modal-section h3 {
+            font-size: 1rem;
+            color: #4c1d95;
+            margin-bottom: 8px;
+        }
+
+        .modal .modal-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .modal .modal-section li {
+            padding: 3px 0;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .modal button {
+            width: 100%;
+            padding: 12px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            color: #6b7280;
-            float: right;
+            margin-top: 10px;
+        }
+
+        .modal button:hover {
+            background: #7c3aed;
         }
 
         .hidden {
@@ -488,6 +468,69 @@
             font-size: 0.75rem;
             color: #6b7280;
             margin-top: 0.25rem;
+        }
+
+        /* Dynamische Input-Styles (DT-Pattern) */
+        .input-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .input-row > div { flex: 1; min-width: 120px; }
+        .input-row label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+        .input-row select, .input-row input[type="text"] {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            height: 42px;
+            box-sizing: border-box;
+        }
+        .input-row select:focus, .input-row input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+        .input-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        /* Zentriertes Input-Layout für alle Knoten */
+        .rt-input-centered {
+            max-width: 320px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .rt-input-centered label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+        .rt-input-centered input[type="text"] {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            height: 42px;
+            box-sizing: border-box;
+        }
+        .rt-input-centered input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
         }
 
         /* MULTI-INPUT VALIDIERUNG - CSS */
@@ -647,526 +690,507 @@
                 padding: 0.2rem;
             }
         }
-        /* ============================================
-           3-STUFEN QUICK-START SYSTEM CSS
-           ============================================ */
-        
+        /* =============================================
+           QUICK-START SYSTEM - CSS (Skilltree - Violet)
+           ============================================= */
+
+        /* Level Screens */
         .level-screen {
             display: none;
+            min-height: 100vh;
+            padding: 1rem;
         }
-        
+
         .level-screen.active {
             display: block;
         }
-        
-        /* Tablet: Scroll-Container für sticky Aufgabenanzeige */
-        @media (max-width: 1024px) {
-            .level-screen.active {
-                height: 100vh;
-                height: 100dvh; /* Dynamic viewport height für mobile */
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-        }
-        
-        /* Quick Start Container */
-        .quick-start-container {
-            max-width: 1400px;
+
+        /* Skilltree Container */
+        .skilltree-container {
+            max-width: 480px;
             margin: 0 auto;
-            padding: 20px;
         }
-        
-        .quick-start-header {
+
+        .skilltree-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 1.25rem;
         }
-        
-        .quick-start-header h1 {
-            font-size: 2.5rem;
-            color: #4c1d95;
-            margin-bottom: 10px;
+
+        .skilltree-header h1 {
+            font-size: 1.5rem;
+            color: #6b21a8;
+            font-weight: 700;
         }
-        
-        .quick-start-header p {
-            font-size: 1.1rem;
-            color: #6b7280;
-        }
-        
-        /* Cards Container - Grid Layout */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        /* Level Cards (3 Stufen) */
-        .level-card-new {
+
+        /* Skilltree Card */
+        .skilltree-card {
             background: white;
-            border: 3px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 1.25rem;
         }
-        
-        .level-card-new:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+
+        .skilltree-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 1rem;
         }
-        
-        .level-card-new.einsteiger {
-            border-color: #10b981;
-        }
-        
-        .level-card-new.fortgeschrittener {
-            border-color: #f59e0b;
-        }
-        
-        .level-card-new.profi {
-            border-color: #ef4444;
-        }
-        
-        .level-card-header {
+
+        /* Skilltree Layout */
+        .skilltree {
             display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 20px;
+            flex-direction: column;
+            gap: 0.25rem;
         }
-        
-        .level-icon-new {
-            font-size: 3.5rem;
-            line-height: 1;
-        }
-        
-        .level-card-header h2 {
-            font-size: 1.8rem;
-            color: #1f2937;
-            margin: 0;
-        }
-        
-        .task-type {
-            font-size: 1rem;
-            color: #6b7280;
-            margin: 5px 0 0 0;
-        }
-        
-        /* Progress Bar */
-        .progress-bar-container {
-            background: #e5e7eb;
-            border-radius: 10px;
-            height: 12px;
-            margin: 15px 0 8px 0;
-            overflow: hidden;
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            transition: width 0.5s ease;
-        }
-        
-        .einsteiger .progress-bar-fill {
-            background: linear-gradient(to right, #10b981, #34d399);
-        }
-        
-        .fortgeschrittener .progress-bar-fill {
-            background: linear-gradient(to right, #f59e0b, #fbbf24);
-        }
-        
-        .profi .progress-bar-fill {
-            background: linear-gradient(to right, #ef4444, #f87171);
-        }
-        
-        .progress-text {
-            font-size: 0.9rem;
-            color: #6b7280;
-            margin-bottom: 20px;
-        }
-        
-        /* Options Panel */
-        .options-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .option-checkbox {
+
+        /* Verbindungslinien */
+        .st-connector {
             display: flex;
-            align-items: center;
-            cursor: pointer;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            background: white;
-        }
-        
-        .option-checkbox:hover {
-            border-color: #8b5cf6;
-            background: #faf5ff;
-        }
-        
-        .option-checkbox input[type="checkbox"] {
-            width: 20px;
+            justify-content: center;
             height: 20px;
-            margin-right: 10px;
+        }
+        .st-connector::before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background: #d1d5db;
+        }
+        .st-connector.mastered::before {
+            background: #8b5cf6;
+        }
+
+        /* Skill-Knoten */
+        .st-node {
+            border-radius: 0.65rem;
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
             cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
         }
-        
-        .option-checkbox input[type="checkbox"]:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .st-node:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
-        
-        .option-label {
-            font-size: 1rem;
-            color: #4b5563;
-            font-weight: 500;
+
+        /* Knoten-Icon (Platzhalter) */
+        .st-node-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
         }
-        
-        .option-label.mastered {
-            color: #10b981;
+
+        .st-node-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .st-node-name {
+            font-size: 0.85rem;
             font-weight: 600;
+            line-height: 1.2;
         }
-        
-        .option-label.recommended {
-            color: #8b5cf6;
-            font-weight: 600;
+        .st-node-desc {
+            font-size: 0.7rem;
+            margin-top: 2px;
+            line-height: 1.3;
         }
-        
-        .option-checkbox.recommended {
+        .st-node-action {
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        /* Zustand: Gemeistert */
+        .st-node.mastered {
+            background: #f3e8ff;
+            border: 2px solid #8b5cf6;
+        }
+        .st-node.mastered .st-node-icon {
+            background: #8b5cf6;
+            color: white;
+        }
+        .st-node.mastered .st-node-name { color: #6b21a8; }
+        .st-node.mastered .st-node-desc { color: #7c3aed; }
+        .st-node.mastered .st-node-action { color: #8b5cf6; }
+
+        /* Zustand: Verfügbar */
+        .st-node.available {
+            background: white;
+            border: 2px solid #d1d5db;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+        .st-node.available .st-node-icon {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .st-node.available .st-node-name { color: #1e293b; }
+        .st-node.available .st-node-desc { color: #64748b; }
+        .st-node.available .st-node-action { color: #64748b; }
+
+        /* Zustand: Ausgewählt */
+        .st-node.available.selected {
             border-color: #8b5cf6;
-            background: #faf5ff;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
         }
-        
-        /* Start Button */
-        .start-button {
+        .st-node.available.selected .st-node-icon {
+            background: #8b5cf6;
+            color: white;
+            animation: st-pulse 2.5s ease-in-out infinite;
+        }
+        .st-node.mastered.selected {
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        @keyframes st-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+        }
+
+        /* Zustand: Gesperrt (reaktiv) */
+        .st-node.locked {
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            opacity: 0.5;
+            cursor: default;
+        }
+        .st-node.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        .st-node.locked .st-node-icon { background: #f1f5f9; color: #cbd5e1; }
+        .st-node.locked .st-node-name { color: #94a3b8; }
+        .st-node.locked .st-node-desc { color: #cbd5e1; }
+        .st-node.locked .st-node-action { color: #cbd5e1; }
+
+        /* Sub-Skills (Aufklapp) */
+        .st-sub-skills {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.65rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .st-node-wrapper.expanded .st-sub-skills {
+            display: block;
+        }
+        .st-sub-skill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.4rem;
+            font-size: 0.75rem;
+            color: #475569;
+            cursor: pointer;
+            border-radius: 0.35rem;
+            transition: background 0.1s;
+        }
+        .st-sub-skill:hover {
+            background: #ede9fe;
+        }
+        .st-sub-skill.sub-selected {
+            background: #f3e8ff;
+            font-weight: 600;
+        }
+        .st-sub-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.5rem;
+        }
+        .st-sub-dot.done {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            color: white;
+        }
+        .st-sub-dot.current {
+            border-color: #8b5cf6;
+            background: white;
+        }
+        .st-sub-dot.current::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #8b5cf6;
+        }
+        .st-sub-stars {
+            margin-left: auto;
+            font-size: 0.65rem;
+            color: #f59e0b;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        /* Start-Button */
+        .st-start-btn {
+            display: block;
             width: 100%;
-            padding: 18px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            margin-top: 1.25rem;
+            padding: 0.75rem;
+            background: #8b5cf6;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            transition: all 0.15s;
         }
-        
-        .start-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
+        .st-start-btn:hover {
+            background: #7c3aed;
         }
-        
-        .start-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+
+        /* Fortschritt */
+        .st-progress-info {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.75rem;
         }
-        
-        /* Success Screen */
+        .st-progress-bar-bg {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 0.4rem;
+            overflow: hidden;
+        }
+        .st-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Hilfe-Hinweis */
+        .st-help-hint {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 0.35rem;
+        }
+
+        /* Legende */
+        .st-legend {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .st-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.65rem;
+            color: #64748b;
+        }
+        .st-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .st-legend-dot.m { background: #8b5cf6; }
+        .st-legend-dot.a { background: white; border: 2px solid #94a3b8; }
+        .st-legend-dot.l { background: #f1f5f9; border: 2px dashed #cbd5e1; }
+        .st-legend-dot.c { background: #4f46e5; }
+
+        /* Freies Üben Link */
+        .st-free-practice {
+            text-align: center;
+            margin-top: 0.75rem;
+        }
+        .st-free-practice a {
+            font-size: 0.75rem;
+            color: #8b5cf6;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .st-free-practice a:hover { text-decoration: underline; }
+
+        /* Header exercise info */
+        .header-exercise-info { display: none; width: 100%; margin-top: 0.4rem; }
+        .header-exercise-info.active { display: block; }
+        .header-exercise-label { font-weight: 600; font-size: 0.9rem; color: #374151; }
+        .header-exercise-task { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+        .header-progress-dual { position: relative; height: 6px; border-radius: 3px; background: #e5e7eb; margin-top: 6px; overflow: hidden; }
+        .header-progress-total { position: absolute; top: 0; left: 0; height: 100%; background: #fca5a5; border-radius: 3px; transition: width 0.4s ease; }
+        .header-progress-correct { position: absolute; top: 0; left: 0; height: 100%; background: #10b981; border-radius: 3px; transition: width 0.4s ease; }
+        .header-retry-hint { display: none; font-size: 0.75rem; color: #ef4444; margin-top: 3px; font-weight: 600; }
+        .header-retry-hint.active { display: block; }
+        .free-retry-hint { display: none; text-align: center; font-size: 0.85rem; color: #ef4444; font-weight: 600; padding: 0.4rem; }
+        .free-retry-hint.active { display: block; }
+        .header-reset-btn { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0.5rem; border-radius: 0.5rem; display: none; }
+        .header-reset-btn.active { display: inline-flex; }
+
+        #scoreCard.hidden-in-quiz { display: none !important; }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+
+        .header-buttons { display: flex; align-items: center; gap: 4px; }
+
+        /* Success Screen (DT-Pattern) */
         .success-container {
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
             padding: 40px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             text-align: center;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            margin-top: 10vh;
         }
-        
         .success-container h2 {
             font-size: 2rem;
-            color: #4c1d95;
-            margin: 20px 0;
+            color: #6d28d9;
+            margin-bottom: 10px;
         }
-        
         .level-stars {
             font-size: 3rem;
             margin: 20px 0;
         }
-        
         .success-stats {
-            background: #faf5ff;
+            background: #ede9fe;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin: 20px 0;
         }
-        
         .success-stats p {
-            margin: 10px 0;
-            font-size: 1.1rem;
-            color: #4b5563;
+            margin: 8px 0;
+            color: #6d28d9;
         }
-        
         .success-stats strong {
             color: #8b5cf6;
         }
-        
-        /* Tablet Responsive - 3 Spalten aber kompakter */
-        @media (max-width: 1200px) and (min-width: 769px) {
-            .cards-grid {
-                gap: 15px;
-            }
-            
-            .level-card-new {
-                padding: 20px;
-            }
-            
-            .level-card-header h2 {
-                font-size: 1.4rem;
-            }
-            
-            .task-type {
-                font-size: 0.9rem;
-            }
-            
-            .options-panel {
-                gap: 8px;
-            }
-            
-            .option-label {
-                font-size: 0.9rem;
-            }
+        .btn-retry {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-right: 0.75rem;
+            transition: background 0.2s;
         }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .quick-start-header h1 {
-                font-size: 2rem;
-            }
-            
-            .level-card-new {
-                padding: 20px;
-            }
-            
-            .level-card-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-            
-            .level-card-header h2 {
-                font-size: 1.5rem;
-            }
-            
-            .options-panel {
-                grid-template-columns: 1fr;
-            }
-            
-            .start-button {
-                padding: 15px;
-                font-size: 1.1rem;
-            }
+        .btn-retry:hover { background: #7c3aed; }
+        .btn-next {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background 0.2s;
         }
+        .btn-next:hover { background: #e5e7eb; }
     </style>
 </head>
 <body>
-    <!-- ============================================
-         3-STUFEN QUICK-START SYSTEM
-         ============================================ -->
-    
-    <!-- Quick Start Screen -->
+    <!-- ======================== QUICK START SCREEN (Skilltree) ======================== -->
     <div id="quickStartScreen" class="level-screen active">
-        <div class="quick-start-container">
-            <div class="quick-start-header">
-                <h1>🥁 Rhythmustrainer</h1>
-                <p>Wähle deine Stufe und starte sofort!</p>
+        <div class="skilltree-container">
+
+            <div class="skilltree-header">
+                <h1>Rhythmustrainer</h1>
             </div>
-            
-            <div class="cards-grid">
-            <!-- Stufe 1: Einsteiger -->
-            <div class="level-card-new einsteiger">
-                <div class="level-card-header">
-                    <div class="level-icon-new">🟢</div>
-                    <div>
-                        <h2>EINSTEIGER</h2>
-                        <p class="task-type">Notenwerte addieren</p>
+
+            <div class="skilltree-card">
+                <div class="skilltree-title">Dein Lernpfad</div>
+
+                <div class="skilltree" id="skilltreeView">
+
+                    <!-- Knoten 1: Notenwerte addieren -->
+                    <div class="st-node-wrapper" id="stNode-rhy1">
+                        <div class="st-node available" onclick="quickStart.selectNode('rhy1')">
+                            <div class="st-node-icon">1</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Notenwerte addieren</div>
+                                <div class="st-node-desc">Notenwerte zusammenrechnen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-rhy1"></div>
+                    </div>
+
+                    <div class="st-connector" id="stConn-rhy1-rhy2"></div>
+
+                    <!-- Knoten 2: Zählzeiten bestimmen -->
+                    <div class="st-node-wrapper" id="stNode-rhy2">
+                        <div class="st-node available" onclick="quickStart.selectNode('rhy2')">
+                            <div class="st-node-icon">2</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Zählzeiten bestimmen</div>
+                                <div class="st-node-desc">Position im Takt erkennen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-rhy2"></div>
+                    </div>
+
+                    <div class="st-connector" id="stConn-rhy2-rhy3"></div>
+
+                    <!-- Knoten 3: Rhythmussprache -->
+                    <div class="st-node-wrapper" id="stNode-rhy3">
+                        <div class="st-node available" onclick="quickStart.selectNode('rhy3')">
+                            <div class="st-node-icon">3</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Rhythmussprache</div>
+                                <div class="st-node-desc">Rhythmussilben richtig sprechen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-rhy3"></div>
+                    </div>
+
+                </div>
+
+                <!-- Fortschritt -->
+                <div class="st-progress-info" id="stProgressInfo">
+                    0 von 20 Teilkompetenzen gemeistert
+                    <div class="st-progress-bar-bg">
+                        <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
                     </div>
                 </div>
-                
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progressEinsteiger" style="width: 0%"></div>
-                </div>
-                <p class="progress-text" id="progressTextEinsteiger">0% (0/6 gemeistert)</p>
-                
-                <div class="options-panel">
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_basis" value="basis" checked disabled>
-                        <span class="option-label mastered" id="label_einsteiger_basis">✓ Basis</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_8tel" value="8tel">
-                        <span class="option-label" id="label_einsteiger_8tel">+ Achtelnoten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_16tel" value="16tel">
-                        <span class="option-label" id="label_einsteiger_16tel">+ Sechzehntelnoten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_punktierte" value="punktierte">
-                        <span class="option-label" id="label_einsteiger_punktierte">+ Punktierte Noten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_pausen" value="pausen">
-                        <span class="option-label" id="label_einsteiger_pausen">+ Pausen</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_triolen" value="triolen">
-                        <span class="option-label" id="label_einsteiger_triolen">+ Triolen</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_einsteiger_hilfen_aus" value="hilfen_aus">
-                        <span class="option-label" id="label_einsteiger_hilfen_aus">🚫 Hilfen aus</span>
-                    </label>
-                </div>
-                
-                <button class="start-button" onclick="quickStart.start('einsteiger')">
-                    🚀 STARTEN
+
+                <!-- Start-Button -->
+                <button class="st-start-btn" id="stStartBtn" onclick="quickStart.startFromSkilltree()">
+                    Kompetenz auswählen...
                 </button>
-            </div>
-            
-            <!-- Stufe 2: Aufsteiger -->
-            <div class="level-card-new fortgeschrittener">
-                <div class="level-card-header">
-                    <div class="level-icon-new">🟡</div>
-                    <div>
-                        <h2>AUFSTEIGER</h2>
-                        <p class="task-type">Zählzeiten bestimmen</p>
-                    </div>
+                <div class="st-help-hint" id="stHelpHint">Klicke auf eine Kompetenz, um sie auszuwählen</div>
+
+                <!-- Freies Üben + Reset -->
+                <div style="text-align: center; margin-top: 0.75rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #8b5cf6; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
+                    <span style="color: #d1d5db;">|</span>
+                    <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
                 </div>
-                
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progressFortgeschrittener" style="width: 0%"></div>
+
+                <div class="st-legend">
+                    <div class="st-legend-item"><div class="st-legend-dot m"></div> Gemeistert</div>
+                    <div class="st-legend-item"><div class="st-legend-dot a"></div> Verfügbar</div>
+                    <div class="st-legend-item"><div class="st-legend-dot l"></div> Gesperrt</div>
                 </div>
-                <p class="progress-text" id="progressTextFortgeschrittener">0% (0/6 gemeistert)</p>
-                
-                <div class="options-panel">
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_fortgeschrittener_basis" value="basis" checked disabled>
-                        <span class="option-label mastered" id="label_fortgeschrittener_basis">✓ Basis</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_fortgeschrittener_8tel" value="8tel">
-                        <span class="option-label" id="label_fortgeschrittener_8tel">+ Achtelnoten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_fortgeschrittener_16tel" value="16tel">
-                        <span class="option-label" id="label_fortgeschrittener_16tel">+ Sechzehntelnoten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_fortgeschrittener_punktierte" value="punktierte">
-                        <span class="option-label" id="label_fortgeschrittener_punktierte">+ Punktierte Noten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_fortgeschrittener_pausen" value="pausen">
-                        <span class="option-label" id="label_fortgeschrittener_pausen">+ Pausen</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_fortgeschrittener_triolen" value="triolen">
-                        <span class="option-label" id="label_fortgeschrittener_triolen">+ Triolen</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_fortgeschrittener_hilfen_aus" value="hilfen_aus">
-                        <span class="option-label" id="label_fortgeschrittener_hilfen_aus">🚫 Hilfen aus</span>
-                    </label>
-                </div>
-                
-                <button class="start-button" onclick="quickStart.start('fortgeschrittener')">
-                    🚀 STARTEN
-                </button>
-            </div>
-            
-            <!-- Stufe 3: Profi -->
-            <div class="level-card-new profi">
-                <div class="level-card-header">
-                    <div class="level-icon-new">🔴</div>
-                    <div>
-                        <h2>PROFI</h2>
-                        <p class="task-type">Rhythmussprache</p>
-                    </div>
-                </div>
-                
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progressProfi" style="width: 0%"></div>
-                </div>
-                <p class="progress-text" id="progressTextProfi">0% (0/6 gemeistert)</p>
-                
-                <div class="options-panel">
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_basis" value="basis" checked disabled>
-                        <span class="option-label mastered" id="label_profi_basis">✓ Basis</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_8tel" value="8tel">
-                        <span class="option-label" id="label_profi_8tel">+ Achtelnoten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_16tel" value="16tel">
-                        <span class="option-label" id="label_profi_16tel">+ Sechzehntelnoten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_punktierte" value="punktierte">
-                        <span class="option-label" id="label_profi_punktierte">+ Punktierte Noten</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_pausen" value="pausen">
-                        <span class="option-label" id="label_profi_pausen">+ Pausen</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_triolen" value="triolen">
-                        <span class="option-label" id="label_profi_triolen">+ Triolen</span>
-                    </label>
-                    
-                    <label class="option-checkbox">
-                        <input type="checkbox" id="opt_profi_hilfen_aus" value="hilfen_aus" checked disabled>
-                        <span class="option-label" id="label_profi_hilfen_aus" style="opacity: 0.7;">🎯 Ohne Hilfen (Profi-Modus)</span>
-                    </label>
-                </div>
-                
-                <button class="start-button" onclick="quickStart.start('profi')">
-                    🚀 STARTEN
-                </button>
-            </div>
-            </div>
-            
-            <!-- Settings Link -->
-            <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                <button class="btn" onclick="quickStart.showSettings()" style="background: transparent; border: 2px solid #8b5cf6; color: #8b5cf6; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem;">
-                    🎯 Freies Üben
-                </button>
-                <button class="btn" onclick="quickStart.confirmReset()" style="background: transparent; border: 2px solid #9ca3af; color: #6b7280; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
-                    🔄 Fortschritt zurücksetzen
-                </button>
-            </div>
-            <div style="text-align: center; margin-top: 15px;">
-                <button onclick="app.showFeedback()" style="background: none; border: none; cursor: pointer; font-size: 0.875rem; color: #6b7280; text-decoration: underline;">
-                    💬 Feedback geben
-                </button>
+
             </div>
         </div>
     </div>
@@ -1194,36 +1218,23 @@
     <!-- ORIGINAL APP (wird versteckt wenn Quick-Start aktiv) -->
     <div id="originalApp" class="level-screen active">
     <div class="container">
-        <!-- Goal Success Modal -->
-        <div class="modal-overlay hidden" id="goalSuccessModal">
-            <div class="modal-content" style="text-align: center;">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
-                <h2 style="font-size: 2rem; margin-bottom: 1rem; color: #4c1d95;">Ziel erreicht!</h2>
-                <div id="goalSuccessMessage" style="font-size: 1.25rem; margin-bottom: 1.5rem; color: #4b5563;"></div>
-                <div id="goalSuccessStats" style="margin-bottom: 2rem; padding: 1rem; background: #ede9fe; border-radius: 0.5rem;"></div>
-                <button class="btn btn-primary" onclick="app.continueAfterGoal()" style="width: 100%; font-size: 1.125rem; padding: 0.875rem;">
-                    ✓ Weiter üben
-                </button>
-            </div>
-        </div>
-
         <!-- Quick-Start Menu Info Modal -->
-        <div class="modal-overlay hidden" id="quickStartMenuModal">
-            <div class="modal-content" style="max-width: 28rem; text-align: center;">
-                <h2 style="color: #4c1d95; margin-bottom: 1rem;">ℹ️ Hinweis</h2>
+        <div class="modal-overlay" id="quickStartMenuModal">
+            <div class="modal" style="max-width: 28rem; text-align: center;">
+                <h2>ℹ️ Hinweis</h2>
                 <p style="margin-bottom: 1.5rem; line-height: 1.6;">
                     Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
                     Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
                 </p>
-                <button class="btn btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.add('hidden')">
+                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.remove('active')">
                     Verstanden
                 </button>
             </div>
         </div>
 
         <!-- Feedback Modal -->
-        <div class="modal-overlay hidden" id="feedbackModal">
-            <div class="modal-content" style="max-width: 32rem;">
+        <div class="modal-overlay" id="feedbackModal">
+            <div class="modal">
                 <h2>💬 Feedback & Verbesserungsvorschläge</h2>
                 <p style="margin-bottom: 1rem; color: #4b5563;">
                     Deine Meinung hilft mir, den Rhythmustrainer zu verbessern!
@@ -1258,7 +1269,7 @@
                     </div>
 
                     <div style="display: flex; gap: 0.5rem;">
-                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <button type="submit" class="btn-primary" style="flex: 1;">
                             📧 Feedback senden
                         </button>
                         <button type="button" onclick="app.closeFeedback()" style="flex: 1; padding: 0.75rem; background: #e5e7eb; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">
@@ -1276,23 +1287,35 @@
         <!-- Header -->
         <div class="card">
             <div class="header">
-                <h1 class="title">🥁 Rhythmustrainer</h1>
-                <div class="flex-buttons">
-                    <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Fortschritt" style="background: transparent; border: 2px solid #8b5cf6; color: #8b5cf6; margin-right: 10px;">
-                        <span style="font-size: 1rem;">📊 Fortschritt</span>
-                    </button>
-                    <button class="btn" onclick="app.showHelp()" title="Hilfe anzeigen">
-                        <span style="font-size: 1.5rem;">❓</span>
-                    </button>
-                    <button class="btn" onclick="app.showLegend()" title="Notenwerte-Legende">
-                        <span style="font-size: 1.5rem;">📖</span>
-                    </button>
-                    <button class="btn" onclick="app.toggleSettings()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                    </button>
+                <div class="header-top">
+                    <div class="title" id="appTitle">Rhythmustrainer</div>
+                    <div class="header-buttons">
+                        <button class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Zurücksetzen">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                        </button>
+                        <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Lernpfad" style="background:transparent; border:2px solid #8b5cf6; color:#8b5cf6; margin-right:2px; padding:0.35rem 0.75rem; font-size:0.9rem;">
+                            Lernpfad
+                        </button>
+                        <button class="btn" onclick="app.showHelp()" title="Hilfe anzeigen" style="font-size: 1.4rem; font-weight: 700; color: #dc2626; line-height: 1;">?</button>
+                        <button class="btn" onclick="app.toggleSettings()" title="Einstellungen">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="header-exercise-info" id="headerExerciseInfo">
+                    <div class="header-exercise-label" id="headerExerciseLabel"></div>
+                    <div class="header-exercise-task" id="headerExerciseTask"></div>
+                    <div class="header-progress-dual">
+                        <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
+                        <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
+                    </div>
+                    <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
                 </div>
             </div>
 
@@ -1310,37 +1333,7 @@
                         <option value="rhythm-syllable">Rhythmussilbe bestimmen</option>
                     </select>
                 </div>
-                
-                <!-- ÜBUNGSMODUS -->
-                <div id="goalModeContainer" class="hidden">
-                    <div class="select-group" style="margin-bottom: 1rem;">
-                        <label style="font-weight: 600; color: #4c1d95;">🏆 Übungsmodus:</label>
-                        <select id="goalModeSelect" onchange="app.updateGoalSettings()">
-                            <option value="free">Freies Üben (kein Ziel)</option>
-                            <option value="streak">🔥 Streak-Modus (richtige in Folge)</option>
-                            <option value="accuracy">📊 Erfolgsquoten-Modus</option>
-                        </select>
-                    </div>
-                    
-                    <div id="streakOptions" class="select-group hidden" style="margin-bottom: 1rem;">
-                        <label>Streak-Ziel:</label>
-                        <select id="goalStreakSelect" onchange="app.updateGoalSettings()">
-                            <option value="5">🥉 Leicht: 5 richtige in Folge</option>
-                            <option value="10" selected>🥈 Mittel: 10 richtige in Folge</option>
-                            <option value="15">🥇 Schwer: 15 richtige in Folge</option>
-                        </select>
-                    </div>
-                    
-                    <div id="accuracyOptions" class="select-group hidden" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-                        <label>Erfolgsquoten-Ziel:</label>
-                        <select id="goalAccuracySelect" onchange="app.updateGoalSettings()">
-                            <option value="70-20">🥉 Bronze: 70% bei 20 Aufgaben</option>
-                            <option value="80-30" selected>🥈 Silber: 80% bei 30 Aufgaben</option>
-                            <option value="90-40">🥇 Gold: 90% bei 40 Aufgaben</option>
-                        </select>
-                    </div>
-                </div>
-                
+
                 <div class="select-group">
                     <label for="timeSignatureSelect">Taktart:</label>
                     <select id="timeSignatureSelect" onchange="app.updateSettings()">
@@ -1395,10 +1388,8 @@
                     <label for="showGrid">Raster anzeigen</label>
                 </div>
 
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showLegend" checked onchange="app.updateSettings()">
-                    <label for="showLegend">Notenwert-Legende anzeigen</label>
-                </div>
+                <!-- showLegend checkbox removed - legend is now in help menu -->
+                <input type="checkbox" id="showLegend" checked style="display:none;">
             </div>
 
             <!-- Score Display -->
@@ -1444,21 +1435,22 @@
                 </div>
                 
                 <!-- Eingabe für Summe -->
-                <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 1.5rem; font-weight: 600; color: #4c1d95;">=</span>
-                        <input 
-                            type="text" 
-                            id="additionInput" 
-                            placeholder="?"
+                <div class="rt-input-centered">
+                    <label>Summe in Vierteln</label>
+                    <div class="input-with-status">
+                        <input
+                            type="text"
+                            id="additionInput"
+                            placeholder="z.B. 4, 2.5"
                             autocomplete="off"
                             inputmode="decimal"
-                            style="width: 80px; font-size: 1.25rem; text-align: center; padding: 0.5rem; border: 2px solid #c4b5fd; border-radius: 0.5rem;"
                         />
-                        <span style="font-size: 1rem; color: #6b7280;">Viertel</span>
                         <span class="input-status-icon pending" id="additionStatus"></span>
                     </div>
-                    <button class="btn-primary" onclick="app.checkAnswer()" style="height: 42px;">Prüfen</button>
+                </div>
+                <div class="input-buttons">
+                    <button type="button" onclick="app.checkAnswer()" class="btn-primary"
+                        style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
                 </div>
                 
                 <div class="feedback hidden" id="additionFeedback" style="margin-top: 1rem;"></div>
@@ -1483,14 +1475,14 @@
 
         <!-- Input Card - bei Zählzeit- und Rhythmussilben-Aufgabe sichtbar -->
         <div class="card input-card hidden" id="inputCard">
-            <div class="input-split" id="inputContainer">
+            <div id="inputContainer">
                 <!-- INPUT -->
-                <div class="input-group" style="flex: 0 1 300px;">
+                <div class="rt-input-centered">
                     <label for="startCountingInput" id="inputLabel">Start-Zählzeit der markierten Note:</label>
                     <div class="input-with-status">
-                        <input 
-                            type="text" 
-                            id="startCountingInput" 
+                        <input
+                            type="text"
+                            id="startCountingInput"
                             placeholder="z.B. 1, 2 und, 3 e, ..."
                             autocomplete="off"
                             autocapitalize="none"
@@ -1500,106 +1492,32 @@
                     </div>
                     <p class="hint-text" id="inputHint" style="min-height: 2.4em;">Beispiele: "1", "2 und", "3 e", "4 te"</p>
                 </div>
-                
+
                 <!-- PRÜFEN-BUTTON -->
-                <div style="flex: 0 0 auto; display: flex; align-items: flex-end;">
-                    <button class="btn-primary" onclick="app.checkAnswer()" style="height: 42px; white-space: nowrap;">Prüfen</button>
+                <div class="input-buttons">
+                    <button type="button" onclick="app.checkAnswer()" class="btn-primary"
+                        style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
                 </div>
             </div>
             <div class="feedback hidden" id="feedback"></div>
+            <div class="free-retry-hint" id="freeRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
         </div>
 
         <!-- Info Card -->
-        <!-- Kompakte Legende-Info -->
-        <div class="card" id="legendCard" style="padding: 0.75rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-                <span style="font-size: 0.9rem; color: #4c1d95;">
-                    <strong>📖 Notenwerte:</strong> 
-                    <span style="color: #6b7280;">Ganze=4, Halbe=2, Viertel=1, Achtel=0.5, 16tel=0.25</span>
-                </span>
-                <button class="btn" onclick="app.showLegend()" style="font-size: 0.85rem; padding: 0.4rem 0.75rem;">
-                    Mehr anzeigen →
-                </button>
-            </div>
-        </div>
-        
-        <!-- Kompakte Rhythmussilben-Info -->
-        <div class="card hidden" id="syllableLegendCard" style="padding: 0.75rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-                <span style="font-size: 0.9rem; color: #166534;">
-                    <strong>🎤 Silben:</strong> 
-                    <span style="color: #059669; font-weight: 600;">du</span>=Schlag, 
-                    <span style="color: #059669; font-weight: 600;">dei</span>=und, 
-                    <span style="color: #059669; font-weight: 600;">te</span>=e/te, 
-                    <span style="color: #059669; font-weight: 600;">du-da-di</span>=Triole
-                </span>
-                <button class="btn" onclick="app.showLegend()" style="font-size: 0.85rem; padding: 0.4rem 0.75rem; background: #dcfce7; color: #166534;">
-                    Mehr →
-                </button>
-            </div>
-        </div>
     </div>
 
     <!-- Help Modal -->
-    <div id="helpModal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="app.closeHelp()">✕</button>
-            <div class="modal-header">
-                <h2 class="modal-title">🥁 Willkommen beim Rhythmustrainer!</h2>
-            </div>
-            <p style="font-size: 1.1rem; margin-bottom: 1rem;">
-                Lerne Rhythmen zu lesen, Zählzeiten zu bestimmen und Rhythmussilben zu sprechen!
-            </p>
-            
-            <div class="modal-section intro">
-                <h3>🎯 Aufgaben-Modi</h3>
-                <ul>
-                    <li>• <strong>Ansehen:</strong> Rhythmen betrachten und verstehen</li>
-                    <li>• <strong>Zählzeit:</strong> Bestimme auf welcher Zählzeit eine Note liegt</li>
-                    <li>• <strong>Rhythmussilbe:</strong> Gib die Silbe für eine markierte Note an</li>
-                </ul>
-            </div>
-
-            <div class="modal-section settings">
-                <h3>🏆 Goal-Modi</h3>
-                <ul>
-                    <li>• <strong>Freies Üben:</strong> Ohne Ziel, zum Kennenlernen</li>
-                    <li>• <strong>🔥 Streak:</strong> 5, 10 oder 15 richtige Antworten in Folge</li>
-                    <li>• <strong>📊 Erfolgsquote:</strong> 70%, 80% oder 90% bei 20-40 Aufgaben</li>
-                </ul>
-            </div>
-
-            <div class="modal-section tips">
-                <h3>💡 Tipps</h3>
-                <ul>
-                    <li id="interactionTip">• <strong>Interaktion:</strong> <span id="interactionTipText">Tippe auf eine Note, um ihre Zählzeit zu sehen!</span></li>
-                    <li>• <strong>Legenden:</strong> Zeigen Notenwerte und Rhythmussilben</li>
-                    <li>• Klatsche den Rhythmus, während du die Silben sprichst</li>
-                </ul>
-            </div>
-
-            <button class="btn-primary" onclick="app.closeHelp()" style="width: 100%; font-size: 1.1rem; padding: 0.75rem; margin-top: 0.5rem;">
-                Los geht's! 🎶
+    <div class="modal-overlay" id="introModal">
+        <div class="modal">
+            <h2 id="introModalTitle">Rhythmustrainer – Hilfe</h2>
+            <div id="introModalContent"></div>
+            <button onclick="app.closeHelp()">Verstanden!</button>
+            <button onclick="app.showFeedback()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
+                Feedback geben
             </button>
         </div>
     </div>
 
-    <!-- Legend Modal -->
-    <div id="legendModal" class="modal">
-        <div class="modal-content" style="max-width: 42rem;">
-            <button class="close-btn" onclick="app.closeLegend()">✕</button>
-            <div class="modal-header">
-                <h2 class="modal-title">📖 Notenwerte-Legende</h2>
-            </div>
-            
-            <!-- Dynamisch gefüllt durch renderLegendModal() -->
-            <div id="legendModalContent"></div>
-            
-            <button class="btn-primary" onclick="app.closeLegend()" style="width: 100%; font-size: 1.1rem; padding: 0.75rem; margin-top: 1rem;">
-                Verstanden! 👍
-            </button>
-        </div>
-    </div>
 
     </div> <!-- Ende container -->
     </div> <!-- Ende originalApp -->
@@ -1700,57 +1618,91 @@
         };
 
         // ===================================
-        // QUICK-START SYSTEM
+        // QUICK-START SYSTEM (SKILLTREE)
         // ===================================
         var quickStart = {
-            isActive: false,  // Flag: Läuft Quick-Start gerade?
+            isActive: false,
+            selectedNode: null,
+            selectedSub: null,
             currentLevel: null,
             currentOptions: [],
             questionsAnswered: 0,
             questionsCorrect: 0,
+            questionsCorrectInRow: 0,
             totalQuestions: 10,
-            hasBeenCheckedForTask: false, // Flag: Wurde aktuelle Aufgabe schon bewertet?
-            
-            // Initialisierung
+            hasBeenCheckedForTask: false,
+            currentSummandCount: 2,
+            isRetry: false,
+
+            // Node to Level mapping
+            nodeToLevel: {
+                'rhy1': 'einsteiger',
+                'rhy2': 'fortgeschrittener',
+                'rhy3': 'profi'
+            },
+
+            // Sub-Skills pro Knoten (zunehmender Schwierigkeitsgrad)
+            nodeSubSkills: {
+                'rhy1': [
+                    { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
+                    { id: '8tel', label: 'Mit Achtelnoten' },
+                    { id: '16tel', label: 'Mit Sechzehntelnoten' },
+                    { id: 'punktierte', label: 'Mit punktierten Noten' },
+                    { id: 'pausen', label: 'Mit Pausen' },
+                    { id: 'triolen', label: 'Mit Triolen' },
+                    { id: 'hilfen_aus', label: 'Ohne Legende' }
+                ],
+                'rhy2': [
+                    { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
+                    { id: '8tel', label: 'Mit Achtelnoten' },
+                    { id: '16tel', label: 'Mit Sechzehntelnoten' },
+                    { id: 'punktierte', label: 'Mit punktierten Noten' },
+                    { id: 'pausen', label: 'Mit Pausen' },
+                    { id: 'hilfen_aus', label: 'Ohne Hilfen' }
+                ],
+                'rhy3': [
+                    { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
+                    { id: '8tel', label: 'Mit Achtelnoten' },
+                    { id: '16tel', label: 'Mit Sechzehntelnoten' },
+                    { id: 'punktierte', label: 'Mit punktierten Noten' },
+                    { id: 'pausen', label: 'Mit Pausen' },
+                    { id: 'triolen', label: 'Mit Triolen' }
+                ]
+            },
+
             init() {
                 this.loadProgress();
                 this.updateAllProgress();
                 this.showQuickStart();
             },
-            
-            // localStorage Management
+
             loadProgress() {
-                const data = localStorage.getItem('rhythmustrainer_quickstart_v5');
+                const data = localStorage.getItem('rhythmustrainer_skilltree_v2');
                 if (!data) {
-                    console.log('[QuickStart] Kein gespeicherter Fortschritt, erstelle neuen...');
                     this.progress = this.createNewProgress();
                     this.saveProgress();
                 } else {
-                    this.progress = JSON.parse(data);
-                    console.log('[QuickStart] Fortschritt geladen:', this.progress);
+                    const parsed = JSON.parse(data);
+                    if (parsed.timestamp && Date.now() - parsed.timestamp > 7 * 24 * 60 * 60 * 1000) {
+                        this.progress = this.createNewProgress();
+                        this.saveProgress();
+                    } else {
+                        this.progress = parsed;
+                    }
                 }
-                return this.progress;
             },
-            
+
             saveProgress() {
-                localStorage.setItem('rhythmustrainer_quickstart_v5', JSON.stringify(this.progress));
-                console.log('[QuickStart] Fortschritt gespeichert');
+                this.progress.timestamp = Date.now();
+                localStorage.setItem('rhythmustrainer_skilltree_v2', JSON.stringify(this.progress));
             },
-            
+
             createNewProgress() {
                 return {
-                    einsteiger: {
-                        mastered: [], // Leer starten - Basis wird separat behandelt
-                        attempts: {}
-                    },
-                    fortgeschrittener: {
-                        mastered: [],
-                        attempts: {}
-                    },
-                    profi: {
-                        mastered: [],
-                        attempts: {}
-                    }
+                    timestamp: Date.now(),
+                    einsteiger: { mastered: [], attempts: {}, scores: {} },
+                    fortgeschrittener: { mastered: [], attempts: {}, scores: {} },
+                    profi: { mastered: [], attempts: {}, scores: {} }
                 };
             },
             
@@ -1762,140 +1714,298 @@
                 document.getElementById('successScreen').style.display = 'none';
                 document.getElementById('originalApp').classList.remove('active');
                 document.getElementById('originalApp').style.display = 'none';
-            },
-            
-            showSettings() {
-                // Quick-Start deaktivieren und State clearen
                 this.isActive = false;
-                this.questionsAnswered = 0;
-                this.questionsCorrect = 0;
-                this.hasBeenCheckedForTask = false;
-                
-                // Quiz Overlay entfernen
-                const overlay = document.getElementById('quizOverlay');
-                if (overlay) overlay.remove();
-                
-                // Zeige Original App mit Settings
+            },
+
+            showFreeMode() {
                 document.getElementById('quickStartScreen').classList.remove('active');
                 document.getElementById('quickStartScreen').style.display = 'none';
+                document.getElementById('successScreen').classList.remove('active');
+                document.getElementById('successScreen').style.display = 'none';
                 document.getElementById('originalApp').classList.add('active');
                 document.getElementById('originalApp').style.display = 'block';
-                
-                // Öffne Settings Panel
+
+                document.querySelector('.score-display').classList.remove('hidden-in-quiz');
+
+                // Score zurücksetzen
+                app.score = { correct: 0, total: 0 };
+                app.updateScoreDisplay();
+
+                this.isActive = false;
+                this.currentLevel = null;
+                this.currentOptions = null;
+
+                this.hideQuizOverlay();
+
+                // Settings-Panel anzeigen
                 document.getElementById('settingsPanel').classList.remove('hidden');
-                
-                console.log('[QuickStart] Deaktiviert - Wechsel zu Freiem Üben');
+
+                // Settings aus Checkboxen synchronisieren
+                app.settings.includeEighths = document.getElementById('includeEighths').checked;
+                app.settings.includeSixteenths = document.getElementById('includeSixteenths').checked;
+                app.settings.includeDotted = document.getElementById('includeDotted').checked;
+                app.settings.includeRests = document.getElementById('includeRests').checked;
+                app.settings.includeTriplets = document.getElementById('includeTriplets').checked;
+                app.settings.showLegend = document.getElementById('showLegend').checked;
+                app.settings.showGrid = document.getElementById('showGrid').checked;
+                app.settings.showCountingTimes = document.getElementById('showCountingTimes').checked;
+
+                document.getElementById('appTitle').textContent = 'Freies Üben';
+
+                // Aufgabe generieren
+                app.updateSettings();
+                requestAnimationFrame(() => {
+                    app.generateNewTask();
+                });
             },
-            
-            // Fortschritt aktualisieren
+
+            // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
-                this.updateProgress('einsteiger');
-                this.updateProgress('fortgeschrittener');
-                this.updateProgress('profi');
-            },
-            
-            updateProgress(level) {
-                const mastered = this.progress[level].mastered;
-                // 6 Optionen für ALLE Stufen: 8tel, 16tel, punktierte, pausen, triolen, hilfen_aus
-                const totalOptions = 6;
-                const percentage = Math.round((mastered.length / totalOptions) * 100);
-                
-                // Update Progress Bar
-                const progressBar = document.getElementById('progress' + level.charAt(0).toUpperCase() + level.slice(1));
-                if (progressBar) {
-                    progressBar.style.width = percentage + '%';
-                }
-                
-                // Update Progress Text
-                const progressText = document.getElementById('progressText' + level.charAt(0).toUpperCase() + level.slice(1));
-                if (progressText) {
-                    progressText.textContent = `${percentage}% (${mastered.length}/${totalOptions} gemeistert)`;
-                }
-                
-                // Update Checkboxen
-                this.updateCheckboxes(level);
-            },
-            
-            updateCheckboxes(level) {
-                const mastered = this.progress[level].mastered;
-                const allOptions = ['basis', '8tel', '16tel', 'punktierte', 'pausen', 'triolen'];
-                
-                // Finde nächste empfohlene Option (ignoriere Basis)
-                const nextRecommended = allOptions.find(opt => opt !== 'basis' && !mastered.includes(opt));
-                
-                allOptions.forEach(option => {
-                    const checkbox = document.getElementById(`opt_${level}_${option}`);
-                    const label = document.getElementById(`label_${level}_${option}`);
-                    
-                    if (checkbox && label) {
-                        // Basis ist IMMER gemeistert (aber nicht in mastered Array)
-                        if (option === 'basis') {
-                            label.classList.add('mastered');
-                            label.classList.remove('recommended');
-                            checkbox.closest('.option-checkbox').classList.remove('recommended');
-                        } else if (mastered.includes(option)) {
-                            // Gemeistert
-                            label.classList.add('mastered');
-                            label.classList.remove('recommended');
-                            checkbox.closest('.option-checkbox').classList.remove('recommended');
-                        } else if (option === nextRecommended) {
-                            // Empfohlen - NUR highlighten, NICHT ankreuzen!
-                            label.classList.add('recommended');
-                            label.classList.remove('mastered');
-                            checkbox.closest('.option-checkbox').classList.add('recommended');
-                            // KEIN checkbox.checked = true!
-                        } else {
-                            // Normal
-                            label.classList.remove('mastered', 'recommended');
-                            checkbox.closest('.option-checkbox').classList.remove('recommended');
-                        }
+                const nodes = ['rhy1', 'rhy2', 'rhy3'];
+                let totalSubs = 0;
+                let totalMastered = 0;
+                let firstAvailableNode = null;
+
+                nodes.forEach(nodeId => {
+                    const level = this.nodeToLevel[nodeId];
+                    const subs = this.nodeSubSkills[nodeId];
+                    const mastered = this.progress[level].mastered || [];
+                    const allMastered = subs.every(s => mastered.includes(s.id));
+                    const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+
+                    totalSubs += subs.length;
+                    totalMastered += subs.filter(s => mastered.includes(s.id)).length;
+
+                    // Knoten-Zustand bestimmen
+                    const wrapper = document.getElementById('stNode-' + nodeId);
+                    const node = wrapper ? wrapper.querySelector('.st-node') : null;
+                    if (!node) return;
+
+                    node.classList.remove('mastered', 'available', 'locked');
+                    if (allMastered) {
+                        node.classList.add('mastered');
+                        node.querySelector('.st-node-icon').textContent = '✓';
+                    } else {
+                        node.classList.add('available');
+                        node.querySelector('.st-node-icon').textContent = nodes.indexOf(nodeId) + 1;
+                        if (!firstAvailableNode) firstAvailableNode = nodeId;
+                    }
+
+                    // Connector-Zustand
+                    const prevConn = nodeId === 'rhy2' ? document.getElementById('stConn-rhy1-rhy2') :
+                                     nodeId === 'rhy3' ? document.getElementById('stConn-rhy2-rhy3') : null;
+                    if (prevConn) {
+                        const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
+                        const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
+                        const prevMastered = this.progress[prevLevel].mastered || [];
+                        const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
+                        prevConn.classList.toggle('mastered', prevAllDone);
+                    }
+
+                    // Sub-Skills rendern
+                    const scores = this.progress[level].scores || {};
+                    const subsContainer = document.getElementById('stSubs-' + nodeId);
+                    if (subsContainer) {
+                        subsContainer.innerHTML = subs.map((sub, idx) => {
+                            const isDone = mastered.includes(sub.id);
+                            const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
+                            const dotClass = isDone ? 'st-sub-dot done' : (isCurrent ? 'st-sub-dot current' : 'st-sub-dot');
+                            const dotContent = isDone ? '✓' : '';
+                            const starCount = scores[sub.id] || 0;
+                            const starsHtml = isDone && starCount > 0
+                                ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
+                                : '';
+                            return `<div class="st-sub-skill" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
+                                <div class="${dotClass}">${dotContent}</div>
+                                <span>${sub.label}</span>
+                                ${starsHtml}
+                            </div>`;
+                        }).join('');
                     }
                 });
+
+                // Gesamt-Fortschritt
+                const percentage = Math.round((totalMastered / totalSubs) * 100);
+                const progressInfo = document.getElementById('stProgressInfo');
+                if (progressInfo) {
+                    progressInfo.innerHTML = `${totalMastered} von ${totalSubs} Teilkompetenzen gemeistert
+                        <div class="st-progress-bar-bg">
+                            <div class="st-progress-bar-fill" id="stProgressFill" style="width: ${percentage}%"></div>
+                        </div>`;
+                }
+
+                // Auto-select ersten verfügbaren Knoten
+                if (!this.selectedNode && firstAvailableNode) {
+                    this.selectNode(firstAvailableNode);
+                } else if (this.selectedNode) {
+                    this._updateStartButton();
+                }
+            },
+
+            // ---- Skilltree: Knoten auswählen ----
+            selectNode(nodeId) {
+                document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
+                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+                this.selectedSub = null;
+
+                document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
+
+                const wrapper = document.getElementById('stNode-' + nodeId);
+                if (!wrapper) return;
+                const node = wrapper.querySelector('.st-node');
+                if (node.classList.contains('locked')) return;
+
+                node.classList.add('selected');
+                wrapper.classList.add('expanded');
+                this.selectedNode = nodeId;
+
+                this._updateSubDotSelection(nodeId);
+                this._updateStartButton();
+            },
+
+            // ---- Skilltree: Sub-Skill auswählen ----
+            selectSubSkill(nodeId, subIndex) {
+                if (this.selectedNode !== nodeId) {
+                    this.selectNode(nodeId);
+                }
+
+                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+
+                const wrapper = document.getElementById('stNode-' + nodeId);
+                const subs = wrapper.querySelectorAll('.st-sub-skill');
+                if (subs[subIndex]) {
+                    subs[subIndex].classList.add('sub-selected');
+                }
+
+                this.selectedSub = { nodeId, index: subIndex };
+                this._updateSubDotSelection(nodeId, subIndex);
+                this._updateStartButton();
+            },
+
+            // ---- Start-Button aktualisieren ----
+            _updateStartButton() {
+                const btn = document.getElementById('stStartBtn');
+                const hint = document.getElementById('stHelpHint');
+                if (!btn || !this.selectedNode) return;
+
+                const nodeId = this.selectedNode;
+                const level = this.nodeToLevel[nodeId];
+                const subs = this.nodeSubSkills[nodeId];
+                const mastered = this.progress[level].mastered || [];
+                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+
+                if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
+                    const targetSub = subs[this.selectedSub.index];
+                    btn.textContent = `${targetSub.label} üben`;
+                    btn.disabled = false;
+                    if (hint) {
+                        if (nextUnmastered && targetSub.id === nextUnmastered.id) {
+                            hint.textContent = 'Empfohlene Übung';
+                        } else {
+                            hint.textContent = 'Klick "Start" um zu beginnen!';
+                        }
+                    }
+                } else {
+                    if (nextUnmastered) {
+                        btn.textContent = `${nextUnmastered.label} üben`;
+                        if (hint) hint.textContent = 'Empfohlene Übung';
+                    } else {
+                        btn.textContent = 'Alle Fähigkeiten gemeistert!';
+                        if (hint) hint.textContent = '';
+                    }
+                    btn.disabled = false;
+                }
+            },
+
+            // ---- Sub-Dot Selektion ----
+            _updateSubDotSelection(nodeId, selectedIndex) {
+                const wrapper = document.getElementById('stNode-' + nodeId);
+                if (!wrapper) return;
+                const dots = wrapper.querySelectorAll('.st-sub-dot');
+                const level = this.nodeToLevel[nodeId];
+                const subs = this.nodeSubSkills[nodeId];
+                const mastered = this.progress[level].mastered || [];
+
+                const recommendedIdx = subs.findIndex(s => !mastered.includes(s.id));
+                const activeIdx = (selectedIndex !== undefined) ? selectedIndex : Math.max(0, recommendedIdx);
+
+                dots.forEach((dot, idx) => {
+                    const isDone = mastered.includes(subs[idx].id);
+                    if (isDone) return;
+                    dot.classList.remove('current');
+                    dot.style.cssText = '';
+                    if (idx === activeIdx) {
+                        dot.classList.add('current');
+                    }
+                });
+            },
+
+            // ---- Save Sub-Skill Score ----
+            _saveSubSkillScore(stars) {
+                if (!this.progress[this.currentLevel].scores) {
+                    this.progress[this.currentLevel].scores = {};
+                }
+                const currentOpts = this.currentOptions || [];
+                const optId = currentOpts.length > 0 ? currentOpts[currentOpts.length - 1] : null;
+                if (!optId) return;
+
+                const existing = this.progress[this.currentLevel].scores[optId] || 0;
+                if (stars > existing) {
+                    this.progress[this.currentLevel].scores[optId] = stars;
+                }
+                this.saveProgress();
+            },
+
+            // ---- Start Quiz from Skilltree ----
+            startFromSkilltree() {
+                if (!this.selectedNode) return;
+
+                const nodeId = this.selectedNode;
+                const level = this.nodeToLevel[nodeId];
+                const subs = this.nodeSubSkills[nodeId];
+                const mastered = this.progress[level].mastered || [];
+
+                let activeOptions = ['basis'];
+
+                if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
+                    const targetSub = subs[this.selectedSub.index];
+                    for (let i = 1; i <= this.selectedSub.index; i++) {
+                        activeOptions.push(subs[i].id);
+                    }
+                } else {
+                    const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+                    if (nextUnmastered) {
+                        const targetIdx = subs.findIndex(s => s.id === nextUnmastered.id);
+                        for (let i = 1; i <= targetIdx; i++) {
+                            activeOptions.push(subs[i].id);
+                        }
+                    } else {
+                        activeOptions = subs.map(s => s.id);
+                    }
+                }
+
+                this.start(level, activeOptions);
             },
             
             // Quiz starten
-            start(level) {
-                console.log('[QuickStart] Start Quiz:', level);
-                this.isActive = true;  // Quick-Start aktivieren!
+            start(level, subSkills = []) {
+                this.isActive = true;
                 this.currentLevel = level;
-                
-                // Sammle ausgewählte Optionen
-                const options = [];
-                const allOptions = ['basis', '8tel', '16tel', 'punktierte', 'pausen', 'triolen', 'hilfen_aus'];
-                
-                allOptions.forEach(option => {
-                    const checkbox = document.getElementById(`opt_${level}_${option}`);
-                    if (checkbox && checkbox.checked) {
-                        options.push(option);
-                    }
-                });
-                
-                console.log('[QuickStart] Gewählte Optionen:', options);
-                this.currentOptions = options;
-                
-                // Reset Quiz State
+                this.currentOptions = subSkills.length > 0 ? subSkills : ['basis'];
                 this.questionsAnswered = 0;
                 this.questionsCorrect = 0;
+                this.questionsCorrectInRow = 0;
                 this.hasBeenCheckedForTask = false;
-                
-                console.log('[QuickStart] Quiz State resettet: 0/10');
-                
-                // Konfiguriere App
-                this.configureApp(level, options);
-                
-                // Zeige Original App
+
+                this.configureApp(level, this.currentOptions);
+
                 document.getElementById('quickStartScreen').classList.remove('active');
                 document.getElementById('quickStartScreen').style.display = 'none';
                 document.getElementById('originalApp').classList.add('active');
                 document.getElementById('originalApp').style.display = 'block';
-
-                // Score-Counter ausblenden im Quiz-Modus
                 document.querySelector('.score-display').classList.add('hidden-in-quiz');
 
-                // Zeige Quiz Overlay
                 this.showQuizOverlay();
-                
-                // Starte erste Aufgabe
                 app.generateNewTask();
             },
             
@@ -2030,71 +2140,54 @@
                 
                 // Reset Score
                 app.score = { correct: 0, total: 0 };
-                app.currentStreak = 0;
-                app.goalAchieved = false;
-                
+
                 // Update UI
                 document.getElementById('taskTypeSelect').value = app.settings.taskType;
                 app.updateSettings();
             },
             
-            // Quiz Overlay
+            // Quiz Overlay - Header-based approach
             showQuizOverlay() {
-                // Entferne altes Overlay
-                const oldOverlay = document.getElementById('quizOverlay');
-                if (oldOverlay) oldOverlay.remove();
-                
-                // Erstelle neues Overlay
-                const overlay = document.createElement('div');
-                overlay.id = 'quizOverlay';
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: white;
-                    padding: 15px 30px;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                    z-index: 1000;
-                    font-weight: bold;
-                    border: 3px solid #8b5cf6;
-                `;
-                
-                const icon = this.currentLevel === 'einsteiger' ? '🟢' : 
-                            this.currentLevel === 'fortgeschrittener' ? '🟡' : '🔴';
-                const levelName = this.currentLevel === 'einsteiger' ? 'EINSTEIGER' :
-                                 this.currentLevel === 'fortgeschrittener' ? 'AUFSTEIGER' : 'PROFI';
-                
-                overlay.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-weight: bold;">${icon} ${levelName} - Frage <span id="quizQuestionNum">0</span>/${this.totalQuestions}</div>
-                        <button onclick="app.resetScore()" style="background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; margin-left: 12px;" title="Zurücksetzen">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle;">
-                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                <path d="M3 3v5h5"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div style="background: #e5e7eb; border-radius: 10px; height: 6px; margin-top: 8px; overflow: hidden;">
-                        <div id="quizProgressBar" style="background: #8b5cf6; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
+                document.getElementById('headerExerciseInfo').classList.add('active');
+                document.getElementById('headerResetBtn').classList.add('active');
+                this.updateQuizOverlay();
             },
-            
+
+            hideQuizOverlay() {
+                document.getElementById('headerExerciseInfo').classList.remove('active');
+                document.getElementById('headerResetBtn').classList.remove('active');
+                document.getElementById('headerRetryHint').classList.remove('active');
+            },
+
             updateQuizOverlay() {
-                const questionNum = document.getElementById('quizQuestionNum');
-                const progressBar = document.getElementById('quizProgressBar');
+                const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+                const nodeIdx = ['rhy1', 'rhy2', 'rhy3'].indexOf(nodeId) + 1;
+                const nodeNames = { 'rhy1': 'Notenwerte', 'rhy2': 'Zählzeiten', 'rhy3': 'Rhythmussprache' };
+                const nodeName = nodeNames[nodeId] || '';
+
+                const subs = this.nodeSubSkills[nodeId];
+                const highestOpt = this.currentOptions.filter(o => o !== 'basis').pop() || this.currentOptions[0];
+                const subIdx = subs.findIndex(s => s.id === highestOpt);
+                const subLetter = String.fromCharCode(97 + Math.max(0, subIdx));
+                const subLabel = nodeIdx + subLetter;
+
+                const label = document.getElementById('headerExerciseLabel');
+                const task = document.getElementById('headerExerciseTask');
+                const subSkillLabel = subs[Math.max(0, subIdx)] ? subs[Math.max(0, subIdx)].label : '';
+                label.textContent = subLabel + ' ' + nodeName + ' – ' + subSkillLabel + ' — ' + this.questionsAnswered + '/' + this.totalQuestions;
                 
-                if (questionNum) {
-                    questionNum.textContent = this.questionsAnswered + 1;
-                }
-                
-                if (progressBar) {
-                    const percentage = ((this.questionsAnswered + 1) / this.totalQuestions) * 100;
-                    progressBar.style.width = percentage + '%';
-                }
+                const taskTexts = {
+                    einsteiger: 'Notenwerte addieren',
+                    fortgeschrittener: 'Zählzeiten bestimmen',
+                    profi: 'Rhythmussprache sprechen'
+                };
+                task.textContent = taskTexts[this.currentLevel] || '';
+
+                // Update progress bars
+                const pct = this.totalQuestions > 0 ? (this.questionsAnswered / this.totalQuestions) * 100 : 0;
+                const correctPct = this.totalQuestions > 0 ? (this.questionsCorrect / this.totalQuestions) * 100 : 0;
+                document.getElementById('headerProgressTotal').style.width = pct + '%';
+                document.getElementById('headerProgressCorrect').style.width = correctPct + '%';
             },
             
             // Answer Handler (wird von app aufgerufen)
@@ -2160,199 +2253,141 @@
                 // Feld-Reset passiert in checkStartAnswer/checkAdditionAnswer
             },
             
-            // Success Screen
+            // Success Screen (DT-Pattern)
             showSuccessScreen() {
-                // Quick-Start deaktivieren
                 this.isActive = false;
-                
-                // Entferne Quiz Overlay
-                const overlay = document.getElementById('quizOverlay');
-                if (overlay) overlay.remove();
-                
-                // Berechne Score
-                const scorePercent = Math.round((this.questionsCorrect / this.totalQuestions) * 100);
-                const passed = scorePercent >= 80;
-                
-                // Bestimme Sterne
-                let stars = 0;
-                if (scorePercent >= 90) stars = 3;
-                else if (scorePercent >= 80) stars = 2;
-                else if (scorePercent >= 60) stars = 1;
-                
-                // Zeige Success Screen
+                this.hideQuizOverlay();
+
+                const percentage = Math.round((this.questionsCorrect / this.totalQuestions) * 100);
+                const scoreText = `${this.questionsCorrect} von ${this.totalQuestions} richtig (${percentage}%)`;
+
+                // Sterne: 100%=3, 90%=2, 80%=1, <80%=0 (DT/TT-Pattern)
+                let emoji, title, stars;
+                if (percentage === 100) {
+                    emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
+                } else if (percentage >= 90) {
+                    emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+                } else if (percentage >= 80) {
+                    emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
+                } else {
+                    emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
+                }
+
+                document.getElementById('successEmoji').textContent = emoji;
+                document.getElementById('successTitle').textContent = title;
+                document.getElementById('successStars').textContent = stars;
+                document.getElementById('successScore').textContent = scoreText;
+
+                const passed = percentage >= 80;
+
+                if (passed) {
+                    const starCount = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
+                    this._saveSubSkillScore(starCount);
+                    this.saveQuizResult(percentage);
+                    this.showSuccessMessage(passed, percentage);
+                } else {
+                    this.showSuccessMessage(passed, percentage);
+                }
+
                 document.getElementById('originalApp').classList.remove('active');
                 document.getElementById('originalApp').style.display = 'none';
                 document.getElementById('successScreen').classList.add('active');
                 document.getElementById('successScreen').style.display = 'block';
-                
-                // Update UI
-                document.getElementById('successEmoji').textContent = passed ? '🎉' : '💪';
-                document.getElementById('successTitle').textContent = passed ? 'SUPER GEMACHT!' : 'WEITER SO!';
-                
-                let starsHtml = '⭐'.repeat(stars);
-                if (stars < 3) starsHtml += '☆'.repeat(3 - stars);
-                document.getElementById('successStars').textContent = starsHtml;
-                
-                document.getElementById('successScore').textContent = 
-                    `${this.questionsCorrect} von ${this.totalQuestions} richtig (${scorePercent}%)`;
-                
-                // Speichere Fortschritt wenn bestanden
-                if (passed) {
-                    this.saveQuizResult(scorePercent);
-                }
-                
-                // Zeige Message & Buttons
-                this.showSuccessMessage(passed, scorePercent);
             },
             
             saveQuizResult(scorePercent) {
-                const levelProgress = this.progress[this.currentLevel];
-                
-                // Speichere Attempt
-                const optionsKey = this.currentOptions.sort().join(',');
-                if (!levelProgress.attempts[optionsKey]) {
-                    levelProgress.attempts[optionsKey] = {
-                        tries: 0,
-                        bestScore: 0
-                    };
+                const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+                if (!nodeId) return;
+
+                const level = this.currentLevel;
+                const subs = this.nodeSubSkills[nodeId];
+
+                // Cascade: Alle Optionen bis einschließlich der geübten als gemeistert markieren
+                const currentOpts = this.currentOptions || [];
+                const highestOpt = currentOpts[currentOpts.length - 1];
+                const highestIdx = subs.findIndex(s => s.id === highestOpt);
+
+                if (highestIdx >= 0) {
+                    const masteredArr = this.progress[level].mastered || [];
+                    for (let i = 0; i <= highestIdx; i++) {
+                        if (!masteredArr.includes(subs[i].id)) {
+                            masteredArr.push(subs[i].id);
+                        }
+                    }
+                    this.progress[level].mastered = masteredArr;
                 }
-                
-                levelProgress.attempts[optionsKey].tries++;
-                if (scorePercent > levelProgress.attempts[optionsKey].bestScore) {
-                    levelProgress.attempts[optionsKey].bestScore = scorePercent;
-                }
-                
-                // ÜBERSCHREIBE mastered mit aktueller Kombination (ohne 'basis')
-                // Entferne 'basis' aus currentOptions vor dem Speichern
-                levelProgress.mastered = this.currentOptions.filter(opt => opt !== 'basis');
-                
-                console.log('[QuickStart] Fortschritt gespeichert:', levelProgress.mastered);
-                
+
                 this.saveProgress();
-                this.updateProgress(this.currentLevel);
+                this.updateAllProgress();
             },
-            
+
             showSuccessMessage(passed, scorePercent) {
                 const messageEl = document.getElementById('successMessage');
                 const buttonsEl = document.getElementById('successButtons');
-                
-                // Feste Reihenfolge für ALLE Stufen
-                const allOptions = ['8tel', '16tel', 'punktierte', 'pausen', 'triolen', 'hilfen_aus'];
-                const mastered = this.progress[this.currentLevel].mastered;
-                
-                // Finde ERSTE nicht-gemeisterte Option aus der festen Reihenfolge
-                const nextOption = allOptions.find(opt => !mastered.includes(opt));
-                
-                console.log('[QuickStart] Gemeistert:', mastered, 'Nächste Option:', nextOption);
-                
-                if (passed && nextOption) {
-                    // Bestanden - nächste Option vorschlagen
-                    const optionName = this.getOptionName(nextOption);
-                    
+
+                const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+                if (!nodeId) return;
+
+                const subs = this.nodeSubSkills[nodeId];
+                const mastered = this.progress[this.currentLevel].mastered || [];
+                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+
+                if (passed && nextUnmastered) {
                     messageEl.innerHTML = `
                         <p><strong>💡 Nächster Schritt:</strong></p>
-                        <p>Nimm jetzt ${optionName} dazu!</p>
+                        <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
                     `;
-                    
-                    buttonsEl.innerHTML = `
-                        <button class="start-button" onclick="quickStart.addNextOption('${nextOption}')" style="margin-bottom: 15px;">
-                            ➡️ ${optionName.toUpperCase()} HINZUFÜGEN
-                        </button>
-                        <button class="start-button secondary-button" onclick="quickStart.retryQuiz()" style="margin-bottom: 15px; background: white; color: #8b5cf6; border: 2px solid #8b5cf6;">
-                            🔄 NOCHMAL ÜBEN
-                        </button>
-                        <button class="start-button secondary-button" onclick="quickStart.backToStart()" style="background: white; color: #8b5cf6; border: 2px solid #8b5cf6;">
-                            📊 ZURÜCK ZUR ÜBERSICHT
-                        </button>
-                    `;
-                } else if (passed && !nextOption) {
-                    // ALLE Optionen gemeistert!
+                } else if (passed && !nextUnmastered) {
                     messageEl.innerHTML = `
                         <p><strong>🏆 GLÜCKWUNSCH!</strong></p>
-                        <p>Du hast ALLE Optionen in dieser Stufe gemeistert!</p>
-                        <p>🎯 Zeit für die nächste Stufe!</p>
-                    `;
-                    
-                    buttonsEl.innerHTML = `
-                        <button class="start-button" onclick="quickStart.retryQuiz()" style="margin-bottom: 15px;">
-                            🔄 NOCHMAL ÜBEN
-                        </button>
-                        <button class="start-button secondary-button" onclick="quickStart.backToStart()" style="background: white; color: #8b5cf6; border: 2px solid #8b5cf6;">
-                            📊 ZURÜCK ZUR ÜBERSICHT
-                        </button>
+                        <p>Du hast ALLE Teilkompetenzen in dieser Stufe gemeistert!</p>
                     `;
                 } else {
-                    // Nicht bestanden
                     messageEl.innerHTML = `
                         <p><strong>💪 Tipp:</strong></p>
                         <p>Übe noch etwas, um die 80% zu schaffen!</p>
                     `;
-                    
-                    buttonsEl.innerHTML = `
-                        <button class="start-button" onclick="quickStart.retryQuiz()" style="margin-bottom: 15px;">
-                            🔄 NOCHMAL ÜBEN
-                        </button>
-                        <button class="start-button secondary-button" onclick="quickStart.backToStart()" style="background: white; color: #8b5cf6; border: 2px solid #8b5cf6;">
-                            📊 ZURÜCK ZUR ÜBERSICHT
-                        </button>
-                    `;
                 }
+
+                buttonsEl.innerHTML = `
+                    <button class="btn-retry" onclick="quickStart.retryQuiz()">Nochmal</button>
+                    <button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>
+                `;
             },
-            
-            getOptionName(option) {
-                const names = {
-                    'basis': 'Basis',
-                    '8tel': 'Achtelnoten',
-                    '16tel': 'Sechzehntelnoten',
-                    'punktierte': 'Punktierte Noten',
-                    'pausen': 'Pausen',
-                    'triolen': 'Triolen',
-                    'hilfen_aus': 'Hilfen aus'
-                };
-                return names[option] || option;
-            },
-            
-            addNextOption(option) {
-                // Selektiere die Option und starte neu
-                const checkbox = document.getElementById(`opt_${this.currentLevel}_${option}`);
-                if (checkbox) {
-                    checkbox.checked = true;
-                }
-                
-                // Zurück zum Start, Optionen bleiben ausgewählt
-                this.backToStart();
-            },
-            
+
             retryQuiz() {
-                // Gleiche Optionen nochmal
-                this.start(this.currentLevel);
+                this.start(this.currentLevel, this.currentOptions);
             },
-            
+
             backToStart() {
+                this.hideQuizOverlay();
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('successScreen').style.display = 'none';
-
-                // Score-Counter wieder einblenden für Freies Üben
                 document.querySelector('.score-display').classList.remove('hidden-in-quiz');
-
-                this.showQuickStart();
+                this.selectedNode = null;
+                this.selectedSub = null;
+                this.currentLevel = null;
                 this.updateAllProgress();
+                this.showQuickStart();
             },
 
-            // Reset progress for shared devices (Tabletkoffer)
             confirmReset() {
                 if (confirm('Fortschritt zurücksetzen?\n\nAlle gemeisterten Stufen werden gelöscht. Das ist z.B. nützlich, wenn ein neuer Schüler das Gerät nutzt.')) {
                     this.progress = this.createNewProgress();
                     this.saveProgress();
 
-                    // Falls Quiz aktiv: Zähler auf 0 und zurück zum Menü
                     if (this.isActive) {
                         this.questionsAnswered = 0;
                         this.questionsCorrect = 0;
-                        this.showQuickStart();
+                        this.isActive = false;
+                        this.hideQuizOverlay();
                     }
 
+                    this.selectedNode = null;
+                    this.selectedSub = null;
+                    this.currentLevel = null;
                     this.updateAllProgress();
+                    this.showQuickStart();
                 }
             }
         };
@@ -2372,22 +2407,15 @@
                 showCountingTimes: true,
                 showRhythmSyllables: true,
                 showGrid: true,
-                showLegend: true,
-                // Goal-Settings
-                goalMode: 'free',
-                goalStreak: 10,
-                goalAccuracyPercent: 80,
-                goalAccuracyTotal: 30
+                showLegend: true
             },
             
             currentTask: null,
             taskCounter: 1,
             score: { correct: 0, total: 0 },
             hasBeenChecked: false,
-            lastTaskFingerprint: null,  // NEU: Verhindert Wiederholung gleicher Aufgaben
-            // Goal-State
-            currentStreak: 0,
-            goalAchieved: false,
+            lastTaskFingerprint: null,
+            freeRetry: false,
 
             noteValues: {
                 'whole': { value: 4.0, symbol: '𝅝', name: 'Ganze Note', dotted: false, isRest: false },
@@ -2641,7 +2669,7 @@
             toggleSettings() {
                 // Im Quick-Start: Hinweis-Modal statt Einstellungen
                 if (quickStart.currentLevel) {
-                    document.getElementById('quickStartMenuModal').classList.remove('hidden');
+                    document.getElementById('quickStartMenuModal').classList.add('active');
                     return;
                 }
                 const panel = document.getElementById('settingsPanel');
@@ -2649,29 +2677,237 @@
             },
 
             showHelp() {
-                // Device-aware Tipp-Text
-                const tipText = document.getElementById('interactionTipText');
-                const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-                
-                if (isTouchDevice) {
-                    tipText.textContent = 'Tippe auf eine Note, um ihre Zählzeit zu sehen!';
+                const titleEl = document.getElementById('introModalTitle');
+                const contentEl = document.getElementById('introModalContent');
+
+                // Prüfe ob wir in einer Übung sind oder im Menü
+                const inExercise = quickStart.currentLevel !== null &&
+                    !document.getElementById('quickStartScreen').classList.contains('active');
+
+                if (inExercise) {
+                    const level = quickStart.currentLevel;
+                    const opts = quickStart.currentOptions;
+                    const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
+                    const nodeNames = { 'rhy1': 'Notenwerte addieren', 'rhy2': 'Zählzeiten bestimmen', 'rhy3': 'Rhythmussilben sprechen' };
+                    const nodeName = nodeNames[nodeId] || '';
+
+                    titleEl.textContent = `Hilfe: ${nodeName}`;
+
+                    // SVG-Helfer für Hilfe-Beispiele
+                    const sym = (t, w=35, h=35) => this.renderLegendSymbol(t, w, h);
+
+                    const helpTexts = {
+                        'einsteiger': {
+                            'basis': `<p><strong>Notenwerte addieren: Basis</strong></p>
+                                <p>Du siehst mehrere Notenwerte und rechnest ihre Dauer zusammen — wie eine Matheaufgabe.</p>
+                                <p><strong>Merkhilfe:</strong></p>
+                                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin:0.5rem 0;">
+                                    ${sym('whole')} Ganze = 4 &nbsp;|&nbsp; ${sym('half')} Halbe = 2 &nbsp;|&nbsp; ${sym('quarter')} Viertel = 1
+                                </div>`,
+                            '8tel': `<p><strong>+ Achtelnoten</strong></p>
+                                <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0;">
+                                    ${sym('eighth')} <strong>Achtel = 0,5</strong> Zählzeiten.
+                                </div>
+                                <p>Zwei Achtel = eine Viertel (0,5 + 0,5 = 1).</p>`,
+                            '16tel': `<p><strong>+ Sechzehntelnoten</strong></p>
+                                <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0;">
+                                    ${sym('sixteenth')} <strong>Sechzehntel = 0,25</strong> Zählzeiten.
+                                </div>
+                                <p>Vier Sechzehntel = eine Viertel.</p>`,
+                            'punktierte': `<p><strong>+ Punktierte Noten</strong></p>
+                                <p>Ein <strong>Punkt hinter der Note verdoppelt die Hälfte</strong> ihres Werts — die Note wird also um 50% länger:</p>
+                                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin:0.5rem 0;">
+                                    <span style="text-align:center">${sym('dotted-half',40,35)}<br><small>Punkt. Halbe = 3</small></span>
+                                    <span style="text-align:center">${sym('dotted-quarter',40,35)}<br><small>Punkt. Viertel = 1,5</small></span>
+                                    <span style="text-align:center">${sym('dotted-eighth',40,35)}<br><small>Punkt. Achtel = 0,75</small></span>
+                                </div>
+                                <p style="font-size:0.85rem; color:#6b7280;">Formel: Notenwert + halber Notenwert = punktierter Wert</p>`,
+                            'pausen': `<p><strong>+ Pausen</strong></p>
+                                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin:0.5rem 0;">
+                                    <span style="text-align:center">${sym('half-rest')}<br><small>Halbe P. = 2</small></span>
+                                    <span style="text-align:center">${sym('quarter-rest')}<br><small>Viertel P. = 1</small></span>
+                                    <span style="text-align:center">${sym('eighth-rest')}<br><small>Achtel P. = 0,5</small></span>
+                                </div>
+                                <p>Pausen haben denselben Wert wie die entsprechende Note — werden genauso addiert.</p>`,
+                            'triolen': `<p><strong>+ Triolen</strong></p>
+                                <p>3 Triolen-Achtel = 1 Viertel. Triolen-Gruppen immer zusammen rechnen.</p>`,
+                            'hilfen_aus': `<p><strong>Ohne Legende</strong></p>
+                                <p>Du musst die Notenwerte jetzt auswendig kennen.</p>`
+                        },
+                        'fortgeschrittener': {
+                            'basis': `<p><strong>Zählzeiten bestimmen: Basis</strong></p>
+                                <p>Du siehst einen Takt und bestimmst die Zählzeit der markierten Note (roter Pfeil + violett).</p>
+                                <div style="background: #f0fdf4; padding: 0.75rem; border-radius: 0.5rem; border-left: 3px solid #8b5cf6; margin: 0.5rem 0;">
+                                    <strong>💡 Raster nutzen:</strong> Das Raster unter den Noten zeigt die Schlagpositionen. Jede senkrechte Linie = ein Schlag (1, 2, 3, 4). Lies die Zählzeit dort ab, wo die markierte Note steht.
+                                </div>
+                                <p><strong>Merkhilfe:</strong> Im 4/4-Takt: Zählzeiten auf 1, 2, 3, 4. Zähle von links nach rechts.</p>`,
+                            '8tel': `<p><strong>+ Achtelnoten</strong></p>
+                                <p>Das Raster wird jetzt <strong>feiner</strong>: Zwischen den Hauptschlägen erscheint je eine Hilfslinie für das „und".</p>
+                                <p>Achtel liegen auf den „und"-Zeiten: 1<strong> und</strong>, 2<strong> und</strong>, 3<strong> und</strong>, 4<strong> und</strong>.</p>`,
+                            '16tel': `<p><strong>+ Sechzehntelnoten</strong></p>
+                                <p>Das Raster wird nochmals <strong>feiner</strong>: Jeder Schlag ist jetzt in 4 Teile unterteilt (1 e und e).</p>
+                                <p>Sechzehntel-Positionen: 1 e und e, 2 e und e, 3 e und e, 4 e und e.</p>`,
+                            'punktierte': `<p><strong>+ Punktierte Noten</strong></p>
+                                <p>Ein <strong>Punkt verdoppelt die Hälfte</strong> des Notenwerts — die Note dauert 50% länger:</p>
+                                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin:0.5rem 0;">
+                                    <span style="text-align:center">${sym('dotted-half',40,35)}<br><small>3 Schläge</small></span>
+                                    <span style="text-align:center">${sym('dotted-quarter',40,35)}<br><small>1,5 Schläge</small></span>
+                                    <span style="text-align:center">${sym('dotted-eighth',40,35)}<br><small>0,75 Schläge</small></span>
+                                </div>
+                                <p>Punktierte Noten verschieben die nachfolgenden Zählzeiten! Nutze das Raster.</p>`,
+                            'pausen': `<p><strong>+ Pausen</strong></p>
+                                <p>Zähle durch die Stille hindurch — die Zählzeiten laufen weiter! Das Raster zeigt dir, wo du gerade bist.</p>`,
+                            'hilfen_aus': `<p><strong>Ohne Hilfen</strong></p>
+                                <p>Raster und Zählzeitenhinweise sind ausgeblendet. Zähle im Kopf von Schlag 1 durch den Takt.</p>`
+                        },
+                        'profi': {
+                            'basis': `<p><strong>Rhythmussilben sprechen: Basis</strong></p>
+                                <p>Gib die richtige Rhythmussilbe für die markierte Note an.</p>
+                                <p><strong>Silben:</strong> <strong>du</strong> = auf dem Schlag, <strong>dei</strong> = auf dem „und".</p>`,
+                            '8tel': `<p><strong>+ Achtelnoten</strong></p>
+                                <p>Achtel auf dem Schlag = „du", auf dem „und" = „dei".</p>`,
+                            '16tel': `<p><strong>+ Sechzehntelnoten</strong></p>
+                                <p>4 Sechzehntel auf einem Schlag: <strong>du te dei te</strong>.</p>
+                                <p>Position 1 = <strong>du</strong> (Schlag), 2 = <strong>te</strong>, 3 = <strong>dei</strong> (und), 4 = <strong>te</strong>.</p>`,
+                            'punktierte': `<p><strong>+ Punktierte Noten</strong></p>
+                                <p>Ein <strong>Punkt verdoppelt die Hälfte</strong> des Notenwerts. Die Silbe bleibt gleich — aber die nächste Note verschiebt sich!</p>
+                                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin:0.5rem 0;">
+                                    <span style="text-align:center">${sym('dotted-quarter',40,35)}<br><small>1,5 Schläge</small></span>
+                                    <span style="text-align:center">${sym('dotted-eighth',40,35)}<br><small>0,75 Schläge</small></span>
+                                </div>`,
+                            'pausen': `<p><strong>+ Pausen</strong></p>
+                                <p>Bei Pausen: Silbe im Kopf denken, aber nicht aussprechen.</p>`,
+                            'triolen': `<p><strong>+ Triolen</strong></p>
+                                <p>Triolen = „du-da-di" für drei gleiche Noten auf einem Schlag.</p>`
+                        }
+                    };
+
+                    // Nur aktuelle + vorherige Sub-Skill Hilfe zeigen
+                    let html = '';
+                    const levelHelp = helpTexts[level] || {};
+                    if (opts && opts.length > 0) {
+                        // Letzte Option = aktuelle Sub-Skill
+                        const currentOpt = opts[opts.length - 1];
+                        // Vorletzte Option = vorherige Sub-Skill (falls vorhanden)
+                        const prevOpt = opts.length >= 2 ? opts[opts.length - 2] : null;
+
+                        // Vorherige Hilfe (klein)
+                        if (prevOpt && levelHelp[prevOpt]) {
+                            html += `<div style="opacity: 0.6; font-size: 0.9em;">${levelHelp[prevOpt]}</div>`;
+                        }
+                        // Aktuelle Hilfe
+                        if (levelHelp[currentOpt]) {
+                            html += levelHelp[currentOpt];
+                        }
+                    }
+                    if (!html) {
+                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt eine Teilkompetenz als bestanden.</p>';
+                    }
+                    // Notenwert-Referenz anhängen
+                    html += `<hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+                        <p style="font-size: 0.85rem; color: #6b7280;"><strong>Notenwerte:</strong> Ganze=4, Halbe=2, Viertel=1, Achtel=0,5, 16tel=0,25</p>`;
+                    contentEl.innerHTML = html;
+
+                } else if (document.getElementById('originalApp').classList.contains('active') && !quickStart.currentLevel) {
+                    // Freies Üben: Aufgabentypspezifische Hilfe
+                    titleEl.textContent = 'Freies Üben – Hilfe';
+
+                    const taskType = this.settings.taskType;
+                    let helpHTML = `<p>Im <strong>Freien Üben</strong> trainierst du ohne Bewertung. Über das Zahnrad-Symbol (⚙) oben rechts kannst du Aufgabentyp und Einstellungen ändern.</p>`;
+
+                    if (taskType === 'note-addition') {
+                        helpHTML += `
+                            <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+                            <p><strong>Aufgabentyp: Notenwerte addieren</strong></p>
+                            <p>Du siehst mehrere Notenwerte und rechnest ihre Dauer zusammen — wie eine Matheaufgabe. Gib die Summe in Vierteln ein.</p>
+                            <p><strong>Notenwerte:</strong></p>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 0.5rem 0;">
+                                <tr style="border-bottom: 1px solid #e5e7eb;"><td style="padding: 0.3rem 0.5rem;">Ganze Note</td><td style="padding: 0.3rem 0.5rem; text-align: right; font-weight: 600;">4 Zählzeiten</td></tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;"><td style="padding: 0.3rem 0.5rem;">Halbe Note</td><td style="padding: 0.3rem 0.5rem; text-align: right; font-weight: 600;">2 Zählzeiten</td></tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;"><td style="padding: 0.3rem 0.5rem;">Viertelnote</td><td style="padding: 0.3rem 0.5rem; text-align: right; font-weight: 600;">1 Zählzeit</td></tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;"><td style="padding: 0.3rem 0.5rem;">Achtelnote</td><td style="padding: 0.3rem 0.5rem; text-align: right; font-weight: 600;">0,5 Zählzeiten</td></tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;"><td style="padding: 0.3rem 0.5rem;">Sechzehntelnote</td><td style="padding: 0.3rem 0.5rem; text-align: right; font-weight: 600;">0,25 Zählzeiten</td></tr>
+                                <tr><td style="padding: 0.3rem 0.5rem;">Punktierte Note</td><td style="padding: 0.3rem 0.5rem; text-align: right; font-weight: 600;">+50% des Werts</td></tr>
+                            </table>
+                            <p style="font-size: 0.85rem; color: #6b7280;"><strong>Pausen</strong> haben dieselbe Dauer wie die entsprechende Note.<br>
+                            <strong>Triolen:</strong> 3 Triolen-Achtel = 1 Viertelnote</p>`;
+                    } else if (taskType === 'counting-time') {
+                        helpHTML += `
+                            <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+                            <p><strong>Aufgabentyp: Zählzeiten bestimmen</strong></p>
+                            <p>Du siehst einen Takt mit einer markierten Note (roter Pfeil + violett). Gib die Zählzeit an, auf der diese Note beginnt.</p>
+                            <div style="background: #f0fdf4; padding: 0.75rem; border-radius: 0.5rem; border-left: 3px solid #8b5cf6; margin: 0.5rem 0;">
+                                <strong>💡 Raster nutzen:</strong> Das Raster unter den Noten zeigt die Schlagpositionen. Je nach aktivierten Notenwerten wird es feiner (Achtel → „und"-Positionen, Sechzehntel → 4er-Unterteilung).
+                            </div>
+                            <p><strong>Zählzeiten-Schema (4/4-Takt):</strong></p>
+                            <p>Viertel: <strong>1, 2, 3, 4</strong><br>
+                            Achtel: 1 <strong>und</strong>, 2 <strong>und</strong>, 3 <strong>und</strong>, 4 <strong>und</strong><br>
+                            Sechzehntel: 1 <strong>e und e</strong>, 2 <strong>e und e</strong>, 3 <strong>e und e</strong>, 4 <strong>e und e</strong></p>`;
+                    } else if (taskType === 'rhythm-syllable') {
+                        helpHTML += `
+                            <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+                            <p><strong>Aufgabentyp: Rhythmussilben</strong></p>
+                            <p>Du siehst einen Takt mit einer markierten Note. Gib die passende Rhythmussilbe ein.</p>
+                            <p><strong>Rhythmussilben:</strong></p>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 0.5rem 0;">
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 0.3rem 0.5rem; font-weight: 600; color: #8b5cf6;">du</td>
+                                    <td style="padding: 0.3rem 0.5rem;">auf dem Schlag (Viertelposition)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 0.3rem 0.5rem; font-weight: 600; color: #8b5cf6;">dei</td>
+                                    <td style="padding: 0.3rem 0.5rem;">auf dem „und" (Achtelposition)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 0.3rem 0.5rem; font-weight: 600; color: #8b5cf6;">du te dei te</td>
+                                    <td style="padding: 0.3rem 0.5rem;">Sechzehntel-Positionen (1 te und te)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.3rem 0.5rem; font-weight: 600; color: #8b5cf6;">du-da-di</td>
+                                    <td style="padding: 0.3rem 0.5rem;">Triolen (3 gleiche auf einem Schlag)</td>
+                                </tr>
+                            </table>`;
+                    } else {
+                        // View-Modus
+                        helpHTML += `
+                            <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+                            <p><strong>Aufgabentyp: Ansichtsmodus</strong></p>
+                            <p>Du siehst einen zufällig generierten Takt mit Zählzeiten und Rhythmussilben. Tippe auf eine Note, um ihre Zählzeit und Dauer zu sehen.</p>
+                            <p><strong>Tipp:</strong> Wechsle über ⚙ den Aufgabentyp, um aktiv zu üben!</p>`;
+                    }
+
+                    contentEl.innerHTML = helpHTML;
+
                 } else {
-                    tipText.textContent = 'Fahre mit der Maus über eine Note, um ihre Zählzeit zu sehen!';
+                    // Menü-Ansicht: Allgemeine Hilfe
+                    titleEl.textContent = 'Rhythmustrainer – Hilfe';
+
+                    contentEl.innerHTML = `
+                        <p>Willkommen im <strong>Rhythmustrainer</strong>! Hier lernst du Schritt für Schritt, Rhythmen zu lesen und zu verstehen.</p>
+                        <p><strong>So funktioniert's:</strong></p>
+                        <p>Dein Lernpfad besteht aus drei Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor.</p>
+                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+                        <p><strong>Die drei Übungstypen:</strong></p>
+                        <p>1. <strong>Notenwerte addieren</strong> — Rechne die Dauern zusammen<br>
+                        2. <strong>Zählzeiten bestimmen</strong> — Finde die Position im Takt<br>
+                        3. <strong>Rhythmussprache</strong> — Sprich die richtige Silbe</p>
+                    `;
                 }
-                
-                document.getElementById('helpModal').classList.add('active');
+
+                document.getElementById('introModal').classList.add('active');
             },
 
             closeHelp() {
-                document.getElementById('helpModal').classList.remove('active');
+                document.getElementById('introModal').classList.remove('active');
             },
 
             showFeedback() {
-                document.getElementById('feedbackModal').classList.remove('hidden');
+                document.getElementById('introModal').classList.remove('active');
+                document.getElementById('feedbackModal').classList.add('active');
             },
 
             closeFeedback() {
-                document.getElementById('feedbackModal').classList.add('hidden');
+                document.getElementById('feedbackModal').classList.remove('active');
                 document.getElementById('feedbackForm').reset();
             },
 
@@ -2732,12 +2968,12 @@ Gerät:
             },
 
             showLegend() {
-                this.renderLegendModal();
-                document.getElementById('legendModal').classList.add('active');
+                // Legende ist jetzt im Hilfe-Menü integriert
+                this.showHelp();
             },
 
             closeLegend() {
-                document.getElementById('legendModal').classList.remove('active');
+                // Nicht mehr separat nötig
             },
 
             // Rendert ein einzelnes Notensymbol für die Legende
@@ -3146,15 +3382,7 @@ Gerät:
                 
                 // Reset Fingerprint bei Settings-Änderung
                 this.lastTaskFingerprint = null;
-                
-                // Toggle Goal Mode Container visibility
-                const goalModeContainer = document.getElementById('goalModeContainer');
-                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition') {
-                    goalModeContainer.classList.remove('hidden');
-                } else {
-                    goalModeContainer.classList.add('hidden');
-                }
-                
+
                 // Automatische Hilfestellungen je nach Aufgabentyp
                 const showCountingTimesCheckbox = document.getElementById('showCountingTimes');
                 const showRhythmSyllablesCheckbox = document.getElementById('showRhythmSyllables');
@@ -3172,11 +3400,13 @@ Gerät:
                     showCountingTimesCheckbox.disabled = true;
                     showRhythmSyllablesCheckbox.disabled = true;
                 } else if (this.settings.taskType === 'counting-time') {
-                    // Zählzeit-Aufgabe: Zählzeiten-Hilfe deaktivieren
+                    // Zählzeit-Aufgabe: Zählzeiten-Hilfe + Rhythmussprache deaktivieren
                     showCountingTimesCheckbox.checked = false;
                     showCountingTimesCheckbox.disabled = true;
-                    showRhythmSyllablesCheckbox.disabled = false;
+                    showRhythmSyllablesCheckbox.checked = false;
+                    showRhythmSyllablesCheckbox.disabled = true;
                     this.settings.showCountingTimes = false;
+                    this.settings.showRhythmSyllables = false;
                 } else if (this.settings.taskType === 'rhythm-syllable') {
                     // Rhythmussilben-Aufgabe: Rhythmussprache-Hilfe deaktivieren
                     showRhythmSyllablesCheckbox.checked = false;
@@ -3227,27 +3457,11 @@ Gerät:
                     additionContainer.classList.add('hidden');
                 }
                 
-                // Toggle Legend visibility
-                const legendCard = document.getElementById('legendCard');
-                if (this.settings.showLegend) {
-                    legendCard.classList.remove('hidden');
-                } else {
-                    legendCard.classList.add('hidden');
-                }
+                // Legend cards removed - now integrated into help menu
                 
-                // Toggle Syllable Legend visibility (bei Rhythmussilben-Aufgabe)
-                const syllableLegendCard = document.getElementById('syllableLegendCard');
-                if (this.settings.taskType === 'rhythm-syllable') {
-                    syllableLegendCard.classList.remove('hidden');
-                } else {
-                    syllableLegendCard.classList.add('hidden');
-                }
-                
-                // Reset score and goal when changing task type
+                // Reset score when changing task type
                 if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition') {
                     this.score = { correct: 0, total: 0 };
-                    this.currentStreak = 0;
-                    this.goalAchieved = false;
                     this.updateScoreDisplay();
                 }
                 
@@ -4468,7 +4682,12 @@ Gerät:
                     
                     // Add arrow above marked note (only on first part, not tied continuation)
                     if (isDirectlyMarked && (note.tiedFrom === null || note.tiedFrom === undefined)) {
-                        svg += `<text x="${noteCenterX}" y="${staffY - 90}" font-size="40" font-weight="900" fill="#ef4444" text-anchor="middle">↓</text>`;
+                        const ax = noteCenterX;
+                        const ay = staffY - 55;
+                        // Arrow shaft
+                        svg += `<rect x="${ax - 3}" y="${ay - 35}" width="6" height="25" fill="#ef4444" rx="2"/>`;
+                        // Arrow head (triangle pointing down)
+                        svg += `<polygon points="${ax},${ay} ${ax - 12},${ay - 15} ${ax + 12},${ay - 15}" fill="#ef4444"/>`;
                     }
                     
                     // Draw note based on type using professional SVG paths
@@ -5331,27 +5550,18 @@ Gerät:
                 
                 // Update Score nur beim ersten Check
                 if (!this.hasBeenChecked) {
-                    this.score.total++;
-                    tracking.trackQuestion(isCorrect); // Tracking
-                    if (isCorrect) {
-                        this.score.correct++;
-                        // Streak erhöhen
-                        if (this.settings.goalMode === 'streak') {
-                            this.currentStreak++;
-                        }
-                    } else {
-                        // Streak zurücksetzen bei Fehler
-                        if (this.settings.goalMode === 'streak') {
-                            this.currentStreak = 0;
+                    // Nur wenn nicht im kostenlosen Retry-Modus
+                    if (!this.freeRetry) {
+                        this.score.total++;
+                        tracking.trackQuestion(isCorrect); // Tracking
+                        if (isCorrect) {
+                            this.score.correct++;
                         }
                     }
                     this.hasBeenChecked = true;
                     this.updateScoreDisplay();
-                    
-                    // Check Goal nach Score-Update
-                    this.checkGoal();
                 }
-                
+
                 // Update UI
                 if (isCorrect) {
                     startInput.classList.remove('input-validated-incorrect');
@@ -5373,11 +5583,8 @@ Gerät:
                         return; // Verhindere normale Auto-Continue
                     }
                     
-                    // Auto-Continue nach 1 Sekunde (nur wenn Goal-Modal nicht offen)
+                    // Auto-Continue nach 1 Sekunde
                     setTimeout(() => {
-                        if (!document.getElementById('goalSuccessModal').classList.contains('hidden')) {
-                            return; // Goal-Modal ist offen, kein Auto-Continue
-                        }
                         this.generateNewTask();
                     }, 1000);
                 } else {
@@ -5443,23 +5650,18 @@ Gerät:
                 
                 // Update Score nur beim ersten Check
                 if (!this.hasBeenChecked) {
-                    this.score.total++;
-                    tracking.trackQuestion(isCorrect); // Tracking
-                    if (isCorrect) {
-                        this.score.correct++;
-                        if (this.settings.goalMode === 'streak') {
-                            this.currentStreak++;
-                        }
-                    } else {
-                        if (this.settings.goalMode === 'streak') {
-                            this.currentStreak = 0;
+                    // Nur wenn nicht im kostenlosen Retry-Modus
+                    if (!this.freeRetry) {
+                        this.score.total++;
+                        tracking.trackQuestion(isCorrect); // Tracking
+                        if (isCorrect) {
+                            this.score.correct++;
                         }
                     }
                     this.hasBeenChecked = true;
                     this.updateScoreDisplay();
-                    this.checkGoal();
                 }
-                
+
                 // Update UI
                 if (isCorrect) {
                     input.classList.remove('input-validated-incorrect');
@@ -5483,9 +5685,6 @@ Gerät:
                     
                     // Auto-Continue nach 1 Sekunde
                     setTimeout(() => {
-                        if (!document.getElementById('goalSuccessModal').classList.contains('hidden')) {
-                            return;
-                        }
                         this.generateNewTask();
                     }, 1000);
                 } else {
@@ -5528,41 +5727,32 @@ Gerät:
             updateScoreDisplay() {
                 const scoreText = document.getElementById('scoreText');
                 const scorePercentage = document.getElementById('scorePercentage');
-                
+
                 if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition') {
-                    // Zeige Score basierend auf Goal-Modus
-                    if (this.settings.goalMode === 'streak') {
-                        scoreText.textContent = `🔥 Streak: ${this.currentStreak} / ${this.settings.goalStreak}`;
-                        scorePercentage.textContent = `(Gesamt: ${this.score.correct}/${this.score.total})`;
-                        scorePercentage.classList.remove('hidden');
-                    } else if (this.settings.goalMode === 'accuracy') {
-                        const percentage = this.score.total > 0 
-                            ? Math.round((this.score.correct / this.score.total) * 100) 
-                            : 0;
-                        const target = this.settings.goalAccuracyTotal;
-                        scoreText.textContent = `📊 ${this.score.correct} / ${this.score.total}`;
-                        scorePercentage.textContent = `(${percentage}%, Ziel: ${this.settings.goalAccuracyPercent}% bei ${target})`;
-                        scorePercentage.classList.remove('hidden');
-                    } else {
-                        // Free mode
-                        const percentage = this.score.total > 0 
-                            ? Math.round((this.score.correct / this.score.total) * 100) 
-                            : 0;
-                        scoreText.textContent = `${this.score.correct} / ${this.score.total}`;
-                        scorePercentage.textContent = `(${percentage}%)`;
-                        scorePercentage.classList.remove('hidden');
-                    }
+                    const percentage = this.score.total > 0
+                        ? Math.round((this.score.correct / this.score.total) * 100)
+                        : 0;
+                    scoreText.textContent = `${this.score.correct} / ${this.score.total}`;
+                    scorePercentage.textContent = `(${percentage}%)`;
+                    scorePercentage.classList.remove('hidden');
                 } else {
                     scoreText.textContent = `Rhythmus ${this.taskCounter}`;
                     scorePercentage.classList.add('hidden');
                 }
             },
 
+            setFreeRetry(isRetry) {
+                this.freeRetry = isRetry;
+                if (isRetry) {
+                    document.getElementById('freeRetryHint').classList.add('active');
+                } else {
+                    document.getElementById('freeRetryHint').classList.remove('active');
+                }
+            },
+
             resetScore() {
                 this.score = { correct: 0, total: 0 };
                 this.taskCounter = 1;
-                this.currentStreak = 0;
-                this.goalAchieved = false;
                 this.updateScoreDisplay();
 
                 // Falls Quiz aktiv: Zähler auf 0 und Overlay komplett neu erstellen
@@ -5581,125 +5771,6 @@ Gerät:
 
             // === GOAL SYSTEM ===
             
-            updateGoalSettings() {
-                const goalMode = document.getElementById('goalModeSelect').value;
-                this.settings.goalMode = goalMode;
-                
-                // Show/hide goal-specific options
-                const streakOptions = document.getElementById('streakOptions');
-                const accuracyOptions = document.getElementById('accuracyOptions');
-                
-                streakOptions.classList.add('hidden');
-                accuracyOptions.classList.add('hidden');
-                
-                if (goalMode === 'streak') {
-                    streakOptions.classList.remove('hidden');
-                    this.settings.goalStreak = parseInt(document.getElementById('goalStreakSelect').value);
-                } else if (goalMode === 'accuracy') {
-                    accuracyOptions.classList.remove('hidden');
-                    const [percent, total] = document.getElementById('goalAccuracySelect').value.split('-');
-                    this.settings.goalAccuracyPercent = parseInt(percent);
-                    this.settings.goalAccuracyTotal = parseInt(total);
-                }
-                
-                // Reset progress when changing goal mode
-                this.resetGoal();
-            },
-
-            showGoalSuccess() {
-                const modal = document.getElementById('goalSuccessModal');
-                const messageEl = document.getElementById('goalSuccessMessage');
-                const statsEl = document.getElementById('goalSuccessStats');
-                
-                if (this.settings.goalMode === 'streak') {
-                    messageEl.textContent = `Du hast ${this.currentStreak} richtige Antworten in Folge geschafft!`;
-                    statsEl.innerHTML = `
-                        <div style="font-size: 1.5rem; font-weight: bold; color: #8b5cf6;">
-                            🔥 ${this.currentStreak} Streak!
-                        </div>
-                        <div style="margin-top: 0.5rem; color: #6b7280;">
-                            Gesamtstatistik: ${this.score.correct} / ${this.score.total}
-                        </div>
-                    `;
-                } else if (this.settings.goalMode === 'accuracy') {
-                    const percentage = Math.round((this.score.correct / this.score.total) * 100);
-                    messageEl.textContent = `Du hast ${percentage}% Erfolgsquote bei ${this.score.total} Aufgaben erreicht!`;
-                    statsEl.innerHTML = `
-                        <div style="font-size: 1.5rem; font-weight: bold; color: #8b5cf6;">
-                            📊 ${this.score.correct} / ${this.score.total}
-                        </div>
-                        <div style="margin-top: 0.5rem; color: #6b7280;">
-                            Ziel erreicht: ${this.settings.goalAccuracyPercent}%
-                        </div>
-                    `;
-                }
-                
-                modal.classList.remove('hidden');
-                
-                // LEVEL-SYSTEM: Benachrichtige über Level-Abschluss
-                if (levelSystem.currentLevelData) {
-                    // Verzögere Level-Complete um Modal-Anzeige nicht zu stören
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        levelSystem.onLevelComplete();
-                    }, 2000); // 2 Sekunden Verzögerung
-                }
-            },
-
-            checkGoal() {
-                // QUICK-START: Quiz hat keine Goals (10 Fragen fix)
-                if (quickStart.currentLevel) {
-                    return;
-                }
-                
-                // Free Mode: Kein Goal Check
-                if (this.settings.goalMode === 'free') {
-                    return;
-                }
-                
-                // Streak Mode: Prüfe ob Streak-Ziel erreicht
-                if (this.settings.goalMode === 'streak') {
-                    if (this.currentStreak >= this.settings.goalStreak && !this.goalAchieved) {
-                        this.goalAchieved = true;
-                        this.showGoalSuccess();
-                    }
-                }
-                
-                // Accuracy Mode: Prüfe ob Accuracy-Ziel erreicht
-                if (this.settings.goalMode === 'accuracy') {
-                    if (this.score.total >= this.settings.goalAccuracyTotal && !this.goalAchieved) {
-                        const accuracy = (this.score.correct / this.score.total) * 100;
-                        if (accuracy >= this.settings.goalAccuracyPercent) {
-                            this.goalAchieved = true;
-                            this.showGoalSuccess();
-                        }
-                    }
-                }
-            },
-
-            resetGoal() {
-                this.currentStreak = 0;
-                this.goalAchieved = false;
-                this.score = { correct: 0, total: 0 };
-                this.updateScoreDisplay();
-                document.getElementById('goalSuccessModal').classList.add('hidden');
-                this.generateNewTask();
-            },
-
-            continueAfterGoal() {
-                // Modal schließen
-                document.getElementById('goalSuccessModal').classList.add('hidden');
-                
-                // Counter zurücksetzen, aber im gleichen Goal-Modus bleiben
-                this.currentStreak = 0;
-                this.goalAchieved = false;
-                
-                // Score-Display aktualisieren
-                this.updateScoreDisplay();
-                
-                // Neue Aufgabe
-                this.generateNewTask();
-            }
         };
 
         // Initialize app when DOM is loaded

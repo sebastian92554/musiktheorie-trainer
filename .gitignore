@@ -8,3 +8,7 @@ _entwicklung/
 *.swp
 *.swo
 *~
+
+# Claude Code / Cowork
+CLAUDE.md
+.skills/
