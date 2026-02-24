@@ -891,7 +891,23 @@
             font-weight: 600;
             color: #475569;
             margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        .st-home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #10b981;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .st-home-link:hover { color: #059669; }
+        .st-home-link svg { flex-shrink: 0; }
 
         /* Skilltree Layout */
         .skilltree {
@@ -1381,7 +1397,13 @@
                 </div>
                 <div class="st-connector mastered"></div>
 
-                <div class="skilltree-title">Dreiklänge erkennen</div>
+                <div class="skilltree-title">
+                    <span>Dreiklänge erkennen</span>
+                    <a href="index.html" class="st-home-link" title="Zur Übersicht">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        Alle Trainer
+                    </a>
+                </div>
 
                 <!-- Nodes Container -->
                 <div class="st-nodes-wrapper">
