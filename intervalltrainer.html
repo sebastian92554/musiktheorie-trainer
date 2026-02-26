@@ -3314,22 +3314,25 @@
                     const el = document.getElementById('lkVisualRein');
                     if (el) {
                         el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
-                            [['rein',1,'r1<br>0 HT'],['rein',4,'r4<br>5 HT'],['rein',5,'r5<br>7 HT'],['rein',8,'r8<br>12 HT']].map(([q,s,lbl]) =>
-                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,90,100)}</div><div style="font-size:0.8rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
+                            [['rein',1,'reine Prime<br>r1 · 0 HS'],['rein',4,'reine Quarte<br>r4 · 5 HS'],['rein',5,'reine Quinte<br>r5 · 7 HS'],['rein',8,'reine Oktave<br>r8 · 12 HS']].map(([q,s,lbl]) =>
+                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,90,100)}</div><div style="font-size:0.7rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
                             ).join('') + '</div>';
                     }
                 } else if (subSkillId === 'grossklein') {
                     const el = document.getElementById('lkVisualGrossklein');
                     if (el) {
                         el.innerHTML = '<div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">' +
-                            [['klein',2,'k2<br>1 HT'],['groß',2,'g2<br>2 HT'],['klein',3,'k3<br>3 HT'],['groß',3,'g3<br>4 HT']].map(([q,s,lbl]) =>
-                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,80,95)}</div><div style="font-size:0.75rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
+                            [['klein',2,'kleine Sekunde<br>k2 · 1 HS'],['groß',2,'große Sekunde<br>g2 · 2 HS'],['klein',3,'kleine Terz<br>k3 · 3 HS'],['groß',3,'große Terz<br>g3 · 4 HS']].map(([q,s,lbl]) =>
+                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,80,95)}</div><div style="font-size:0.65rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
                             ).join('') + '</div>';
                     }
                 } else if (subSkillId === 'komplement') {
                     const el = document.getElementById('lkVisualKomplement');
                     if (el) {
-                        el.innerHTML = this.renderKomplementStaff();
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">' +
+                            '<div>' + this.renderKomplementStaff('A', 'eingestrichen', 'g3 (4 HS)', 'k6 (8 HS)', 'große Terz + kleine Sexte = Oktave') + '</div>' +
+                            '<div>' + this.renderKomplementStaff('G', 'eingestrichen', 'g2 (2 HS)', 'k7 (10 HS)', 'große Sekunde + kleine Septime = Oktave') + '</div>' +
+                        '</div>';
                     }
                 } else if (subSkillId === 'augdim') {
                     const leftEl = document.getElementById('lkAugdimLeft');
@@ -3359,51 +3362,51 @@
                     body: `<p>Es gibt vier <strong>reine</strong> Intervalle. Sie bilden die Ankerpunkte, von denen alle anderen Intervalle abgeleitet werden:</p>
                         <div class="lk-visual" id="lkVisualRein"></div>
                         <div class="lk-rule"><strong>Merke:</strong> Nur Prime, Quarte, Quinte und Oktave können „rein" sein. Sekunden und Terzen sind nie rein — sie sind immer groß oder klein.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HT-Zahl oder einen Intervallnamen und gibst das Gegenstück ein.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HS-Zahl oder einen Intervallnamen und gibst das Gegenstück ein.</div>`
                 },
                 'grossklein': {
                     title: 'Große & kleine Intervalle',
                     body: `<p>Sekunden und Terzen gibt es jeweils als <strong>große</strong> und <strong>kleine</strong> Variante. Sie lassen sich direkt von den Ankerpunkten ableiten:</p>
                         <div class="lk-visual" id="lkVisualGrossklein"></div>
-                        <div class="lk-rule"><strong>Ableitung:</strong> Von der reinen Prime (0 HT) aus: +1 HT = kleine Sekunde, +2 HT = große Sekunde. Von der reinen Quarte (5 HT) rückwärts: −1 HT = große Terz, −2 HT = kleine Terz. Ein großes Intervall hat immer genau 1 HT mehr als das entsprechende kleine.</div>
+                        <div class="lk-rule"><strong>Ableitung:</strong> Von der reinen Prime (0 HS) aus: +1 HS = kleine Sekunde, +2 HS = große Sekunde. Von der reinen Quarte (5 HS) rückwärts: −1 HS = große Terz, −2 HS = kleine Terz. Ein großes Intervall hat immer genau 1 HS mehr als das entsprechende kleine.</div>
                         <div class="lk-rule"><strong>Regel:</strong> Quarten und Quinten sind nie groß oder klein — sie sind immer rein. Sekunden und Terzen sind nie rein — sie sind immer groß oder klein.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HT-Zahl oder einen Intervallnamen und gibst das Gegenstück ein. Auch reine Intervalle aus dem vorherigen Kapitel können vorkommen.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HS-Zahl oder einen Intervallnamen und gibst das Gegenstück ein. Auch reine Intervalle aus dem vorherigen Kapitel können vorkommen.</div>`
                 },
                 'komplement': {
                     title: 'Komplementärintervalle',
-                    body: `<p>Zwei Intervalle, die zusammen eine <strong>Oktave (12 HT)</strong> ergeben, sind Komplementärintervalle. Das bedeutet: Du musst nur die Hälfte aller Intervalle auswendig kennen — den Rest errechnest du über das Komplement.</p>
+                    body: `<p>Zwei Intervalle, die zusammen eine <strong>Oktave (12 HS)</strong> ergeben, sind Komplementärintervalle. Das bedeutet: Du musst nur die Hälfte aller Intervalle auswendig kennen — den Rest errechnest du über das Komplement.</p>
                         <div class="lk-visual" id="lkVisualKomplement"></div>
-                        <p>Sekunden und Terzen kennst du bereits. Über die Komplementärbeziehung lernst du jetzt auch <strong>Sexten und Septimen</strong> kennen: Eine kleine Terz (3 HT) ergänzt sich mit einer großen Sexte (9 HT) zu 12 HT. Eine große Sekunde (2 HT) ergänzt sich mit einer kleinen Septime (10 HT) zu 12 HT.</p>
-                        <div class="lk-rule"><strong>Die Komplementärregeln:</strong> Die Halbtonschritte beider Intervalle ergeben zusammen immer 12. Dabei wird groß zu klein und klein zu groß. Reine Intervalle bleiben rein — eine reine Quarte (5 HT) wird zur reinen Quinte (7 HT).</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst ein Intervall auf dem Notensystem und gibst das Komplementärintervall ein — sowohl die HT-Zahl als auch den Intervallnamen.</div>`
+                        <p>Sekunden und Terzen kennst du bereits. Über die Komplementärbeziehung lernst du jetzt auch <strong>Sexten und Septimen</strong> kennen: Eine kleine Terz (3 HS) ergänzt sich mit einer großen Sexte (9 HS) zu 12 HS. Eine große Sekunde (2 HS) ergänzt sich mit einer kleinen Septime (10 HS) zu 12 HS.</p>
+                        <div class="lk-rule"><strong>Die Komplementärregeln:</strong> Die Halbtonschritte beider Intervalle ergeben zusammen immer 12. Dabei wird groß zu klein und klein zu groß. Reine Intervalle bleiben rein — eine reine Quarte (5 HS) wird zur reinen Quinte (7 HS).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst ein Intervall auf dem Notensystem und gibst das Komplementärintervall ein — sowohl die HS-Zahl als auch den Intervallnamen.</div>`
                 },
                 'augdim': {
                     title: 'Übermäßig & vermindert',
                     body: `<p>Neben rein, groß und klein gibt es noch zwei weitere Qualitäten: <strong>übermäßig</strong> und <strong>vermindert</strong>.</p>
-                        <div class="lk-rule"><strong>Definition:</strong> Übermäßig bedeutet 1 HT mehr als rein oder groß. Vermindert bedeutet 1 HT weniger als rein oder klein. Zum Beispiel: Die reine Quarte hat 5 HT — eine übermäßige Quarte hat 6 HT. Die reine Quinte hat 7 HT — eine verminderte Quinte hat ebenfalls 6 HT.</div>
-                        <p>Damit entsteht ein wichtiges Problem: <strong>Dieselbe HT-Zahl kann verschiedene Intervalle sein.</strong> 6 HT können sowohl eine übermäßige Quarte als auch eine verminderte Quinte sein. Was entscheidet? Das <strong>Rahmenintervall</strong> (die Grobbestimmung).</p>
+                        <div class="lk-rule"><strong>Definition:</strong> Übermäßig bedeutet 1 HS mehr als rein oder groß. Vermindert bedeutet 1 HS weniger als rein oder klein. Zum Beispiel: Die reine Quarte hat 5 HS — eine übermäßige Quarte hat 6 HS. Die reine Quinte hat 7 HS — eine verminderte Quinte hat ebenfalls 6 HS.</div>
+                        <p>Damit entsteht ein wichtiges Problem: <strong>Dieselbe HS-Zahl kann verschiedene Intervalle sein.</strong> 6 HS können sowohl eine übermäßige Quarte als auch eine verminderte Quinte sein. Was entscheidet? Das <strong>Rahmenintervall</strong> (die Grobbestimmung).</p>
                         <div class="lk-contrast" id="lkVisualAugdim">
                             <div>
-                                <div class="lk-label">6 HT, Rahmen: Quarte</div>
+                                <div class="lk-label">6 HS, Rahmen: Quarte</div>
                                 <div id="lkAugdimLeft"></div>
                                 <div style="margin-top:6px;font-weight:700;color:#9a3412">→ ü4 (übermäßige Quarte)</div>
                             </div>
                             <div>
-                                <div class="lk-label">6 HT, Rahmen: Quinte</div>
+                                <div class="lk-label">6 HS, Rahmen: Quinte</div>
                                 <div id="lkAugdimRight"></div>
                                 <div style="margin-top:6px;font-weight:700;color:#9a3412">→ v5 (verminderte Quinte)</div>
                             </div>
                         </div>
                         <div class="lk-tip"><strong>Komplementär-Erweiterung:</strong> Jetzt kennst du auch die letzte Komplementärregel: übermäßig wird im Komplement zu vermindert und umgekehrt (ü ↔ v).</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst eine HT-Zahl und ein Rahmenintervall. Gib die Feinbestimmung ein — z.B. „ü4" oder „übermäßige Quarte".</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst eine HS-Zahl und ein Rahmenintervall. Gib die Feinbestimmung ein — z.B. „ü4" oder „übermäßige Quarte".</div>`
                 },
                 'alles': {
                     title: 'Alle Typen gemischt',
                     body: `<p>In diesem Level werden alle bisherigen Aufgabentypen gemischt:</p>
                         <div class="lk-task"><strong>Die Aufgabentypen:</strong><br>
-                        <strong>1.</strong> HT-Zahl ↔ Intervallname (bidirektional)<br>
-                        <strong>2.</strong> Komplementärintervalle bestimmen (HT-Zahl + Intervallname eingeben)<br>
-                        <strong>3.</strong> Disambiguierung: HT-Zahl + Rahmenintervall → Feinbestimmung</div>
+                        <strong>1.</strong> HS-Zahl ↔ Intervallname (bidirektional)<br>
+                        <strong>2.</strong> Komplementärintervalle bestimmen (HS-Zahl + Intervallname eingeben)<br>
+                        <strong>3.</strong> Disambiguierung: HS-Zahl + Rahmenintervall → Feinbestimmung</div>
                         <div class="lk-tip">Falls du Hilfe brauchst, starte mit den vorherigen Unterkapiteln — dort erklärt eine Lernkarte jeden Aufgabentyp Schritt für Schritt.</div>`
                 },
                 'int5': {
@@ -3490,17 +3493,19 @@
 
                 const cx = width / 2;
 
-                // Vorzeichen
+                // Notenköpfe (bei Prime/Sekunde horizontal versetzen)
+                const tooClose = Math.abs(y1 - y2) < 12;
+                const cx1 = tooClose ? cx - 11 : cx;
+                const cx2 = tooClose ? cx + 11 : cx;
+
+                // Vorzeichen relativ zum (ggf. versetzten) oberen Notenkopf
                 const hasSharp2 = finalTargetName.includes('is');
                 const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
                     (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
-                if (hasSharp2) svg += `<text x="${cx-28}" y="${y2+9}" font-size="28" font-family="serif">♯</text>`;
-                if (hasFlat2) svg += `<text x="${cx-28}" y="${y2+7}" font-size="26" font-family="serif">♭</text>`;
+                const accX = tooClose ? cx1 - 20 : cx2 - 28;
+                if (hasSharp2) svg += `<text x="${accX}" y="${y2+9}" font-size="28" font-family="serif">♯</text>`;
+                if (hasFlat2) svg += `<text x="${accX}" y="${y2+7}" font-size="26" font-family="serif">♭</text>`;
 
-                // Notenköpfe (bei Prime/Sekunde horizontal versetzen)
-                const tooClose = Math.abs(y1 - y2) < 10;
-                const cx1 = tooClose ? cx - 9 : cx;
-                const cx2 = tooClose ? cx + 9 : cx;
                 svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
                 svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
                 svg += '</svg>';
@@ -3508,20 +3513,15 @@
             },
 
             // ---- Komplement-Staff: 3 Noten (Basis + oberer Ton + Oktave) auf einem System ----
-            renderKomplementStaff() {
-                const width = 240;
-                // Beispiel: große Terz (4 HT) + kleine Sexte (8 HT) = Oktave
-                // Basis: f', Oberer Ton: a' (große Terz), Oktave: f''
-                const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+            renderKomplementStaff(midNoteName, midNoteOctave, label1, label2, summaryText) {
+                const width = 220;
                 const baseName = 'F';
                 const baseOctave = 'eingestrichen';
-                const midName = 'A'; // große Terz über f'
-                const midOctave = 'eingestrichen';
-                const topName = 'F'; // Oktave
+                const topName = 'F';
                 const topOctave = 'zweigestrichen';
 
                 const pos1 = this.notePositions[`${baseName}-${baseOctave}-treble`];
-                const pos2 = this.notePositions[`${midName}-${midOctave}-treble`];
+                const pos2 = this.notePositions[`${midNoteName}-${midNoteOctave}-treble`];
                 const pos3 = this.notePositions[`${topName}-${topOctave}-treble`];
                 if (pos1 === undefined || pos2 === undefined || pos3 === undefined) return '';
 
@@ -3542,39 +3542,33 @@
                     svg += `<line x1="15" y1="${ly}" x2="${width-15}" y2="${ly}" stroke="#aaa" stroke-width="1.5"/>`;
                 });
 
-                // Hilfslinien
                 if (maxY > 100) for (let ly = 116; ly <= maxY; ly += 16) svg += `<line x1="${width/2-20}" y1="${ly}" x2="${width/2+20}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
                 if (minY < 36) for (let ly = 20; ly >= minY; ly -= 16) svg += `<line x1="${width/2-20}" y1="${ly}" x2="${width/2+20}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
 
-                // 3 Notenköpfe horizontal verteilt
-                const cx1 = 55, cx2 = 120, cx3 = 185;
+                const cx1 = 50, cx2 = 110, cx3 = 170;
                 svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
                 svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
                 svg += `<ellipse cx="${cx3}" cy="${y3}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx3} ${y3})"/>`;
 
-                // Klammern/Labels unter den Noten
                 const bracketY = maxY + 18;
-                // Klammer 1: Basis → Mitte = g3 (4 HT)
                 svg += `<line x1="${cx1}" y1="${bracketY}" x2="${cx2}" y2="${bracketY}" stroke="#ea580c" stroke-width="2"/>`;
                 svg += `<line x1="${cx1}" y1="${bracketY-4}" x2="${cx1}" y2="${bracketY+4}" stroke="#ea580c" stroke-width="2"/>`;
                 svg += `<line x1="${cx2}" y1="${bracketY-4}" x2="${cx2}" y2="${bracketY+4}" stroke="#ea580c" stroke-width="2"/>`;
-                svg += `<text x="${(cx1+cx2)/2}" y="${bracketY+15}" text-anchor="middle" font-size="11" fill="#9a3412" font-weight="600">g3 (4 HT)</text>`;
+                svg += `<text x="${(cx1+cx2)/2}" y="${bracketY+14}" text-anchor="middle" font-size="10" fill="#9a3412" font-weight="600">${label1}</text>`;
 
-                // Klammer 2: Mitte → Oben = k6 (8 HT)
                 svg += `<line x1="${cx2}" y1="${bracketY}" x2="${cx3}" y2="${bracketY}" stroke="#3b82f6" stroke-width="2"/>`;
                 svg += `<line x1="${cx3}" y1="${bracketY-4}" x2="${cx3}" y2="${bracketY+4}" stroke="#3b82f6" stroke-width="2"/>`;
-                svg += `<text x="${(cx2+cx3)/2}" y="${bracketY+15}" text-anchor="middle" font-size="11" fill="#1e40af" font-weight="600">k6 (8 HT)</text>`;
+                svg += `<text x="${(cx2+cx3)/2}" y="${bracketY+14}" text-anchor="middle" font-size="10" fill="#1e40af" font-weight="600">${label2}</text>`;
 
-                // Klammer über alle: Oktave (12 HT)
                 const topBracketY = minY - 12;
                 svg += `<line x1="${cx1}" y1="${topBracketY}" x2="${cx3}" y2="${topBracketY}" stroke="#6b7280" stroke-width="1.5"/>`;
                 svg += `<line x1="${cx1}" y1="${topBracketY-4}" x2="${cx1}" y2="${topBracketY+4}" stroke="#6b7280" stroke-width="1.5"/>`;
                 svg += `<line x1="${cx3}" y1="${topBracketY-4}" x2="${cx3}" y2="${topBracketY+4}" stroke="#6b7280" stroke-width="1.5"/>`;
-                svg += `<text x="${(cx1+cx3)/2}" y="${topBracketY-6}" text-anchor="middle" font-size="11" fill="#4b5563" font-weight="600">Oktave (12 HT)</text>`;
+                svg += `<text x="${(cx1+cx3)/2}" y="${topBracketY-6}" text-anchor="middle" font-size="10" fill="#4b5563" font-weight="600">Oktave (12 HS)</text>`;
 
                 svg += '</svg>';
-                return `<div style="text-align:center;background:white;border-radius:8px;padding:8px">${svg}</div>
-                    <div style="text-align:center;font-size:0.82rem;color:#6b7280;margin-top:6px">4 + 8 = 12 HT — groß ↔ klein</div>`;
+                return `<div style="text-align:center;background:white;border-radius:8px;padding:6px">${svg}</div>
+                    <div style="text-align:center;font-size:0.75rem;color:#6b7280;margin-top:4px">${summaryText}</div>`;
             },
 
             // ---- generateIntervalForTask: Erzeugt ein passendes Intervall für int4-Aufgaben ----
@@ -3726,8 +3720,8 @@
                         const taskArea = document.getElementById('int4TaskArea');
                         if (taskArea) {
                             const fullLabel = source.label;
-                            taskArea.innerHTML = `<div class="int4-ht">${fullLabel} (${source.ht} HT)</div>
-                                <div class="int4-rahmen">Wie heißt das Komplementärintervall? Gib HT-Zahl und Intervallname ein.</div>`;
+                            taskArea.innerHTML = `<div class="int4-ht">${fullLabel} (${source.ht} HS)</div>
+                                <div class="int4-rahmen">Wie heißt das Komplementärintervall? Gib HS-Zahl und Intervallname ein.</div>`;
                         }
                         // Inputs zurücksetzen
                         const si = document.getElementById('semitonesInput'); if (si) si.value = '';
@@ -3862,7 +3856,7 @@
                     } else {
                         const val = parseInt(input.value.trim());
                         isCorrect = val === task.interval.ht;
-                        feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.ht} HT`;
+                        feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.ht} HS`;
                     }
 
                     input.classList.remove('input-validated-correct', 'input-validated-incorrect');
@@ -3891,7 +3885,7 @@
                     const stName = document.getElementById('intervalInputStatus');
                     if (stName) { stName.className = `input-status-icon ${nameCorrect ? 'correct' : 'incorrect'}`; stName.textContent = nameCorrect ? '✓' : '✗'; }
 
-                    feedback = isCorrect ? '' : `Richtig wäre: ${task.answerHT} HT, ${task.answerLabel}`;
+                    feedback = isCorrect ? '' : `Richtig wäre: ${task.answerHT} HS, ${task.answerLabel}`;
 
                 } else if (task.type === 'augdim') {
                     const input = document.getElementById('intervalInput');
@@ -3922,7 +3916,7 @@
                     // Nächste Aufgabe nach kurzer Pause
                     setTimeout(() => {
                         if (quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions) {
-                            quickStart.finishQuiz();
+                            quickStart.showSuccess();
                         } else {
                             this.generateInt4Task();
                         }
@@ -3936,6 +3930,9 @@
                         feedbackEl.insertAdjacentHTML('beforeend',
                             `<div class="int4-feedback" style="margin-top:8px;color:#dc2626;font-size:0.88rem;font-weight:500">⚠️ Prüfe nochmal. ${feedback}</div>`);
                     }
+                    // Eingabefelder leeren für neuen Versuch
+                    const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
+                    const si = document.getElementById('semitonesInput'); if (si) si.value = '';
                 }
             },
 
@@ -4054,11 +4051,11 @@
                     const isSecond = Math.abs(position2 - position1) === 1;
                     
                     if (isSamePosition || isSecond) {
-                        const x1 = x - 5;
-                        const x2 = x + 12;
-                        
+                        const x1 = x - 8;
+                        const x2 = x + 15;
+
                         if (hasSharp1 || hasFlat1) {
-                            const accX1 = x1 - 45;
+                            const accX1 = x1 - 30;
                             if (hasSharp1) {
                                 svg += `<text x="${accX1}" y="${y1 + 13}" font-size="42" font-family="serif">♯</text>`;
                             }
@@ -4066,9 +4063,9 @@
                                 svg += `<text x="${accX1 - 10}" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
                             }
                         }
-                        
+
                         if (hasSharp2 || hasFlat2) {
-                            const accX2 = Math.min(x1 - 45, x2 - 65);
+                            const accX2 = x2 - 50;
                             if (hasSharp2) {
                                 svg += `<text x="${accX2}" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
                             }
@@ -4076,7 +4073,7 @@
                                 svg += `<text x="${accX2 - 10}" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
                             }
                         }
-                        
+
                         svg += `<ellipse cx="${x1}" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x1} ${y1})"/>`;
                         svg += `<ellipse cx="${x2}" cy="${y2}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x2} ${y2})"/>`;
                     } else {
@@ -4880,7 +4877,7 @@
                         feedbackEl.classList.remove('hidden');
                         feedbackEl.className = 'feedback incorrect';
                         feedbackEl.innerHTML = `⚠️ <strong>Richtige Töne, falsche Oktavlage!</strong><br>` +
-                            `<span style="font-size:0.9em;">Gesucht: ${expDist} HT — Gewählt: ${selDist} HT</span>`;
+                            `<span style="font-size:0.9em;">Gesucht: ${expDist} HS — Gewählt: ${selDist} HS</span>`;
 
                         if (!this.validationState.hasBeenChecked) {
                             this.validationState.hasBeenChecked = true;
@@ -5381,6 +5378,15 @@
 
                 if (inExercise) {
                     const level = quickStart.currentLevel;
+
+                    // Im Meister-Knoten (int4): Lernkarte statt Hilfe-Modal zeigen
+                    if (level === 'meister' && this.settings.feinbestimmungLernen) {
+                        const currentSubSkill = quickStart.currentOptions && quickStart.currentOptions[0];
+                        if (currentSubSkill) {
+                            this.showLernkarte(currentSubSkill);
+                            return;
+                        }
+                    }
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
                     const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert' };
@@ -5420,18 +5426,18 @@
                         },
                         'meister': {
                             'rein': `<p><strong>Reine Intervalle</strong></p>
-                                <p>Lerne die 4 Ankerpunkte: reine Prime (0 HT), reine Quarte (5 HT), reine Quinte (7 HT), reine Oktave (12 HT).</p>
-                                <p>Du bekommst abwechselnd HT-Zahlen oder Intervallnamen und gibst das Gegenstück ein.</p>`,
+                                <p>Lerne die 4 Ankerpunkte: reine Prime (0 HS), reine Quarte (5 HS), reine Quinte (7 HS), reine Oktave (12 HS).</p>
+                                <p>Du bekommst abwechselnd HS-Zahlen oder Intervallnamen und gibst das Gegenstück ein.</p>`,
                             'grossklein': `<p><strong>Große & kleine Intervalle</strong></p>
-                                <p>Sekunden, Terzen, Sexten und Septimen gibt es als große und kleine Variante. Sie leiten sich von den Ankerpunkten ab.</p>`,
+                                <p>Sekunden und Terzen gibt es als große und kleine Variante. Sie leiten sich von den Ankerpunkten ab.</p>`,
                             'komplement': `<p><strong>Komplementärintervalle</strong></p>
-                                <p>Zwei Intervalle ergänzen sich zu einer Oktave (12 HT). Du musst nur die Hälfte auswendig kennen!</p>
-                                <p><strong>Regeln:</strong> groß↔klein, rein↔rein, Summe = 12 HT.</p>`,
+                                <p>Zwei Intervalle ergänzen sich zu einer Oktave (12 HS). Du musst nur die Hälfte auswendig kennen!</p>
+                                <p><strong>Regeln:</strong> groß↔klein, rein↔rein, Summe = 12 HS.</p>`,
                             'augdim': `<p><strong>Übermäßig & vermindert</strong></p>
-                                <p>Dieselbe HT-Zahl kann verschiedene Intervalle sein. Das Rahmenintervall entscheidet!</p>
-                                <p><strong>Beispiel:</strong> 6 HT mit Rahmenintervall Quarte → ü4, mit Quinte → v5.</p>`,
+                                <p>Dieselbe HS-Zahl kann verschiedene Intervalle sein. Das Rahmenintervall entscheidet!</p>
+                                <p><strong>Beispiel:</strong> 6 HS mit Rahmenintervall Quarte → ü4, mit Quinte → v5.</p>`,
                             'alles': `<p><strong>Alle Typen gemischt</strong></p>
-                                <p>Alle Aufgabentypen kommen vor: HT↔Name, Komplementäre, Disambiguierung.</p>`
+                                <p>Alle Aufgabentypen kommen vor: HS↔Name, Komplementäre, Disambiguierung.</p>`
                         },
                         'experte': {
                             'basis': `<p><strong>Grundbestimmung (rein, groß, klein)</strong></p>
