@@ -2579,10 +2579,6 @@
                         this.questionsAnswered = 0;
                         this.questionsCorrect = 0;
                         this.showQuickStart();
-                    } else {
-                        // Freies Üben: auch zurück zum Menü
-                        app.settings.feinbestimmungLernen = false;
-                        this.showQuickStart();
                     }
 
                     this.updateAllProgress();
@@ -5285,7 +5281,11 @@
                 // WICHTIG: Generiere IMMER neue Aufgabe
                 // UX: Frischer Start nach Reset
                 // SICHERHEIT: Panikbutton bei potenziellen Bugs/Freeze
-                this.generateInterval();
+                if (this.settings.feinbestimmungLernen) {
+                    this.generateInt4Task();
+                } else {
+                    this.generateInterval();
+                }
             },
 
             updateSettings() {
