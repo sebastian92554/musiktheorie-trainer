@@ -3502,9 +3502,9 @@
                 const hasSharp2 = finalTargetName.includes('is');
                 const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
                     (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
-                const accX = tooClose ? cx1 - 18 : cx - 20;
-                if (hasSharp2) svg += `<text x="${accX}" y="${y2+9}" font-size="28" font-family="serif">♯</text>`;
-                if (hasFlat2) svg += `<text x="${accX}" y="${y2+7}" font-size="26" font-family="serif">♭</text>`;
+                const accX = tooClose ? cx1 - 16 : cx - 16;
+                if (hasSharp2) svg += `<text x="${accX}" y="${y2+6}" font-size="22" font-family="serif">♯</text>`;
+                if (hasFlat2) svg += `<text x="${accX}" y="${y2+5}" font-size="22" font-family="serif">♭</text>`;
 
                 svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
                 svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
@@ -3612,7 +3612,7 @@
                     size: intervalSize,
                     quality: null, // wird von Task-Logik gesetzt
                     semitones: targetSemitones,
-                    displayMode: 'harmonic'
+                    displayMode: 'melodic'
                 };
 
                 this.updateUI();
