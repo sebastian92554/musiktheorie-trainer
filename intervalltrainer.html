@@ -360,6 +360,130 @@
             background: #c2410c;
         }
 
+        /* Lernkarten-System */
+        .lernkarte-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 250;
+            justify-content: center;
+            align-items: center;
+        }
+        .lernkarte-overlay.active { display: flex; }
+        .lernkarte {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 520px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .lernkarte h2 {
+            font-size: 1.25rem;
+            color: #7c2d12;
+            margin-bottom: 12px;
+        }
+        .lernkarte p {
+            color: #374151;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+        .lk-visual {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .lk-visual svg { max-width: 100%; }
+        .lk-tip {
+            background: #ecfdf5;
+            border-left: 3px solid #10b981;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #065f46;
+        }
+        .lk-rule {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #1e40af;
+        }
+        .lk-task {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #92400e;
+        }
+        .lk-contrast {
+            display: flex;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .lk-contrast > div {
+            flex: 1;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .lk-contrast .lk-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #9a3412;
+        }
+        .lernkarte button {
+            width: 100%;
+            padding: 14px;
+            background: #ea580c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 14px;
+        }
+        .lernkarte button:hover { background: #c2410c; }
+
+        /* int4 Aufgaben-Bereich */
+        .int4-task-area {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .int4-task-area .int4-ht {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #9a3412;
+        }
+        .int4-task-area .int4-rahmen {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .int4-task-area .int4-rahmen strong {
+            color: #374151;
+        }
+
         /* Mobile Optimierungen - wie im Notentrainer */
         @media (max-width: 768px) {
             /* Notensystem STICKY - bleibt sichtbar beim Eintippen */
@@ -538,11 +662,10 @@
         .white-key {
             flex: 1;
             background: white;
-            border: 2px solid #1f2937;
-            border-radius: 0 0 0.5rem 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0 0 6px 6px;
             cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background 0.15s;
         }
 
         .white-key:hover:not(:disabled) {
@@ -551,10 +674,6 @@
 
         .white-key.selected:hover:not(:disabled) {
             background: #bfdbfe;
-        }
-
-        .white-key:active:not(:disabled) {
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .white-key.selected {
@@ -582,47 +701,20 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 7rem;
+            height: 60%;
             pointer-events: none;
-        }
-
-        @media (max-width: 768px) and (orientation: portrait) {
-            .black-keys {
-                height: 5rem;
-            }
-        }
-
-        /* FIXED v4.15: Landscape basierend auf Höhe (nicht Breite!) für iPad 1366px */
-        @media (orientation: landscape) and (max-height: 1100px) {
-            .black-keys {
-                height: 6rem;
-            }
         }
 
         .black-key {
             position: absolute;
             width: 36px;
-            height: 7rem;
+            height: 100%;
             background: #1f2937;
-            border: 2px solid #000;
-            border-radius: 0 0 0.375rem 0.375rem;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+            transition: background 0.15s;
             pointer-events: auto;
-        }
-
-        @media (max-width: 768px) and (orientation: portrait) {
-            .black-key {
-                height: 5rem;
-            }
-        }
-
-        /* FIXED v4.15: Landscape basierend auf Höhe (nicht Breite!) für iPad 1366px */
-        @media (orientation: landscape) and (max-height: 1100px) {
-            .black-key {
-                height: 6rem;
-            }
         }
 
         .black-key:hover:not(:disabled) {
@@ -631,10 +723,6 @@
 
         .black-key.selected:hover:not(:disabled) {
             background: #3b82f6;
-        }
-
-        .black-key:active:not(:disabled) {
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
         }
 
         .black-key.selected {
@@ -1376,17 +1464,32 @@
 
                     <div class="st-connector" id="stConn-int3-int4"></div>
 
-                    <!-- Node 4: Meister -->
+                    <!-- Node 4: Meister (NEU — Feinbestimmung lernen) -->
                     <div class="st-node-wrapper" id="stNode-int4">
                         <div class="st-node available" onclick="quickStart.selectNode('int4')">
                             <div class="st-node-icon">4</div>
                             <div class="st-node-content">
-                                <div class="st-node-name">Intervalle präzise bestimmen</div>
-                                <div class="st-node-desc">Feinbestimmung (groß, klein, rein, übermäßig, vermindert)</div>
+                                <div class="st-node-name">Feinbestimmung lernen</div>
+                                <div class="st-node-desc">Rein, groß, klein, übermäßig, vermindert — Schritt für Schritt</div>
                             </div>
                             <div class="st-node-action">&#9662;</div>
                         </div>
                         <div class="st-sub-skills" id="stSubs-int4"></div>
+                    </div>
+
+                    <div class="st-connector" id="stConn-int4-int5"></div>
+
+                    <!-- Node 5: Experte (ehemals int4 — Alles kombiniert) -->
+                    <div class="st-node-wrapper" id="stNode-int5">
+                        <div class="st-node available" onclick="quickStart.selectNode('int5')">
+                            <div class="st-node-icon">5</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Intervalle präzise bestimmen</div>
+                                <div class="st-node-desc">Feinbestimmung am Notenbild — alles kombiniert</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-int5"></div>
                     </div>
                 </div>
 
@@ -1466,6 +1569,15 @@
                 <button onclick="app.showFeedback()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
                     Feedback geben
                 </button>
+            </div>
+        </div>
+
+        <!-- Lernkarte Overlay -->
+        <div class="lernkarte-overlay" id="lernkarteOverlay">
+            <div class="lernkarte">
+                <h2 id="lernkarteTitle"></h2>
+                <div id="lernkarteBody"></div>
+                <button onclick="app.dismissLernkarte()">Verstanden, los!</button>
             </div>
         </div>
 
@@ -1658,7 +1770,7 @@
 
             <!-- Keyboard (DT-Pattern: keyboard-hint oben, Container unten) -->
             <div class="card keyboard-card" id="keyboardCard">
-                <div class="keyboard-hint" id="keyboardHint">🎹 Tastatur zur Orientierung</div>
+                <div class="keyboard-hint" id="keyboardHint">Tastatur zur Orientierung</div>
                 <div id="keyboardContainer"></div>
             </div>
 
@@ -1789,12 +1901,13 @@
             selectedNode: null,
             selectedSub: null,
 
-            // Knoten → Level Mapping (4 levels: int1, int2, int3, int4)
+            // Knoten → Level Mapping (5 levels: int1–int5)
             nodeToLevel: {
                 'int1': 'einsteiger',
                 'int2': 'aufsteiger',
                 'int3': 'profi',
-                'int4': 'meister'
+                'int4': 'meister',
+                'int5': 'experte'
             },
 
             // Sub-Skills pro Knoten
@@ -1815,6 +1928,13 @@
                     { id: 'bothclefs', label: 'Beide Schlüssel' }
                 ],
                 'int4': [
+                    { id: 'rein', label: 'Reine Intervalle (r1, r4, r5, r8)' },
+                    { id: 'grossklein', label: 'Große & kleine Intervalle' },
+                    { id: 'komplement', label: 'Komplementärintervalle' },
+                    { id: 'augdim', label: 'Übermäßig & vermindert' },
+                    { id: 'alles', label: 'Alle Typen gemischt' }
+                ],
+                'int5': [
                     { id: 'basis', label: 'Grundbestimmung (rein, groß, klein)' },
                     { id: 'augdim', label: 'Mit übermäßig/vermindert' },
                     { id: 'extended', label: 'Erweiterte Intervalle' },
@@ -1856,6 +1976,14 @@
                             this.saveProgress();
                             return;
                         }
+                        // Migrate: old meister (Feinbestimmung) → experte (int4→int5 shift)
+                        if (!parsed.experte) {
+                            parsed.experte = parsed.meister || { mastered: [], scores: {} };
+                            parsed.meister = { mastered: [], scores: {} };
+                            this.progress = parsed;
+                            this.saveProgress();
+                            return;
+                        }
                         this.progress = parsed;
                     } catch (e) {
                         console.log('Fehler beim Laden des Fortschritts');
@@ -1875,13 +2003,14 @@
                     einsteiger: { mastered: [], scores: {} },
                     aufsteiger: { mastered: [], scores: {} },
                     profi: { mastered: [], scores: {} },
-                    meister: { mastered: [], scores: {} }
+                    meister: { mastered: [], scores: {} },
+                    experte: { mastered: [], scores: {} }
                 };
             },
 
             // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
-                const nodes = ['int1', 'int2', 'int3', 'int4'];
+                const nodes = ['int1', 'int2', 'int3', 'int4', 'int5'];
                 let totalSubs = 0;
                 let totalMastered = 0;
                 let firstAvailableNode = null;
@@ -1914,7 +2043,8 @@
                     // Connector-Zustand
                     const connectorId = nodeId === 'int2' ? 'stConn-int1-int2' :
                                        nodeId === 'int3' ? 'stConn-int2-int3' :
-                                       nodeId === 'int4' ? 'stConn-int3-int4' : null;
+                                       nodeId === 'int4' ? 'stConn-int3-int4' :
+                                       nodeId === 'int5' ? 'stConn-int4-int5' : null;
                     if (connectorId) {
                         const prevConn = document.getElementById(connectorId);
                         if (prevConn) {
@@ -2188,7 +2318,17 @@
 
                 this.showQuizOverlay();
 
-                app.generateInterval();
+                // Lernkarte anzeigen (bei int4 + int5) — danach startet dismissLernkarte() die erste Aufgabe
+                if (level === 'meister') {
+                    const currentSub = this.currentOptions[this.currentOptions.length - 1] || 'rein';
+                    if (app.showLernkarte(currentSub)) return;
+                    app.generateInt4Task();
+                } else if (level === 'experte') {
+                    if (app.showLernkarte('int5')) return;
+                    app.generateInterval();
+                } else {
+                    app.generateInterval();
+                }
             },
 
             // ---- App für Level konfigurieren ----
@@ -2199,6 +2339,7 @@
                 app.settings.onlyAugDim = false;
                 app.settings.showLargeIntervals = false;
                 app.settings.requireKeyboard = false;
+                app.settings.feinbestimmungLernen = false;
                 app.settings.clef = 'treble';
                 app.settings.displayMode = 'melodic';
 
@@ -2228,6 +2369,14 @@
                         break;
 
                     case 'meister':
+                        // Neuer int4: Feinbestimmung lernen (theoretisch, mit Staff-Visualisierung)
+                        app.settings.feinbestimmungLernen = true;
+                        app.settings.requireKeyboard = false;
+                        if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
+                        break;
+
+                    case 'experte':
+                        // int5: Alles kombiniert (ehemaliger int4)
                         app.settings.requireQuality = true;
                         app.settings.requireKeyboard = false;
                         if (options.includes('augdim')) app.settings.onlyAugDim = true;
@@ -2259,8 +2408,8 @@
 
             updateQuizOverlay() {
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                const nodeIdx = ['int1', 'int2', 'int3', 'int4'].indexOf(nodeId) + 1;
-                const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung' };
+                const nodeIdx = ['int1', 'int2', 'int3', 'int4', 'int5'].indexOf(nodeId) + 1;
+                const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert' };
                 const nodeName = nodeNames[nodeId] || '';
 
                 const subs = this.nodeSubSkills[nodeId];
@@ -2274,7 +2423,8 @@
                     einsteiger: 'Welches Intervall ist das?',
                     aufsteiger: 'Finde die Töne auf der Tastatur!',
                     profi: 'Wie viele Halbtonschritte?',
-                    meister: 'Bestimme das Intervall genau!'
+                    meister: 'Feinbestimmung lernen',
+                    experte: 'Bestimme das Intervall genau!'
                 };
 
                 const label = document.getElementById('headerExerciseLabel');
@@ -2428,6 +2578,10 @@
                     if (this.isActive) {
                         this.questionsAnswered = 0;
                         this.questionsCorrect = 0;
+                        this.showQuickStart();
+                    } else {
+                        // Freies Üben: auch zurück zum Menü
+                        app.settings.feinbestimmungLernen = false;
                         this.showQuickStart();
                     }
 
@@ -2681,7 +2835,63 @@
                     setTimeout(() => { const el = document.getElementById('semitonesInput'); if (el) el.focus(); }, 200);
 
                 } else if (this.quickStartMode === 'meister') {
-                    // Nur Intervallname mit Feinbestimmung
+                    // int4: Feinbestimmung lernen — dynamisch je nach Sub-Skill
+                    const opts = quickStart.currentOptions || [];
+                    const currentSubSkill = opts[opts.length - 1] || 'rein';
+
+                    if (currentSubSkill === 'komplement') {
+                        // 2-Feld-Eingabe: HT + Intervallname
+                        inputCard.innerHTML = `
+                            <div id="int4TaskArea" class="int4-task-area"></div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="semitonesInput">Halbtonschritte</label>
+                                    <div class="input-with-status">
+                                        <input type="number" id="semitonesInput" placeholder="z.B. 5" autocomplete="off" min="0" max="12">
+                                        <span class="input-status-icon pending" id="semitonesInputStatus"></span>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="intervalInput">Intervallname</label>
+                                    <div class="input-with-status">
+                                        <input type="text" id="intervalInput" placeholder="z.B. r5, große Terz" autocomplete="off" autocapitalize="none" autocorrect="off">
+                                        <span class="input-status-icon pending" id="intervalInputStatus"></span>
+                                    </div>
+                                </div>
+                            </div>${btnHTML}`;
+                        setTimeout(() => { const el = document.getElementById('semitonesInput'); if (el) el.focus(); }, 200);
+                    } else if (currentSubSkill === 'augdim') {
+                        // Disambiguierung: HT + Rahmenintervall → Feinbestimmung
+                        inputCard.innerHTML = `
+                            <div id="int4TaskArea" class="int4-task-area"></div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="intervalInput">Feinbestimmung</label>
+                                    <div class="input-with-status">
+                                        <input type="text" id="intervalInput" placeholder="z.B. ü4, v5, große Terz" autocomplete="off" autocapitalize="none" autocorrect="off">
+                                        <span class="input-status-icon pending" id="intervalInputStatus"></span>
+                                    </div>
+                                </div>
+                            </div>${btnHTML}`;
+                        setTimeout(() => { const el = document.getElementById('intervalInput'); if (el) el.focus(); }, 200);
+                    } else {
+                        // rein, grossklein, alles: Bidirektional (HT↔Name)
+                        inputCard.innerHTML = `
+                            <div id="int4TaskArea" class="int4-task-area"></div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="intervalInput" id="int4InputLabel">Intervallname</label>
+                                    <div class="input-with-status">
+                                        <input type="text" id="intervalInput" placeholder="" autocomplete="off" autocapitalize="none" autocorrect="off">
+                                        <span class="input-status-icon pending" id="intervalInputStatus"></span>
+                                    </div>
+                                </div>
+                            </div>${btnHTML}`;
+                        setTimeout(() => { const el = document.getElementById('intervalInput'); if (el) el.focus(); }, 200);
+                    }
+
+                } else if (this.quickStartMode === 'experte') {
+                    // int5: Alles kombiniert — Intervallname mit Feinbestimmung
                     const placeholder = this.settings.onlyAugDim
                         ? 'z.B. überm. Quarte, ü4'
                         : 'z.B. große Terz, g3, k6';
@@ -3096,6 +3306,643 @@
                 return Math.abs(pitch2 - pitch1);
             },
 
+            // ---- Lernkarten-System ----
+            showLernkarte(subSkillId) {
+                const content = this.lernkartenContent[subSkillId];
+                if (!content) return false;
+                document.getElementById('lernkarteTitle').textContent = content.title;
+                document.getElementById('lernkarteBody').innerHTML = content.body;
+
+                // SVG-Visualisierungen dynamisch rendern
+                if (subSkillId === 'rein') {
+                    const el = document.getElementById('lkVisualRein');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
+                            [['rein',1,'r1<br>0 HT'],['rein',4,'r4<br>5 HT'],['rein',5,'r5<br>7 HT'],['rein',8,'r8<br>12 HT']].map(([q,s,lbl]) =>
+                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,90,100)}</div><div style="font-size:0.8rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
+                            ).join('') + '</div>';
+                    }
+                } else if (subSkillId === 'grossklein') {
+                    const el = document.getElementById('lkVisualGrossklein');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">' +
+                            [['klein',2,'k2<br>1 HT'],['groß',2,'g2<br>2 HT'],['klein',3,'k3<br>3 HT'],['groß',3,'g3<br>4 HT']].map(([q,s,lbl]) =>
+                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,80,95)}</div><div style="font-size:0.75rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
+                            ).join('') + '</div>';
+                    }
+                } else if (subSkillId === 'komplement') {
+                    const el = document.getElementById('lkVisualKomplement');
+                    if (el) {
+                        el.innerHTML = this.renderKomplementStaff();
+                    }
+                } else if (subSkillId === 'augdim') {
+                    const leftEl = document.getElementById('lkAugdimLeft');
+                    const rightEl = document.getElementById('lkAugdimRight');
+                    if (leftEl) leftEl.innerHTML = this.renderLernkarteStaff('übermäßig', 4, 120, 110);
+                    if (rightEl) rightEl.innerHTML = this.renderLernkarteStaff('vermindert', 5, 120, 110);
+                }
+
+                document.getElementById('lernkarteOverlay').classList.add('active');
+                return true;
+            },
+
+            dismissLernkarte() {
+                document.getElementById('lernkarteOverlay').classList.remove('active');
+                // Starte die erste Aufgabe nach dem Schließen
+                if (this.settings.feinbestimmungLernen) {
+                    this.generateInt4Task();
+                } else {
+                    this.generateInterval();
+                }
+            },
+
+            // Lernkarten-Inhalte (werden in showLernkarte() mit SVGs befüllt)
+            lernkartenContent: {
+                'rein': {
+                    title: 'Reine Intervalle — Die 4 Ankerpunkte',
+                    body: `<p>Es gibt vier <strong>reine</strong> Intervalle. Sie bilden die Ankerpunkte, von denen alle anderen Intervalle abgeleitet werden:</p>
+                        <div class="lk-visual" id="lkVisualRein"></div>
+                        <div class="lk-rule"><strong>Merke:</strong> Nur Prime, Quarte, Quinte und Oktave können „rein" sein. Sekunden und Terzen sind nie rein — sie sind immer groß oder klein.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HT-Zahl oder einen Intervallnamen und gibst das Gegenstück ein.</div>`
+                },
+                'grossklein': {
+                    title: 'Große & kleine Intervalle',
+                    body: `<p>Sekunden und Terzen gibt es jeweils als <strong>große</strong> und <strong>kleine</strong> Variante. Sie lassen sich direkt von den Ankerpunkten ableiten:</p>
+                        <div class="lk-visual" id="lkVisualGrossklein"></div>
+                        <div class="lk-rule"><strong>Ableitung:</strong> Von der reinen Prime (0 HT) aus: +1 HT = kleine Sekunde, +2 HT = große Sekunde. Von der reinen Quarte (5 HT) rückwärts: −1 HT = große Terz, −2 HT = kleine Terz. Ein großes Intervall hat immer genau 1 HT mehr als das entsprechende kleine.</div>
+                        <div class="lk-rule"><strong>Regel:</strong> Quarten und Quinten sind nie groß oder klein — sie sind immer rein. Sekunden und Terzen sind nie rein — sie sind immer groß oder klein.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HT-Zahl oder einen Intervallnamen und gibst das Gegenstück ein. Auch reine Intervalle aus dem vorherigen Kapitel können vorkommen.</div>`
+                },
+                'komplement': {
+                    title: 'Komplementärintervalle',
+                    body: `<p>Zwei Intervalle, die zusammen eine <strong>Oktave (12 HT)</strong> ergeben, sind Komplementärintervalle. Das bedeutet: Du musst nur die Hälfte aller Intervalle auswendig kennen — den Rest errechnest du über das Komplement.</p>
+                        <div class="lk-visual" id="lkVisualKomplement"></div>
+                        <p>Sekunden und Terzen kennst du bereits. Über die Komplementärbeziehung lernst du jetzt auch <strong>Sexten und Septimen</strong> kennen: Eine kleine Terz (3 HT) ergänzt sich mit einer großen Sexte (9 HT) zu 12 HT. Eine große Sekunde (2 HT) ergänzt sich mit einer kleinen Septime (10 HT) zu 12 HT.</p>
+                        <div class="lk-rule"><strong>Die Komplementärregeln:</strong> Die Halbtonschritte beider Intervalle ergeben zusammen immer 12. Dabei wird groß zu klein und klein zu groß. Reine Intervalle bleiben rein — eine reine Quarte (5 HT) wird zur reinen Quinte (7 HT).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst ein Intervall auf dem Notensystem und gibst das Komplementärintervall ein — sowohl die HT-Zahl als auch den Intervallnamen.</div>`
+                },
+                'augdim': {
+                    title: 'Übermäßig & vermindert',
+                    body: `<p>Neben rein, groß und klein gibt es noch zwei weitere Qualitäten: <strong>übermäßig</strong> und <strong>vermindert</strong>.</p>
+                        <div class="lk-rule"><strong>Definition:</strong> Übermäßig bedeutet 1 HT mehr als rein oder groß. Vermindert bedeutet 1 HT weniger als rein oder klein. Zum Beispiel: Die reine Quarte hat 5 HT — eine übermäßige Quarte hat 6 HT. Die reine Quinte hat 7 HT — eine verminderte Quinte hat ebenfalls 6 HT.</div>
+                        <p>Damit entsteht ein wichtiges Problem: <strong>Dieselbe HT-Zahl kann verschiedene Intervalle sein.</strong> 6 HT können sowohl eine übermäßige Quarte als auch eine verminderte Quinte sein. Was entscheidet? Das <strong>Rahmenintervall</strong> (die Grobbestimmung).</p>
+                        <div class="lk-contrast" id="lkVisualAugdim">
+                            <div>
+                                <div class="lk-label">6 HT, Rahmen: Quarte</div>
+                                <div id="lkAugdimLeft"></div>
+                                <div style="margin-top:6px;font-weight:700;color:#9a3412">→ ü4 (übermäßige Quarte)</div>
+                            </div>
+                            <div>
+                                <div class="lk-label">6 HT, Rahmen: Quinte</div>
+                                <div id="lkAugdimRight"></div>
+                                <div style="margin-top:6px;font-weight:700;color:#9a3412">→ v5 (verminderte Quinte)</div>
+                            </div>
+                        </div>
+                        <div class="lk-tip"><strong>Komplementär-Erweiterung:</strong> Jetzt kennst du auch die letzte Komplementärregel: übermäßig wird im Komplement zu vermindert und umgekehrt (ü ↔ v).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst eine HT-Zahl und ein Rahmenintervall. Gib die Feinbestimmung ein — z.B. „ü4" oder „übermäßige Quarte".</div>`
+                },
+                'alles': {
+                    title: 'Alle Typen gemischt',
+                    body: `<p>In diesem Level werden alle bisherigen Aufgabentypen gemischt:</p>
+                        <div class="lk-task"><strong>Die Aufgabentypen:</strong><br>
+                        <strong>1.</strong> HT-Zahl ↔ Intervallname (bidirektional)<br>
+                        <strong>2.</strong> Komplementärintervalle bestimmen (HT-Zahl + Intervallname eingeben)<br>
+                        <strong>3.</strong> Disambiguierung: HT-Zahl + Rahmenintervall → Feinbestimmung</div>
+                        <div class="lk-tip">Falls du Hilfe brauchst, starte mit den vorherigen Unterkapiteln — dort erklärt eine Lernkarte jeden Aufgabentyp Schritt für Schritt.</div>`
+                },
+                'int5': {
+                    title: 'Intervalle präzise bestimmen',
+                    body: `<p>Hier bestimmst du Intervalle vollständig am Notenbild: Du siehst ein Intervall auf dem Notenblatt und gibst die <strong>Feinbestimmung</strong> ein — also Qualität und Intervallname.</p>
+                        <div class="lk-task"><strong>Eingabeformat:</strong> z.B. „große Terz", „g3", „reine Quinte", „r5", „ü4", „verminderte Quinte".</div>
+                        <div class="lk-tip">Die Feinbestimmung (rein/groß/klein/übermäßig/vermindert) hast du im vorherigen Knoten gelernt. Hier wendest du sie auf das Notenbild an. Nutze den Hilfe-Button, falls du eine Erinnerung brauchst.</div>`
+                }
+            },
+
+            // ---- Lernkarten-Staff-Rendering (fixiert auf c') ----
+            renderLernkarteStaff(quality, size, width, height) {
+                width = width || 120;
+                height = height || 120;
+
+                // f' als Basiston (zentraler im Notensystem als c')
+                const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                const baseName = 'F';
+                const baseOctave = 'eingestrichen';
+
+                // Zielton berechnen
+                const steps = size - 1;
+                const baseIdx = noteNames.indexOf(baseName);
+                const targetIdx = (baseIdx + steps) % 7;
+                const targetName = noteNames[targetIdx];
+                const octaveSteps = Math.floor((baseIdx + steps) / 7);
+                const octaves = ['klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+                const baseOctIdx = octaves.indexOf(baseOctave);
+                const targetOctave = octaves[baseOctIdx + octaveSteps] || 'zweigestrichen';
+
+                // Vorzeichen bestimmen
+                const naturalSemitones = this.calculateNaturalSemitones(baseName, baseOctave, targetName, targetOctave);
+                const qualityMap = this.semitones;
+                const targetSemitones = qualityMap[quality + '-' + size];
+                if (targetSemitones === undefined) return '';
+
+                const diff = targetSemitones - naturalSemitones;
+                let finalTargetName = targetName;
+                if (diff === 1) finalTargetName = targetName + 'is';
+                else if (diff === -1) {
+                    if (targetName === 'H') finalTargetName = 'B';
+                    else finalTargetName = targetName + 'es';
+                    if (targetName === 'E') finalTargetName = 'Es';
+                    if (targetName === 'A') finalTargetName = 'As';
+                } else if (diff === 2) finalTargetName = targetName + 'isis';
+                else if (diff === -2) finalTargetName = targetName + 'eses';
+
+                // SVG rendern (vereinfacht, harmonisch)
+                const getBaseName = (name) => {
+                    if (name === 'B') return 'H';
+                    if (name === 'As') return 'A';
+                    if (name === 'Es') return 'E';
+                    if (name.endsWith('isis')) return name.slice(0, -4);
+                    if (name.endsWith('is')) return name.slice(0, -2);
+                    if (name.endsWith('eses')) return name.slice(0, -4);
+                    if (name.endsWith('es') && name.length > 2) return name.slice(0, -2);
+                    return name;
+                };
+
+                const pos1 = this.notePositions[`${baseName}-${baseOctave}-treble`];
+                const bn2 = getBaseName(finalTargetName);
+                const pos2 = this.notePositions[`${bn2}-${targetOctave}-treble`];
+                if (pos1 === undefined || pos2 === undefined) return '';
+
+                const baseY = 100;
+                const y1 = baseY - (pos1 * 8);
+                const y2 = baseY - (pos2 * 8);
+
+                const staffLines = [100, 84, 68, 52, 36];
+                const minY = Math.min(y1, y2);
+                const maxY = Math.max(y1, y2);
+                const svgMinY = Math.min(minY, 36) - 15;
+                const svgMaxY = Math.max(maxY, 100) + 15;
+                const svgH = svgMaxY - svgMinY;
+
+                let svg = `<svg width="${width}" height="${svgH}" viewBox="0 ${svgMinY} ${width} ${svgH}">`;
+                staffLines.forEach(ly => {
+                    svg += `<line x1="10" y1="${ly}" x2="${width-10}" y2="${ly}" stroke="#aaa" stroke-width="1.5"/>`;
+                });
+
+                // Hilfslinien
+                if (maxY > 100) for (let ly = 116; ly <= maxY; ly += 16) svg += `<line x1="${width/2-15}" y1="${ly}" x2="${width/2+15}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
+                if (minY < 36) for (let ly = 20; ly >= minY; ly -= 16) svg += `<line x1="${width/2-15}" y1="${ly}" x2="${width/2+15}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
+
+                const cx = width / 2;
+
+                // Vorzeichen
+                const hasSharp2 = finalTargetName.includes('is');
+                const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
+                    (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
+                if (hasSharp2) svg += `<text x="${cx-28}" y="${y2+9}" font-size="28" font-family="serif">♯</text>`;
+                if (hasFlat2) svg += `<text x="${cx-28}" y="${y2+7}" font-size="26" font-family="serif">♭</text>`;
+
+                // Notenköpfe (bei Prime/Sekunde horizontal versetzen)
+                const tooClose = Math.abs(y1 - y2) < 10;
+                const cx1 = tooClose ? cx - 9 : cx;
+                const cx2 = tooClose ? cx + 9 : cx;
+                svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
+                svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
+                svg += '</svg>';
+                return svg;
+            },
+
+            // ---- Komplement-Staff: 3 Noten (Basis + oberer Ton + Oktave) auf einem System ----
+            renderKomplementStaff() {
+                const width = 240;
+                // Beispiel: große Terz (4 HT) + kleine Sexte (8 HT) = Oktave
+                // Basis: f', Oberer Ton: a' (große Terz), Oktave: f''
+                const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                const baseName = 'F';
+                const baseOctave = 'eingestrichen';
+                const midName = 'A'; // große Terz über f'
+                const midOctave = 'eingestrichen';
+                const topName = 'F'; // Oktave
+                const topOctave = 'zweigestrichen';
+
+                const pos1 = this.notePositions[`${baseName}-${baseOctave}-treble`];
+                const pos2 = this.notePositions[`${midName}-${midOctave}-treble`];
+                const pos3 = this.notePositions[`${topName}-${topOctave}-treble`];
+                if (pos1 === undefined || pos2 === undefined || pos3 === undefined) return '';
+
+                const baseY = 100;
+                const y1 = baseY - (pos1 * 8);
+                const y2 = baseY - (pos2 * 8);
+                const y3 = baseY - (pos3 * 8);
+
+                const staffLines = [100, 84, 68, 52, 36];
+                const minY = Math.min(y1, y2, y3);
+                const maxY = Math.max(y1, y2, y3);
+                const svgMinY = Math.min(minY, 36) - 35;
+                const svgMaxY = Math.max(maxY, 100) + 40;
+                const svgH = svgMaxY - svgMinY;
+
+                let svg = `<svg width="${width}" height="${svgH}" viewBox="0 ${svgMinY} ${width} ${svgH}">`;
+                staffLines.forEach(ly => {
+                    svg += `<line x1="15" y1="${ly}" x2="${width-15}" y2="${ly}" stroke="#aaa" stroke-width="1.5"/>`;
+                });
+
+                // Hilfslinien
+                if (maxY > 100) for (let ly = 116; ly <= maxY; ly += 16) svg += `<line x1="${width/2-20}" y1="${ly}" x2="${width/2+20}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
+                if (minY < 36) for (let ly = 20; ly >= minY; ly -= 16) svg += `<line x1="${width/2-20}" y1="${ly}" x2="${width/2+20}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
+
+                // 3 Notenköpfe horizontal verteilt
+                const cx1 = 55, cx2 = 120, cx3 = 185;
+                svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
+                svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
+                svg += `<ellipse cx="${cx3}" cy="${y3}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx3} ${y3})"/>`;
+
+                // Klammern/Labels unter den Noten
+                const bracketY = maxY + 18;
+                // Klammer 1: Basis → Mitte = g3 (4 HT)
+                svg += `<line x1="${cx1}" y1="${bracketY}" x2="${cx2}" y2="${bracketY}" stroke="#ea580c" stroke-width="2"/>`;
+                svg += `<line x1="${cx1}" y1="${bracketY-4}" x2="${cx1}" y2="${bracketY+4}" stroke="#ea580c" stroke-width="2"/>`;
+                svg += `<line x1="${cx2}" y1="${bracketY-4}" x2="${cx2}" y2="${bracketY+4}" stroke="#ea580c" stroke-width="2"/>`;
+                svg += `<text x="${(cx1+cx2)/2}" y="${bracketY+15}" text-anchor="middle" font-size="11" fill="#9a3412" font-weight="600">g3 (4 HT)</text>`;
+
+                // Klammer 2: Mitte → Oben = k6 (8 HT)
+                svg += `<line x1="${cx2}" y1="${bracketY}" x2="${cx3}" y2="${bracketY}" stroke="#3b82f6" stroke-width="2"/>`;
+                svg += `<line x1="${cx3}" y1="${bracketY-4}" x2="${cx3}" y2="${bracketY+4}" stroke="#3b82f6" stroke-width="2"/>`;
+                svg += `<text x="${(cx2+cx3)/2}" y="${bracketY+15}" text-anchor="middle" font-size="11" fill="#1e40af" font-weight="600">k6 (8 HT)</text>`;
+
+                // Klammer über alle: Oktave (12 HT)
+                const topBracketY = minY - 12;
+                svg += `<line x1="${cx1}" y1="${topBracketY}" x2="${cx3}" y2="${topBracketY}" stroke="#6b7280" stroke-width="1.5"/>`;
+                svg += `<line x1="${cx1}" y1="${topBracketY-4}" x2="${cx1}" y2="${topBracketY+4}" stroke="#6b7280" stroke-width="1.5"/>`;
+                svg += `<line x1="${cx3}" y1="${topBracketY-4}" x2="${cx3}" y2="${topBracketY+4}" stroke="#6b7280" stroke-width="1.5"/>`;
+                svg += `<text x="${(cx1+cx3)/2}" y="${topBracketY-6}" text-anchor="middle" font-size="11" fill="#4b5563" font-weight="600">Oktave (12 HT)</text>`;
+
+                svg += '</svg>';
+                return `<div style="text-align:center;background:white;border-radius:8px;padding:8px">${svg}</div>
+                    <div style="text-align:center;font-size:0.82rem;color:#6b7280;margin-top:6px">4 + 8 = 12 HT — groß ↔ klein</div>`;
+            },
+
+            // ---- generateIntervalForTask: Erzeugt ein passendes Intervall für int4-Aufgaben ----
+            generateIntervalForTask(targetSemitones, intervalSize) {
+                const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                const octaves = ['klein', 'eingestrichen', 'zweigestrichen'];
+                const clef = 'treble';
+
+                // Zufälligen Basiston wählen
+                const baseIdx = Math.floor(Math.random() * noteNames.length);
+                const baseName = noteNames[baseIdx];
+                const baseOctave = 'eingestrichen';
+
+                // Zielton berechnen
+                const steps = intervalSize - 1;
+                const targetIdx = (baseIdx + steps) % 7;
+                const targetName = noteNames[targetIdx];
+                const octaveSteps = Math.floor((baseIdx + steps) / 7);
+                const allOctaves = ['kontra', 'gross', 'klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+                const baseOctIdx = allOctaves.indexOf(baseOctave);
+                const targetOctave = allOctaves[baseOctIdx + octaveSteps] || 'zweigestrichen';
+
+                // Vorzeichen berechnen
+                const naturalST = this.calculateNaturalSemitones(baseName, baseOctave, targetName, targetOctave);
+                const diff = targetSemitones - naturalST;
+
+                let finalTarget = targetName;
+                if (diff === 1) finalTarget = targetName + 'is';
+                else if (diff === -1) {
+                    if (targetName === 'H') finalTarget = 'B';
+                    else if (targetName === 'E') finalTarget = 'Es';
+                    else if (targetName === 'A') finalTarget = 'As';
+                    else finalTarget = targetName + 'es';
+                } else if (diff === 2) finalTarget = targetName + 'isis';
+                else if (diff === -2) finalTarget = targetName + 'eses';
+                // diff === 0: kein Vorzeichen nötig
+
+                this.currentInterval = {
+                    note1: { name: baseName, octave: baseOctave, clef },
+                    note2: { name: finalTarget, octave: targetOctave, clef },
+                    size: intervalSize,
+                    quality: null, // wird von Task-Logik gesetzt
+                    semitones: targetSemitones,
+                    displayMode: 'harmonic'
+                };
+
+                this.updateUI();
+                this.drawStaff();
+                this.renderKeyboard();
+            },
+
+            // ---- int4-Aufgabengenerierung ----
+            // Intervall-Pools für int4
+            int4Pools: {
+                rein: [
+                    { quality: 'rein', size: 1, ht: 0, label: 'reine Prime', short: 'r1' },
+                    { quality: 'rein', size: 4, ht: 5, label: 'reine Quarte', short: 'r4' },
+                    { quality: 'rein', size: 5, ht: 7, label: 'reine Quinte', short: 'r5' },
+                    { quality: 'rein', size: 8, ht: 12, label: 'reine Oktave', short: 'r8' }
+                ],
+                grossklein: [
+                    { quality: 'klein', size: 2, ht: 1, label: 'kleine Sekunde', short: 'k2' },
+                    { quality: 'groß', size: 2, ht: 2, label: 'große Sekunde', short: 'g2' },
+                    { quality: 'klein', size: 3, ht: 3, label: 'kleine Terz', short: 'k3' },
+                    { quality: 'groß', size: 3, ht: 4, label: 'große Terz', short: 'g3' }
+                ],
+                // Sexten/Septimen kommen erst ab komplement dazu (Cascade)
+                sextenseptimen: [
+                    { quality: 'klein', size: 6, ht: 8, label: 'kleine Sexte', short: 'k6' },
+                    { quality: 'groß', size: 6, ht: 9, label: 'große Sexte', short: 'g6' },
+                    { quality: 'klein', size: 7, ht: 10, label: 'kleine Septime', short: 'k7' },
+                    { quality: 'groß', size: 7, ht: 11, label: 'große Septime', short: 'g7' }
+                ],
+                kontrastpaare: [
+                    { ht: 0, a: { quality: 'rein', size: 1, label: 'r1' }, b: { quality: 'vermindert', size: 2, label: 'v2' } },
+                    { ht: 1, a: { quality: 'übermäßig', size: 1, label: 'ü1' }, b: { quality: 'klein', size: 2, label: 'k2' } },
+                    { ht: 2, a: { quality: 'groß', size: 2, label: 'g2' }, b: { quality: 'vermindert', size: 3, label: 'v3' } },
+                    { ht: 3, a: { quality: 'übermäßig', size: 2, label: 'ü2' }, b: { quality: 'klein', size: 3, label: 'k3' } },
+                    { ht: 4, a: { quality: 'groß', size: 3, label: 'g3' }, b: { quality: 'vermindert', size: 4, label: 'v4' } },
+                    { ht: 5, a: { quality: 'übermäßig', size: 3, label: 'ü3' }, b: { quality: 'rein', size: 4, label: 'r4' } },
+                    { ht: 6, a: { quality: 'übermäßig', size: 4, label: 'ü4' }, b: { quality: 'vermindert', size: 5, label: 'v5' } },
+                    { ht: 7, a: { quality: 'rein', size: 5, label: 'r5' }, b: { quality: 'vermindert', size: 6, label: 'v6' } },
+                    { ht: 8, a: { quality: 'übermäßig', size: 5, label: 'ü5' }, b: { quality: 'klein', size: 6, label: 'k6' } },
+                    { ht: 9, a: { quality: 'groß', size: 6, label: 'g6' }, b: { quality: 'vermindert', size: 7, label: 'v7' } },
+                    { ht: 10, a: { quality: 'übermäßig', size: 6, label: 'ü6' }, b: { quality: 'klein', size: 7, label: 'k7' } },
+                    { ht: 11, a: { quality: 'groß', size: 7, label: 'g7' }, b: { quality: 'vermindert', size: 8, label: 'v8' } },
+                    { ht: 12, a: { quality: 'rein', size: 8, label: 'r8' }, b: { quality: 'übermäßig', size: 7, label: 'ü7' } }
+                ],
+                komplementMap: {
+                    'r1': { ht: 12, label: 'r8', quality: 'rein', size: 8 },
+                    'r8': { ht: 0, label: 'r1', quality: 'rein', size: 1 },
+                    'k2': { ht: 11, label: 'g7', quality: 'groß', size: 7 },
+                    'g2': { ht: 10, label: 'k7', quality: 'klein', size: 7 },
+                    'k3': { ht: 9, label: 'g6', quality: 'groß', size: 6 },
+                    'g3': { ht: 8, label: 'k6', quality: 'klein', size: 6 },
+                    'r4': { ht: 7, label: 'r5', quality: 'rein', size: 5 },
+                    'r5': { ht: 5, label: 'r4', quality: 'rein', size: 4 },
+                    'k6': { ht: 4, label: 'g3', quality: 'groß', size: 3 },
+                    'g6': { ht: 3, label: 'k3', quality: 'klein', size: 3 },
+                    'k7': { ht: 2, label: 'g2', quality: 'groß', size: 2 },
+                    'g7': { ht: 1, label: 'k2', quality: 'klein', size: 2 }
+                }
+            },
+
+            _lastInt4Key: null,
+
+            generateInt4Task() {
+                const opts = quickStart.currentOptions || [];
+                const currentSub = opts[opts.length - 1] || 'rein';
+                const sizeNames = { 1: 'Prime', 2: 'Sekunde', 3: 'Terz', 4: 'Quarte', 5: 'Quinte', 6: 'Sexte', 7: 'Septime', 8: 'Oktave' };
+
+                // Reset validation state
+                this.validationState = {
+                    hasBeenChecked: false,
+                    semitones: null,
+                    intervalName: null,
+                    keyboard: null,
+                    allCorrect: false
+                };
+
+                let pool = [];
+                let taskType, chosen, direction;
+
+                if (currentSub === 'rein') {
+                    pool = this.int4Pools.rein;
+                    taskType = 'bidirektional';
+                } else if (currentSub === 'grossklein') {
+                    // Cascade: rein + grossklein, gewichtet
+                    pool = [];
+                    this.int4Pools.rein.forEach(i => pool.push(i));
+                    this.int4Pools.grossklein.forEach(i => { pool.push(i); pool.push(i); pool.push(i); }); // 3× Gewichtung
+                    taskType = 'bidirektional';
+                } else if (currentSub === 'komplement') {
+                    const keys = Object.keys(this.int4Pools.komplementMap);
+                    const key = keys[Math.floor(Math.random() * keys.length)];
+                    const komplement = this.int4Pools.komplementMap[key];
+                    // Finde das Quell-Intervall (inkl. Sexten/Septimen, die ab komplement dazukommen)
+                    const allIntervals = [...this.int4Pools.rein, ...this.int4Pools.grossklein, ...this.int4Pools.sextenseptimen];
+                    const source = allIntervals.find(i => i.short === key);
+                    if (source) {
+                        this.generateIntervalForTask(source.ht, source.size);
+                        this._int4Task = {
+                            type: 'komplement',
+                            source: source,
+                            answer: komplement,
+                            answerHT: komplement.ht,
+                            answerLabel: komplement.label
+                        };
+                        const taskArea = document.getElementById('int4TaskArea');
+                        if (taskArea) {
+                            const fullLabel = source.label;
+                            taskArea.innerHTML = `<div class="int4-ht">${fullLabel} (${source.ht} HT)</div>
+                                <div class="int4-rahmen">Wie heißt das Komplementärintervall? Gib HT-Zahl und Intervallname ein.</div>`;
+                        }
+                        // Inputs zurücksetzen
+                        const si = document.getElementById('semitonesInput'); if (si) si.value = '';
+                        const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
+                        return;
+                    }
+                } else if (currentSub === 'augdim') {
+                    const pairs = this.int4Pools.kontrastpaare;
+                    const pair = pairs[Math.floor(Math.random() * pairs.length)];
+                    const side = Math.random() < 0.5 ? 'a' : 'b';
+                    const answer = pair[side];
+                    const rahmen = sizeNames[answer.size];
+
+                    // Anti-Wiederholung
+                    const key = `${pair.ht}-${side}`;
+                    if (key === this._lastInt4Key && pairs.length > 1) {
+                        return this.generateInt4Task(); // Retry
+                    }
+                    this._lastInt4Key = key;
+
+                    this.generateIntervalForTask(pair.ht, answer.size);
+                    this._int4Task = {
+                        type: 'augdim',
+                        ht: pair.ht,
+                        rahmen: rahmen,
+                        answer: answer,
+                        answerLabel: answer.label
+                    };
+                    const taskArea = document.getElementById('int4TaskArea');
+                    if (taskArea) {
+                        taskArea.innerHTML = `<div class="int4-ht">${pair.ht} Halbtonschritte</div>
+                            <div class="int4-rahmen">Rahmenintervall: <strong>${rahmen}</strong></div>
+                            <div style="font-size:0.9rem;color:#6b7280;margin-top:4px">Wie lautet die Feinbestimmung?</div>`;
+                    }
+                    const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
+                    return;
+                } else if (currentSub === 'alles') {
+                    // Gemischt: zufällig einen Typ wählen
+                    const types = ['bidirektional', 'bidirektional', 'komplement', 'augdim', 'augdim', 'augdim'];
+                    const randomType = types[Math.floor(Math.random() * types.length)];
+                    // Temporär den Sub-Skill für den gewählten Typ simulieren
+                    const subMap = { 'bidirektional': 'grossklein', 'komplement': 'komplement', 'augdim': 'augdim' };
+                    const origOpts = [...quickStart.currentOptions];
+                    quickStart.currentOptions = [subMap[randomType]];
+                    this.generateInt4Task();
+                    quickStart.currentOptions = origOpts;
+                    return;
+                }
+
+                // Bidirektionale Aufgabe (rein, grossklein)
+                if (taskType === 'bidirektional') {
+                    chosen = pool[Math.floor(Math.random() * pool.length)];
+                    direction = Math.random() < 0.5 ? 'htToName' : 'nameToHt';
+
+                    // Anti-Wiederholung
+                    const key = `${chosen.short}-${direction}`;
+                    if (key === this._lastInt4Key && pool.length > 2) {
+                        return this.generateInt4Task(); // Retry
+                    }
+                    this._lastInt4Key = key;
+
+                    this.generateIntervalForTask(chosen.ht, chosen.size);
+                    this._int4Task = {
+                        type: 'bidirektional',
+                        direction: direction,
+                        interval: chosen
+                    };
+
+                    const taskArea = document.getElementById('int4TaskArea');
+                    const label = document.getElementById('int4InputLabel');
+                    const input = document.getElementById('intervalInput');
+
+                    if (direction === 'htToName') {
+                        if (taskArea) taskArea.innerHTML = `<div class="int4-ht">${chosen.ht} Halbtonschritte</div>
+                            <div class="int4-rahmen">Wie heißt das Intervall mit ${chosen.ht} Halbtonschritten?</div>`;
+                        if (label) label.textContent = 'Intervallname';
+                        if (input) { input.placeholder = 'z.B. reine Quinte, r5'; input.type = 'text'; input.value = ''; }
+                    } else {
+                        if (taskArea) taskArea.innerHTML = `<div class="int4-ht">${chosen.label}</div>
+                            <div class="int4-rahmen">Wie viele Halbtonschritte hat eine ${chosen.label}?</div>`;
+                        if (label) label.textContent = 'Halbtonschritte';
+                        if (input) { input.placeholder = 'z.B. 7'; input.type = 'number'; input.min = '0'; input.max = '12'; input.value = ''; }
+                    }
+                }
+            },
+
+            // ---- int4 checkAnswer ----
+            checkInt4Answer() {
+                const task = this._int4Task;
+                if (!task) return;
+                // Verhindere doppeltes Prüfen nach korrekter Antwort (während 600ms Timeout)
+                if (this.validationState.allCorrect) return;
+
+                const qualityShorts = { 'r': 'rein', 'g': 'groß', 'k': 'klein', 'ü': 'übermäßig', 'v': 'vermindert' };
+                const sizeNames = { 1: 'prime', 2: 'sekunde', 3: 'terz', 4: 'quarte', 5: 'quinte', 6: 'sexte', 7: 'septime', 8: 'oktave' };
+
+                const parseInput = (val) => {
+                    val = val.trim().toLowerCase();
+                    // Kurzform: r5, g3, k2, ü4, v5
+                    const shortMatch = val.match(/^([rgküv])(\d+)$/);
+                    if (shortMatch) {
+                        const q = qualityShorts[shortMatch[1]];
+                        const s = parseInt(shortMatch[2]);
+                        return { quality: q, size: s };
+                    }
+                    // Langform: "reine quinte", "große terz", etc.
+                    const longMatch = val.match(/^(rein[e]?|gro[sß][e]?|klein[e]?|übermä[sß]ig[e]?|vermindert[e]?)\s+(.+)$/);
+                    if (longMatch) {
+                        let q = longMatch[1].replace(/e$/, '');
+                        if (q === 'groß' || q === 'gross') q = 'groß';
+                        if (q === 'übermässig') q = 'übermäßig';
+                        const name = longMatch[2];
+                        for (const [s, names] of Object.entries(this.intervalNames)) {
+                            if (names.some(n => name.startsWith(n))) return { quality: q, size: parseInt(s) };
+                        }
+                    }
+                    return null;
+                };
+
+                let isCorrect = false;
+                let feedback = '';
+
+                if (task.type === 'bidirektional') {
+                    const input = document.getElementById('intervalInput');
+                    if (!input || !input.value.trim()) return;
+
+                    if (task.direction === 'htToName') {
+                        const parsed = parseInput(input.value);
+                        isCorrect = parsed && parsed.quality === task.interval.quality &&
+                            parsed.size === task.interval.size;
+                        feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.label}`;
+                    } else {
+                        const val = parseInt(input.value.trim());
+                        isCorrect = val === task.interval.ht;
+                        feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.ht} HT`;
+                    }
+
+                    input.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                    input.classList.add(isCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
+                    const st = document.getElementById('intervalInputStatus');
+                    if (st) { st.className = `input-status-icon ${isCorrect ? 'correct' : 'incorrect'}`; st.textContent = isCorrect ? '✓' : '✗'; }
+
+                } else if (task.type === 'komplement') {
+                    const htInput = document.getElementById('semitonesInput');
+                    const nameInput = document.getElementById('intervalInput');
+                    if (!htInput || !nameInput) return;
+                    if (!htInput.value.trim() && !nameInput.value.trim()) return;
+
+                    const htCorrect = parseInt(htInput.value.trim()) === task.answerHT;
+                    const parsed = parseInput(nameInput.value);
+                    const nameCorrect = parsed && parsed.quality === task.answer.quality && parsed.size === task.answer.size;
+                    isCorrect = htCorrect && nameCorrect;
+
+                    htInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                    htInput.classList.add(htCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
+                    nameInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                    nameInput.classList.add(nameCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
+
+                    const stHT = document.getElementById('semitonesInputStatus');
+                    if (stHT) { stHT.className = `input-status-icon ${htCorrect ? 'correct' : 'incorrect'}`; stHT.textContent = htCorrect ? '✓' : '✗'; }
+                    const stName = document.getElementById('intervalInputStatus');
+                    if (stName) { stName.className = `input-status-icon ${nameCorrect ? 'correct' : 'incorrect'}`; stName.textContent = nameCorrect ? '✓' : '✗'; }
+
+                    feedback = isCorrect ? '' : `Richtig wäre: ${task.answerHT} HT, ${task.answerLabel}`;
+
+                } else if (task.type === 'augdim') {
+                    const input = document.getElementById('intervalInput');
+                    if (!input || !input.value.trim()) return;
+
+                    const parsed = parseInput(input.value);
+                    isCorrect = parsed && parsed.quality === task.answer.quality && parsed.size === task.answer.size;
+                    feedback = isCorrect ? '' : `Richtig wäre: ${task.answerLabel}`;
+
+                    input.classList.remove('input-validated-correct', 'input-validated-incorrect');
+                    input.classList.add(isCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
+                    const st = document.getElementById('intervalInputStatus');
+                    if (st) { st.className = `input-status-icon ${isCorrect ? 'correct' : 'incorrect'}`; st.textContent = isCorrect ? '✓' : '✗'; }
+                }
+
+                // Quiz-Zählung: Nur beim ersten Prüfen einer Aufgabe zählen
+                if (!this.validationState.hasBeenChecked) {
+                    this.validationState.hasBeenChecked = true;
+                    if (quickStart.isActive) {
+                        quickStart.questionsAnswered++;
+                        if (isCorrect) quickStart.questionsCorrect++;
+                        quickStart.updateQuizOverlay();
+                    }
+                }
+                this.validationState.allCorrect = isCorrect;
+
+                if (isCorrect) {
+                    // Nächste Aufgabe nach kurzer Pause
+                    setTimeout(() => {
+                        if (quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions) {
+                            quickStart.finishQuiz();
+                        } else {
+                            this.generateInt4Task();
+                        }
+                    }, 600);
+                } else {
+                    // Fehlerfeedback — Aufgabe bleibt (User korrigiert)
+                    const feedbackEl = document.getElementById('int4TaskArea');
+                    if (feedbackEl && feedback) {
+                        const existingFB = feedbackEl.querySelector('.int4-feedback');
+                        if (existingFB) existingFB.remove();
+                        feedbackEl.insertAdjacentHTML('beforeend',
+                            `<div class="int4-feedback" style="margin-top:8px;color:#dc2626;font-size:0.88rem;font-weight:500">⚠️ Prüfe nochmal. ${feedback}</div>`);
+                    }
+                }
+            },
+
             drawStaff() {
                 const note1 = this.currentInterval.note1;
                 const note2 = this.currentInterval.note2;
@@ -3265,26 +4112,23 @@
                 // Keyboard immer rendern (auch als Orientierung bei requireKeyboard=false)
                 if (!this.currentInterval) return;
 
-                // Verwende gespeicherte Größen statt window.innerWidth/Height
-                const isMobilePortrait = this.keyboardSizes.width <= 768 && this.keyboardSizes.isPortrait;
-                const isMobileLandscape = this.keyboardSizes.width <= 768 && !this.keyboardSizes.isPortrait;
-                const isDesktopCompact = this.keyboardSizes.width > 768 && this.keyboardSizes.height <= 900;
-                
-                let whiteKeyWidth, blackKeyWidth;
-                
-                if (isMobilePortrait) {
-                    whiteKeyWidth = 35;
-                    blackKeyWidth = 22;
-                } else if (isMobileLandscape) {
-                    whiteKeyWidth = 45;
-                    blackKeyWidth = 28;
-                } else if (isDesktopCompact) {
-                    whiteKeyWidth = 50;
-                    blackKeyWidth = 32;
+                // Dynamische Tastenbreite aus Container-Höhe berechnen
+                const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                let containerHeight;
+                if (window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches) {
+                    containerHeight = 9 * rem;
+                } else if (window.matchMedia('(orientation: landscape) and (max-height: 1100px)').matches) {
+                    containerHeight = 10 * rem;
+                } else if (window.matchMedia('(min-width: 769px) and (max-height: 900px)').matches) {
+                    containerHeight = 9 * rem;
                 } else {
-                    whiteKeyWidth = 60;
-                    blackKeyWidth = 36;
+                    containerHeight = 14 * rem;
                 }
+                const whiteKeyWidth = Math.round(containerHeight * 0.268);
+                const blackKeyWidth = Math.round(containerHeight * 0.161);
+
+                const isMobilePortrait = window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
+                const isMobileLandscape = window.matchMedia('(max-width: 768px) and (orientation: landscape)').matches;
                 
                 const semitoneMap = { 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'H': 11 };
                 const octaveValues = { 'kontra': 0, 'gross': 12, 'klein': 24, 'eingestrichen': 36, 'zweigestrichen': 48, 'dreigestrichen': 60 };
@@ -3372,8 +4216,8 @@
                 }
                 if (kbHint) {
                     kbHint.textContent = isClickable
-                        ? '🎹 Klicke die beiden Töne des Intervalls!'
-                        : '🎹 Tastatur zur Orientierung';
+                        ? 'Klicke die beiden Töne des Intervalls!'
+                        : 'Tastatur zur Orientierung';
                     kbHint.style.fontWeight = isClickable ? '600' : '400';
                     kbHint.style.color = isClickable ? '#ea580c' : '#6b7280';
                 }
@@ -3727,8 +4571,12 @@
                     this.checkProfiAnswer();
                     return;
                 }
-                
-                // MULTI-INPUT VALIDIERUNG mit GESTUFTER ABFRAGE
+                if (this.quickStartMode === 'meister') {
+                    this.checkInt4Answer();
+                    return;
+                }
+
+                // MULTI-INPUT VALIDIERUNG mit GESTUFTER ABFRAGE (experte + freies Üben)
 
                 // Mobile: Tastatur schließen
                 if (window.innerWidth <= 768) {
@@ -4535,7 +5383,7 @@
                     const level = quickStart.currentLevel;
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
-                    const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung' };
+                    const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert' };
                     const nodeName = nodeNames[nodeId] || '';
 
                     titleEl.textContent = `Hilfe: ${nodeName}`;
@@ -4571,21 +5419,25 @@
                                 <p>Zähle die Halbtonschritte auch bei Noten im Bassschlüssel korrekt ab.</p>`
                         },
                         'meister': {
+                            'rein': `<p><strong>Reine Intervalle</strong></p>
+                                <p>Lerne die 4 Ankerpunkte: reine Prime (0 HT), reine Quarte (5 HT), reine Quinte (7 HT), reine Oktave (12 HT).</p>
+                                <p>Du bekommst abwechselnd HT-Zahlen oder Intervallnamen und gibst das Gegenstück ein.</p>`,
+                            'grossklein': `<p><strong>Große & kleine Intervalle</strong></p>
+                                <p>Sekunden, Terzen, Sexten und Septimen gibt es als große und kleine Variante. Sie leiten sich von den Ankerpunkten ab.</p>`,
+                            'komplement': `<p><strong>Komplementärintervalle</strong></p>
+                                <p>Zwei Intervalle ergänzen sich zu einer Oktave (12 HT). Du musst nur die Hälfte auswendig kennen!</p>
+                                <p><strong>Regeln:</strong> groß↔klein, rein↔rein, Summe = 12 HT.</p>`,
+                            'augdim': `<p><strong>Übermäßig & vermindert</strong></p>
+                                <p>Dieselbe HT-Zahl kann verschiedene Intervalle sein. Das Rahmenintervall entscheidet!</p>
+                                <p><strong>Beispiel:</strong> 6 HT mit Rahmenintervall Quarte → ü4, mit Quinte → v5.</p>`,
+                            'alles': `<p><strong>Alle Typen gemischt</strong></p>
+                                <p>Alle Aufgabentypen kommen vor: HT↔Name, Komplementäre, Disambiguierung.</p>`
+                        },
+                        'experte': {
                             'basis': `<p><strong>Grundbestimmung (rein, groß, klein)</strong></p>
                                 <p>Bestimme das Intervall mit seiner genauen Qualität: reine Quarte, große Terz, kleine Sexte usw.</p>
                                 <p><strong>Reine Intervalle:</strong> Prime, Quarte, Quinte, Oktave.</p>
-                                <p><strong>Große/Kleine:</strong> Sekunde, Terz, Sexte, Septime.</p>
-                                <p style="margin-top:0.75rem"><strong>Halbtonschritte als Orientierung:</strong></p>
-                                <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:0.25rem">
-                                <tr style="background:#f3f4f6"><th style="text-align:left;padding:3px 6px">Intervall</th><th style="padding:3px 6px">HT</th><th style="text-align:left;padding:3px 6px">Intervall</th><th style="padding:3px 6px">HT</th></tr>
-                                <tr><td style="padding:2px 6px">reine Prime</td><td style="text-align:center">0</td><td style="padding:2px 6px">reine Quinte</td><td style="text-align:center">7</td></tr>
-                                <tr><td style="padding:2px 6px">kleine Sekunde</td><td style="text-align:center">1</td><td style="padding:2px 6px">kleine Sexte</td><td style="text-align:center">8</td></tr>
-                                <tr><td style="padding:2px 6px">große Sekunde</td><td style="text-align:center">2</td><td style="padding:2px 6px">große Sexte</td><td style="text-align:center">9</td></tr>
-                                <tr><td style="padding:2px 6px">kleine Terz</td><td style="text-align:center">3</td><td style="padding:2px 6px">kleine Septime</td><td style="text-align:center">10</td></tr>
-                                <tr><td style="padding:2px 6px">große Terz</td><td style="text-align:center">4</td><td style="padding:2px 6px">große Septime</td><td style="text-align:center">11</td></tr>
-                                <tr><td style="padding:2px 6px">reine Quarte</td><td style="text-align:center">5</td><td style="padding:2px 6px">reine Oktave</td><td style="text-align:center">12</td></tr>
-                                <tr><td style="padding:2px 6px">Tritonus</td><td style="text-align:center">6</td><td style="padding:2px 6px"></td><td></td></tr>
-                                </table>`,
+                                <p><strong>Große/Kleine:</strong> Sekunde, Terz, Sexte, Septime.</p>`,
                             'augdim': `<p><strong>Mit übermäßig/vermindert</strong></p>
                                 <p>Zusätzlich kommen übermäßige und verminderte Intervalle vor. Ein übermäßiges Intervall ist einen Halbton größer, ein vermindertes einen Halbton kleiner als die Grundform.</p>`,
                             'extended': `<p><strong>Erweiterte Intervalle</strong></p>
@@ -4609,7 +5461,7 @@
                     contentEl.innerHTML = `
                         <p>Willkommen im <strong>Intervalltrainer</strong>! Hier lernst du Schritt für Schritt, Intervalle sicher zu erkennen und zu bestimmen.</p>
                         <p><strong>So funktioniert's:</strong></p>
-                        <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
+                        <p>Dein Lernpfad besteht aus fünf Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
                         <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
                         <p><strong>Voraussetzung:</strong> Grundlegende Notenkenntnisse (Notentrainer).</p>
                     `;
@@ -4707,18 +5559,13 @@ Gerät:
             
             document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
             
-            // Keyboard neu rendern bei Orientation-Change
+            // Resize handler: re-render keyboard on orientation/size change
+            let lastResizeWidth = window.innerWidth;
+            let lastResizeHeight = window.innerHeight;
             window.addEventListener('resize', () => {
-                // Update nur bei tatsächlichen Screen-Größenänderungen
-                const newIsPortrait = window.screen.width < window.screen.height;
-                if (app.keyboardSizes && 
-                    (app.keyboardSizes.width !== window.screen.width || 
-                     app.keyboardSizes.isPortrait !== newIsPortrait)) {
-                    app.keyboardSizes = {
-                        width: window.screen.width,
-                        height: window.screen.height,
-                        isPortrait: newIsPortrait
-                    };
+                if (window.innerWidth !== lastResizeWidth || window.innerHeight !== lastResizeHeight) {
+                    lastResizeWidth = window.innerWidth;
+                    lastResizeHeight = window.innerHeight;
                     app.renderKeyboard();
                 }
             });

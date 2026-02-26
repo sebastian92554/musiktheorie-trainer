@@ -894,48 +894,23 @@
             }
         }
 
-        /* Klaviatur */
-        .keyboard {
-            position: relative;
-            background: linear-gradient(to bottom, #d1d5db, #9ca3af);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            overflow-x: auto;
-        }
-
-        @media (max-width: 768px) {
-            .keyboard {
-                padding: 1rem;
-            }
-        }
-
-        @media (orientation: landscape) and (max-height: 1100px) {
-            .keyboard {
-                padding: 0.5rem;
-            }
-        }
+        /* Klaviatur (IT-Pattern) */
 
         .keyboard-container {
             position: relative;
-            height: 14rem;
             margin: 0 auto;
+            height: 14rem;
             min-width: fit-content;
-            padding-bottom: 25px;
         }
 
         @media (max-width: 768px) and (orientation: portrait) {
-            .keyboard-container {
-                height: 9rem;
-                padding-bottom: 20px;
-            }
+            .keyboard-container { height: 9rem; }
+            .keyboard-card { padding: 0.3rem; }
         }
 
         @media (orientation: landscape) and (max-height: 1100px) {
-            .keyboard-container {
-                height: 10rem;
-                padding-bottom: 20px;
-            }
+            .keyboard-container { height: 10rem; }
+            .keyboard-card { padding: 0.2rem; }
         }
 
         @media (min-width: 769px) and (max-height: 900px) {
@@ -953,11 +928,10 @@
         .white-key {
             flex: 1;
             background: white;
-            border: 2px solid #1f2937;
-            border-radius: 0 0 0.5rem 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0 0 6px 6px;
             cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background 0.15s;
         }
 
         .white-key:hover:not(:disabled) {
@@ -968,9 +942,6 @@
             background: #bfdbfe;
         }
 
-        .white-key:active:not(:disabled) {
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
 
         .white-key.selected {
             background: #bfdbfe !important;
@@ -982,6 +953,12 @@
             border-color: #16a34a !important;
         }
 
+        .white-key.validated-correct {
+            background: #22c55e !important;
+            border-color: #16a34a !important;
+            cursor: not-allowed;
+        }
+
         .white-key:disabled {
             cursor: default;
         }
@@ -991,45 +968,20 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 7rem;
+            height: 60%;
             pointer-events: none;
-        }
-
-        @media (max-width: 768px) and (orientation: portrait) {
-            .black-keys {
-                height: 5rem;
-            }
-        }
-
-        @media (orientation: landscape) and (max-height: 1100px) {
-            .black-keys {
-                height: 6rem;
-            }
         }
 
         .black-key {
             position: absolute;
             width: 36px;
-            height: 7rem;
+            height: 100%;
             background: #1f2937;
-            border: 2px solid #000;
-            border-radius: 0 0 0.375rem 0.375rem;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+            transition: background 0.15s;
             pointer-events: auto;
-        }
-
-        @media (max-width: 768px) and (orientation: portrait) {
-            .black-key {
-                height: 5rem;
-            }
-        }
-
-        @media (orientation: landscape) and (max-height: 1100px) {
-            .black-key {
-                height: 6rem;
-            }
         }
 
         .black-key:hover:not(:disabled) {
@@ -1040,9 +992,6 @@
             background: #3b82f6;
         }
 
-        .black-key:active:not(:disabled) {
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-        }
 
         .black-key.selected {
             background: #3b82f6 !important;
@@ -1054,24 +1003,52 @@
             border-color: #16a34a !important;
         }
 
+        .black-key.validated-correct {
+            background: #22c55e !important;
+            border-color: #16a34a !important;
+            cursor: not-allowed;
+        }
+
         .black-key:disabled {
             cursor: default;
         }
 
+        /* Klaviatur-Card (IT-Pattern) */
         .keyboard-card {
             display: none;
+            padding: 0.5rem;
+            overflow-x: auto;
+            max-width: 100%;
         }
 
         .keyboard-card.active {
             display: block;
-            overflow-x: auto;
         }
 
         .keyboard-hint {
-            font-size: 0.75rem;
-            color: #6b7280;
             text-align: center;
-            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .keyboard-card.keyboard-input .keyboard-hint {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        /* Keyboard View Only Mode */
+        .keyboard-view-only .white-key,
+        .keyboard-view-only .black-key {
+            cursor: default !important;
+            pointer-events: none;
+        }
+
+        .keyboard-card.keyboard-input {
+            border: 2px solid #4f46e5;
+        }
+        .keyboard-card.keyboard-viewonly {
+            opacity: 0.85;
         }
 
         /* ============================================= */
@@ -1459,7 +1436,7 @@
 
             <!-- Keyboard -->
             <div class="card keyboard-card" id="keyboardCard">
-                <div class="keyboard-hint" id="keyboardHint">🎹 Tastatur zur Orientierung</div>
+                <div class="keyboard-hint" id="keyboardHint">Tastaturhilfe</div>
                 <div id="keyboard"></div>
             </div>
 
@@ -2007,20 +1984,20 @@
                     app.settings.clef = 'treble';
                     app.settings.requireKeyboard = false;
                     app.settings.showCMarker = true;
-                    if (keyboardHint) keyboardHint.textContent = '🎹 Tastatur zur Orientierung';
+                    if (keyboardHint) keyboardHint.textContent = 'Tastaturhilfe';
 
                 } else if (level === 'aufsteiger') {
                     app.settings.clef = 'bass';
                     app.settings.requireKeyboard = false;
                     app.settings.showCMarker = true;
-                    if (keyboardHint) keyboardHint.textContent = '🎹 Tastatur zur Orientierung';
+                    if (keyboardHint) keyboardHint.textContent = 'Tastaturhilfe';
 
                 } else if (level === 'profi') {
                     app.settings.clef = 'both';
                     app.settings.requireKeyboard = true;
                     app.settings.requireOctave = false;
                     app.settings.showCMarker = true;
-                    if (keyboardHint) keyboardHint.textContent = '🎹 Klicke die richtige Taste!';
+                    if (keyboardHint) keyboardHint.textContent = 'Klicke an';
                 }
 
                 document.getElementById('clefSelect').value = app.settings.clef;
@@ -2744,44 +2721,25 @@
                     }
                 }
 
-                const isMobilePortrait = isPortrait;
-                const isMobileLandscape = window.innerWidth <= 768 && window.innerHeight <= window.innerWidth;
-                const isTabletLandscape = window.innerWidth > 768 && window.innerWidth <= 1024 && window.innerHeight <= window.innerWidth;
-                const isDesktopCompact = window.innerWidth > 1024 && window.innerHeight <= 900;
-                
-                let whiteKeyWidth, blackKeyWidth;
-                
-                // FIX #4: Schwarze Tasten = 58% der weißen Tasten
-                if (isMobilePortrait) {
-                    whiteKeyWidth = 42;
-                    blackKeyWidth = 24;  // 42 * 0.58 ≈ 24
-                } else if (isMobileLandscape) {
-                    whiteKeyWidth = 50;
-                    blackKeyWidth = 29;  // 50 * 0.58 = 29
-                } else if (isTabletLandscape) {
-                    whiteKeyWidth = 55;
-                    blackKeyWidth = 32;  // 55 * 0.58 ≈ 32
-                } else if (isDesktopCompact) {
-                    whiteKeyWidth = 50;
-                    blackKeyWidth = 29;  // 50 * 0.58 = 29
+                // Dynamische Tastenbreite aus Container-Höhe berechnen
+                const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                let containerHeight;
+                if (window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches) {
+                    containerHeight = 9 * rem;
+                } else if (window.matchMedia('(orientation: landscape) and (max-height: 1100px)').matches) {
+                    containerHeight = 10 * rem;
+                } else if (window.matchMedia('(min-width: 769px) and (max-height: 900px)').matches) {
+                    containerHeight = 9 * rem;
                 } else {
-                    whiteKeyWidth = 60;
-                    blackKeyWidth = 35;  // 60 * 0.58 ≈ 35
+                    containerHeight = 14 * rem;
                 }
-                
+                const whiteKeyWidth = Math.round(containerHeight * 0.268);
+                const blackKeyWidth = Math.round(containerHeight * 0.161);
+
+                const isMobilePortrait = window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
+                const isMobileLandscape = window.matchMedia('(max-width: 768px) and (orientation: landscape)').matches;
+
                 const gap = 2;
-
-                // Dynamische Skalierung: Nur auf Tablet/Desktop begrenzen
-                // Mobile: Keyboard darf breiter als Container sein (horizontal scrollbar via CSS overflow-x: auto)
-                if (!isMobilePortrait && !isMobileLandscape) {
-                    const maxKeyboardWidth = isTabletLandscape ? 700 : isDesktopCompact ? 800 : 1000;
-                    const rawWidth = whiteKeys.length * (whiteKeyWidth + gap) - gap;
-                    if (rawWidth > maxKeyboardWidth && whiteKeys.length > 0) {
-                        whiteKeyWidth = Math.floor((maxKeyboardWidth + gap) / whiteKeys.length) - gap;
-                        blackKeyWidth = Math.round(whiteKeyWidth * 0.58);
-                    }
-                }
-
                 const totalWidth = whiteKeys.length * (whiteKeyWidth + gap) - gap;
 
                 const feedbackEl = document.getElementById('feedback');
@@ -2835,9 +2793,8 @@
                             else if (pitch === 72) cLabel = "c''''";
 
                             const markerX = i * (whiteKeyWidth + gap) + whiteKeyWidth / 2;
-                            const fontSize = isMobilePortrait ? '0.65rem' : '0.95rem';
-                            const padding = isMobilePortrait ? '2px 3px' : '3px 5px';
-                            html += `<div style="position: absolute; bottom: 15%; left: ${markerX}px; transform: translateX(-50%); font-size: ${fontSize}; color: #4f46e5; font-weight: bold; background: rgba(255, 255, 255, 0.9); padding: ${padding}; border-radius: 4px; pointer-events: none;">${cLabel}</div>`;
+                            const cFontSize = isMobilePortrait ? '0.65rem' : (isMobileLandscape ? '0.8rem' : '0.95rem');
+                            html += `<div style="position:absolute; bottom:8%; left:${markerX}px; transform:translateX(-50%); font-size:${cFontSize}; color:#4f46e5; font-weight:bold; background:rgba(255,255,255,0.9); padding:2px 4px; border-radius:4px; pointer-events:none;">${cLabel}</div>`;
                         }
                     }
                 }
@@ -3429,13 +3386,32 @@
                 
                 const keyboardHint = document.getElementById('keyboardHint');
                 const keyboardCard = document.getElementById('keyboardCard');
+                const kbParent = document.getElementById('keyboard');
 
-                if (this.settings.requireKeyboard) {
-                    if (keyboardHint) keyboardHint.textContent = '🎹 Klicke die richtige Taste!';
-                    if (keyboardCard) keyboardCard.classList.add('active');
-                } else {
-                    if (keyboardHint) keyboardHint.textContent = '🎹 Tastatur zur Orientierung';
-                    if (keyboardCard) keyboardCard.classList.remove('active');
+                const isClickable = this.settings.requireKeyboard;
+
+                // keyboard-view-only Klasse synchron halten (IT-Pattern)
+                if (kbParent) {
+                    kbParent.classList.toggle('keyboard-view-only', !isClickable);
+                }
+
+                // Keyboard-Card visuell unterscheiden (IT-Pattern)
+                if (keyboardCard) {
+                    keyboardCard.classList.toggle('keyboard-input', isClickable);
+                    keyboardCard.classList.toggle('keyboard-viewonly', !isClickable);
+                }
+                if (keyboardHint) {
+                    keyboardHint.textContent = isClickable
+                        ? 'Klicke an'
+                        : 'Tastaturhilfe';
+                }
+
+                if (keyboardCard) {
+                    if (isClickable || this.settings.showCMarker) {
+                        keyboardCard.classList.add('active');
+                    } else {
+                        keyboardCard.classList.remove('active');
+                    }
                 }
             },
 

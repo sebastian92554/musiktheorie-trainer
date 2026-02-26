@@ -643,6 +643,22 @@
             min-width: fit-content;
         }
 
+        @media (max-width: 768px) and (orientation: portrait) {
+            .keyboard-container { height: 9rem; }
+            .keyboard-card { padding: 0.3rem; }
+        }
+
+        @media (orientation: landscape) and (max-height: 1100px) {
+            .keyboard-container { height: 10rem; }
+            .keyboard-card { padding: 0.2rem; }
+        }
+
+        @media (min-width: 769px) and (max-height: 900px) {
+            .keyboard-container {
+                height: 9rem;
+            }
+        }
+
         .white-keys {
             display: flex;
             gap: 2px;
@@ -652,15 +668,22 @@
         .white-key {
             flex: 1;
             background: white;
-            border: 2px solid #1f2937;
-            border-radius: 0 0 0.5rem 0.5rem;
-            position: relative;
-            cursor: default;
+            border: 1px solid #d1d5db;
+            border-radius: 0 0 6px 6px;
             transition: background 0.15s;
         }
 
-        .white-key.clickable { cursor: pointer; }
-        .white-key.clickable:hover { background: #f3f4f6; }
+        .white-key:hover:not(.disabled) {
+            background: #f3f4f6;
+        }
+
+        .white-key.clickable {
+            cursor: pointer;
+        }
+
+        .white-key:not(.clickable) {
+            cursor: default;
+        }
 
         .white-key.selected {
             background: #bfdbfe !important;
@@ -687,30 +710,41 @@
             top: 0;
             left: 0;
             right: 0;
+            height: 60%;
             pointer-events: none;
         }
 
         .black-key {
-            height: 8rem;
-            background: #1f2937;
-            border: 2px solid #000;
-            border-radius: 0 0 4px 4px;
             position: absolute;
-            cursor: default;
-            pointer-events: auto;
-            z-index: 2;
+            width: 36px;
+            height: 100%;
+            background: #1f2937;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             transition: background 0.15s;
+            pointer-events: auto;
         }
 
-        .black-key.clickable { cursor: pointer; }
-        .black-key.clickable:hover { background: #4b5563; }
+        .black-key.clickable {
+            cursor: pointer;
+        }
+
+        .black-key:not(.clickable) {
+            cursor: default;
+        }
+
+        .black-key:hover:not(.disabled) {
+            background: #4b5563;
+        }
 
         .black-key.selected {
             background: #3b82f6 !important;
+            border-color: #1e40af;
         }
 
         .black-key.correct {
             background: #22c55e !important;
+            border-color: #16a34a !important;
         }
 
         .black-key.wrong {
@@ -719,22 +753,14 @@
 
         .black-key.validated-correct {
             background: #22c55e !important;
+            border-color: #16a34a !important;
         }
 
-        @media (max-width: 768px) and (orientation: portrait) {
-            .keyboard-container { height: 9rem; }
-            .black-key { height: 5rem; }
-            .keyboard-card { padding: 0.3rem; }
-        }
-
-        @media (orientation: landscape) and (max-height: 1100px) {
-            .keyboard-container { height: 10rem; }
-            .black-key { height: 6rem; }
-            .keyboard-card { padding: 0.2rem; }
-        }
-
-        @media (min-width: 769px) and (max-height: 900px) {
-            .keyboard-container { height: 9rem; }
+        /* Keyboard View Only Mode */
+        .keyboard-view-only .white-key,
+        .keyboard-view-only .black-key {
+            cursor: default !important;
+            pointer-events: none;
         }
 
         /* Dynamische Input-Styles */
@@ -1738,7 +1764,7 @@
 
             <!-- Keyboard (volle Breite) -->
             <div class="card keyboard-card" id="keyboardCard">
-                <div class="keyboard-hint" id="keyboardHint">🎹 Tastatur zur Orientierung</div>
+                <div class="keyboard-hint" id="keyboardHint">Tastaturhilfe</div>
                 <div id="keyboardContainer"></div>
             </div>
 
@@ -4014,26 +4040,23 @@
                     console.log('cardEl.clientWidth:', container.parentElement?.clientWidth);
                 }
 
-                if (!this.keyboardSizes) {
-                    this.keyboardSizes = {
-                        width: window.screen.width,
-                        height: window.screen.height,
-                        isPortrait: window.screen.width < window.screen.height
-                    };
+                // Dynamische Tastenbreite aus Container-Höhe berechnen
+                const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                let containerHeight;
+                if (window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches) {
+                    containerHeight = 9 * rem;
+                } else if (window.matchMedia('(orientation: landscape) and (max-height: 1100px)').matches) {
+                    containerHeight = 10 * rem;
+                } else if (window.matchMedia('(min-width: 769px) and (max-height: 900px)').matches) {
+                    containerHeight = 9 * rem;
+                } else {
+                    containerHeight = 14 * rem;
                 }
-                const ks = this.keyboardSizes;
-                const isMobilePortrait = ks.width <= 768 && ks.isPortrait;
-                const isMobileLandscape = ks.width <= 768 && !ks.isPortrait;
-                const isTabletLandscape = ks.width > 768 && ks.width <= 1024 && !ks.isPortrait;
-                const isDesktopCompact = ks.width > 1024 && ks.height <= 900;
+                const whiteKeyWidth = Math.round(containerHeight * 0.268);
+                const blackKeyWidth = Math.round(containerHeight * 0.161);
 
-                // Tastenbreiten: Schwarze Tasten = 58% der weißen (wie Notentrainer)
-                let whiteKeyWidth, blackKeyWidth;
-                if (isMobilePortrait) { whiteKeyWidth = 42; blackKeyWidth = 24; }
-                else if (isMobileLandscape) { whiteKeyWidth = 50; blackKeyWidth = 29; }
-                else if (isTabletLandscape) { whiteKeyWidth = 55; blackKeyWidth = 32; }
-                else if (isDesktopCompact) { whiteKeyWidth = 50; blackKeyWidth = 29; }
-                else { whiteKeyWidth = 60; blackKeyWidth = 35; }
+                const isMobilePortrait = window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
+                const isMobileLandscape = window.matchMedia('(max-width: 768px) and (orientation: landscape)').matches;
                 const gap = 2;
 
                 // Helper: Note+Octave → MIDI
@@ -4136,8 +4159,8 @@
                 }
                 if (kbHint) {
                     kbHint.textContent = isClickable
-                        ? '🎹 Klicke die 3 Töne des Dreiklangs'
-                        : '🎹 Tastatur zur Orientierung';
+                        ? 'Klicke an'
+                        : 'Tastaturhilfe';
                 }
                 // Pitch-Klassen für oktav-unabhängige Korrekt-Markierung
                 const chordPCs = chordMidis.map(m => ((m % 12) + 12) % 12);
@@ -4171,7 +4194,7 @@
                     const isWrong = showCorrect && isSel && !chordPCs.includes(bkPC);
                     const cls = 'black-key' + (isClickable ? ' clickable' : '') + (isSel ? ' selected' : '') + (isCorr ? ' correct' : '') + (isWrong ? ' wrong' : '');
                     const click = isClickable ? ' onclick="app.selectKey(' + bk.midi + ')"' : '';
-                    html += '<div class="' + cls + '" style="left:' + leftPos + 'px; width:' + blackKeyWidth + 'px;"' + click + '></div>';
+                    html += '<button class="' + cls + '" style="left:' + leftPos + 'px; width:' + blackKeyWidth + 'px;"' + click + '></button>';
                 });
 
                 html += '</div>';
@@ -5504,18 +5527,13 @@ Gerät:
             
             document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
             
-            // Keyboard neu rendern bei Orientation-Change
+            // Resize handler: re-render keyboard on orientation/size change
+            let lastResizeWidth = window.innerWidth;
+            let lastResizeHeight = window.innerHeight;
             window.addEventListener('resize', () => {
-                // Update nur bei tatsächlichen Screen-Größenänderungen
-                const newIsPortrait = window.screen.width < window.screen.height;
-                if (app.keyboardSizes && 
-                    (app.keyboardSizes.width !== window.screen.width || 
-                     app.keyboardSizes.isPortrait !== newIsPortrait)) {
-                    app.keyboardSizes = {
-                        width: window.screen.width,
-                        height: window.screen.height,
-                        isPortrait: newIsPortrait
-                    };
+                if (window.innerWidth !== lastResizeWidth || window.innerHeight !== lastResizeHeight) {
+                    lastResizeWidth = window.innerWidth;
+                    lastResizeHeight = window.innerHeight;
                     app.renderKeyboard();
                 }
             });

@@ -78,7 +78,16 @@
 
         @media (max-width: 768px) {
             .title {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .header-buttons {
+                flex-shrink: 0;
+                margin-left: auto;
             }
         }
 
@@ -5463,7 +5472,7 @@ Gerät:
                         ? this.currentTask.correctStartCounting 
                         : this.currentTask.correctRhythmSyllable;
                     
-                    feedback.textContent = `✗ Falsch. Richtig wäre: "${displayAnswer}"`;
+                    feedback.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>Eingabe: <span style="color:#ef4444;">✗</span>`;
                     feedback.className = 'feedback incorrect';
                     feedback.classList.remove('hidden');
                     
@@ -5564,7 +5573,7 @@ Gerät:
                         displaySum = '≈' + correctSum.toFixed(2);
                     }
                     
-                    feedback.textContent = `✗ Falsch. Richtig wäre: ${displaySum} Viertel`;
+                    feedback.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>Summe: <span style="color:#ef4444;">✗</span>`;
                     feedback.className = 'feedback incorrect';
                     feedback.classList.remove('hidden');
                     
