@@ -3329,7 +3329,7 @@
                 } else if (subSkillId === 'komplement') {
                     const el = document.getElementById('lkVisualKomplement');
                     if (el) {
-                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">' +
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px">' +
                             '<div>' + this.renderKomplementStaff('A', 'eingestrichen', 'g3 (4 HS)', 'k6 (8 HS)', 'große Terz + kleine Sexte = Oktave') + '</div>' +
                             '<div>' + this.renderKomplementStaff('G', 'eingestrichen', 'g2 (2 HS)', 'k7 (10 HS)', 'große Sekunde + kleine Septime = Oktave') + '</div>' +
                         '</div>';
@@ -3494,15 +3494,15 @@
                 const cx = width / 2;
 
                 // Notenköpfe (bei Prime/Sekunde horizontal versetzen)
-                const tooClose = Math.abs(y1 - y2) < 12;
-                const cx1 = tooClose ? cx - 11 : cx;
-                const cx2 = tooClose ? cx + 11 : cx;
+                const tooClose = Math.abs(y1 - y2) < 10;
+                const cx1 = tooClose ? cx - 9 : cx;
+                const cx2 = tooClose ? cx + 9 : cx;
 
                 // Vorzeichen relativ zum (ggf. versetzten) oberen Notenkopf
                 const hasSharp2 = finalTargetName.includes('is');
                 const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
                     (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
-                const accX = tooClose ? cx1 - 20 : cx2 - 28;
+                const accX = tooClose ? cx2 - 22 : cx - 28;
                 if (hasSharp2) svg += `<text x="${accX}" y="${y2+9}" font-size="28" font-family="serif">♯</text>`;
                 if (hasFlat2) svg += `<text x="${accX}" y="${y2+7}" font-size="26" font-family="serif">♭</text>`;
 
@@ -3514,7 +3514,7 @@
 
             // ---- Komplement-Staff: 3 Noten (Basis + oberer Ton + Oktave) auf einem System ----
             renderKomplementStaff(midNoteName, midNoteOctave, label1, label2, summaryText) {
-                const width = 220;
+                const width = 170;
                 const baseName = 'F';
                 const baseOctave = 'eingestrichen';
                 const topName = 'F';
@@ -3545,7 +3545,7 @@
                 if (maxY > 100) for (let ly = 116; ly <= maxY; ly += 16) svg += `<line x1="${width/2-20}" y1="${ly}" x2="${width/2+20}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
                 if (minY < 36) for (let ly = 20; ly >= minY; ly -= 16) svg += `<line x1="${width/2-20}" y1="${ly}" x2="${width/2+20}" y2="${ly}" stroke="#999" stroke-width="1.5"/>`;
 
-                const cx1 = 50, cx2 = 110, cx3 = 170;
+                const cx1 = 35, cx2 = 85, cx3 = 135;
                 svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
                 svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
                 svg += `<ellipse cx="${cx3}" cy="${y3}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx3} ${y3})"/>`;
@@ -4041,56 +4041,66 @@
                     
                     svg += `<ellipse cx="245" cy="${y2}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 245 ${y2})"/>`;
                 } else {
-                    ledgerLines.forEach(lineY => {
-                        svg += `<line x1="145" y1="${lineY}" x2="195" y2="${lineY}" stroke="#000" stroke-width="2"/>`;
-                    });
-                    
                     const x = 170;
-                    
+
                     const isSamePosition = position1 === position2;
                     const isSecond = Math.abs(position2 - position1) === 1;
-                    
+
                     if (isSamePosition || isSecond) {
                         const x1 = x - 8;
                         const x2 = x + 15;
 
+                        // Hilfslinien für beide versetzte Noten separat
+                        ledgerLines.forEach(lineY => {
+                            const needsForNote1 = (y1 >= 280 && lineY >= 280 && lineY <= y1) || (y1 <= 160 && lineY <= 160 && lineY >= y1);
+                            const needsForNote2 = (y2 >= 280 && lineY >= 280 && lineY <= y2) || (y2 <= 160 && lineY <= 160 && lineY >= y2);
+                            if (needsForNote1) svg += `<line x1="${x1-15}" y1="${lineY}" x2="${x1+15}" y2="${lineY}" stroke="#000" stroke-width="2"/>`;
+                            if (needsForNote2) svg += `<line x1="${x2-15}" y1="${lineY}" x2="${x2+15}" y2="${lineY}" stroke="#000" stroke-width="2"/>`;
+                            if (!needsForNote1 && !needsForNote2) svg += `<line x1="145" y1="${lineY}" x2="195" y2="${lineY}" stroke="#000" stroke-width="2"/>`;
+                        });
+
                         if (hasSharp1 || hasFlat1) {
-                            const accX1 = x1 - 30;
+                            const accX1 = x1 - 25;
                             if (hasSharp1) {
                                 svg += `<text x="${accX1}" y="${y1 + 13}" font-size="42" font-family="serif">♯</text>`;
                             }
                             if (hasFlat1) {
-                                svg += `<text x="${accX1 - 10}" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
+                                svg += `<text x="${accX1 - 8}" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
                             }
                         }
 
                         if (hasSharp2 || hasFlat2) {
-                            const accX2 = x2 - 50;
+                            const accX2 = x2 - 25;
                             if (hasSharp2) {
                                 svg += `<text x="${accX2}" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
                             }
                             if (hasFlat2) {
-                                svg += `<text x="${accX2 - 10}" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
+                                svg += `<text x="${accX2 - 8}" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
                             }
                         }
 
                         svg += `<ellipse cx="${x1}" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x1} ${y1})"/>`;
                         svg += `<ellipse cx="${x2}" cy="${y2}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x2} ${y2})"/>`;
                     } else {
+                        // Hilfslinien für normale Intervalle
+                        ledgerLines.forEach(lineY => {
+                            svg += `<line x1="145" y1="${lineY}" x2="195" y2="${lineY}" stroke="#000" stroke-width="2"/>`;
+                        });
+
                         if (hasSharp1) {
                             svg += `<text x="125" y="${y1 + 13}" font-size="42" font-family="serif">♯</text>`;
                         }
                         if (hasFlat1) {
                             svg += `<text x="115" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
                         }
-                        
+
                         if (hasSharp2) {
                             svg += `<text x="125" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
                         }
                         if (hasFlat2) {
                             svg += `<text x="115" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
                         }
-                        
+
                         svg += `<ellipse cx="${x}" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x} ${y1})"/>`;
                         svg += `<ellipse cx="${x}" cy="${y2}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x} ${y2})"/>`;
                     }
