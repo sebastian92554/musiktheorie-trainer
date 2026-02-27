@@ -3502,9 +3502,10 @@
                 const hasSharp2 = finalTargetName.includes('is');
                 const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
                     (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
-                const accX = tooClose ? cx1 - 16 : cx - 16;
-                if (hasSharp2) svg += `<text x="${accX}" y="${y2+6}" font-size="22" font-family="serif">♯</text>`;
-                if (hasFlat2) svg += `<text x="${accX}" y="${y2+5}" font-size="22" font-family="serif">♭</text>`;
+                // text-anchor="end": x = rechter Rand des Zeichens → immer 2px Abstand zum Notenkopf
+                const accAnchorX = (tooClose ? cx1 : cx2) - 9 - 2;
+                if (hasSharp2) svg += `<text x="${accAnchorX}" y="${y2+6}" font-size="22" font-family="serif" text-anchor="end">♯</text>`;
+                if (hasFlat2) svg += `<text x="${accAnchorX}" y="${y2+5}" font-size="22" font-family="serif" text-anchor="end">♭</text>`;
 
                 svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
                 svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
@@ -4023,22 +4024,16 @@
                         }
                     });
                     
-                    if (hasSharp1) {
-                        svg += `<text x="125" y="${y1 + 13}" font-size="42" font-family="serif">♯</text>`;
-                    }
-                    if (hasFlat1) {
-                        svg += `<text x="115" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
-                    }
-                    
+                    const accMel1X = 170 - 12.5 - 3;
+                    if (hasSharp1) svg += `<text x="${accMel1X}" y="${y1 + 13}" font-size="42" font-family="serif" text-anchor="end">♯</text>`;
+                    if (hasFlat1) svg += `<text x="${accMel1X}" y="${y1 + 10}" font-size="38" font-family="serif" text-anchor="end">♭</text>`;
+
                     svg += `<ellipse cx="170" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 170 ${y1})"/>`;
-                    
-                    if (hasSharp2) {
-                        svg += `<text x="200" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
-                    }
-                    if (hasFlat2) {
-                        svg += `<text x="190" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
-                    }
-                    
+
+                    const accMel2X = 245 - 12.5 - 3;
+                    if (hasSharp2) svg += `<text x="${accMel2X}" y="${y2 + 13}" font-size="42" font-family="serif" text-anchor="end">♯</text>`;
+                    if (hasFlat2) svg += `<text x="${accMel2X}" y="${y2 + 10}" font-size="38" font-family="serif" text-anchor="end">♭</text>`;
+
                     svg += `<ellipse cx="245" cy="${y2}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 245 ${y2})"/>`;
                 } else {
                     const x = 170;
@@ -4062,21 +4057,15 @@
                         });
 
                         if (hasSharp1 || hasFlat1) {
-                            if (hasSharp1) {
-                                svg += `<text x="${x1 - 20}" y="${y1 + 13}" font-size="42" font-family="serif">♯</text>`;
-                            }
-                            if (hasFlat1) {
-                                svg += `<text x="${x1 - 18}" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
-                            }
+                            const acc1X = x1 - 12.5 - 3;
+                            if (hasSharp1) svg += `<text x="${acc1X}" y="${y1 + 13}" font-size="42" font-family="serif" text-anchor="end">♯</text>`;
+                            if (hasFlat1) svg += `<text x="${acc1X}" y="${y1 + 10}" font-size="38" font-family="serif" text-anchor="end">♭</text>`;
                         }
 
                         if (hasSharp2 || hasFlat2) {
-                            if (hasSharp2) {
-                                svg += `<text x="${x2 - 20}" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
-                            }
-                            if (hasFlat2) {
-                                svg += `<text x="${x2 - 18}" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
-                            }
+                            const acc2X = x1 - 12.5 - 3;
+                            if (hasSharp2) svg += `<text x="${acc2X}" y="${y2 + 13}" font-size="42" font-family="serif" text-anchor="end">♯</text>`;
+                            if (hasFlat2) svg += `<text x="${acc2X}" y="${y2 + 10}" font-size="38" font-family="serif" text-anchor="end">♭</text>`;
                         }
 
                         svg += `<ellipse cx="${x1}" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x1} ${y1})"/>`;
@@ -4087,19 +4076,11 @@
                             svg += `<line x1="145" y1="${lineY}" x2="195" y2="${lineY}" stroke="#000" stroke-width="2"/>`;
                         });
 
-                        if (hasSharp1) {
-                            svg += `<text x="125" y="${y1 + 13}" font-size="42" font-family="serif">♯</text>`;
-                        }
-                        if (hasFlat1) {
-                            svg += `<text x="115" y="${y1 + 10}" font-size="38" font-family="serif">♭</text>`;
-                        }
-
-                        if (hasSharp2) {
-                            svg += `<text x="125" y="${y2 + 13}" font-size="42" font-family="serif">♯</text>`;
-                        }
-                        if (hasFlat2) {
-                            svg += `<text x="115" y="${y2 + 10}" font-size="38" font-family="serif">♭</text>`;
-                        }
+                        const accNormX = x - 12.5 - 3;
+                        if (hasSharp1) svg += `<text x="${accNormX}" y="${y1 + 13}" font-size="42" font-family="serif" text-anchor="end">♯</text>`;
+                        if (hasFlat1) svg += `<text x="${accNormX}" y="${y1 + 10}" font-size="38" font-family="serif" text-anchor="end">♭</text>`;
+                        if (hasSharp2) svg += `<text x="${accNormX}" y="${y2 + 13}" font-size="42" font-family="serif" text-anchor="end">♯</text>`;
+                        if (hasFlat2) svg += `<text x="${accNormX}" y="${y2 + 10}" font-size="38" font-family="serif" text-anchor="end">♭</text>`;
 
                         svg += `<ellipse cx="${x}" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x} ${y1})"/>`;
                         svg += `<ellipse cx="${x}" cy="${y2}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x} ${y2})"/>`;
