@@ -1700,13 +1700,7 @@
                         <option value="both">Beide Schlüssel</option>
                     </select>
                 </div>
-                <div class="select-group">
-                    <label>Darstellung:</label>
-                    <select id="displayMode" onchange="app.updateSettings()">
-                        <option value="harmonic" selected>Harmonisch (übereinander)</option>
-                        <option value="melodic">Melodisch (nebeneinander)</option>
-                    </select>
-                </div>
+                <!-- Darstellung wird über den Toggle neben dem Play-Button gesteuert -->
             </div>
 
             <!-- Score -->
@@ -1747,13 +1741,16 @@
                     </div>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 0;">
                         <div id="staffContainer" style="flex: 0 1 auto;"></div>
-                        <button type="button" id="playChordBtn" onclick="app.playChord()" title="Dreiklang anhören" style="flex: 0 0 auto; background: none; border: none; cursor: pointer; padding: 2px; margin-left: -4px; opacity: 0.5; transition: opacity 0.15s;">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-                            </svg>
-                        </button>
+                        <div id="audioControls" style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: -4px;">
+                            <button type="button" id="playChordBtn" onclick="app.playChord()" title="Dreiklang anhören" style="background: none; border: none; cursor: pointer; padding: 2px; opacity: 0.5; transition: opacity 0.15s;">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                                </svg>
+                            </button>
+                            <button type="button" id="audioModeToggle" onclick="app.toggleAudioMode()" style="background: none; border: none; cursor: pointer; font-size: 0.65rem; color: #6b7280; padding: 0; white-space: nowrap;">♪♪ harmonisch</button>
+                        </div>
                     </div>
                 </div>
 
@@ -2215,14 +2212,16 @@
                 app.settings.highlightNotesForHS = document.getElementById('highlightNotesForHS').checked;
                 app.settings.showCMarker = document.getElementById('showCMarker').checked;
                 app.settings.clef = document.getElementById('clefSelect').value;
-                app.settings.displayMode = document.getElementById('displayMode').value;
+                app.settings.displayMode = app.audioMode;  // displayMode vom Toggle
                 app.settings.beginnerFriendlyRange = document.getElementById('beginnerFriendlyRange').checked;
                 app.settings.simpleRootsOnly = false;
                 app.settings.noAudio = false;
 
-                // Play-Button immer sichtbar im Freien Üben
+                // Play-Button + Toggle immer sichtbar im Freien Üben
                 const playBtn = document.getElementById('playChordBtn');
                 if (playBtn) playBtn.style.display = '';
+                const audioToggle = document.getElementById('audioModeToggle');
+                if (audioToggle) audioToggle.style.display = '';
 
                 document.getElementById('appTitle').textContent = 'Freies Üben';
                 document.getElementById('headerExerciseInfo').classList.remove('active');
@@ -2335,13 +2334,20 @@
                 app.settings.includeInversions = level === 'meister';
                 app.settings.beginnerFriendlyRange = !options.includes('range');
                 app.settings.noAudio = options.includes('noaudio');
+                app.audioMode = 'harmonic';
 
                 // Keyboard always visible in quiz
                 document.getElementById('keyboardCard').classList.add('active');
 
-                // Play-Button verstecken im noaudio-Modus
+                // Audio-Controls: Play-Button + Toggle
+                const isNoAudio = options.includes('noaudio');
                 const playBtn = document.getElementById('playChordBtn');
-                if (playBtn) playBtn.style.display = options.includes('noaudio') ? 'none' : '';
+                const audioToggle = document.getElementById('audioModeToggle');
+                if (playBtn) playBtn.style.display = isNoAudio ? 'none' : '';
+                if (audioToggle) {
+                    audioToggle.style.display = isNoAudio ? 'none' : '';
+                    audioToggle.textContent = '♪♪ harmonisch';
+                }
 
                 // Setup dynamic input
                 app.setupInput();
@@ -2592,6 +2598,7 @@
             score: { correct: 0, total: 0 },
             keyboardSizes: null,
             freeRetry: false,
+            audioMode: 'harmonic',  // 'harmonic' oder 'melodic' — steuert Audio + Darstellung
 
             // QUICK-START FLAGS
             quickStartMode: null,  // null, 'einsteiger', 'aufsteiger', 'profi', 'meister'
@@ -3406,7 +3413,7 @@
                     displayInterval1: dMidi2 - dMidi1, // HS Note1→Note2 (wie dargestellt)
                     displayInterval2: dMidi3 - dMidi2, // HS Note2→Note3 (wie dargestellt)
                     clef: validChord.clef,
-                    displayMode: this.settings.displayMode,
+                    displayMode: this.audioMode || this.settings.displayMode,
                     inversion: validChord.inversion,
                     // Original-Noten für die korrekte Antwort (Grundstellung)
                     originalNote1: { name: validChord.rootNote, octave: validChord.octaves.rootOctave, clef: validChord.clef },
@@ -4297,6 +4304,20 @@
                 return { rootNote, type };
             },
 
+            // ---- Audio-Modus Toggle (melodisch ↔ harmonisch) ----
+            toggleAudioMode() {
+                this.audioMode = this.audioMode === 'harmonic' ? 'melodic' : 'harmonic';
+                const toggle = document.getElementById('audioModeToggle');
+                if (toggle) toggle.textContent = this.audioMode === 'harmonic' ? '♪♪ harmonisch' : '♪ melodisch';
+                if (this.currentChord) {
+                    this.currentChord.displayMode = this.audioMode;
+                    this.drawStaff();
+                    const displayBadge = document.getElementById('displayBadge');
+                    if (displayBadge) displayBadge.textContent = this.audioMode === 'harmonic' ? 'Harmonisch' : 'Melodisch';
+                }
+                this.playChord();
+            },
+
             // ---- Web Audio: Dreiklang abspielen (Piano-ähnlich) ----
             playChord() {
                 if (!this.currentChord) return;
@@ -4339,16 +4360,18 @@
 
                 const notes = [this.currentChord.note1, this.currentChord.note2, this.currentChord.note3];
                 const now = ctx.currentTime;
+                const isMelodic = this.audioMode === 'melodic';
 
-                notes.forEach(note => {
-                    playNote(midiToFreq(noteToMidi(note)), now);
+                notes.forEach((note, i) => {
+                    const offset = isMelodic ? i * 0.5 : 0;
+                    playNote(midiToFreq(noteToMidi(note)), now + offset);
                 });
 
                 // Visuelles Feedback
                 const btn = document.getElementById('playChordBtn');
                 if (btn) { btn.style.opacity = '1'; setTimeout(() => btn.style.opacity = '', 500); }
 
-                setTimeout(() => ctx.close(), 1500);
+                setTimeout(() => ctx.close(), isMelodic ? 2500 : 1500);
             },
 
             checkAnswer() {
@@ -5230,9 +5253,8 @@
             },
 
             updateSettings() {
-                const oldDisplayMode = this.settings.displayMode;
                 const oldRequireKeyboard = this.settings.requireKeyboard;
-                
+
                 this.settings.showSemitones = document.getElementById('showSemitones').checked;
                 this.settings.requireQuality = document.getElementById('requireQuality').checked;
                 this.settings.complexKeys = document.getElementById('complexKeys').checked;
@@ -5242,46 +5264,24 @@
                 this.settings.highlightNotesForHS = document.getElementById('highlightNotesForHS').checked;
                 this.settings.showCMarker = document.getElementById('showCMarker').checked;
                 this.settings.clef = document.getElementById('clefSelect').value;
-                this.settings.displayMode = document.getElementById('displayMode').value;
+                this.settings.displayMode = this.audioMode;  // displayMode wird vom Toggle gesteuert
                 this.settings.beginnerFriendlyRange = document.getElementById('beginnerFriendlyRange').checked;
-                
-                const onlyDisplayChanged = oldDisplayMode !== this.settings.displayMode &&
-                    this.settings.showSemitones === document.getElementById('showSemitones').checked &&
-                    this.settings.requireQuality === document.getElementById('requireQuality').checked &&
-                    this.settings.complexKeys === document.getElementById('complexKeys').checked &&
-                    this.settings.allowDoubleAccidentals === document.getElementById('allowDoubleAccidentals').checked &&
-                    this.settings.requireKeyboard === document.getElementById('requireKeyboard').checked &&
-                    this.settings.beginnerFriendlyRange === document.getElementById('beginnerFriendlyRange').checked &&
-                    this.settings.clef === document.getElementById('clefSelect').value;
-                
-                const onlyKeyboardChanged = oldDisplayMode === this.settings.displayMode &&
-                    this.settings.showSemitones === document.getElementById('showSemitones').checked &&
-                    this.settings.requireQuality === document.getElementById('requireQuality').checked &&
-                    this.settings.complexKeys === document.getElementById('complexKeys').checked &&
-                    this.settings.allowDoubleAccidentals === document.getElementById('allowDoubleAccidentals').checked &&
-                    this.settings.requireKeyboard !== oldRequireKeyboard &&
-                    this.settings.beginnerFriendlyRange === document.getElementById('beginnerFriendlyRange').checked &&
-                    this.settings.clef === document.getElementById('clefSelect').value;
-                
-                if (!onlyDisplayChanged && !onlyKeyboardChanged) {
+
+                const onlyKeyboardChanged =
+                    this.settings.requireKeyboard !== oldRequireKeyboard;
+
+                if (!onlyKeyboardChanged) {
                     this.previousTask = null;
                 }
-                
+
                 this.updateUI();
-                
-                if (onlyDisplayChanged && this.currentChord) {
-                    // Nur Display-Modus geändert: Behalte Aufgabe, nur neu zeichnen
-                    this.currentChord.displayMode = this.settings.displayMode;
-                    this.drawStaff();
-                    this.renderKeyboard();
-                } else {
-                    // Alle anderen Fälle: Neue Aufgabe generieren
-                    // Im Free-Mode: Inputs neu aufbauen (z.B. Stellungs-Dropdown ein/ausblenden)
-                    if (!this.quickStartMode) {
-                        this.setupInput();
-                    }
-                    this.generateChord();
+
+                // Alle Fälle: Neue Aufgabe generieren
+                // Im Free-Mode: Inputs neu aufbauen (z.B. Stellungs-Dropdown ein/ausblenden)
+                if (!this.quickStartMode) {
+                    this.setupInput();
                 }
+                this.generateChord();
             },
 
             updateUI() {
