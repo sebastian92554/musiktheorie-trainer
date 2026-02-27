@@ -3502,8 +3502,8 @@
                 const hasSharp2 = finalTargetName.includes('is');
                 const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
                     (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
-                // text-anchor="end": x = rechter Rand des Zeichens → immer 2px Abstand zum Notenkopf
-                const accAnchorX = (tooClose ? cx1 : cx2) - 9 - 2;
+                // text-anchor="end": x = rechter Rand des Zeichens; bei Sekunde dichter (1px statt 2px)
+                const accAnchorX = (tooClose ? cx1 : cx2) - 9 - (tooClose ? 1 : 2);
                 if (hasSharp2) svg += `<text x="${accAnchorX}" y="${y2+6}" font-size="22" font-family="serif" text-anchor="end">♯</text>`;
                 if (hasFlat2) svg += `<text x="${accAnchorX}" y="${y2+5}" font-size="22" font-family="serif" text-anchor="end">♭</text>`;
 
