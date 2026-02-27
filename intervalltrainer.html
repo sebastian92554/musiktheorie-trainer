@@ -3502,8 +3502,8 @@
                 const hasSharp2 = finalTargetName.includes('is');
                 const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
                     (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
-                // text-anchor="end": x = rechter Rand; Anker immer an cx2, Gap 6px normal / 14px bei Sekunde
-                const accAnchorX = cx2 - 9 - (tooClose ? 14 : 6);
+                // text-anchor="end": x = rechter Rand; Anker immer an cx2, Gap 6px normal / 12px bei Sekunde
+                const accAnchorX = cx2 - 9 - (tooClose ? 12 : 6);
                 if (hasSharp2) svg += `<text x="${accAnchorX}" y="${y2+6}" font-size="22" font-family="serif" text-anchor="end">♯</text>`;
                 if (hasFlat2) svg += `<text x="${accAnchorX}" y="${y2+5}" font-size="22" font-family="serif" text-anchor="end">♭</text>`;
 
