@@ -2342,14 +2342,12 @@
 
                 this.showQuizOverlay();
 
-                // Lernkarte anzeigen (bei int4 + int5) — danach startet dismissLernkarte() die erste Aufgabe
+                // Lernkarte anzeigen — danach startet dismissLernkarte() die erste Aufgabe
+                const currentSub = this.currentOptions[this.currentOptions.length - 1];
+                if (currentSub && app.showLernkarte(currentSub)) return;
+                // Fallback: direkt Aufgabe starten
                 if (level === 'meister') {
-                    const currentSub = this.currentOptions[this.currentOptions.length - 1] || 'rein';
-                    if (app.showLernkarte(currentSub)) return;
                     app.generateInt4Task();
-                } else if (level === 'experte') {
-                    if (app.showLernkarte('int5')) return;
-                    app.generateInterval();
                 } else {
                     app.generateInterval();
                 }
@@ -3343,14 +3341,29 @@
             },
 
             // ---- Lernkarten-System ----
+            // Mapping: Sub-Skill-ID + Level → lernkartenContent-Key
+            getLernkarteKey(subSkillId) {
+                const level = quickStart.currentLevel;
+                // INT4 Sub-Skills (rein, grossklein, komplement, augdim, alles) sind direkt
+                if (['rein','grossklein','komplement','augdim','alles'].includes(subSkillId) && level === 'meister') return subSkillId;
+                // INT1 Sub-Skills (basis, extended, nohelp) sind direkt
+                if (['basis','extended','nohelp'].includes(subSkillId) && level === 'einsteiger') return subSkillId;
+                // INT2/INT3/INT5: prefixed keys
+                const prefixMap = { 'aufsteiger': 'int2_', 'profi': 'int3_', 'experte': 'int5_' };
+                const prefix = prefixMap[level];
+                if (prefix) return prefix + subSkillId;
+                return subSkillId;
+            },
+
             showLernkarte(subSkillId) {
-                const content = this.lernkartenContent[subSkillId];
+                const key = this.getLernkarteKey(subSkillId);
+                const content = this.lernkartenContent[key];
                 if (!content) return false;
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
 
                 // SVG-Visualisierungen dynamisch rendern
-                if (subSkillId === 'rein') {
+                if (key === 'rein') {
                     const el = document.getElementById('lkVisualRein');
                     if (el) {
                         el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
@@ -3358,7 +3371,7 @@
                                 `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,90,100)}</div><div style="font-size:0.7rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
                             ).join('') + '</div>';
                     }
-                } else if (subSkillId === 'grossklein') {
+                } else if (key === 'grossklein') {
                     const el = document.getElementById('lkVisualGrossklein');
                     if (el) {
                         el.innerHTML = '<div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">' +
@@ -3366,7 +3379,7 @@
                                 `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff(q,s,80,95)}</div><div style="font-size:0.65rem;margin-top:2px;color:#9a3412;font-weight:600">${lbl}</div></div>`
                             ).join('') + '</div>';
                     }
-                } else if (subSkillId === 'komplement') {
+                } else if (key === 'komplement') {
                     const el = document.getElementById('lkVisualKomplement');
                     if (el) {
                         el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px">' +
@@ -3374,11 +3387,128 @@
                             '<div>' + this.renderKomplementStaff('G', 'eingestrichen', 'g2 (2 HS)', 'k7 (10 HS)', 'gr. Sekunde + kl. Septime') + '</div>' +
                         '</div>';
                     }
-                } else if (subSkillId === 'augdim') {
+                } else if (key === 'augdim') {
                     const leftEl = document.getElementById('lkAugdimLeft');
                     const rightEl = document.getElementById('lkAugdimRight');
                     if (leftEl) leftEl.innerHTML = this.renderLernkarteStaff('übermäßig', 4, 120, 110);
                     if (rightEl) rightEl.innerHTML = this.renderLernkarteStaff('vermindert', 5, 120, 110);
+                }
+                // ---- INT1: Basis — 8 Grundintervalle + Tastatur-Abzählung ----
+                else if (key === 'basis') {
+                    const el = document.getElementById('lkVisualBasis');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap">' +
+                            [['rein',1,'Prime (1)'],['rein',2,'Sekunde (2)'],['rein',3,'Terz (3)'],['rein',4,'Quarte (4)'],['rein',5,'Quinte (5)'],['rein',6,'Sexte (6)'],['rein',7,'Septime (7)'],['rein',8,'Oktave (8)']].map(([q,s,lbl]) =>
+                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:2px">${this.renderLernkarteStaff('rein',s,60,80)}</div><div style="font-size:0.6rem;margin-top:1px;color:#9a3412;font-weight:600">${lbl}</div></div>`
+                            ).join('') + '</div>';
+                    }
+                    const elK = document.getElementById('lkVisualBasisTastatur');
+                    if (elK) {
+                        elK.innerHTML = this.renderLernkarteTastatur({
+                            highlightKeys: [
+                                {key:'C',color:'#fbbf24',label:'1'},{key:'D',color:'#fde68a',label:'2'},
+                                {key:'E',color:'#fde68a',label:'3'},{key:'F',color:'#fde68a',label:'4'},
+                                {key:'G',color:'#fbbf24',label:'5'}
+                            ],
+                            arrows: [{from:'C',to:'G',label:'C → G = Quinte (5 Stufen)',color:'#ea580c'}],
+                            title: 'Stammtöne abzählen: C(1) → D(2) → E(3) → F(4) → G(5) = Quinte'
+                        });
+                    }
+                }
+                // ---- INT1: Extended — Intervalle über der Oktave ----
+                else if (key === 'extended') {
+                    const el = document.getElementById('lkVisualExtended');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">' +
+                            [['rein',9,'None (9)<br>= Okt+Sek'],['rein',10,'Dezime (10)<br>= Okt+Terz'],['rein',11,'Undezime (11)<br>= Okt+Quarte'],['rein',12,'Duodezime (12)<br>= Okt+Quinte']].map(([q,s,lbl]) =>
+                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:3px">${this.renderLernkarteStaff('rein',s,80,110)}</div><div style="font-size:0.6rem;margin-top:1px;color:#9a3412;font-weight:600">${lbl}</div></div>`
+                            ).join('') + '</div>';
+                    }
+                }
+                // ---- INT2: Basis — Stammtöne auf Tastatur ----
+                else if (key === 'int2_basis') {
+                    const el = document.getElementById('lkVisualInt2Basis');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteTastatur({
+                            highlightKeys: [{key:'C',color:'#bbf7d0'},{key:'D',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'F',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'},{key:'A',color:'#bbf7d0'},{key:'H',color:'#bbf7d0'}],
+                            title: 'Die weißen Tasten: C D E F G A H'
+                        });
+                    }
+                }
+                // ---- INT2: Augdim — Schwarze Tasten ----
+                else if (key === 'int2_augdim') {
+                    const el = document.getElementById('lkVisualInt2Augdim');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteTastatur({
+                            showBlackLabels: true,
+                            highlightKeys: [{key:'Cis',color:'#fbbf24'},{key:'Dis',color:'#fbbf24'},{key:'Fis',color:'#fbbf24'},{key:'Gis',color:'#fbbf24'},{key:'Ais',color:'#fbbf24'}],
+                            title: '♯ = rechts (höher), ♭ = links (tiefer)'
+                        });
+                    }
+                }
+                // ---- INT2/INT3: Bothclefs — Violin/Bass-Vergleich ----
+                else if (key === 'int2_bothclefs' || key === 'int3_bothclefs') {
+                    const el = document.getElementById('lkVisualBothClefs');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:12px">' +
+                            `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff('rein',3,80,95)}</div><div style="font-size:0.65rem;color:#9a3412;font-weight:600">Violinschlüssel</div></div>` +
+                            `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff('rein',3,80,95)}</div><div style="font-size:0.65rem;color:#9a3412;font-weight:600">Bassschlüssel</div></div>` +
+                        '</div>';
+                    }
+                }
+                // ---- INT3: Basis — HS-Zählung mit Pfeilen ----
+                else if (key === 'int3_basis') {
+                    const el = document.getElementById('lkVisualInt3Basis');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteTastatur({
+                            highlightKeys: [{key:'C',color:'#bbf7d0',label:''},{key:'E',color:'#fbbf24',label:''}],
+                            arrows: [
+                                {from:'C',to:'Cis',label:'1',color:'#dc2626'},
+                                {from:'Cis',to:'D',label:'2',color:'#dc2626'},
+                                {from:'D',to:'Dis',label:'3',color:'#dc2626'},
+                                {from:'Dis',to:'E',label:'4',color:'#dc2626'}
+                            ],
+                            title: 'C → E = 4 Halbtonschritte (Starttaste zählt NICHT mit!)'
+                        });
+                    }
+                }
+                // ---- INT3: Augdim — Vergleich rein vs. übermäßig ----
+                else if (key === 'int3_augdim') {
+                    const el = document.getElementById('lkVisualInt3Augdim');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
+                            '<div style="text-align:center">' + this.renderLernkarteTastatur({
+                                highlightKeys: [{key:'C',color:'#bbf7d0'},{key:'F',color:'#fbbf24'}],
+                                arrows: [{from:'C',to:'F',label:'5 HS',color:'#2563eb'}],
+                                title: 'reine Quarte: C → F'
+                            }) + '</div>' +
+                            '<div style="text-align:center">' + this.renderLernkarteTastatur({
+                                highlightKeys: [{key:'C',color:'#bbf7d0'},{key:'Fis',color:'#fbbf24'}],
+                                arrows: [{from:'C',to:'Fis',label:'6 HS',color:'#dc2626'}],
+                                title: 'übermäßige Quarte: C → Fis'
+                            }) + '</div>' +
+                        '</div>';
+                    }
+                }
+                // ---- INT5: Basis — Übersicht rein vs. groß/klein ----
+                else if (key === 'int5_basis') {
+                    const el = document.getElementById('lkVisualInt5Basis');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:16px;font-size:0.8rem">' +
+                            '<div style="text-align:center;background:#dbeafe;padding:8px 12px;border-radius:6px"><strong>Rein</strong><br>Prime · Quarte<br>Quinte · Oktave</div>' +
+                            '<div style="text-align:center;background:#fef3c7;padding:8px 12px;border-radius:6px"><strong>Groß / Klein</strong><br>Sekunde · Terz<br>Sexte · Septime</div>' +
+                        '</div>';
+                    }
+                }
+                // ---- INT5: Augdim — Kontrastpaar ----
+                else if (key === 'int5_augdim') {
+                    const el = document.getElementById('lkVisualInt5Augdim');
+                    if (el) {
+                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px">' +
+                            `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff('übermäßig',4,100,100)}</div><div style="font-size:0.65rem;color:#9a3412;font-weight:600">ü4 · 6 HS</div></div>` +
+                            `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff('vermindert',5,100,100)}</div><div style="font-size:0.65rem;color:#9a3412;font-weight:600">v5 · 6 HS</div></div>` +
+                        '</div>';
+                    }
                 }
 
                 document.getElementById('lernkarteOverlay').classList.add('active');
@@ -3397,6 +3527,82 @@
 
             // Lernkarten-Inhalte (werden in showLernkarte() mit SVGs befüllt)
             lernkartenContent: {
+                // ---- INT1: Einsteiger (Grobbestimmung) ----
+                'basis': {
+                    title: 'Grundintervalle — Prime bis Oktave',
+                    body: `<p>Ein <strong>Intervall</strong> ist der Abstand zwischen zwei Tönen. Du bestimmst es, indem du die Stufen von der unteren zur oberen Note abzählst — die untere Note zählt als 1.</p>
+                        <div class="lk-visual" id="lkVisualBasis"></div>
+                        <div class="lk-visual" id="lkVisualBasisTastatur"></div>
+                        <div class="lk-rule"><strong>Merke:</strong> Prime = 1, Sekunde = 2, Terz = 3, Quarte = 4, Quinte = 5, Sexte = 6, Septime = 7, Oktave = 8.</div>
+                        <div class="lk-tip"><strong>Auf der Tastatur:</strong> Zähle die weißen Tasten von Ton zu Ton — die erste Taste zählt mit!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst zwei Noten im Notensystem. Wähle das passende Intervall aus dem Dropdown.</div>`
+                },
+                'extended': {
+                    title: 'Erweiterte Intervalle — None bis Duodezime',
+                    body: `<p>Intervalle können auch <strong>größer als eine Oktave</strong> sein. Sie lassen sich als Oktave + Grundintervall verstehen:</p>
+                        <div class="lk-visual" id="lkVisualExtended"></div>
+                        <div class="lk-rule"><strong>Regel:</strong> None = Oktave + Sekunde (9), Dezime = Oktave + Terz (10), Undezime = Oktave + Quarte (11), Duodezime = Oktave + Quinte (12).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wie zuvor, aber das Dropdown enthält jetzt auch Intervalle über der Oktave.</div>`
+                },
+                'nohelp': {
+                    title: 'Freie Eingabe — Ohne Dropdown',
+                    body: `<p>Ab jetzt gibst du den Intervallnamen <strong>frei ein</strong>, ohne aus einem Dropdown zu wählen. Das trainiert den aktiven Abruf.</p>
+                        <div class="lk-rule"><strong>Akzeptierte Eingaben:</strong> Terz, Quinte, Oktave, None usw. — Groß- und Kleinschreibung ist egal.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Falls du unsicher bist, zähle auf der Tastatur nach: Startton = 1, dann Taste für Taste weiter.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Intervallnamen direkt ins Textfeld ein.</div>`
+                },
+                // ---- INT2: Aufsteiger (Tastatur) ----
+                'int2_basis': {
+                    title: 'Stammtöne auf der Tastatur',
+                    body: `<p>Du siehst ein Intervall im Notensystem und musst beide Töne <strong>auf der Klaviatur finden</strong>.</p>
+                        <div class="lk-visual" id="lkVisualInt2Basis"></div>
+                        <div class="lk-rule"><strong>Orientierung:</strong> Die weißen Tasten von links: C D E F G A H. Nutze die Zweier- und Dreiergruppen der schwarzen Tasten als Orientierungspunkte.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die beiden richtigen Tasten auf der Klaviatur an.</div>`
+                },
+                'int2_augdim': {
+                    title: 'Vorzeichen auf der Tastatur',
+                    body: `<p>Jetzt kommen auch Töne mit <strong>Vorzeichen</strong> vor — das sind die schwarzen Tasten.</p>
+                        <div class="lk-visual" id="lkVisualInt2Augdim"></div>
+                        <div class="lk-rule"><strong>♯ (Kreuz)</strong> = einen Halbton höher → nächste Taste <strong>rechts</strong>. <strong>♭ (Be)</strong> = einen Halbton tiefer → nächste Taste <strong>links</strong>.</div>
+                        <div class="lk-tip"><strong>Merke:</strong> Schwarze Tasten haben zwei Namen: Cis = Des, Dis = Es, Fis = Ges, Gis = As, Ais = B. Für die Tastatur ist es dieselbe Taste.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die richtigen Tasten — auch schwarze.</div>`
+                },
+                'int2_bothclefs': {
+                    title: 'Beide Schlüssel',
+                    body: `<p>Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> erscheinen.</p>
+                        <div class="lk-visual" id="lkVisualBothClefs"></div>
+                        <div class="lk-rule"><strong>Wichtig:</strong> Im Bassschlüssel liegen die Noten auf anderen Linien als im Violinschlüssel. Achte auf den Schlüssel am Anfang der Notenzeile!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die Töne auf der Tastatur — egal in welchem Schlüssel.</div>`
+                },
+                // ---- INT3: Profi (Halbtonschritte) ----
+                'int3_basis': {
+                    title: 'Halbtonschritte zählen',
+                    body: `<p>Ein <strong>Halbtonschritt</strong> ist der kleinste Abstand auf der Tastatur — von einer Taste zur direkt benachbarten (weiß oder schwarz).</p>
+                        <div class="lk-visual" id="lkVisualInt3Basis"></div>
+                        <div class="lk-rule"><strong>Wichtig:</strong> Die Starttaste zählt <strong>nicht</strong> mit! Du zählst nur die Schritte, nicht die Tasten. Das ist anders als beim Intervall-Abzählen, wo die erste Note als 1 zählt.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Nutze die Klaviatur unter dem Notensystem als Zählhilfe.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte zwischen den zwei Noten und gib die Zahl ein.</div>`
+                },
+                'int3_augdim': {
+                    title: 'Übermäßige & verminderte Intervalle',
+                    body: `<p>Vorzeichen verändern die Halbtonschrittzahl. Achte besonders genau auf ♯ und ♭!</p>
+                        <div class="lk-visual" id="lkVisualInt3Augdim"></div>
+                        <div class="lk-rule"><strong>Beispiel:</strong> C → F = 5 HS (reine Quarte). Aber C → Fis = 6 HS (übermäßige Quarte). Ein Vorzeichen verschiebt den Ton um genau 1 HS.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte — auch bei Tönen mit Vorzeichen.</div>`
+                },
+                'int3_bothclefs': {
+                    title: 'Beide Schlüssel — Halbtonschritte',
+                    body: `<p>Die Noten können jetzt auch im <strong>Bassschlüssel</strong> stehen.</p>
+                        <div class="lk-rule"><strong>Merke:</strong> Im Bassschlüssel andere Notenpositionen, aber die Halbtonschritt-Zählung bleibt exakt gleich.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte — auch im Bassschlüssel.</div>`
+                },
+                'int3_noaudio': {
+                    title: 'Ohne Hörbeispiel — Halbtonschritte',
+                    body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr. Du zählst die Halbtonschritte rein visuell.</p>
+                        <div class="lk-rule"><strong>Methode:</strong> Beide Töne auf der Tastatur finden, dann jeden Halbtonschritt von Taste zu Taste abzählen. Die Starttaste zählt nicht mit!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Anzahl der Halbtonschritte ein — ohne Hörbeispiel.</div>`
+                },
+                // ---- INT4: Meister (Feinbestimmung) ---- (existiert bereits)
                 'rein': {
                     title: 'Reine Intervalle — Die 4 Ankerpunkte',
                     body: `<p>Es gibt vier <strong>reine</strong> Intervalle. Sie bilden die Ankerpunkte, von denen alle anderen Intervalle abgeleitet werden:</p>
@@ -3449,12 +3655,41 @@
                         <strong>3.</strong> Disambiguierung: HS-Zahl + Rahmenintervall → Feinbestimmung</div>
                         <div class="lk-tip">Falls du Hilfe brauchst, starte mit den vorherigen Unterkapiteln — dort erklärt eine Lernkarte jeden Aufgabentyp Schritt für Schritt.</div>`
                 },
-                'int5': {
-                    title: 'Intervalle präzise bestimmen',
-                    body: `<p>Hier bestimmst du Intervalle vollständig am Notenbild: Du siehst ein Intervall auf dem Notenblatt und gibst die <strong>Feinbestimmung</strong> ein — also Qualität und Intervallname.</p>
-                        <div class="lk-task"><strong>Eingabeformat:</strong> z.B. „große Terz", „g3", „reine Quinte", „r5", „ü4", „verminderte Quinte".</div>
-                        <div class="lk-tip">Die Feinbestimmung (rein/groß/klein/übermäßig/vermindert) hast du im vorherigen Knoten gelernt. Hier wendest du sie auf das Notenbild an. Nutze den Hilfe-Button, falls du eine Erinnerung brauchst.</div>
-                        <div class="lk-tip"><strong>🔊 Hörbeispiel:</strong> Mit dem Lautsprecher-Symbol neben dem Notensystem kannst du dir das Intervall vorspielen lassen. Darunter kannst du zwischen <em>melodisch</em> (nacheinander) und <em>harmonisch</em> (gleichzeitig) wechseln.</div>`
+                // ---- INT5: Experte (Alles kombiniert) ----
+                'int5_basis': {
+                    title: 'Grundqualitäten bestimmen',
+                    body: `<p>Hier bestimmst du Intervalle vollständig: Du siehst ein Intervall auf dem Notenblatt und gibst die <strong>Feinbestimmung</strong> ein — also Qualität und Intervallname.</p>
+                        <div class="lk-visual" id="lkVisualInt5Basis"></div>
+                        <div class="lk-rule"><strong>Strategie:</strong> 1. Stufen abzählen (Grobbestimmung) → 2. Halbtonschritte zählen → 3. Qualität ableiten. Die Kompetenzen aus den vorherigen Knoten kommen hier zusammen.</div>
+                        <div class="lk-rule"><strong>Rein:</strong> Prime, Quarte, Quinte, Oktave. <strong>Groß/Klein:</strong> Sekunde, Terz, Sexte, Septime.</div>
+                        <div class="lk-tip"><strong>Eingabeformat:</strong> „große Terz", „g3", „reine Quinte", „r5", „kleine Sexte", „k6".</div>
+                        <div class="lk-tip"><strong>🔊 Hörbeispiel:</strong> Mit dem Lautsprecher-Symbol kannst du dir das Intervall vorspielen lassen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den vollständigen Intervallnamen mit Qualität ein.</div>`
+                },
+                'int5_augdim': {
+                    title: 'Mit übermäßig & vermindert',
+                    body: `<p>Zusätzlich kommen jetzt <strong>übermäßige</strong> und <strong>verminderte</strong> Intervalle vor.</p>
+                        <div class="lk-visual" id="lkVisualInt5Augdim"></div>
+                        <div class="lk-rule"><strong>Übermäßig</strong> = 1 HS mehr als rein oder groß. <strong>Vermindert</strong> = 1 HS weniger als rein oder klein. Die gleiche HS-Zahl kann verschiedene Intervalle sein — das Rahmenintervall (Grobbestimmung) entscheidet!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Feinbestimmung ein — auch „ü4" oder „verminderte Quinte" sind jetzt möglich.</div>`
+                },
+                'int5_extended': {
+                    title: 'Erweiterte Intervalle mit Qualität',
+                    body: `<p>Jetzt kommen auch Intervalle <strong>über der Oktave</strong> vor — mit vollständiger Qualitätsbestimmung.</p>
+                        <div class="lk-rule"><strong>Regel:</strong> Die Qualität des erweiterten Intervalls entspricht der Qualität des Grundintervalls. Eine große None = Oktave + große Sekunde, eine kleine Dezime = Oktave + kleine Terz.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auch Intervalle über der Oktave — mit vollständiger Qualität (z.B. „große None", „g9").</div>`
+                },
+                'int5_bothclefs': {
+                    title: 'Beide Schlüssel — Feinbestimmung',
+                    body: `<p>Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> erscheinen.</p>
+                        <div class="lk-rule"><strong>Merke:</strong> Die Notenpositionen sind im Bassschlüssel anders, aber die Qualitätsbestimmung bleibt exakt gleich: Stufen zählen → HS zählen → Qualität ableiten.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Intervall mit Qualität — egal in welchem Schlüssel.</div>`
+                },
+                'int5_noaudio': {
+                    title: 'Ohne Hörbeispiel — Rein visuell',
+                    body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr als Kontrolle. Du bestimmst die Intervalle rein aus dem Notenbild.</p>
+                        <div class="lk-rule"><strong>Deine Strategie:</strong> 1. Grobbestimmung (Stufen abzählen) → 2. Halbtonschritte zählen → 3. Qualität ableiten. Das funktioniert immer — auch ohne Audio!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Intervall mit vollständiger Qualität — ohne Hörbeispiel.</div>`
                 }
             },
 
@@ -3550,6 +3785,112 @@
 
                 svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
                 svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
+                svg += '</svg>';
+                return svg;
+            },
+
+            // ---- Lernkarte-Tastatur: Mini-Keyboard für Lernkarten ----
+            // options: { startNote, endNote, highlightKeys: [], arrows: [], showBlackLabels, title }
+            // arrows: [{ from, to, label, color }] — from/to sind Tonnamen (C, Cis, D, ...)
+            renderLernkarteTastatur(options = {}) {
+                const {
+                    startNote = 'C', endNote = 'H',
+                    highlightKeys = [], arrows = [],
+                    showBlackLabels = false, title = ''
+                } = options;
+
+                const allWhite = ['C','D','E','F','G','A','H'];
+                const blackMap = { 'C': 'Cis', 'D': 'Dis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais' };
+                const blackLabels = { 'Cis': 'Cis/Des', 'Dis': 'Dis/Es', 'Fis': 'Fis/Ges', 'Gis': 'Gis/As', 'Ais': 'Ais/B' };
+
+                // Bestimme sichtbare weiße Tasten
+                const startIdx = allWhite.indexOf(startNote);
+                const endIdx = allWhite.indexOf(endNote);
+                const whiteKeys = allWhite.slice(startIdx, endIdx + 1);
+                const numWhite = whiteKeys.length;
+
+                const ww = 32; // Weiße Taste Breite
+                const wh = 80; // Weiße Taste Höhe
+                const bw = 20; // Schwarze Taste Breite
+                const bh = 50; // Schwarze Taste Höhe
+                const pad = 8;
+                const totalW = numWhite * ww + pad * 2;
+                const arrowSpace = arrows.length > 0 ? 40 : 0;
+                const titleSpace = title ? 18 : 0;
+                const totalH = wh + pad * 2 + arrowSpace + titleSpace;
+
+                // Positionen (x-Mitte) jeder Taste
+                const keyPositions = {};
+                whiteKeys.forEach((k, i) => {
+                    keyPositions[k] = pad + i * ww + ww / 2;
+                    if (blackMap[k] && i < numWhite - 1) {
+                        keyPositions[blackMap[k]] = pad + i * ww + ww - bw / 2 + 1;
+                    }
+                });
+
+                let svg = `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}">`;
+
+                // Titel
+                if (title) {
+                    svg += `<text x="${totalW/2}" y="14" text-anchor="middle" font-size="11" fill="#6b7280" font-weight="600">${title}</text>`;
+                }
+                const ky = titleSpace;
+
+                // Weiße Tasten
+                whiteKeys.forEach((k, i) => {
+                    const x = pad + i * ww;
+                    const hl = highlightKeys.find(h => h.key === k);
+                    const fill = hl ? (hl.color || '#fbbf24') : '#fff';
+                    svg += `<rect x="${x}" y="${ky + pad}" width="${ww - 1}" height="${wh}" rx="3" fill="${fill}" stroke="#333" stroke-width="1.5"/>`;
+                    // Tastenbeschriftung
+                    const labelColor = hl ? '#92400e' : '#666';
+                    svg += `<text x="${x + ww/2}" y="${ky + pad + wh - 8}" text-anchor="middle" font-size="11" fill="${labelColor}" font-weight="600">${k}</text>`;
+                    // Highlight-Label (Nummer etc.)
+                    if (hl && hl.label) {
+                        svg += `<text x="${x + ww/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="14" fill="#92400e" font-weight="700">${hl.label}</text>`;
+                    }
+                });
+
+                // Schwarze Tasten
+                whiteKeys.forEach((k, i) => {
+                    if (blackMap[k] && i < numWhite - 1) {
+                        const bx = pad + i * ww + ww - bw / 2;
+                        const bk = blackMap[k];
+                        const hl = highlightKeys.find(h => h.key === bk);
+                        const fill = hl ? (hl.color || '#fbbf24') : '#222';
+                        svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
+                        if (showBlackLabels) {
+                            const lbl = blackLabels[bk] || bk;
+                            svg += `<text x="${bx + bw/2}" y="${ky + pad + bh - 6}" text-anchor="middle" font-size="7" fill="#fff" font-weight="600">${lbl}</text>`;
+                        }
+                        if (hl && hl.label) {
+                            svg += `<text x="${bx + bw/2}" y="${ky + pad + 18}" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">${hl.label}</text>`;
+                        }
+                    }
+                });
+
+                // Pfeile
+                if (arrows.length > 0) {
+                    const arrowY = ky + pad + wh + 20;
+                    arrows.forEach(a => {
+                        const fromX = keyPositions[a.from];
+                        const toX = keyPositions[a.to];
+                        if (fromX === undefined || toX === undefined) return;
+                        const color = a.color || '#ea580c';
+                        // Pfeil-Linie
+                        svg += `<line x1="${fromX}" y1="${arrowY}" x2="${toX}" y2="${arrowY}" stroke="${color}" stroke-width="2"/>`;
+                        // Pfeilspitze
+                        const dir = toX > fromX ? 1 : -1;
+                        svg += `<polygon points="${toX},${arrowY} ${toX - dir*6},${arrowY-4} ${toX - dir*6},${arrowY+4}" fill="${color}"/>`;
+                        // Start-Punkt
+                        svg += `<circle cx="${fromX}" cy="${arrowY}" r="3" fill="${color}"/>`;
+                        // Label
+                        if (a.label) {
+                            svg += `<text x="${(fromX + toX) / 2}" y="${arrowY + 14}" text-anchor="middle" font-size="10" fill="${color}" font-weight="600">${a.label}</text>`;
+                        }
+                    });
+                }
+
                 svg += '</svg>';
                 return svg;
             },
@@ -5464,13 +5805,10 @@
                 if (inExercise) {
                     const level = quickStart.currentLevel;
 
-                    // Im Meister-Knoten (int4): Lernkarte statt Hilfe-Modal zeigen
-                    if (level === 'meister' && this.settings.feinbestimmungLernen) {
-                        const currentSubSkill = quickStart.currentOptions && quickStart.currentOptions[quickStart.currentOptions.length - 1];
-                        if (currentSubSkill) {
-                            this.showLernkarte(currentSubSkill);
-                            return;
-                        }
+                    // Lernkarte statt Hilfe-Modal zeigen (für alle Level mit Lernkarten)
+                    const currentSubSkill = quickStart.currentOptions && quickStart.currentOptions[quickStart.currentOptions.length - 1];
+                    if (currentSubSkill && this.showLernkarte(currentSubSkill)) {
+                        return;
                     }
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
