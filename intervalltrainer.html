@@ -3397,21 +3397,23 @@
                 else if (key === 'basis') {
                     const el = document.getElementById('lkVisualBasis');
                     if (el) {
-                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap">' +
-                            [['rein',1,'Prime (1)'],['rein',2,'Sekunde (2)'],['rein',3,'Terz (3)'],['rein',4,'Quarte (4)'],['rein',5,'Quinte (5)'],['rein',6,'Sexte (6)'],['rein',7,'Septime (7)'],['rein',8,'Oktave (8)']].map(([q,s,lbl]) =>
-                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:2px">${this.renderLernkarteStaff('rein',s,60,80)}</div><div style="font-size:0.6rem;margin-top:1px;color:#9a3412;font-weight:600">${lbl}</div></div>`
-                            ).join('') + '</div>';
+                        el.innerHTML = this.renderLernkarteStaffRow([
+                            {quality:'rein',size:1,label:'Prime (1)'},{quality:'groß',size:2,label:'Sekunde (2)'},
+                            {quality:'groß',size:3,label:'Terz (3)'},{quality:'rein',size:4,label:'Quarte (4)'},
+                            {quality:'rein',size:5,label:'Quinte (5)'},{quality:'groß',size:6,label:'Sexte (6)'},
+                            {quality:'groß',size:7,label:'Septime (7)'},{quality:'rein',size:8,label:'Oktave (8)'}
+                        ]);
                     }
                     const elK = document.getElementById('lkVisualBasisTastatur');
                     if (elK) {
                         elK.innerHTML = this.renderLernkarteTastatur({
+                            numOctaves: 2,
                             highlightKeys: [
-                                {key:'C',color:'#fbbf24',label:'1'},{key:'D',color:'#fde68a',label:'2'},
-                                {key:'E',color:'#fde68a',label:'3'},{key:'F',color:'#fde68a',label:'4'},
-                                {key:'G',color:'#fbbf24',label:'5'}
+                                {key:'F',color:'#fbbf24',label:'1'},{key:'G',color:'#fde68a',label:'2'},
+                                {key:'A',color:'#fde68a',label:'3'},{key:'H',color:'#fde68a',label:'4'},
+                                {key:'C2',color:'#fbbf24',label:'5'}
                             ],
-                            arrows: [{from:'C',to:'G',label:'C → G = Quinte (5 Stufen)',color:'#ea580c'}],
-                            title: 'Stammtöne abzählen: C(1) → D(2) → E(3) → F(4) → G(5) = Quinte'
+                            arrows: [{from:'F',to:'C2',label:'F → C = Quinte (5 Stufen)',color:'#ea580c'}]
                         });
                     }
                 }
@@ -3532,9 +3534,9 @@
                     title: 'Grundintervalle — Prime bis Oktave',
                     body: `<p>Ein <strong>Intervall</strong> ist der Abstand zwischen zwei Tönen. Du bestimmst es, indem du die Stufen von der unteren zur oberen Note abzählst — die untere Note zählt als 1.</p>
                         <div class="lk-visual" id="lkVisualBasis"></div>
-                        <div class="lk-visual" id="lkVisualBasisTastatur"></div>
                         <div class="lk-rule"><strong>Merke:</strong> Prime = 1, Sekunde = 2, Terz = 3, Quarte = 4, Quinte = 5, Sexte = 6, Septime = 7, Oktave = 8.</div>
-                        <div class="lk-tip"><strong>Auf der Tastatur:</strong> Zähle die weißen Tasten von Ton zu Ton — die erste Taste zählt mit!</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Nutze die Tastatur — zähle die weißen Tasten von Ton zu Ton. Die erste Taste zählt mit! Zum Beispiel die Quinte F–C:</div>
+                        <div class="lk-visual" id="lkVisualBasisTastatur"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst zwei Noten im Notensystem. Wähle das passende Intervall aus dem Dropdown.</div>`
                 },
                 'extended': {
@@ -3693,6 +3695,99 @@
                 }
             },
 
+            // ---- Lernkarten: Durchgehendes Notensystem mit mehreren Intervallen ----
+            // intervals: [{quality, size, label}]
+            renderLernkarteStaffRow(intervals) {
+                const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                const baseName = 'F';
+                const baseOctave = 'eingestrichen';
+                const baseIdx = noteNames.indexOf(baseName);
+                const octaves = ['klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+                const baseOctIdx = octaves.indexOf(baseOctave);
+
+                // Proportional vom Quiz: lineSpacing 20→12, Faktor 0.6
+                const pad = 6; // Rand links
+                const spacing = 44; // Abstand zwischen Intervallen
+                const totalW = pad + intervals.length * spacing + 6;
+                const baseY = 100;
+                const lineSpacing = 12;
+                const staffLines = [100, 88, 76, 64, 52];
+
+                // Alle Y-Positionen vorberechnen für viewBox
+                const allYs = [];
+                const computed = intervals.map((iv, i) => {
+                    const steps = iv.size - 1;
+                    const tgtIdx = (baseIdx + steps) % 7;
+                    const tgtName = noteNames[tgtIdx];
+                    const octJump = Math.floor((baseIdx + steps) / 7);
+                    const tgtOctave = octaves[baseOctIdx + octJump] || 'zweigestrichen';
+
+                    const pos1 = this.notePositions[`${baseName}-${baseOctave}-treble`];
+                    const pos2 = this.notePositions[`${tgtName}-${tgtOctave}-treble`];
+                    const y1 = baseY - (pos1 * 6);
+                    const y2 = baseY - (pos2 * 6);
+                    allYs.push(y1, y2);
+
+                    // Vorzeichen
+                    const natST = this.calculateNaturalSemitones(baseName, baseOctave, tgtName, tgtOctave);
+                    const tgtST = this.semitones[iv.quality + '-' + iv.size];
+                    const diff = tgtST !== undefined ? tgtST - natST : 0;
+                    let accidental = '';
+                    if (diff === 1) accidental = '♯';
+                    else if (diff === -1) accidental = '♭';
+
+                    const cx = pad + i * spacing + spacing / 2;
+                    const tooClose = Math.abs(y1 - y2) < 7;
+                    return { y1, y2, cx, tooClose, accidental, label: iv.label };
+                });
+
+                const minY = Math.min(...allYs, 52);
+                const maxY = Math.max(...allYs, 100);
+                const svgTop = minY - 12;
+                const labelH = 14; // Platz für Labels unter dem System
+                const svgBottom = maxY + 12 + labelH;
+                const svgH = svgBottom - svgTop;
+
+                let svg = `<svg width="100%" viewBox="0 ${svgTop} ${totalW} ${svgH}" preserveAspectRatio="xMidYMid meet">`;
+
+                // Notenlinien — starten beim Clef, durchgezogen bis rechts
+                staffLines.forEach(ly => {
+                    svg += `<line x1="4" y1="${ly}" x2="${totalW - 4}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                });
+
+                // Intervalle rendern
+                computed.forEach(c => {
+                    const cx1 = c.tooClose ? c.cx - 7 : c.cx;
+                    const cx2 = c.tooClose ? c.cx + 7 : c.cx;
+                    const rx = 7.5, ry = 5.7;
+
+                    // Hilfslinien (Abstand = lineSpacing = 12)
+                    if (c.y1 > 100) for (let ly = 112; ly <= c.y1; ly += 12) svg += `<line x1="${cx1-8}" y1="${ly}" x2="${cx1+8}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    if (c.y2 < 52) for (let ly = 40; ly >= c.y2; ly -= 12) svg += `<line x1="${cx2-8}" y1="${ly}" x2="${cx2+8}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    if (c.y2 > 100) for (let ly = 112; ly <= c.y2; ly += 12) svg += `<line x1="${cx2-8}" y1="${ly}" x2="${cx2+8}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    // Prime: breite Hilfslinie
+                    if (c.tooClose && c.y1 > 100) {
+                        for (let ly = 112; ly <= c.y1; ly += 12) svg += `<line x1="${c.cx-10}" y1="${ly}" x2="${c.cx+10}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    }
+
+                    // Vorzeichen (proportional: Quiz font-size 22 bei rx 12.5 → 13 bei rx 7.5)
+                    if (c.accidental) {
+                        const accX = cx2 - rx + 1;
+                        svg += `<text x="${accX}" y="${c.y2+4}" font-size="19" font-family="serif" text-anchor="end">${c.accidental}</text>`;
+                    }
+
+                    // Notenköpfe
+                    svg += `<ellipse cx="${cx1}" cy="${c.y1}" rx="${rx}" ry="${ry}" fill="#1f2937" transform="rotate(-20 ${cx1} ${c.y1})"/>`;
+                    svg += `<ellipse cx="${cx2}" cy="${c.y2}" rx="${rx}" ry="${ry}" fill="#1f2937" transform="rotate(-20 ${cx2} ${c.y2})"/>`;
+
+                    // Label unter dem System
+                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 2}" text-anchor="middle" font-size="7" fill="#9a3412" font-weight="600">${c.label}</text>`;
+                });
+
+                svg += '</svg>';
+                return svg;
+            },
+
             // ---- Lernkarten-Staff-Rendering (fixiert auf c') ----
             renderLernkarteStaff(quality, size, width, height) {
                 width = width || 120;
@@ -3790,11 +3885,12 @@
             },
 
             // ---- Lernkarte-Tastatur: Mini-Keyboard für Lernkarten ----
-            // options: { startNote, endNote, highlightKeys: [], arrows: [], showBlackLabels, title }
-            // arrows: [{ from, to, label, color }] — from/to sind Tonnamen (C, Cis, D, ...)
+            // options: { numOctaves, highlightKeys: [], arrows: [], showBlackLabels, title }
+            // Keys werden als 'C', 'D', ... (1. Oktave) und 'C2', 'D2', ... (2. Oktave) referenziert
+            // arrows: [{ from, to, label, color }] — from/to sind Key-IDs
             renderLernkarteTastatur(options = {}) {
                 const {
-                    startNote = 'C', endNote = 'H',
+                    numOctaves = 1,
                     highlightKeys = [], arrows = [],
                     showBlackLabels = false, title = ''
                 } = options;
@@ -3803,32 +3899,37 @@
                 const blackMap = { 'C': 'Cis', 'D': 'Dis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais' };
                 const blackLabels = { 'Cis': 'Cis/Des', 'Dis': 'Dis/Es', 'Fis': 'Fis/Ges', 'Gis': 'Gis/As', 'Ais': 'Ais/B' };
 
-                // Bestimme sichtbare weiße Tasten
-                const startIdx = allWhite.indexOf(startNote);
-                const endIdx = allWhite.indexOf(endNote);
-                const whiteKeys = allWhite.slice(startIdx, endIdx + 1);
+                // Weiße Tasten über alle Oktaven generieren (Key-ID mit Oktav-Suffix)
+                const whiteKeys = [];
+                for (let oct = 1; oct <= numOctaves; oct++) {
+                    const suffix = oct === 1 ? '' : String(oct);
+                    allWhite.forEach(k => whiteKeys.push({ name: k, id: k + suffix, label: k }));
+                }
                 const numWhite = whiteKeys.length;
 
-                const ww = 32; // Weiße Taste Breite
-                const wh = 80; // Weiße Taste Höhe
-                const bw = 20; // Schwarze Taste Breite
-                const bh = 50; // Schwarze Taste Höhe
-                const pad = 8;
+                const ww = numOctaves > 1 ? 24 : 32; // Weiße Taste Breite (kleiner bei Mehroktav)
+                const wh = numOctaves > 1 ? 64 : 80; // Weiße Taste Höhe
+                const bw = numOctaves > 1 ? 15 : 20; // Schwarze Taste Breite
+                const bh = numOctaves > 1 ? 40 : 50; // Schwarze Taste Höhe
+                const pad = 6;
                 const totalW = numWhite * ww + pad * 2;
-                const arrowSpace = arrows.length > 0 ? 40 : 0;
+                const hasLabels = highlightKeys.some(h => h.label);
+                const labelSpace = hasLabels ? 16 : 0;
+                const arrowSpace = arrows.length > 0 ? 30 : 0;
                 const titleSpace = title ? 18 : 0;
-                const totalH = wh + pad * 2 + arrowSpace + titleSpace;
+                const totalH = wh + pad * 2 + labelSpace + arrowSpace + titleSpace;
 
-                // Positionen (x-Mitte) jeder Taste
+                // Positionen (x-Mitte) jeder Taste — Key-ID als Schlüssel
                 const keyPositions = {};
-                whiteKeys.forEach((k, i) => {
-                    keyPositions[k] = pad + i * ww + ww / 2;
-                    if (blackMap[k] && i < numWhite - 1) {
-                        keyPositions[blackMap[k]] = pad + i * ww + ww - bw / 2 + 1;
+                whiteKeys.forEach((wk, i) => {
+                    keyPositions[wk.id] = pad + i * ww + ww / 2;
+                    if (blackMap[wk.name] && i < numWhite - 1) {
+                        const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                        keyPositions[blackMap[wk.name] + suffix] = pad + i * ww + ww - bw / 2 + 1;
                     }
                 });
 
-                let svg = `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}">`;
+                let svg = `<svg width="100%" viewBox="0 0 ${totalW} ${totalH}" preserveAspectRatio="xMidYMid meet">`;
 
                 // Titel
                 if (title) {
@@ -3837,30 +3938,31 @@
                 const ky = titleSpace;
 
                 // Weiße Tasten
-                whiteKeys.forEach((k, i) => {
+                whiteKeys.forEach((wk, i) => {
                     const x = pad + i * ww;
-                    const hl = highlightKeys.find(h => h.key === k);
+                    const hl = highlightKeys.find(h => h.key === wk.id);
                     const fill = hl ? (hl.color || '#fbbf24') : '#fff';
                     svg += `<rect x="${x}" y="${ky + pad}" width="${ww - 1}" height="${wh}" rx="3" fill="${fill}" stroke="#333" stroke-width="1.5"/>`;
-                    // Tastenbeschriftung
+                    // Tastenbeschriftung (unten auf der Taste)
                     const labelColor = hl ? '#92400e' : '#666';
-                    svg += `<text x="${x + ww/2}" y="${ky + pad + wh - 8}" text-anchor="middle" font-size="11" fill="${labelColor}" font-weight="600">${k}</text>`;
-                    // Highlight-Label (Nummer etc.)
+                    svg += `<text x="${x + ww/2}" y="${ky + pad + wh - 8}" text-anchor="middle" font-size="11" fill="${labelColor}" font-weight="600">${wk.label}</text>`;
+                    // Highlight-Label (Nummer etc.) — unterhalb der Tasten, vor dem Pfeil
                     if (hl && hl.label) {
-                        svg += `<text x="${x + ww/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="14" fill="#92400e" font-weight="700">${hl.label}</text>`;
+                        svg += `<text x="${x + ww/2}" y="${ky + pad + wh + labelSpace - 3}" text-anchor="middle" font-size="12" fill="#92400e" font-weight="700">${hl.label}</text>`;
                     }
                 });
 
                 // Schwarze Tasten
-                whiteKeys.forEach((k, i) => {
-                    if (blackMap[k] && i < numWhite - 1) {
+                whiteKeys.forEach((wk, i) => {
+                    if (blackMap[wk.name] && i < numWhite - 1) {
                         const bx = pad + i * ww + ww - bw / 2;
-                        const bk = blackMap[k];
-                        const hl = highlightKeys.find(h => h.key === bk);
+                        const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                        const bkId = blackMap[wk.name] + suffix;
+                        const hl = highlightKeys.find(h => h.key === bkId);
                         const fill = hl ? (hl.color || '#fbbf24') : '#222';
                         svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
                         if (showBlackLabels) {
-                            const lbl = blackLabels[bk] || bk;
+                            const lbl = blackLabels[blackMap[wk.name]] || blackMap[wk.name];
                             svg += `<text x="${bx + bw/2}" y="${ky + pad + bh - 6}" text-anchor="middle" font-size="7" fill="#fff" font-weight="600">${lbl}</text>`;
                         }
                         if (hl && hl.label) {
@@ -3871,7 +3973,7 @@
 
                 // Pfeile
                 if (arrows.length > 0) {
-                    const arrowY = ky + pad + wh + 20;
+                    const arrowY = ky + pad + wh + labelSpace + 10;
                     arrows.forEach(a => {
                         const fromX = keyPositions[a.from];
                         const toX = keyPositions[a.to];
