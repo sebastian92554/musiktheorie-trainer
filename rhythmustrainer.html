@@ -124,6 +124,87 @@
             background: #7c3aed;
         }
 
+        /* Taktart-Erkennung Buttons */
+        .ts-option-btn {
+            background: #f3f4f6;
+            color: #1f2937;
+            border: 2px solid #d1d5db;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-family: "Times New Roman", Georgia, serif;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 70px;
+        }
+        .ts-option-btn:hover:not(:disabled) {
+            background: #e5e7eb;
+            border-color: #8b5cf6;
+        }
+        .ts-option-btn.ts-correct {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .ts-option-btn.ts-wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .ts-option-btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+        }
+        .ts-button-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+        .ts-button-container.hidden {
+            display: none;
+        }
+        .ts-feedback {
+            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+        .ts-feedback-correct {
+            color: #065f46;
+            background: #d1fae5;
+        }
+        .ts-feedback-wrong {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        /* Taktart-Wechsel Toast */
+        .taktart-hint-toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #8b5cf6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        .taktart-hint-toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         .settings-panel {
             background: #f9fafb;
             padding: 1rem;
@@ -1146,13 +1227,13 @@
 
                     <div class="st-connector" id="stConn-rhy1-rhy2"></div>
 
-                    <!-- Knoten 2: Zählzeiten bestimmen -->
+                    <!-- Knoten 2: Taktarten erkennen -->
                     <div class="st-node-wrapper" id="stNode-rhy2">
                         <div class="st-node available" onclick="quickStart.selectNode('rhy2')">
                             <div class="st-node-icon">2</div>
                             <div class="st-node-content">
-                                <div class="st-node-name">Zählzeiten bestimmen</div>
-                                <div class="st-node-desc">Position im Takt erkennen</div>
+                                <div class="st-node-name">Taktarten erkennen</div>
+                                <div class="st-node-desc">Welche Taktart hat dieser Rhythmus?</div>
                             </div>
                             <div class="st-node-action">&#9662;</div>
                         </div>
@@ -1161,17 +1242,32 @@
 
                     <div class="st-connector" id="stConn-rhy2-rhy3"></div>
 
-                    <!-- Knoten 3: Rhythmussprache -->
+                    <!-- Knoten 3: Zählzeiten bestimmen -->
                     <div class="st-node-wrapper" id="stNode-rhy3">
                         <div class="st-node available" onclick="quickStart.selectNode('rhy3')">
                             <div class="st-node-icon">3</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Zählzeiten bestimmen</div>
+                                <div class="st-node-desc">Position im Takt erkennen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-rhy3"></div>
+                    </div>
+
+                    <div class="st-connector" id="stConn-rhy3-rhy4"></div>
+
+                    <!-- Knoten 4: Rhythmussprache -->
+                    <div class="st-node-wrapper" id="stNode-rhy4">
+                        <div class="st-node available" onclick="quickStart.selectNode('rhy4')">
+                            <div class="st-node-icon">4</div>
                             <div class="st-node-content">
                                 <div class="st-node-name">Rhythmussprache</div>
                                 <div class="st-node-desc">Rhythmussilben richtig sprechen</div>
                             </div>
                             <div class="st-node-action">&#9662;</div>
                         </div>
-                        <div class="st-sub-skills" id="stSubs-rhy3"></div>
+                        <div class="st-sub-skills" id="stSubs-rhy4"></div>
                     </div>
 
                 </div>
@@ -1335,6 +1431,7 @@
                     <select id="taskTypeSelect" onchange="app.updateSettings()">
                         <option value="view" selected>Ansichtsmodus (nur Takt anzeigen)</option>
                         <option value="note-addition">Notenwerte addieren</option>
+                        <option value="time-signature-id">Taktart erkennen</option>
                         <option value="counting-time">Zählzeit bestimmen</option>
                         <option value="rhythm-syllable">Rhythmussilbe bestimmen</option>
                     </select>
@@ -1346,7 +1443,9 @@
                         <option value="4/4" selected>4/4 (Viervierteltakt)</option>
                         <option value="3/4">3/4 (Dreivierteltakt)</option>
                         <option value="2/4">2/4 (Zweivierteltakt)</option>
+                        <option value="5/4">5/4 (Fünfvierteltakt)</option>
                         <option value="6/8">6/8 (Sechsachteltakt)</option>
+                        <option value="7/8">7/8 (Siebenachteltakt)</option>
                     </select>
                 </div>
 
@@ -1501,6 +1600,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Taktart-Buttons (nur bei time-signature-id) -->
+        <div class="card ts-button-container hidden" id="tsButtonContainer"></div>
 
         <!-- Input Card - bei Zählzeit- und Rhythmussilben-Aufgabe sichtbar -->
         <div class="card input-card hidden" id="inputCard">
@@ -1666,36 +1768,43 @@
             // Node to Level mapping
             nodeToLevel: {
                 'rhy1': 'einsteiger',
-                'rhy2': 'fortgeschrittener',
-                'rhy3': 'profi'
+                'rhy2': 'taktarten',
+                'rhy3': 'fortgeschrittener',
+                'rhy4': 'profi'
             },
 
             // Sub-Skills pro Knoten (zunehmender Schwierigkeitsgrad)
             nodeSubSkills: {
                 'rhy1': [
                     { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
+                    { id: 'pausen', label: 'Mit Pausen' },
                     { id: '8tel', label: 'Mit Achtelnoten' },
                     { id: '16tel', label: 'Mit Sechzehntelnoten' },
                     { id: 'punktierte', label: 'Mit punktierten Noten' },
-                    { id: 'pausen', label: 'Mit Pausen' },
                     { id: 'triolen', label: 'Mit Triolen' },
                     { id: 'hilfen_aus', label: 'Ohne Legende' }
                 ],
                 'rhy2': [
-                    { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
-                    { id: '8tel', label: 'Mit Achtelnoten' },
-                    { id: '16tel', label: 'Mit Sechzehntelnoten' },
-                    { id: 'punktierte', label: 'Mit punktierten Noten' },
-                    { id: 'pausen', label: 'Mit Pausen' },
-                    { id: 'hilfen_aus', label: 'Ohne Hilfen' },
-                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+                    { id: 'grundlagen', label: 'Grundlagen (4/4 + 3/4)' },
+                    { id: 'einfach', label: 'Einfache Taktarten (+ 2/4)' },
+                    { id: 'ungerade', label: 'Ungerade Taktarten (+ 5/4)' },
+                    { id: 'zusammengesetzt', label: 'Zusammengesetzte Taktarten (+ 7/8)' }
                 ],
                 'rhy3': [
                     { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
+                    { id: 'pausen', label: 'Mit Pausen' },
                     { id: '8tel', label: 'Mit Achtelnoten' },
                     { id: '16tel', label: 'Mit Sechzehntelnoten' },
                     { id: 'punktierte', label: 'Mit punktierten Noten' },
+                    { id: 'hilfen_aus', label: 'Ohne Hilfen' },
+                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+                ],
+                'rhy4': [
+                    { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
                     { id: 'pausen', label: 'Mit Pausen' },
+                    { id: '8tel', label: 'Mit Achtelnoten' },
+                    { id: '16tel', label: 'Mit Sechzehntelnoten' },
+                    { id: 'punktierte', label: 'Mit punktierten Noten' },
                     { id: 'triolen', label: 'Mit Triolen' },
                     { id: 'noaudio', label: 'Ohne Hörbeispiel' }
                 ]
@@ -1719,8 +1828,30 @@
                         this.saveProgress();
                     } else {
                         this.progress = parsed;
+                        this._migrateProgress();
                     }
                 }
+            },
+
+            // Migration: v2 (3 Knoten) → v3 (4 Knoten mit Taktarten + Pausen nach vorne)
+            _migrateProgress() {
+                // Bereits migriert? (taktarten-Level existiert)
+                if (this.progress.taktarten) return;
+
+                console.log('[Migration] Migriere Fortschritt auf v3 (4 Knoten)...');
+
+                // 1. Neues taktarten-Level anlegen
+                this.progress.taktarten = { mastered: [], attempts: {}, scores: {} };
+
+                // 2. fortgeschrittener und profi bleiben inhaltlich gleich,
+                //    aber Pausen-Sub-Skill-Reihenfolge hat sich geändert:
+                //    Alt: basis(0), 8tel(1), 16tel(2), punktierte(3), pausen(4), ...
+                //    Neu: basis(0), pausen(1), 8tel(2), 16tel(3), punktierte(4), ...
+                //    Da Scores per Sub-Skill-ID gespeichert werden (nicht per Index),
+                //    und mastered[] auch IDs enthält, ist keine Index-Migration nötig!
+
+                this.saveProgress();
+                console.log('[Migration] Fertig.');
             },
 
             saveProgress() {
@@ -1732,6 +1863,7 @@
                 return {
                     timestamp: Date.now(),
                     einsteiger: { mastered: [], attempts: {}, scores: {} },
+                    taktarten: { mastered: [], attempts: {}, scores: {} },
                     fortgeschrittener: { mastered: [], attempts: {}, scores: {} },
                     profi: { mastered: [], attempts: {}, scores: {} }
                 };
@@ -1745,6 +1877,11 @@
                 document.getElementById('successScreen').style.display = 'none';
                 document.getElementById('originalApp').classList.remove('active');
                 document.getElementById('originalApp').style.display = 'none';
+                // Taktart-Buttons und Badge aufräumen
+                const tsBtn = document.getElementById('tsButtonContainer');
+                if (tsBtn) tsBtn.classList.add('hidden');
+                const tsBadge = document.getElementById('timeSignatureBadge');
+                if (tsBadge) tsBadge.style.display = '';
                 this.isActive = false;
             },
 
@@ -1799,7 +1936,7 @@
 
             // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
-                const nodes = ['rhy1', 'rhy2', 'rhy3'];
+                const nodes = ['rhy1', 'rhy2', 'rhy3', 'rhy4'];
                 let totalSubs = 0;
                 let totalMastered = 0;
                 let firstAvailableNode = null;
@@ -1831,7 +1968,8 @@
 
                     // Connector-Zustand
                     const prevConn = nodeId === 'rhy2' ? document.getElementById('stConn-rhy1-rhy2') :
-                                     nodeId === 'rhy3' ? document.getElementById('stConn-rhy2-rhy3') : null;
+                                     nodeId === 'rhy3' ? document.getElementById('stConn-rhy2-rhy3') :
+                                     nodeId === 'rhy4' ? document.getElementById('stConn-rhy3-rhy4') : null;
                     if (prevConn) {
                         const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
                         const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
@@ -2003,10 +2141,11 @@
                 const subs = this.nodeSubSkills[nodeId];
                 const mastered = this.progress[level].mastered || [];
 
-                let activeOptions = ['basis'];
+                // CASCADE: Alle Sub-Skills bis zum gewählten einschließen
+                // Erster Sub-Skill ist immer dabei (basis oder grundlagen)
+                let activeOptions = [subs[0].id];
 
                 if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
-                    const targetSub = subs[this.selectedSub.index];
                     for (let i = 1; i <= this.selectedSub.index; i++) {
                         activeOptions.push(subs[i].id);
                     }
@@ -2035,6 +2174,10 @@
                 this.questionsCorrectInRow = 0;
                 this.hasBeenCheckedForTask = false;
 
+                // Taktart auf 4/4 zurücksetzen (wird in configureApp ggf. überschrieben für Taktarten-Knoten)
+                app.settings.timeSignature = '4/4';
+                app.settings._taktartenPool = null;
+
                 this.configureApp(level, this.currentOptions);
 
                 document.getElementById('quickStartScreen').classList.remove('active');
@@ -2051,6 +2194,8 @@
                 // Bestimme Task Type
                 if (level === 'einsteiger') {
                     app.settings.taskType = 'note-addition';
+                } else if (level === 'taktarten') {
+                    app.settings.taskType = 'time-signature-id';
                 } else if (level === 'fortgeschrittener') {
                     app.settings.taskType = 'counting-time';
                 } else if (level === 'profi') {
@@ -2135,8 +2280,39 @@
                     app.settings.additionNoteTypes = noteTypes;
                     console.log('[QuickStart] Addition-Notenwerte:', noteTypes);
                 }
-                
-                // AUDIO: Nur in rhy2/rhy3 aktiv (nicht rhy1)
+
+                // TAKTARTEN-KNOTEN: Cascade-Pool basierend auf Sub-Skills aufbauen
+                if (level === 'taktarten') {
+                    // Cascade: Jeder Sub-Skill fügt Taktarten zum Pool hinzu
+                    const pool = ['4/4', '3/4']; // Grundlagen (immer dabei)
+                    if (options.includes('einfach')) pool.push('2/4');
+                    if (options.includes('ungerade')) pool.push('5/4');
+                    if (options.includes('zusammengesetzt')) pool.push('7/8');
+                    app.settings._taktartenPool = pool;
+                    app.settings.timeSignature = pool[Math.floor(Math.random() * pool.length)];
+                    // Einfache Notenwerte: Basis + Achtel (Fokus auf Takterkennung)
+                    app.settings.includeEighths = true;
+                    app.settings.includeSixteenths = false;
+                    app.settings.includeDotted = false;
+                    app.settings.includeRests = false;
+                    app.settings.includeTriplets = false;
+                    // Hilfen aus (Fokus auf Takt)
+                    app.settings.showLegend = false;
+                    app.settings.showGrid = false;
+                    app.settings.showCountingTimes = false;
+                    app.settings.showRhythmSyllables = false;
+                    document.getElementById('includeEighths').checked = true;
+                    document.getElementById('includeSixteenths').checked = false;
+                    document.getElementById('includeDotted').checked = false;
+                    document.getElementById('includeRests').checked = false;
+                    document.getElementById('includeTriplets').checked = false;
+                    document.getElementById('showLegend').checked = false;
+                    document.getElementById('showGrid').checked = false;
+                    document.getElementById('showCountingTimes').checked = false;
+                    console.log('[QuickStart] Taktarten-Modus: Taktart =', app.settings.timeSignature);
+                }
+
+                // AUDIO: Nur in rhy3/rhy4 aktiv (nicht rhy1/rhy2)
                 const hasAudio = (level === 'fortgeschrittener' || level === 'profi');
                 const isNoAudio = options.includes('noaudio');
                 app.noAudio = !hasAudio || isNoAudio;
@@ -2208,8 +2384,8 @@
 
             updateQuizOverlay() {
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                const nodeIdx = ['rhy1', 'rhy2', 'rhy3'].indexOf(nodeId) + 1;
-                const nodeNames = { 'rhy1': 'Notenwerte', 'rhy2': 'Zählzeiten', 'rhy3': 'Rhythmussprache' };
+                const nodeIdx = ['rhy1', 'rhy2', 'rhy3', 'rhy4'].indexOf(nodeId) + 1;
+                const nodeNames = { 'rhy1': 'Notenwerte', 'rhy2': 'Taktarten', 'rhy3': 'Zählzeiten', 'rhy4': 'Rhythmussprache' };
                 const nodeName = nodeNames[nodeId] || '';
 
                 const subs = this.nodeSubSkills[nodeId];
@@ -2225,6 +2401,7 @@
                 
                 const taskTexts = {
                     einsteiger: 'Notenwerte addieren',
+                    taktarten: 'Taktart erkennen',
                     fortgeschrittener: 'Zählzeiten bestimmen',
                     profi: 'Rhythmussprache sprechen'
                 };
@@ -2276,7 +2453,17 @@
                         setTimeout(() => {
                             console.log('[QuickStart] Generiere Frage', this.questionsAnswered + 1);
                             this.hasBeenCheckedForTask = false; // Reset für nächste Aufgabe
-                            
+
+                            // TAKTART-WECHSEL: Ab Frage 7 gemischte Taktarten (nicht im Taktarten-Knoten)
+                            if (this.questionsAnswered >= 6 && this.currentLevel !== 'taktarten') {
+                                const tsPool = ['4/4', '3/4', '2/4', '5/4', '7/8'];
+                                app.settings.timeSignature = tsPool[Math.floor(Math.random() * tsPool.length)];
+                                // Hinweis bei erster Taktart-Wechsel-Frage
+                                if (this.questionsAnswered === 6) {
+                                    this._showTaktartHint();
+                                }
+                            }
+
                             try {
                                 app.generateNewTask();
                                 console.log('[QuickStart] Neue Aufgabe generiert!');
@@ -2299,7 +2486,22 @@
                 // Bei FEHLER: User kann nochmal versuchen (KEINE neue Aufgabe!)
                 // Feld-Reset passiert in checkStartAnswer/checkAdditionAnswer
             },
-            
+
+            // Toast-Hinweis: Taktart wechselt ab Frage 7
+            _showTaktartHint() {
+                const toast = document.createElement('div');
+                toast.className = 'taktart-hint-toast';
+                toast.textContent = 'Achtung: Die Taktart wechselt!';
+                document.body.appendChild(toast);
+                // Einblenden
+                requestAnimationFrame(() => toast.classList.add('visible'));
+                // Ausblenden nach 2.5s
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                    setTimeout(() => toast.remove(), 400);
+                }, 2500);
+            },
+
             // Success Screen (DT-Pattern)
             showSuccessScreen() {
                 this.isActive = false;
@@ -2735,7 +2937,7 @@
                     const level = quickStart.currentLevel;
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
-                    const nodeNames = { 'rhy1': 'Notenwerte addieren', 'rhy2': 'Zählzeiten bestimmen', 'rhy3': 'Rhythmussilben sprechen' };
+                    const nodeNames = { 'rhy1': 'Notenwerte addieren', 'rhy2': 'Taktarten erkennen', 'rhy3': 'Zählzeiten bestimmen', 'rhy4': 'Rhythmussilben sprechen' };
                     const nodeName = nodeNames[nodeId] || '';
 
                     titleEl.textContent = `Hilfe: ${nodeName}`;
@@ -2826,6 +3028,18 @@
                                 <p>Bei Pausen: Silbe im Kopf denken, aber nicht aussprechen.</p>`,
                             'triolen': `<p><strong>+ Triolen</strong></p>
                                 <p>Triolen = „du-da-di" für drei gleiche Noten auf einem Schlag.</p>`
+                        },
+                        'taktarten': {
+                            'grundlagen': `<p><strong>Taktarten erkennen: Grundlagen</strong></p>
+                                <p>Du siehst einen Rhythmus und bestimmst die Taktart. Zähle die Notenwerte zusammen — die Summe verrät die Taktart!</p>
+                                <p><strong>4/4-Takt:</strong> 4 Viertelschläge pro Takt (Summe = 4).</p>
+                                <p><strong>3/4-Takt:</strong> 3 Viertelschläge pro Takt (Summe = 3). Typisch für Walzer.</p>`,
+                            'einfach': `<p><strong>+ 2/4-Takt</strong></p>
+                                <p><strong>2/4:</strong> 2 Viertelschläge pro Takt (Summe = 2). Kurze, marschähnliche Takte.</p>`,
+                            'ungerade': `<p><strong>+ 5/4-Takt</strong></p>
+                                <p><strong>5/4:</strong> 5 Viertelschläge pro Takt (Summe = 5). Ungerader Takt, oft in 3+2 oder 2+3 gruppiert.</p>`,
+                            'zusammengesetzt': `<p><strong>+ 7/8-Takt</strong></p>
+                                <p><strong>7/8:</strong> 7 Achtelschläge pro Takt (Summe = 3,5 Viertel). Asymmetrischer Takt, oft 4+3 oder 3+4 gruppiert.</p>`
                         }
                     };
 
@@ -3351,7 +3565,11 @@ Gerät:
                 const startInput = document.getElementById('startCountingInput');
                 const staffWrapper = document.getElementById('staffWrapper');
                 const additionContainer = document.getElementById('additionTaskContainer');
-                
+                const tsButtonCont = document.getElementById('tsButtonContainer');
+
+                // Taktart-Buttons immer erstmal verstecken
+                if (tsButtonCont) tsButtonCont.classList.add('hidden');
+
                 if (this.settings.taskType === 'note-addition') {
                     // Addition-Modus: Zeige Addition-Container, verstecke Staff
                     inputCard.classList.add('hidden');
@@ -3376,6 +3594,13 @@ Gerät:
                     inputLabel.textContent = 'Rhythmussilbe der markierten Note:';
                     inputHint.textContent = 'Mögliche Silben: "du" (Grundschlag), "dei" (und), "te" (e/te)';
                     startInput.placeholder = 'du, dei oder te';
+                } else if (this.settings.taskType === 'time-signature-id') {
+                    // Taktarten-Erkennung
+                    inputCard.classList.add('hidden');
+                    taskFocusText.classList.remove('hidden');
+                    staffWrapper.classList.remove('hidden');
+                    additionContainer.classList.add('hidden');
+                    taskFocusBadge.textContent = '🎯 Welche Taktart hat dieser Rhythmus?';
                 } else {
                     // View-Modus
                     inputCard.classList.add('hidden');
@@ -3387,7 +3612,7 @@ Gerät:
                 // Legend cards removed - now integrated into help menu
                 
                 // Reset score when changing task type
-                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition') {
+                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition' || this.settings.taskType === 'time-signature-id') {
                     this.score = { correct: 0, total: 0 };
                     this.updateScoreDisplay();
                 }
@@ -3490,7 +3715,9 @@ Gerät:
                     case '4/4': return [2.0];  // Nach Zählzeit 2
                     case '2/4': return [];     // Keine Teilung (Halbe = ganzer Takt)
                     case '3/4': return [];     // Keine Teilung (ungerade)
+                    case '5/4': return [3.0];  // 3+2 Gruppierung
                     case '6/8': return [1.5];  // Nach Zählzeit 3 (zwei 3er-Gruppen)
+                    case '7/8': return [2.0];  // 4+3 Gruppierung (2.0 Viertelwerte = 4 Achtel)
                     default: return [];
                 }
             },
@@ -4014,10 +4241,171 @@ Gerät:
                 container.innerHTML = html;
             },
 
+            // === TAKTARTEN-ERKENNUNG ===
+            generateTimeSignatureTask() {
+                // Zufällige Taktart aus dem Cascade-Pool wählen
+                const pool = this.settings._taktartenPool || ['4/4', '3/4'];
+                this.settings.timeSignature = pool[Math.floor(Math.random() * pool.length)];
+
+                const correctTS = this.settings.timeSignature;
+                const maxValue = this.getMaxValue();
+
+                // Einen einfachen Takt generieren (Basis + Achtel)
+                const availableNotes = this.getAvailableNotes();
+                let bar = { notes: [], currentValue: 0, maxValue: maxValue, tripletGroupCounter: 0 };
+
+                let attempts = 0;
+                while (bar.currentValue < bar.maxValue && attempts < 100) {
+                    attempts++;
+                    const remainingValue = bar.maxValue - bar.currentValue;
+                    const fittingNotes = availableNotes.filter(noteType => {
+                        const val = this.noteValues[noteType] ? this.noteValues[noteType].value : 0;
+                        return val > 0 && val <= remainingValue;
+                    });
+                    if (fittingNotes.length === 0) break;
+                    const noteType = fittingNotes[Math.floor(Math.random() * fittingNotes.length)];
+                    const noteVal = this.noteValues[noteType].value;
+                    bar.notes.push({
+                        type: noteType,
+                        value: noteVal,
+                        isRest: noteType.includes('rest'),
+                        isMarked: false
+                    });
+                    bar.currentValue += noteVal;
+                }
+
+                // Taktteilungen anwenden
+                bar = this.splitNotesAtDivisions(bar);
+                bar = this.mergeConsecutiveRests(bar);
+
+                this.currentTask = bar;
+                this.currentTask.correctTimeSignature = correctTS;
+                this.hasBeenChecked = false;
+                this.freeRetry = false;
+
+                // Distraktor-Optionen generieren
+                const allTS = ['4/4', '2/4', '3/4', '5/4', '7/8'];
+                const distractors = allTS.filter(ts => ts !== correctTS);
+                // 3 zufällige Distraktoren
+                for (let i = distractors.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+                }
+                const options = [correctTS, ...distractors.slice(0, 3)];
+                // Optionen mischen
+                for (let i = options.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [options[i], options[j]] = [options[j], options[i]];
+                }
+                this.currentTask.tsOptions = options;
+
+                // Rendern
+                this.renderBar();
+                this.renderTimeSignatureButtons(options);
+
+                // Badge im Taktarten-Quiz verstecken (Taktart ist die Aufgabe!)
+                const tsBadge = document.getElementById('timeSignatureBadge');
+                if (quickStart.isActive && quickStart.currentLevel === 'taktarten') {
+                    tsBadge.style.display = 'none';
+                } else {
+                    tsBadge.style.display = '';
+                    tsBadge.textContent = this.settings.timeSignature;
+                }
+            },
+
+            renderTimeSignatureButtons(options) {
+                const container = document.getElementById('tsButtonContainer');
+                if (!container) return;
+
+                container.innerHTML = options.map(ts =>
+                    `<button class="ts-option-btn" onclick="app.checkTimeSignatureAnswer('${ts}')">${ts}</button>`
+                ).join('');
+                container.classList.remove('hidden');
+
+                // Altes Feedback entfernen
+                const oldFeedback = document.getElementById('tsFeedback');
+                if (oldFeedback) oldFeedback.remove();
+
+                // Input-Card und Staff sichtbar machen
+                document.getElementById('inputCard').classList.add('hidden');
+                document.getElementById('staffWrapper').classList.remove('hidden');
+                document.getElementById('additionTaskContainer').classList.add('hidden');
+            },
+
+            checkTimeSignatureAnswer(selected) {
+                const correct = this.currentTask.correctTimeSignature;
+                const isCorrect = selected === correct;
+                const container = document.getElementById('tsButtonContainer');
+                const buttons = container.querySelectorAll('.ts-option-btn');
+
+                if (isCorrect) {
+                    // Richtig: Alle Buttons deaktivieren, korrekte grün markieren
+                    buttons.forEach(btn => {
+                        btn.disabled = true;
+                        if (btn.textContent === correct) btn.classList.add('ts-correct');
+                    });
+                    this._showTsFeedback('✓ Richtig!', true);
+                } else {
+                    // Falsch: Gewählten Button rot markieren + sperren
+                    buttons.forEach(btn => {
+                        if (btn.textContent === selected) {
+                            btn.classList.add('ts-wrong');
+                            btn.disabled = true;
+                        }
+                    });
+                    this._showTsFeedback('⚠ Prüfe nochmal — zähle die Notenwerte zusammen!', false);
+                }
+
+                // Score tracken (nur erster Versuch)
+                if (!this.hasBeenChecked) {
+                    if (!this.freeRetry) {
+                        this.score.total++;
+                        if (isCorrect) this.score.correct++;
+                    }
+                    this.hasBeenChecked = true;
+                    this.updateScoreDisplay();
+                }
+
+                // QuickStart-Hook
+                if (quickStart.isActive && quickStart.currentLevel) {
+                    if (isCorrect) {
+                        setTimeout(() => quickStart.onAnswerChecked(true), 1000);
+                    } else {
+                        // Bei Fehler: Erstversuch zählen, aber KEINE neue Aufgabe
+                        quickStart.onAnswerChecked(false);
+                    }
+                    return;
+                }
+
+                // Freies Üben: Auto-Continue bei Erfolg
+                if (isCorrect) {
+                    setTimeout(() => this.generateNewTask(), 1000);
+                }
+                // Bei Fehler: Buttons bleiben aktiv (außer die gesperrten falschen)
+            },
+
+            _showTsFeedback(text, isCorrect) {
+                let feedback = document.getElementById('tsFeedback');
+                if (!feedback) {
+                    feedback = document.createElement('div');
+                    feedback.id = 'tsFeedback';
+                    const container = document.getElementById('tsButtonContainer');
+                    container.parentNode.insertBefore(feedback, container.nextSibling);
+                }
+                feedback.textContent = text;
+                feedback.className = 'ts-feedback ' + (isCorrect ? 'ts-feedback-correct' : 'ts-feedback-wrong');
+            },
+
             generateNewTask() {
                 // Bei Addition-Aufgabe: Separater Generator
                 if (this.settings.taskType === 'note-addition') {
                     this.generateAdditionTask();
+                    return;
+                }
+
+                // Bei Taktarten-Erkennung: Separater Generator
+                if (this.settings.taskType === 'time-signature-id') {
+                    this.generateTimeSignatureTask();
                     return;
                 }
                 
@@ -4663,7 +5051,17 @@ Gerät:
                 // Draw barlines
                 svg += `<line x1="${barlineLeft}" y1="${staffY - 60}" x2="${barlineLeft}" y2="${staffY + 60}" stroke="#000" stroke-width="4"/>`;
                 svg += `<line x1="${barlineRight}" y1="${staffY - 60}" x2="${barlineRight}" y2="${staffY + 60}" stroke="#000" stroke-width="4"/>`;
-                
+
+                // Draw time signature (Zähler über der Linie, Nenner darunter)
+                // In Taktarten-Quiz ausblenden (dort ist die Taktart die Aufgabe)
+                if (!(quickStart.isActive && quickStart.currentLevel === 'taktarten')) {
+                    const [tsNum, tsDen] = this.settings.timeSignature.split('/').map(Number);
+                    const tsX = 58;
+                    const tsFont = 'font-family: "Times New Roman", Georgia, serif; font-weight: bold; text-anchor: middle;';
+                    svg += `<text x="${tsX}" y="${staffY - 12}" style="${tsFont} font-size: 28px;" fill="#000">${tsNum}</text>`;
+                    svg += `<text x="${tsX}" y="${staffY + 28}" style="${tsFont} font-size: 28px;" fill="#000">${tsDen}</text>`;
+                }
+
                 // Calculate grid positions
                 const gridSpacing = noteAreaWidth / maxValue; // Abstand zwischen Hauptzählzeiten
                 const subGridSpacing = gridSpacing / (gridSubdivisions / maxValue); // Abstand zwischen allen Rasterlinien
@@ -5817,7 +6215,7 @@ Gerät:
                 const scoreText = document.getElementById('scoreText');
                 const scorePercentage = document.getElementById('scorePercentage');
 
-                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition') {
+                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition' || this.settings.taskType === 'time-signature-id') {
                     const percentage = this.score.total > 0
                         ? Math.round((this.score.correct / this.score.total) * 100)
                         : 0;
