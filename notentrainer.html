@@ -1226,6 +1226,8 @@
                     <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #4f46e5; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
                     <span style="color: #d1d5db;">|</span>
                     <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
+                    <span style="color: #d1d5db;">|</span>
+                    <a onclick="app.showFeedback()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Feedback</a>
                 </div>
                 <div class="st-legend">
                     <div class="st-legend-item"><div class="st-legend-dot m"></div> Gemeistert</div>
@@ -1265,7 +1267,7 @@
         </div>
 
         <!-- Feedback Modal -->
-        <div class="modal-overlay hidden" id="feedbackModal">
+        <div class="modal-overlay" id="feedbackModal">
             <div class="modal">
                 <h2>💬 Feedback & Verbesserungsvorschläge</h2>
                 <p style="margin-bottom: 1rem; color: #4b5563;">
@@ -1428,8 +1430,16 @@
         <div class="staff-and-keyboard-wrapper">
             <!-- Staff -->
             <div class="card staff-card">
-                <div class="text-center">
+                <div class="text-center" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
+                    <button type="button" id="muteToggle" onclick="app.toggleMute()" title="Ton ein/aus"
+                        style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 50%; opacity: 0.6; transition: opacity 0.2s;"
+                        onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.6'">
+                        <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                            <path id="muteIconWaves" d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                        </svg>
+                    </button>
                 </div>
                 <div id="staffContainer"></div>
             </div>
@@ -2646,6 +2656,74 @@
                 return `<g transform="translate(60, 144) scale(0.13)"><path d="m190.85 451.25c11.661 14.719 32.323 24.491 55.844 24.491 36.401 0 65.889-23.372 65.889-52.214s-29.488-52.214-65.889-52.214c-20.314 4.1522-28.593 9.0007-33.143-2.9091 17.976-54.327 46.918-66.709 96.546-66.709 65.914 0 96.969 59.897 96.969 142.97-18.225 190.63-205.95 286.75-246.57 316.19 5.6938 13.103 5.3954 12.631 5.3954 12.009 189.78-86.203 330.69-204.43 330.69-320.74 0-92.419-58.579-175.59-187.72-172.8-77.575 0-170.32 86.203-118 171.93z" fill="#000" stroke="#000" stroke-width="1"/><circle cx="551.27" cy="361.37" r="32.323" fill="#000"/><circle cx="551.27" cy="498.12" r="32.323" fill="#000"/></g>`;
             },
 
+            // ---- Audio: Feedback-Ton bei richtiger Antwort ----
+            _audioCtx: null,
+            audioMuted: false,
+
+            toggleMute() {
+                this.audioMuted = !this.audioMuted;
+                const waves = document.getElementById('muteIconWaves');
+                const icon = document.getElementById('muteIcon');
+                if (this.audioMuted) {
+                    waves.style.display = 'none';
+                    // Durchgestrichene Linie anzeigen
+                    let slash = document.getElementById('muteSlash');
+                    if (!slash) {
+                        slash = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        slash.id = 'muteSlash';
+                        slash.setAttribute('x1', '2');
+                        slash.setAttribute('y1', '2');
+                        slash.setAttribute('x2', '22');
+                        slash.setAttribute('y2', '22');
+                        slash.setAttribute('stroke', '#4f46e5');
+                        slash.setAttribute('stroke-width', '2');
+                        slash.setAttribute('stroke-linecap', 'round');
+                        icon.appendChild(slash);
+                    }
+                } else {
+                    waves.style.display = '';
+                    const slash = document.getElementById('muteSlash');
+                    if (slash) slash.remove();
+                }
+            },
+
+            playFeedbackTone() {
+                if (!this.currentNote || this.audioMuted) return;
+                try {
+                    if (!this._audioCtx || this._audioCtx.state === 'closed') {
+                        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
+                    const ctx = this._audioCtx;
+
+                    // Pitch berechnen (NT-internes System: eingestrichen C = 36)
+                    const semitoneMap = { 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'H': 11 };
+                    const octaveValues = { 'kontra': 0, 'gross': 12, 'klein': 24, 'eingestrichen': 36, 'zweigestrichen': 48, 'dreigestrichen': 60 };
+                    const baseName = this.currentNote.name.replace(/is|es/g, '').replace('As', 'A').replace('Es', 'E').replace('B', 'H');
+                    let pitch = octaveValues[this.currentNote.octave] + semitoneMap[baseName];
+                    if (this.currentNote.name.includes('is')) pitch++;
+                    if (this.currentNote.name.includes('es') || this.currentNote.name === 'As' ||
+                        this.currentNote.name === 'Es' || this.currentNote.name === 'B') pitch--;
+
+                    // MIDI-Offset: NT pitch + 24 = Standard-MIDI
+                    const freq = 440 * Math.pow(2, (pitch + 24 - 69) / 12);
+                    const now = ctx.currentTime;
+
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.8);
+                } catch (e) {
+                    console.error('[NT Audio] Fehler:', e);
+                }
+            },
+
             renderKeyboard() {
                 if (!this.settings.requireKeyboard) {
                     return;
@@ -3029,6 +3107,9 @@
                 if (allCorrect) {
                     // Mark as completed
                     this.validationState.allCorrect = true;
+
+                    // Feedback-Ton: Spiele die korrekte Note kurz ab
+                    this.playFeedbackTone();
                     
                     // Count score only on first successful completion
                     if (isFirstCheck) {
@@ -3203,6 +3284,9 @@
                 }
                 
                 if (isCorrect) {
+                    // Feedback-Ton
+                    this.playFeedbackTone();
+
                     // Tracking und Quick-Start
                     if (isFirstCheck) {
                         tracking.trackQuestion(true);
@@ -3519,11 +3603,13 @@
 
             showFeedback() {
                 document.getElementById('introModal').classList.remove('active');
-                document.getElementById('feedbackModal').classList.remove('hidden');
+                const modal = document.getElementById('feedbackModal');
+                document.body.appendChild(modal);
+                modal.classList.add('active');
             },
 
             closeFeedback() {
-                document.getElementById('feedbackModal').classList.add('hidden');
+                document.getElementById('feedbackModal').classList.remove('active');
                 document.getElementById('feedbackForm').reset();
             },
 

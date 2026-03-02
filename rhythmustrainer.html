@@ -204,6 +204,14 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+        @keyframes badgePulse {
+            0% { transform: scale(1); box-shadow: none; }
+            50% { transform: scale(1.25); box-shadow: 0 0 12px rgba(139, 92, 246, 0.5); }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+        .badge-pulse {
+            animation: badgePulse 0.6s ease;
+        }
 
         .settings-panel {
             background: #f9fafb;
@@ -1291,6 +1299,8 @@
                     <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #8b5cf6; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
                     <span style="color: #d1d5db;">|</span>
                     <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
+                    <span style="color: #d1d5db;">|</span>
+                    <a onclick="app.showFeedback()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Feedback</a>
                 </div>
 
             </div>
@@ -1442,12 +1452,8 @@
                     <select id="timeSignatureSelect" onchange="app.updateSettings()">
                         <option value="4/4" selected>4/4 (Viervierteltakt)</option>
                         <option value="3/4">3/4 (Dreivierteltakt)</option>
-                        <option value="2/4">2/4 (Zweivierteltakt)</option>
                         <option value="5/4">5/4 (Fünfvierteltakt)</option>
-                        <option value="7/4">7/4 (Siebenvierteltakt)</option>
-                        <option value="6/8">6/8 (Sechsachteltakt)</option>
                         <option value="7/8">7/8 (Siebenachteltakt)</option>
-                        <option value="9/8">9/8 (Neunachteltakt)</option>
                     </select>
                 </div>
 
@@ -2192,6 +2198,11 @@
             },
             
             configureApp(level, options) {
+                // Quiz startet immer in 4/4
+                app.settings.timeSignature = '4/4';
+                const badge = document.getElementById('timeSignatureBadge');
+                if (badge) badge.textContent = '4/4';
+
                 // Bestimme Task Type
                 if (level === 'einsteiger') {
                     app.settings.taskType = 'note-addition';
@@ -2469,8 +2480,20 @@
 
                             // TAKTART-WECHSEL: Ab Frage 7 gemischte Taktarten (nicht im Taktarten-Knoten)
                             if (this.questionsAnswered >= 6 && this.currentLevel !== 'taktarten') {
-                                const tsPool = ['2/4', '3/4', '4/4', '5/4', '7/4', '7/8', '9/8'];
-                                app.settings.timeSignature = tsPool[Math.floor(Math.random() * tsPool.length)];
+                                const tsPool = ['4/4', '3/4', '5/4', '7/8'];
+                                const newTS = tsPool[Math.floor(Math.random() * tsPool.length)];
+                                const oldTS = app.settings.timeSignature;
+                                app.settings.timeSignature = newTS;
+                                const badge = document.getElementById('timeSignatureBadge');
+                                if (badge) {
+                                    badge.textContent = newTS;
+                                    // Badge pulsieren lassen bei Wechsel
+                                    if (newTS !== oldTS) {
+                                        badge.classList.remove('badge-pulse');
+                                        void badge.offsetWidth; // Reflow erzwingen
+                                        badge.classList.add('badge-pulse');
+                                    }
+                                }
                                 // Hinweis bei erster Taktart-Wechsel-Frage
                                 if (this.questionsAnswered === 6) {
                                     this._showTaktartHint();
@@ -3219,7 +3242,9 @@
 
             showFeedback() {
                 document.getElementById('introModal').classList.remove('active');
-                document.getElementById('feedbackModal').classList.add('active');
+                const modal = document.getElementById('feedbackModal');
+                document.body.appendChild(modal);
+                modal.classList.add('active');
             },
 
             closeFeedback() {
@@ -3749,13 +3774,9 @@ Gerät:
             getBarDivisionPoints() {
                 switch (this.settings.timeSignature) {
                     case '4/4': return [2.0];  // Nach Zählzeit 2
-                    case '2/4': return [];     // Keine Teilung (Halbe = ganzer Takt)
                     case '3/4': return [];     // Keine Teilung (ungerade)
                     case '5/4': return [3.0];  // 3+2 Gruppierung
-                    case '7/4': return [4.0];  // 4+3 Gruppierung
-                    case '6/8': return [1.5];  // Nach Zählzeit 3 (zwei 3er-Gruppen)
                     case '7/8': return [2.0];  // 4+3 Gruppierung (2.0 Viertelwerte = 4 Achtel)
-                    case '9/8': return [1.5, 3.0]; // 3+3+3 Gruppierung (je 1.5 Viertelwerte)
                     default: return [];
                 }
             },
@@ -4843,72 +4864,75 @@ Gerät:
 
             renderCountingTimes() {
                 const container = document.getElementById('countingTimesDisplay');
-                
+
                 if (!this.settings.showCountingTimes) {
                     container.style.display = 'none';
                     return;
                 }
-                
+
                 container.style.display = 'flex';
                 container.style.position = 'relative';
                 container.style.height = '24px';
                 container.innerHTML = '';
-                
+
                 const maxValue = this.getMaxValue();
-                const [numerator] = this.settings.timeSignature.split('/').map(Number);
-                
-                // Determine subdivision level
-                let subdivisions = 1; // Default: quarter notes
-                
-                if (this.settings.includeSixteenths) {
-                    subdivisions = 4; // Show sixteenth subdivisions
-                } else if (this.settings.includeEighths) {
-                    subdivisions = 2; // Show eighth subdivisions
+                const [numerator, denominator] = this.settings.timeSignature.split('/').map(Number);
+                const beatUnit = 4 / denominator; // 1.0 für x/4, 0.5 für x/8
+
+                // Unterteilungen pro Schlag
+                let subsPerBeat = 1;
+                if (denominator === 4) {
+                    // x/4-Takte: Viertel-Schläge unterteilen
+                    if (this.settings.includeSixteenths) {
+                        subsPerBeat = 4; // 16tel
+                    } else if (this.settings.includeEighths) {
+                        subsPerBeat = 2; // 8tel
+                    }
+                } else if (denominator === 8) {
+                    // x/8-Takte: Schläge sind bereits Achtel
+                    if (this.settings.includeSixteenths) {
+                        subsPerBeat = 2; // 16tel-Unterteilung der Achtel
+                    }
                 }
-                
+
                 // Calculate positions to match bar grid EXACTLY
                 const startX = 40; // Same as in renderBar
                 const endX = 460;
                 const containerWidth = 500; // Same as barWidth
                 const noteAreaWidth = endX - startX; // 420px
-                const gridSpacing = noteAreaWidth / maxValue; // Abstand zwischen Hauptzählzeiten
-                
-                // Calculate grid subdivisions (must match renderBar exactly)
-                let gridSubdivisions = maxValue; // Default: quarter notes
-                if (this.settings.includeSixteenths) {
-                    gridSubdivisions = maxValue * 4;
-                } else if (this.settings.includeEighths) {
-                    gridSubdivisions = maxValue * 2;
-                }
-                
-                const subGridSpacing = gridSpacing / (gridSubdivisions / maxValue);
-                
-                // Generate counting times
-                const countingTimes = [];
-                
-                for (let beat = 1; beat <= numerator; beat++) {
-                    if (subdivisions === 1) {
-                        countingTimes.push(`${beat}`);
-                    } else if (subdivisions === 2) {
-                        countingTimes.push(`${beat}`, 'und');
-                    } else if (subdivisions === 4) {
-                        countingTimes.push(`${beat}`, 'e', 'und', 'te');
+
+                // Zählzeiten mit exakter Position (in Viertelwerten) generieren
+                const items = [];
+                for (let beat = 0; beat < numerator; beat++) {
+                    const beatQuarterPos = beat * beatUnit;
+                    const subUnit = beatUnit / subsPerBeat;
+
+                    for (let sub = 0; sub < subsPerBeat; sub++) {
+                        const quarterPos = beatQuarterPos + sub * subUnit;
+                        let label;
+                        if (subsPerBeat === 1) {
+                            label = `${beat + 1}`;
+                        } else if (subsPerBeat === 2) {
+                            label = sub === 0 ? `${beat + 1}` : 'und';
+                        } else if (subsPerBeat === 4) {
+                            label = sub === 0 ? `${beat + 1}` : sub === 1 ? 'e' : sub === 2 ? 'und' : 'te';
+                        }
+                        items.push({ label, quarterPos });
                     }
                 }
-                
+
                 // Render counting times with absolute positioning - EXACTLY on grid lines
-                countingTimes.forEach((time, index) => {
+                items.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'counting-time';
-                    div.textContent = time;
+                    div.textContent = item.label;
                     div.style.position = 'absolute';
-                    
-                    // Calculate x position - SAME formula as grid lines in renderBar
-                    const xPos = startX + (index * subGridSpacing);
+
+                    const xPos = startX + (item.quarterPos / maxValue) * noteAreaWidth;
                     const xPercent = (xPos / containerWidth) * 100;
                     div.style.left = `${xPercent}%`;
-                    div.style.transform = 'translateX(-50%)'; // Center text on grid line
-                    
+                    div.style.transform = 'translateX(-50%)';
+
                     container.appendChild(div);
                 });
             },
