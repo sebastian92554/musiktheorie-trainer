@@ -5805,8 +5805,13 @@ Gerät:
             },
             
             attachHoverListeners() {
+                // Im Taktarten-Modus: Kein Hover (verrät Informationen über den Takt)
+                if (this.settings.taskType === 'time-signature-id') {
+                    document.querySelectorAll('.note-group').forEach(g => g.style.cursor = 'default');
+                    return;
+                }
                 const noteGroups = document.querySelectorAll('.note-group');
-                
+
                 noteGroups.forEach(group => {
                     const gridIndex = parseInt(group.getAttribute('data-grid-index'));
                     
