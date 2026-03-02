@@ -236,6 +236,15 @@
             font-size: 0.75rem;
             margin-bottom: 0.25rem;
         }
+        #playRhythmBtn:hover { opacity: 1 !important; }
+        .count-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #8b5cf6;
+            min-height: 2.2rem;
+            line-height: 2.2rem;
+            text-align: center;
+        }
 
         .staff-wrapper {
             position: relative;
@@ -1454,14 +1463,26 @@
             </div>
             
             <div class="staff-wrapper" id="staffWrapper">
-                <div class="time-signature-badge" id="timeSignatureBadge">4/4</div>
-                
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <div class="time-signature-badge" id="timeSignatureBadge">4/4</div>
+                    <div id="audioControls">
+                        <button type="button" id="playRhythmBtn" onclick="app.playRhythm()" title="Rhythmus anhören" style="background: none; border: none; cursor: pointer; padding: 2px; opacity: 0.5; transition: opacity 0.15s;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="count-display" id="countDisplay"></div>
+
                 <div class="staff-container">
                     <!-- Bar Display -->
                     <div id="barDisplay" class="bar-display">
                         <!-- Dynamically generated with SVG including counting times -->
                     </div>
-                    
+
                     <!-- Interaction Hint (device-aware) -->
                     <div class="interaction-hint" id="interactionHint">
                         💡 <span id="interactionHintText">Tippe auf eine Note für Zählzeit und Dauer</span>
@@ -1655,7 +1676,8 @@
                     { id: '16tel', label: 'Mit Sechzehntelnoten' },
                     { id: 'punktierte', label: 'Mit punktierten Noten' },
                     { id: 'pausen', label: 'Mit Pausen' },
-                    { id: 'hilfen_aus', label: 'Ohne Hilfen' }
+                    { id: 'hilfen_aus', label: 'Ohne Hilfen' },
+                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
                 ],
                 'rhy3': [
                     { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
@@ -1663,7 +1685,8 @@
                     { id: '16tel', label: 'Mit Sechzehntelnoten' },
                     { id: 'punktierte', label: 'Mit punktierten Noten' },
                     { id: 'pausen', label: 'Mit Pausen' },
-                    { id: 'triolen', label: 'Mit Triolen' }
+                    { id: 'triolen', label: 'Mit Triolen' },
+                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
                 ]
             },
 
@@ -1748,6 +1771,13 @@
                 app.settings.showCountingTimes = document.getElementById('showCountingTimes').checked;
 
                 document.getElementById('appTitle').textContent = 'Freies Üben';
+
+                // Audio im Freien Üben: verfügbar bei Zählzeiten/Rhythmussprache
+                app.noAudio = false;
+                const playBtn = document.getElementById('playRhythmBtn');
+                const audioControls = document.getElementById('audioControls');
+                if (playBtn) playBtn.style.display = '';
+                if (audioControls) audioControls.style.display = '';
 
                 // Aufgabe generieren
                 app.updateSettings();
@@ -2095,6 +2125,15 @@
                     console.log('[QuickStart] Addition-Notenwerte:', noteTypes);
                 }
                 
+                // AUDIO: Nur in rhy2/rhy3 aktiv (nicht rhy1)
+                const hasAudio = (level === 'fortgeschrittener' || level === 'profi');
+                const isNoAudio = options.includes('noaudio');
+                app.noAudio = !hasAudio || isNoAudio;
+                const playBtn = document.getElementById('playRhythmBtn');
+                const audioControls = document.getElementById('audioControls');
+                if (playBtn) playBtn.style.display = app.noAudio ? 'none' : '';
+                if (audioControls) audioControls.style.display = app.noAudio ? 'none' : '';
+
                 // HILFEN AUS OPTION
                 if (options.includes('hilfen_aus')) {
                     if (level === 'einsteiger') {
@@ -3235,6 +3274,16 @@ Gerät:
             updateSettings() {
                 this.settings.taskType = document.getElementById('taskTypeSelect').value;
                 this.settings.timeSignature = document.getElementById('timeSignatureSelect').value;
+
+                // Audio-Sichtbarkeit im Freien Üben: nur bei Zählzeiten/Rhythmussprache
+                if (!quickStart.isActive) {
+                    const hasAudioTask = (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable');
+                    this.noAudio = !hasAudioTask;
+                    const playBtn = document.getElementById('playRhythmBtn');
+                    const audioControls = document.getElementById('audioControls');
+                    if (playBtn) playBtn.style.display = this.noAudio ? 'none' : '';
+                    if (audioControls) audioControls.style.display = this.noAudio ? 'none' : '';
+                }
                 this.settings.includeEighths = document.getElementById('includeEighths').checked;
                 this.settings.includeSixteenths = document.getElementById('includeSixteenths').checked;
                 this.settings.includeDotted = document.getElementById('includeDotted').checked;
@@ -4210,6 +4259,147 @@ Gerät:
                 this.updateScoreDisplay();
                 this.taskCounter++;
             },
+
+            // ---- Audio-Engine (perkussiv) ----
+            _audioCtx: null,
+            _noiseBuffer: null,
+            noAudio: false,
+
+            _getAudioCtx() {
+                if (!this._audioCtx || this._audioCtx.state === 'closed') {
+                    this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
+                return this._audioCtx;
+            },
+
+            _getNoiseBuffer(ctx) {
+                if (!this._noiseBuffer || this._noiseBuffer.sampleRate !== ctx.sampleRate) {
+                    const size = ctx.sampleRate;
+                    this._noiseBuffer = ctx.createBuffer(1, size, ctx.sampleRate);
+                    const data = this._noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+                }
+                return this._noiseBuffer;
+            },
+
+            _hit(ctx, time, type, vol = 0.6) {
+                if (type === 'woodblock') {
+                    const src = ctx.createBufferSource();
+                    src.buffer = this._getNoiseBuffer(ctx);
+                    const bp = ctx.createBiquadFilter();
+                    bp.type = 'bandpass'; bp.frequency.value = 1200; bp.Q.value = 20;
+                    const g = ctx.createGain();
+                    g.gain.setValueAtTime(vol, time);
+                    g.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+                    src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+                    src.start(time); src.stop(time + 0.08);
+                    const o = ctx.createOscillator();
+                    const og = ctx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(1200, time);
+                    o.frequency.exponentialRampToValueAtTime(600, time + 0.02);
+                    og.gain.setValueAtTime(vol * 0.6, time);
+                    og.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+                    o.connect(og); og.connect(ctx.destination);
+                    o.start(time); o.stop(time + 0.06);
+                } else if (type === 'marked') {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(1800, time);
+                    o.frequency.exponentialRampToValueAtTime(1100, time + 0.025);
+                    g.gain.setValueAtTime(vol * 0.8, time);
+                    g.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(time); o.stop(time + 0.07);
+                    const src = ctx.createBufferSource();
+                    src.buffer = this._getNoiseBuffer(ctx);
+                    const bp = ctx.createBiquadFilter();
+                    bp.type = 'bandpass'; bp.frequency.value = 2500; bp.Q.value = 5;
+                    const ng = ctx.createGain();
+                    ng.gain.setValueAtTime(vol * 0.35, time);
+                    ng.gain.exponentialRampToValueAtTime(0.001, time + 0.025);
+                    src.connect(bp); bp.connect(ng); ng.connect(ctx.destination);
+                    src.start(time); src.stop(time + 0.04);
+                } else if (type === 'hihat') {
+                    const src = ctx.createBufferSource();
+                    src.buffer = this._getNoiseBuffer(ctx);
+                    const hp = ctx.createBiquadFilter();
+                    hp.type = 'highpass'; hp.frequency.value = 8000;
+                    const g = ctx.createGain();
+                    g.gain.setValueAtTime(vol * 0.35, time);
+                    g.gain.exponentialRampToValueAtTime(0.001, time + 0.035);
+                    src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+                    src.start(time); src.stop(time + 0.06);
+                }
+            },
+
+            playRhythm() {
+                console.log('[Audio] playRhythm() aufgerufen, noAudio:', this.noAudio, 'currentTask:', !!this.currentTask);
+                if (!this.currentTask || this.noAudio) return;
+                try {
+                    const ctx = this._getAudioCtx();
+                    console.log('[Audio] AudioContext state:', ctx.state);
+                    const bpm = this.tempo || 80;
+                    const beatSec = 60 / bpm;
+
+                    // Einzähler: Anzahl Schläge aus Taktart ableiten
+                    const [numerator, denominator] = this.settings.timeSignature.split('/').map(Number);
+                    const countBeats = numerator; // 4/4→4, 3/4→3, 5/4→5, 7/8→7
+
+                    const precountDuration = countBeats * beatSec * (4 / denominator);
+                    const now = ctx.currentTime + 0.1;
+                    const rhythmStart = now + precountDuration;
+
+                    // Einzähler: Hi-Hat auf jeden Schlag + visuelle Anzeige
+                    const countDisplay = document.getElementById('countDisplay');
+                    for (let i = 0; i < countBeats; i++) {
+                        const t = now + i * beatSec * (4 / denominator);
+                        this._hit(ctx, t, 'hihat', 0.6);
+                        // Visuelle Zählung
+                        const delay = (t - ctx.currentTime) * 1000;
+                        if (countDisplay) {
+                            setTimeout(() => { countDisplay.textContent = String(i + 1); }, delay);
+                        }
+                    }
+                    // Anzeige nach Einzähler leeren
+                    if (countDisplay) {
+                        setTimeout(() => { countDisplay.textContent = ''; }, (rhythmStart - ctx.currentTime) * 1000);
+                    }
+
+                    // Leiser Grundpuls (Hi-Hat auf jeden Schlag) während des Rhythmus
+                    const beatUnit = 4 / denominator; // Schlagdauer in Vierteln (4/4→1, 7/8→0.5)
+                    const maxValue = this.getMaxValue();
+                    const totalBeats = Math.ceil(maxValue / beatUnit);
+                    for (let i = 0; i < totalBeats; i++) {
+                        this._hit(ctx, rhythmStart + i * beatSec * beatUnit, 'hihat', 0.25);
+                    }
+
+                    // Rhythmus abspielen
+                    const notes = this.currentTask.notes;
+                    let t = rhythmStart;
+                    console.log('[Audio] Spiele', notes.length, 'Noten ab, BPM:', bpm);
+                    notes.forEach((note, i) => {
+                        const isRest = this.noteValues[note.type]?.isRest || false;
+                        const isTiedContinuation = note.tiedFrom !== undefined && note.tiedFrom !== null;
+                        if (!isRest && !isTiedContinuation) {
+                            const isMarked = (i === this.currentTask.markedNoteIndex) ||
+                                (note.originalIndex !== undefined && note.originalIndex === this.currentTask.markedOriginalIndex);
+                            this._hit(ctx, t, isMarked ? 'marked' : 'woodblock', 0.6);
+                        }
+                        t += note.value * beatSec;
+                    });
+
+                    // Play-Button visuelles Feedback
+                    const btn = document.getElementById('playRhythmBtn');
+                    if (btn) { btn.style.opacity = '1'; setTimeout(() => btn.style.opacity = '', 500); }
+                } catch (e) {
+                    console.error('[Audio] Fehler in playRhythm():', e);
+                }
+            },
+
+            tempo: 80,
 
             renderTask() {
                 // Update time signature badge
