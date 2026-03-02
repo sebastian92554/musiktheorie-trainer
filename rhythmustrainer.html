@@ -2294,7 +2294,7 @@
                     app.settings.includeEighths = true;
                     app.settings.includeSixteenths = false;
                     app.settings.includeDotted = false;
-                    app.settings.includeRests = false;
+                    app.settings.includeRests = true;
                     app.settings.includeTriplets = false;
                     // Alle Hilfen aus (Raster + Zählzeiten verraten die Taktart!)
                     app.settings.showLegend = false;
@@ -2304,7 +2304,7 @@
                     document.getElementById('includeEighths').checked = true;
                     document.getElementById('includeSixteenths').checked = false;
                     document.getElementById('includeDotted').checked = false;
-                    document.getElementById('includeRests').checked = false;
+                    document.getElementById('includeRests').checked = true;
                     document.getElementById('includeTriplets').checked = false;
                     document.getElementById('showLegend').checked = false;
                     document.getElementById('showGrid').checked = false;
@@ -4369,11 +4369,11 @@ Gerät:
                     });
                     this._showTsFeedback('✓ Richtig!', true);
                 } else {
-                    // Falsch: Gewählten Button rot markieren + sperren
+                    // Falsch: Button kurz rot blinken, dann zurücksetzen — nur Feedback bleibt
                     buttons.forEach(btn => {
                         if (btn.textContent === selected) {
                             btn.classList.add('ts-wrong');
-                            btn.disabled = true;
+                            setTimeout(() => btn.classList.remove('ts-wrong'), 600);
                         }
                     });
                     this._showTsFeedback('⚠ Prüfe nochmal — zähle die Notenwerte zusammen!', false);
