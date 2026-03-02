@@ -2895,16 +2895,23 @@
             setupInteractionHint() {
                 const hintText = document.getElementById('interactionHintText');
                 const hint = document.getElementById('interactionHint');
-                
+
+                // Im Taktarten-Modus: Hint komplett ausblenden (kein Hover)
+                if (this.settings.taskType === 'time-signature-id') {
+                    if (hint) hint.classList.add('hidden');
+                    this.interactionHintShown = false;
+                    return;
+                }
+
                 // Detect touch device
                 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-                
+
                 if (isTouchDevice) {
                     hintText.textContent = 'Tippe auf eine Note für Zählzeit und Dauer';
                 } else {
                     hintText.textContent = 'Fahre mit der Maus über eine Note für Details';
                 }
-                
+
                 // Store reference for hiding after first interaction
                 this.interactionHintShown = true;
             },
