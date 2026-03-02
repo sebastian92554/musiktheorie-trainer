@@ -5227,9 +5227,9 @@ Gerät:
                         if (isRest) {
                             // PAUSEN - zentriert auf Linie
                             if (baseType === 'whole-rest') {
-                                // Ganze Pause: Rechteck hängt UNTER der Linie
+                                // Ganze Pause: Rechteck hängt UNTER der Linie, Oberkante = Stafflinie
                                 offsetX = noteCenterX - 12;
-                                offsetY = staffY - 5;
+                                offsetY = staffY;
                             } else if (baseType === 'half-rest') {
                                 // Halbe Pause: Rechteck sitzt AUF der Linie (überlappt mit Linie)
                                 offsetX = noteCenterX - 12;
