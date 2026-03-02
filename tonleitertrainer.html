@@ -1102,6 +1102,138 @@
             border: 1px solid #7dd3fc;
         }
 
+        /* ---- Quintenzirkel-Übungsbereich ---- */
+        .qz-card {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .qz-visual {
+            margin-bottom: 0.5rem;
+        }
+        .qz-visual svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .qz-question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #164e63;
+            margin-bottom: 1.2rem;
+            line-height: 1.4;
+        }
+        .qz-question {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #164e63;
+            margin-bottom: 1.2rem;
+            line-height: 1.4;
+        }
+        .qz-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+        .qz-btn {
+            padding: 0.6rem 1.1rem;
+            background: white;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.15s;
+            min-width: 80px;
+        }
+        .qz-btn:hover:not(:disabled) {
+            border-color: #0891b2;
+            color: #0891b2;
+            transform: translateY(-1px);
+        }
+        .qz-btn.qz-selected {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: white;
+            font-weight: 600;
+        }
+        .qz-btn.qz-correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+            font-weight: 600;
+        }
+        .qz-btn.qz-incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+            font-weight: 600;
+        }
+        .qz-btn:disabled {
+            cursor: default;
+            opacity: 0.85;
+        }
+        .qz-merksatz {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #92400e;
+        }
+        .qz-text-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+        .qz-text-input {
+            padding: 0.6rem 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            width: 180px;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+        .qz-text-input:focus {
+            border-color: #0891b2;
+            outline: none;
+        }
+        .qz-text-input.input-correct {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+        .qz-text-input.input-incorrect {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        .qz-submit-btn {
+            padding: 0.6rem 1rem;
+            background: #0891b2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .qz-submit-btn:hover {
+            background: #0e7490;
+        }
+        .qz-multi-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+        }
+        .qz-multi-confirm {
+            margin-top: 0.5rem;
+        }
+
         /* Fallback hint */
         .fallback-hint {
             text-align: center;
@@ -1544,6 +1676,21 @@
                         <div class="st-sub-skills" id="stSubs-ton3"></div>
                     </div>
 
+                    <div class="st-connector" id="stConn-ton3-ton4"></div>
+
+                    <!-- Knoten 4: Quintenzirkel -->
+                    <div class="st-node-wrapper" id="stNode-ton4">
+                        <div class="st-node available" onclick="quickStart.selectNode('ton4')">
+                            <div class="st-node-icon">4</div>
+                            <div class="st-node-content">
+                                <div class="st-node-name">Quintenzirkel</div>
+                                <div class="st-node-desc">Tonarten-Beziehungen und Vorzeichen verstehen</div>
+                            </div>
+                            <div class="st-node-action">&#9662;</div>
+                        </div>
+                        <div class="st-sub-skills" id="stSubs-ton4"></div>
+                    </div>
+
                 </div>
 
                 <!-- Fortschritt -->
@@ -1565,6 +1712,8 @@
                     <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #0891b2; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
                     <span style="color: #d1d5db;">|</span>
                     <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
+                    <span style="color: #d1d5db;">|</span>
+                    <a onclick="app.showFeedbackModal()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Feedback</a>
                 </div>
 
                 <!-- Legende -->
@@ -1735,6 +1884,7 @@
                         <option value="einsteiger">Ganzton oder Halbton?</option>
                         <option value="aufsteiger">Halbtonschritte finden</option>
                         <option value="profi">Tonleiter benennen</option>
+                        <option value="meister">Quintenzirkel</option>
                     </select>
                 </div>
 
@@ -1794,7 +1944,7 @@
         <div class="main-content-wrapper">
 
         <!-- Staff Card -->
-        <div class="card staff-card">
+        <div class="card staff-card" id="staffCard">
             <svg id="staffSvg" width="620" height="200" viewBox="20 130 600 200"></svg>
         </div>
 
@@ -1817,6 +1967,13 @@
         </div>
 
         </div><!-- /main-content-wrapper -->
+
+        <!-- Quintenzirkel-Übungsbereich (Knoten 4) -->
+        <div id="quintenzirkelCard" class="card qz-card" style="display:none;">
+            <div id="qzQuestion" class="qz-question"></div>
+            <div id="qzInput" class="qz-input"></div>
+            <div id="qzFeedback" class="feedback" style="display:none;"></div>
+        </div>
 
         <!-- Feedback -->
         <div class="feedback" id="feedback"></div>
@@ -2109,14 +2266,15 @@
         progress: null,
 
         // ---- Skilltree State ----
-        selectedNode: null,  // 'ton1', 'ton2', 'ton3'
+        selectedNode: null,  // 'ton1', 'ton2', 'ton3', 'ton4'
         selectedSub: null,   // { nodeId, index }
 
         // Knoten → Level Mapping
         nodeToLevel: {
             'ton1': 'einsteiger',
             'ton2': 'aufsteiger',
-            'ton3': 'profi'
+            'ton3': 'profi',
+            'ton4': 'meister'
         },
 
         // Sub-Skills pro Knoten (bilden auf bestehende option-IDs ab)
@@ -2135,6 +2293,14 @@
                 { id: 'muster_erkennen', label: 'HS-Stufen finden + Tonleiter benennen' },
                 { id: 'alles', label: 'Alle Tonleitern benennen' },
                 { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe' }
+            ],
+            'ton4': [
+                { id: 'aussenkr', label: 'Außenkreis + Merksätze' },
+                { id: 'innenkr', label: 'Innenkreis + Mollparallelen' },
+                { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung + Leitton' },
+                { id: 'symmetrien', label: 'Symmetrien (Tritonus, Dreiecke, Raute)' },
+                { id: 'verwandte', label: 'Verwandte Tonarten' },
+                { id: 'enharmonisch', label: 'Enharmonische Verwechslung' }
             ]
         },
 
@@ -2159,6 +2325,11 @@
                     this.saveProgress();
                 } else {
                     this.progress = parsed;
+                    // Migration: meister-Level für bestehende User ergänzen
+                    if (!this.progress.meister) {
+                        this.progress.meister = { mastered: [], attempts: {}, scores: {} };
+                        this.saveProgress();
+                    }
                 }
             }
         },
@@ -2173,13 +2344,14 @@
                 timestamp: Date.now(),
                 einsteiger: { mastered: [], attempts: {}, scores: {} },
                 aufsteiger: { mastered: [], attempts: {}, scores: {} },
-                profi: { mastered: [], attempts: {}, scores: {} }
+                profi: { mastered: [], attempts: {}, scores: {} },
+                meister: { mastered: [], attempts: {}, scores: {} }
             };
         },
 
         // ---- Progress UI (Skilltree) ----
         updateAllProgress() {
-            const nodes = ['ton1', 'ton2', 'ton3'];
+            const nodes = ['ton1', 'ton2', 'ton3', 'ton4'];
             let totalSubs = 0;
             let totalMastered = 0;
             let firstAvailableNode = null;
@@ -2211,7 +2383,8 @@
 
                 // Connector-Zustand
                 const prevConn = nodeId === 'ton2' ? document.getElementById('stConn-ton1-ton2') :
-                                 nodeId === 'ton3' ? document.getElementById('stConn-ton2-ton3') : null;
+                                 nodeId === 'ton3' ? document.getElementById('stConn-ton2-ton3') :
+                                 nodeId === 'ton4' ? document.getElementById('stConn-ton3-ton4') : null;
                 if (prevConn) {
                     const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
                     const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
@@ -2449,9 +2622,12 @@
             let activeOptions = ['basis']; // Basis immer dabei (für Einsteiger/Aufsteiger)
 
             if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
-                // Manuell gewählte Teilkompetenz: alle bis einschließlich dieser aktivieren
+                // Manuell gewählte Teilkompetenz
                 const targetSub = subs[this.selectedSub.index];
-                if (level === 'profi') {
+                if (level === 'meister') {
+                    // Quintenzirkel: nur den gewählten Sub-Skill (keine Cascade)
+                    activeOptions = [targetSub.id];
+                } else if (level === 'profi') {
                     activeOptions = [];
                     for (let i = 0; i <= this.selectedSub.index; i++) {
                         activeOptions.push(subs[i].id);
@@ -2466,7 +2642,10 @@
                 const nextUnmastered = subs.find(s => !mastered.includes(s.id));
                 if (nextUnmastered) {
                     const targetIdx = subs.findIndex(s => s.id === nextUnmastered.id);
-                    if (level === 'profi') {
+                    if (level === 'meister') {
+                        // Quintenzirkel: nur den nächsten Sub-Skill (keine Cascade)
+                        activeOptions = [subs[targetIdx].id];
+                    } else if (level === 'profi') {
                         activeOptions = [];
                         for (let i = 0; i <= targetIdx; i++) {
                             activeOptions.push(subs[i].id);
@@ -2478,11 +2657,7 @@
                     }
                 } else {
                     // Alle gemeistert → alle Optionen aktivieren zum Wiederholen
-                    if (level === 'profi') {
-                        activeOptions = subs.map(s => s.id);
-                    } else {
-                        activeOptions = subs.map(s => s.id);
-                    }
+                    activeOptions = subs.map(s => s.id);
                 }
             }
 
@@ -2493,6 +2668,7 @@
         start(level, optionsFromSkilltree) {
             this.currentLevel = level;
             this.questionsAnswered = 0;
+            QUINTENZIRKEL.resetRecent();
             this.questionsCorrect = 0;
             this.isRetry = false;
             this.fallbackActive = false;
@@ -2530,9 +2706,11 @@
 
             // Configure app
             app.quickStartMode = level;
-            const showKeyboard = !this.currentOptions.includes('ohne_hilfe');
+            const showKeyboard = level !== 'meister' && !this.currentOptions.includes('ohne_hilfe');
             app.useBassClef = false;
-            app.useAllKeys = this.currentOptions.includes('alle_tonarten') || this.currentOptions.includes('vorzeichen') || this.currentOptions.includes('mehr_tonarten') || this.currentOptions.includes('alles') || this.currentOptions.includes('muster_erkennen');
+            if (level !== 'meister') {
+                app.useAllKeys = this.currentOptions.includes('alle_tonarten') || this.currentOptions.includes('vorzeichen') || this.currentOptions.includes('mehr_tonarten') || this.currentOptions.includes('alles') || this.currentOptions.includes('muster_erkennen');
+            }
             app.configureForStage(level, showKeyboard);
 
             // Show quiz overlay
@@ -2558,8 +2736,8 @@
         updateQuizOverlay() {
             // Kompetenz-basierte Bezeichnungen
             const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-            const nodeIdx = ['ton1', 'ton2', 'ton3'].indexOf(nodeId) + 1;
-            const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen' };
+            const nodeIdx = ['ton1', 'ton2', 'ton3', 'ton4'].indexOf(nodeId) + 1;
+            const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Quintenzirkel' };
             const nodeName = nodeNames[nodeId] || '';
 
             // Teilkompetenz-Kürzel (z.B. "1a", "2b")
@@ -2573,7 +2751,8 @@
                 einsteiger: 'Ganzton oder Halbton?',
                 aufsteiger: 'Wähle die Halbtonschritt-Paare!',
                 profi: this.profiMode === 'muster_erkennen' ? 'Wähle HS-Stufen & benenne die Tonleiter!' :
-                       this.profiMode === 'alles' ? 'Benenne die Tonleiter!' : 'Welche Tonart?'
+                       this.profiMode === 'alles' ? 'Benenne die Tonleiter!' : 'Welche Tonart?',
+                meister: 'Quintenzirkel-Aufgabe'
             };
 
             const label = document.getElementById('headerExerciseLabel');
@@ -2674,6 +2853,16 @@
                             'Alle Kompetenzen gemeistert! 🎉<br><br>💡 <strong>Tipp:</strong> Im „Freien Üben" kannst du den Bassschlüssel aktivieren und noch mehr üben!';
                     }
                 }
+                // Check if all meister options are mastered
+                if (this.currentLevel === 'meister') {
+                    const allMeisterOptions = this.getOptionsForLevel('meister');
+                    const meisterMastered = this.progress.meister.mastered;
+                    const allDone = allMeisterOptions.every(opt => meisterMastered.includes(opt));
+                    if (allDone) {
+                        document.getElementById('successNextStep').innerHTML =
+                            'Alle Kompetenzen gemeistert! 🎉<br><br>Du beherrschst den Quintenzirkel vollständig!';
+                    }
+                }
             } else {
                 document.getElementById('successNextStep').textContent = 'Probiere es noch einmal!';
             }
@@ -2699,7 +2888,8 @@
             // it implies all lower options are also mastered
             // Einsteiger/Aufsteiger: basis < vorzeichen/mehr_tonarten < ...
             // Profi: muster_lernen < muster_erkennen < alles
-            const higherOptions = ['vorzeichen', 'stufenpaare', 'mehr_tonarten', 'muster_erkennen', 'alles', 'ohne_hilfe'];
+            const higherOptions = ['vorzeichen', 'stufenpaare', 'mehr_tonarten', 'muster_erkennen', 'alles', 'ohne_hilfe',
+                'innenkr', 'vorz_ableitung', 'symmetrien', 'verwandte', 'enharmonisch'];
             const hasHigherOption = activeOptions.some(opt => higherOptions.includes(opt));
 
             if (hasHigherOption) {
@@ -2730,6 +2920,7 @@
         getOptionsForLevel(level) {
             if (level === 'einsteiger') return ['basis', 'vorzeichen'];
             if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten'];
+            if (level === 'meister') return ['aussenkr', 'innenkr', 'vorz_ableitung', 'symmetrien', 'verwandte', 'enharmonisch'];
             return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe'];
         },
 
@@ -2740,8 +2931,8 @@
 
             if (!nextUnmastered) {
                 // Alle in diesem Knoten gemeistert → nächsten Knoten empfehlen
-                const nodes = ['ton1', 'ton2', 'ton3'];
-                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen' };
+                const nodes = ['ton1', 'ton2', 'ton3', 'ton4'];
+                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Quintenzirkel' };
                 const currentNode = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
                 const currentIdx = nodes.indexOf(currentNode);
                 if (currentIdx < nodes.length - 1) {
@@ -2757,7 +2948,13 @@
                 'muster_lernen': 'Nächste Teilkompetenz: Tongeschlecht bestimmen',
                 'muster_erkennen': 'Nächste Teilkompetenz: HS-Stufen + Tonleiter benennen',
                 'alles': 'Nächste Teilkompetenz: Alle Tonleitern benennen',
-                'ohne_hilfe': 'Nächste Teilkompetenz: Ohne Klaviatur-Hilfe'
+                'ohne_hilfe': 'Nächste Teilkompetenz: Ohne Klaviatur-Hilfe',
+                'aussenkr': 'Nächste Teilkompetenz: Außenkreis + Merksätze',
+                'innenkr': 'Nächste Teilkompetenz: Innenkreis + Mollparallelen',
+                'vorz_ableitung': 'Nächste Teilkompetenz: Vorzeichen-Ableitung + Leitton',
+                'symmetrien': 'Nächste Teilkompetenz: Symmetrien',
+                'verwandte': 'Nächste Teilkompetenz: Verwandte Tonarten',
+                'enharmonisch': 'Nächste Teilkompetenz: Enharmonische Verwechslung'
             };
             return labels[nextUnmastered] || 'Weiter so!';
         },
@@ -2783,6 +2980,399 @@
 
                 this.updateAllProgress();
             }
+        }
+    };
+
+    // =============================================
+    // QUINTENZIRKEL-DATEN & FRAGE-GENERIERUNG
+    // =============================================
+    const QUINTENZIRKEL = {
+        // Dur-Tonarten im Uhrzeigersinn (Kreuz-Seite)
+        sharpKeys: [
+            { name: 'C', count: 0 },
+            { name: 'G', count: 1 },
+            { name: 'D', count: 2 },
+            { name: 'A', count: 3 },
+            { name: 'E', count: 4 },
+            { name: 'H', count: 5 },
+            { name: 'Fis', count: 6 }
+        ],
+        // Dur-Tonarten gegen Uhrzeigersinn (b-Seite)
+        flatKeys: [
+            { name: 'F', count: 1 },
+            { name: 'B', count: 2 },
+            { name: 'Es', count: 3 },
+            { name: 'As', count: 4 },
+            { name: 'Des', count: 5 },
+            { name: 'Ges', count: 6 }
+        ],
+
+        // Alle 12 Dur-Tonarten (Uhrzeigersinn ab C)
+        allKeys: ['C', 'G', 'D', 'A', 'E', 'H', 'Fis', 'Des', 'As', 'Es', 'B', 'F'],
+
+        // Vorzeichen-Anzahl pro Tonart (positiv = Kreuz, negativ = b)
+        signatureCount: {
+            'C': 0, 'G': 1, 'D': 2, 'A': 3, 'E': 4, 'H': 5, 'Fis': 6,
+            'F': -1, 'B': -2, 'Es': -3, 'As': -4, 'Des': -5, 'Ges': -6
+        },
+
+        // Vorzeichen-Art (# oder b) + Anzahl als Text
+        signatureText: {
+            'C': '0 Vorzeichen', 'G': '1 ♯', 'D': '2 ♯', 'A': '3 ♯', 'E': '4 ♯', 'H': '5 ♯', 'Fis': '6 ♯',
+            'F': '1 ♭', 'B': '2 ♭', 'Es': '3 ♭', 'As': '4 ♭', 'Des': '5 ♭', 'Ges': '6 ♭'
+        },
+
+        // Mollparallelen (Dur → Moll)
+        parallelMinor: {
+            'C': 'a', 'G': 'e', 'D': 'h', 'A': 'fis', 'E': 'cis', 'H': 'gis', 'Fis': 'dis',
+            'F': 'd', 'B': 'g', 'Es': 'c', 'As': 'f', 'Des': 'b', 'Ges': 'es'
+        },
+
+        // Mollparallelen (Moll → Dur)
+        parallelMajor: {
+            'a': 'C', 'e': 'G', 'h': 'D', 'fis': 'A', 'cis': 'E', 'gis': 'H', 'dis': 'Fis',
+            'd': 'F', 'g': 'B', 'c': 'Es', 'f': 'As', 'b': 'Des', 'es': 'Ges'
+        },
+
+        // Leittöne (nur für Dur-Tonarten mit Kreuzvorzeichen + C)
+        leadingTones: {
+            'C': 'H', 'G': 'Fis', 'D': 'Cis', 'A': 'Gis', 'E': 'Dis', 'H': 'Ais', 'Fis': 'Eis',
+            'F': 'E', 'B': 'A', 'Es': 'D', 'As': 'G', 'Des': 'C', 'Ges': 'F'
+        },
+
+        // Vorzeichen-Reihenfolge
+        sharpOrder: ['Fis', 'Cis', 'Gis', 'Dis', 'Ais', 'Eis', 'His'],
+        flatOrder: ['B', 'Es', 'As', 'Des', 'Ges', 'Ces', 'Fes'],
+
+        // Enharmonische Verwechslungen (Dur-Tonarten)
+        enharmonic: {
+            'Fis': 'Ges', 'Ges': 'Fis',
+            'H': 'Ces', 'Ces': 'H',
+            'Cis': 'Des', 'Des': 'Cis'
+        },
+
+        // Tritonus-Paare (gegenüber im Quintenzirkel)
+        tritonePairs: {
+            'C': 'Fis', 'Fis': 'C',
+            'G': 'Des', 'Des': 'G',
+            'D': 'As', 'As': 'D',
+            'A': 'Es', 'Es': 'A',
+            'E': 'B', 'B': 'E',
+            'H': 'F', 'F': 'H'
+        },
+
+        // Großterz-Dreiecke (4 Quinten Abstand)
+        majorThirdTriangles: [
+            ['C', 'E', 'As'],
+            ['G', 'H', 'Es'],
+            ['D', 'Fis', 'B'],
+            ['A', 'Des', 'F']
+        ],
+
+        // Kleinterz-Rauten (3 Quinten Abstand)
+        minorThirdDiamonds: [
+            ['C', 'Es', 'Fis', 'A'],
+            ['G', 'B', 'Des', 'E'],
+            ['D', 'F', 'As', 'H']
+        ],
+
+        // Merksätze
+        mnemonicSharp: 'Geh Du Alter Esel Hole Fische',
+        mnemonicFlat: 'Freche Buben Essen Aspirin Deshalb Gesund',
+
+        // Tracking: zuletzt gefragte Tonarten (Reset bei Quiz-Start)
+        _recentKeys: [],
+
+        resetRecent() {
+            this._recentKeys = [];
+        },
+
+        // ---- Hilfsfunktionen ----
+        _randomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        },
+
+        _shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        },
+
+        _generateDistractors(correct, pool, count) {
+            const distractors = pool.filter(x => x !== correct);
+            return this._shuffle(distractors).slice(0, count);
+        },
+
+        // ---- Frage-Generierung pro Sub-Skill ----
+
+        generateQuestion(subSkillIds, questionNum) {
+            // Wähle zufällig einen der aktiven Sub-Skills
+            const subSkillId = this._randomItem(subSkillIds);
+            switch (subSkillId) {
+                case 'aussenkr': return this._genAussenkr(questionNum);
+                case 'innenkr': return this._genInnenkr();
+                case 'vorz_ableitung': return this._genVorzAbleitung();
+                case 'symmetrien': return this._genSymmetrien();
+                case 'verwandte': return this._genVerwandte();
+                case 'enharmonisch': return this._genEnharmonisch();
+                default: return this._genAussenkr();
+            }
+        },
+
+        // Hilfsfunktion: Vorzeichen-Text grammatisch korrekt
+        _vzText(count, isSharp) {
+            if (count === 0) return 'keine Vorzeichen';
+            if (isSharp) return count === 1 ? '1 Kreuz' : count + ' Kreuze';
+            return count === 1 ? '1 ♭' : count + ' ♭';
+        },
+
+        // Hilfsfunktion: Kurzform für Buttons (z.B. "2 ♯", "3 ♭")
+        _vzShort(count, isSharp) {
+            if (count === 0) return '0';
+            return count + (isSharp ? ' ♯' : ' ♭');
+        },
+
+        // 4a: Außenkreis + Merksätze — bidirektional
+        _genAussenkr(questionNum) {
+            let allKeysData = [...this.sharpKeys, ...this.flatKeys];
+            // Progression: Fragen 1-3 nur bis 2 VZ, 4-6 bis 4 VZ, 7-10 alles
+            if (typeof questionNum === 'number') {
+                if (questionNum < 3) {
+                    allKeysData = allKeysData.filter(k => k.count <= 2);
+                } else if (questionNum < 6) {
+                    allKeysData = allKeysData.filter(k => k.count <= 4);
+                }
+            }
+            // Nie dieselbe Tonart direkt hintereinander
+            const lastKey = this._recentKeys.length > 0 ? this._recentKeys[this._recentKeys.length - 1] : null;
+            let available = allKeysData.filter(k => k.name !== lastKey);
+            if (available.length === 0) available = allKeysData;
+            // Erste 5 Fragen: keine bereits gestellte Tonart wiederholen
+            if (typeof questionNum === 'number' && questionNum < 5) {
+                const fresh = available.filter(k => !this._recentKeys.includes(k.name));
+                if (fresh.length > 0) available = fresh;
+            }
+            // Ab Frage 6: schwere Tonarten (4+ VZ) 3× häufiger gewichten
+            if (typeof questionNum === 'number' && questionNum >= 5) {
+                const weighted = [];
+                available.forEach(k => {
+                    weighted.push(k);
+                    if (k.count >= 4) { weighted.push(k); weighted.push(k); }
+                });
+                available = weighted;
+            }
+            const keyData = this._randomItem(available);
+            this._recentKeys.push(keyData.name);
+
+            const direction = Math.random() < 0.5 ? 'key_to_count' : 'count_to_key';
+            const isSharp = this.sharpKeys.some(k => k.name === keyData.name);
+
+            if (direction === 'key_to_count') {
+                // Gegeben: Tonart → Wie viele Vorzeichen?
+                const correct = this._vzShort(keyData.count, isSharp);
+                const options = [correct];
+                // Distraktoren: Nachbar-Zählwerte bevorzugen (±1, ±2)
+                const near = [keyData.count - 2, keyData.count - 1, keyData.count + 1, keyData.count + 2]
+                    .filter(c => c >= 0 && c <= 6 && c !== keyData.count);
+                const far = [0, 1, 2, 3, 4, 5, 6].filter(c => c !== keyData.count && !near.includes(c));
+                const distractorCounts = this._shuffle(near).concat(this._shuffle(far)).slice(0, 3);
+                distractorCounts.forEach(c => {
+                    if (c === 0) options.push('0');
+                    else options.push(this._vzShort(c, isSharp));
+                });
+                return {
+                    type: 'buttons',
+                    question: `Wie viele Vorzeichen hat ${keyData.name}-Dur?`,
+                    correct: correct,
+                    options: this._shuffle(options)
+                };
+            } else {
+                // Gegeben: Anzahl+Typ → Welche Tonart?
+                const typeWord = this._vzText(keyData.count, isSharp);
+                const correct = keyData.name + '-Dur';
+                // Distraktoren: Tonarten mit ähnlicher VZ-Zahl (±1, ±2)
+                const nearKeys = allKeysData.filter(k =>
+                    k.name !== keyData.name &&
+                    Math.abs(k.count - keyData.count) <= 2
+                );
+                const farKeys = allKeysData.filter(k =>
+                    k.name !== keyData.name &&
+                    Math.abs(k.count - keyData.count) > 2
+                );
+                const distractorPool = this._shuffle(nearKeys).concat(this._shuffle(farKeys));
+                const distractors = distractorPool.slice(0, 3).map(k => k.name + '-Dur');
+                return {
+                    type: 'buttons',
+                    question: `Welche Dur-Tonart hat ${typeWord}?`,
+                    correct: correct,
+                    options: this._shuffle([correct, ...distractors])
+                };
+            }
+        },
+
+        // 4b: Innenkreis + Mollparallelen — bidirektional
+        _genInnenkr() {
+            const keys = Object.keys(this.parallelMinor);
+            const direction = Math.random() < 0.5 ? 'dur_to_moll' : 'moll_to_dur';
+
+            if (direction === 'dur_to_moll') {
+                const durKey = this._randomItem(keys);
+                const correct = this.parallelMinor[durKey] + '-Moll';
+                const pool = Object.values(this.parallelMinor).map(m => m + '-Moll').filter(m => m !== correct);
+                const distractors = this._shuffle(pool).slice(0, 3);
+                return {
+                    type: 'buttons',
+                    question: `Wie heißt die Mollparallele von ${durKey}-Dur?`,
+                    correct: correct,
+                    options: this._shuffle([correct, ...distractors])
+                };
+            } else {
+                const mollKeys = Object.keys(this.parallelMajor);
+                const mollKey = this._randomItem(mollKeys);
+                const correct = this.parallelMajor[mollKey] + '-Dur';
+                const pool = Object.values(this.parallelMajor).map(d => d + '-Dur').filter(d => d !== correct);
+                const distractors = this._shuffle(pool).slice(0, 3);
+                return {
+                    type: 'buttons',
+                    question: `Wie heißt die Durparallele von ${mollKey}-Moll?`,
+                    correct: correct,
+                    options: this._shuffle([correct, ...distractors])
+                };
+            }
+        },
+
+        // 4c: Vorzeichen-Ableitung + Leitton
+        _genVorzAbleitung() {
+            const keys = Object.keys(this.leadingTones);
+            const key = this._randomItem(keys);
+            const correct = this.leadingTones[key];
+            return {
+                type: 'text',
+                question: `Wie heißt der Leitton von ${key}-Dur?`,
+                correct: correct,
+                hint: '(z.B. Fis, Cis, B, ...)'
+            };
+        },
+
+        // 4d: Symmetrien
+        _genSymmetrien() {
+            const qType = this._randomItem(['tritonus', 'dreieck', 'raute']);
+
+            if (qType === 'tritonus') {
+                const keys = Object.keys(this.tritonePairs).filter(k => this.allKeys.indexOf(k) < 6); // nur eine Richtung
+                const key = this._randomItem(keys);
+                const correct = this.tritonePairs[key] + '-Dur';
+                const pool = this.allKeys.filter(k => k !== key && k !== this.tritonePairs[key]).map(k => k + '-Dur');
+                const distractors = this._shuffle(pool).slice(0, 3);
+                return {
+                    type: 'buttons',
+                    question: `Welche Tonart liegt ${key}-Dur im Quintenzirkel gegenüber (Tritonus)?`,
+                    correct: correct,
+                    options: this._shuffle([correct, ...distractors])
+                };
+            } else if (qType === 'dreieck') {
+                const triangle = this._randomItem(this.majorThirdTriangles);
+                const givenIdx = Math.floor(Math.random() * 3);
+                const given = triangle[givenIdx];
+                const others = triangle.filter((_, i) => i !== givenIdx);
+                const correctSet = others.map(k => k + '-Dur');
+                // Distraktoren + korrekte garantiert enthalten
+                const distractors = this._shuffle(
+                    this.allKeys.filter(k => k !== given && !others.includes(k)).map(k => k + '-Dur')
+                ).slice(0, 4);
+                return {
+                    type: 'multi',
+                    question: `${given}-Dur bildet ein Großterz-Dreieck. Welche zwei Tonarten gehören dazu?`,
+                    correct: correctSet,
+                    options: this._shuffle([...correctSet, ...distractors]),
+                    requiredCount: 2
+                };
+            } else {
+                const diamond = this._randomItem(this.minorThirdDiamonds);
+                const givenIdx = Math.floor(Math.random() * 4);
+                const given = diamond[givenIdx];
+                const others = diamond.filter((_, i) => i !== givenIdx);
+                const correctArr = others.map(k => k + '-Dur');
+                // Distraktoren + korrekte garantiert enthalten
+                const distractors = this._shuffle(
+                    this.allKeys.filter(k => k !== given && !others.includes(k)).map(k => k + '-Dur')
+                ).slice(0, 5);
+                return {
+                    type: 'multi',
+                    question: `${given}-Dur bildet eine Kleinterz-Raute. Welche drei Tonarten gehören dazu?`,
+                    correct: correctArr,
+                    options: this._shuffle([...correctArr, ...distractors]),
+                    requiredCount: 3
+                };
+            }
+        },
+
+        // 4e: Verwandte Tonarten (Nachbarn im Quintenzirkel)
+        _genVerwandte() {
+            const key = this._randomItem(this.allKeys);
+            const idx = this.allKeys.indexOf(key);
+            const prev = this.allKeys[(idx - 1 + 12) % 12];
+            const next = this.allKeys[(idx + 1) % 12];
+            const correctArr = [prev + '-Dur', next + '-Dur'];
+            // Distraktoren + korrekte garantiert enthalten
+            const distractors = this._shuffle(
+                this.allKeys.filter(k => k !== key && k !== prev && k !== next).map(k => k + '-Dur')
+            ).slice(0, 4);
+            return {
+                type: 'multi',
+                question: `Welche Dur-Tonarten sind die direkten Nachbarn von ${key}-Dur im Quintenzirkel?`,
+                correct: correctArr,
+                options: this._shuffle([...correctArr, ...distractors]),
+                requiredCount: 2
+            };
+        },
+
+        // 4f: Enharmonische Verwechslung
+        _genEnharmonisch() {
+            const keys = Object.keys(this.enharmonic);
+            const key = this._randomItem(keys);
+            const correct = this.enharmonic[key];
+            return {
+                type: 'text',
+                question: `Wie heißt die enharmonische Verwechslung von ${key}-Dur?`,
+                correct: correct,
+                hint: '(z.B. Fis, Ges, Des, ...)',
+                acceptSuffix: true  // Akzeptiert auch "Ges-Dur" statt nur "Ges"
+            };
+        },
+
+        // ---- Antwort-Prüfung ----
+        checkAnswer(question, userAnswer) {
+            if (question.type === 'multi') {
+                // Multi-Select: alle korrekten müssen gewählt sein, keine falschen
+                if (!Array.isArray(userAnswer)) return false;
+                const correctSet = new Set(question.correct.map(c => c.toLowerCase().trim()));
+                const userSet = new Set(userAnswer.map(u => u.toLowerCase().trim()));
+                if (correctSet.size !== userSet.size) return false;
+                for (const c of correctSet) {
+                    if (!userSet.has(c)) return false;
+                }
+                return true;
+            }
+
+            // Single answer (buttons oder text)
+            let correct = String(question.correct).toLowerCase().trim();
+            let user = String(userAnswer).toLowerCase().trim();
+
+            // "-dur" / "-moll" Suffix tolerieren
+            if (question.acceptSuffix) {
+                user = user.replace(/-dur$/i, '').trim();
+                correct = correct.replace(/-dur$/i, '').trim();
+            }
+
+            // Normalisierung: ♯→#, ♭→b
+            user = user.replace(/♯/g, '#').replace(/♭/g, 'b');
+            correct = correct.replace(/♯/g, '#').replace(/♭/g, 'b');
+
+            return user === correct;
         }
     };
 
@@ -2822,6 +3412,27 @@
 
             // Titel bleibt neutral — Übungsdetails stehen in der Header-Übungsinfo
             document.getElementById('appTitle').textContent = 'Tonleitertrainer';
+
+            // Quintenzirkel-Modus: Staff/Keyboard/Input ausblenden, QZ-Card einblenden
+            const qzCard = document.getElementById('quintenzirkelCard');
+            const staffCard = document.getElementById('staffCard');
+            const inputCard = document.getElementById('inputCard');
+
+            if (stage === 'meister') {
+                qzCard.style.display = 'block';
+                if (staffCard) staffCard.style.display = 'none';
+                inputCard.style.display = 'none';
+                document.getElementById('keyboardCard').classList.remove('active');
+                document.getElementById('stepMarkersContainer').classList.remove('active');
+                document.getElementById('fallbackHint').classList.remove('active');
+                this.updateScoreDisplay();
+                return;
+            }
+
+            // Nicht-Meister: QZ-Card ausblenden, Staff/Input einblenden
+            qzCard.style.display = 'none';
+            if (staffCard) staffCard.style.display = '';
+            inputCard.style.display = '';
 
             // Keyboard
             const kbCard = document.getElementById('keyboardCard');
@@ -2972,6 +3583,12 @@
         generateNewTask() {
             this.inputLocked = false;
             this.hideFeedback();
+
+            // Quintenzirkel-Modus: eigene Aufgaben-Generierung
+            if (this.currentStage === 'meister') {
+                this.generateQuintenzirkelTask();
+                return;
+            }
 
             // Determine if we should weight toward more accidentals
             const useWeighting = (
@@ -3156,6 +3773,315 @@
                     el.textContent = '🎯 Benenne die Tonleiter! (Dur, Moll oder Kein Dur/Moll)';
                 }
             }
+        },
+
+        // ---- Quintenzirkel-Visualisierung ----
+        _buildQzVisual() {
+            // Minimaler Quintenzirkel als Orientierungshilfe
+            // Kreis mit C oben, Pfeil rechts (♯) und links (♭), plus F und G als Ankerpunkte
+            const cx = 140, cy = 115, r = 90;
+            const smallR = r - 18; // Radius für Beschriftungen
+
+            // Positionen berechnen (12-Uhr = -90°, Uhrzeigersinn)
+            function pos(hour) {
+                const angle = (hour * 30 - 90) * Math.PI / 180;
+                return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+            }
+            function posInner(hour) {
+                const angle = (hour * 30 - 90) * Math.PI / 180;
+                return { x: cx + smallR * Math.cos(angle), y: cy + smallR * Math.sin(angle) };
+            }
+
+            // Ankerpunkte: C (12 Uhr), G (1 Uhr), F (11 Uhr)
+            const pC = posInner(0);   // C = 12 Uhr
+            const pG = posInner(1);   // G = 1 Uhr
+            const pF = posInner(11);  // F = 11 Uhr
+
+            // Pfeilspitzen-Positionen für ♯ und ♭
+            const arrowR = r + 6;
+            const arrowSharpStart = { x: cx + arrowR * Math.cos((-60) * Math.PI / 180), y: cy + arrowR * Math.sin((-60) * Math.PI / 180) };
+            const arrowSharpEnd = { x: cx + arrowR * Math.cos((-20) * Math.PI / 180), y: cy + arrowR * Math.sin((-20) * Math.PI / 180) };
+            const arrowFlatStart = { x: cx + arrowR * Math.cos((-120) * Math.PI / 180), y: cy + arrowR * Math.sin((-120) * Math.PI / 180) };
+            const arrowFlatEnd = { x: cx + arrowR * Math.cos((-160) * Math.PI / 180), y: cy + arrowR * Math.sin((-160) * Math.PI / 180) };
+
+            // Tick-Marks für die 12 Positionen
+            let ticks = '';
+            for (let h = 0; h < 12; h++) {
+                const outer = pos(h);
+                const angle = (h * 30 - 90) * Math.PI / 180;
+                const inner = { x: cx + (r - 8) * Math.cos(angle), y: cy + (r - 8) * Math.sin(angle) };
+                const isAnchor = (h === 0 || h === 1 || h === 11);
+                ticks += `<line x1="${inner.x}" y1="${inner.y}" x2="${outer.x}" y2="${outer.y}" stroke="${isAnchor ? '#0891b2' : '#d1d5db'}" stroke-width="${isAnchor ? 2 : 1.2}"/>`;
+            }
+
+            return `<div class="qz-visual">
+                <svg width="280" height="230" viewBox="0 0 280 230">
+                    <defs>
+                        <marker id="arrowSharp" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+                            <polygon points="0 0, 7 2.5, 0 5" fill="#0891b2"/>
+                        </marker>
+                        <marker id="arrowFlat" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+                            <polygon points="0 0, 7 2.5, 0 5" fill="#0891b2"/>
+                        </marker>
+                    </defs>
+                    <!-- Kreis -->
+                    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="2"/>
+                    <!-- Tick-Marks -->
+                    ${ticks}
+                    <!-- Ankerpunkte -->
+                    <text x="${pC.x}" y="${pC.y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="#0891b2">C</text>
+                    <text x="${pG.x + 2}" y="${pG.y + 5}" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">G</text>
+                    <text x="${pF.x - 2}" y="${pF.y + 5}" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">F</text>
+                    <!-- Pfeil rechts: ♯ -->
+                    <path d="M${arrowSharpStart.x},${arrowSharpStart.y} A${arrowR},${arrowR} 0 0,1 ${arrowSharpEnd.x},${arrowSharpEnd.y}"
+                        fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowSharp)"/>
+                    <text x="${cx + arrowR + 14}" y="${cy - 18}" text-anchor="start" font-size="16" font-weight="700" fill="#0891b2">♯</text>
+                    <!-- Pfeil links: ♭ -->
+                    <path d="M${arrowFlatStart.x},${arrowFlatStart.y} A${arrowR},${arrowR} 0 0,0 ${arrowFlatEnd.x},${arrowFlatEnd.y}"
+                        fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowFlat)"/>
+                    <text x="${cx - arrowR - 22}" y="${cy - 18}" text-anchor="end" font-size="16" font-weight="700" fill="#0891b2">♭</text>
+                </svg>
+            </div>`;
+        },
+
+        // ---- Quintenzirkel-Aufgaben ----
+        generateQuintenzirkelTask() {
+            // Aktive Sub-Skills bestimmen (Cascade: alle bis zum höchsten)
+            const activeSubSkills = quickStart.currentOptions.filter(
+                opt => QUINTENZIRKEL.allKeys && ['aussenkr', 'innenkr', 'vorz_ableitung', 'symmetrien', 'verwandte', 'enharmonisch'].includes(opt)
+            );
+            const questionNum = quickStart.questionsAnswered || 0;
+            const question = QUINTENZIRKEL.generateQuestion(activeSubSkills.length > 0 ? activeSubSkills : ['aussenkr'], questionNum);
+            this.currentQzQuestion = question;
+
+            const qEl = document.getElementById('qzQuestion');
+            const iEl = document.getElementById('qzInput');
+            const fbEl = document.getElementById('qzFeedback');
+            fbEl.style.display = 'none';
+            fbEl.className = 'feedback';
+
+            qEl.innerHTML = this._buildQzVisual() + '<div class="qz-question-text">' +
+                question.question.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+
+            if (question.type === 'buttons') {
+                iEl.innerHTML = question.options.map(opt =>
+                    `<button type="button" class="qz-btn" onclick="app.checkQzButton(this, '${opt.replace(/'/g, "\\'")}')">${opt}</button>`
+                ).join('');
+            } else if (question.type === 'text') {
+                iEl.innerHTML = `
+                    <div class="qz-text-row">
+                        <input type="text" id="qzTextAnswer" class="qz-text-input" placeholder="${question.hint || 'Antwort eingeben...'}"
+                            onkeydown="if(event.key==='Enter')app.checkQzText()">
+                        <button type="button" class="qz-submit-btn" onclick="app.checkQzText()">✓</button>
+                    </div>`;
+                setTimeout(() => {
+                    const inp = document.getElementById('qzTextAnswer');
+                    if (inp) inp.focus();
+                }, 100);
+            } else if (question.type === 'multi') {
+                this._qzMultiSelected = new Set();
+                let html = '<div class="qz-multi-options">';
+                question.options.map(opt => {
+                    html += `<button type="button" class="qz-btn qz-multi-btn" onclick="app.toggleQzMulti(this, '${opt.replace(/'/g, "\\'")}')">${opt}</button>`;
+                });
+                html += '</div>';
+                html += `<div class="qz-multi-confirm"><button type="button" class="qz-submit-btn" onclick="app.checkQzMulti()">✓ Fertig (${question.requiredCount} auswählen)</button></div>`;
+                iEl.innerHTML = html;
+            }
+        },
+
+        checkQzButton(btnEl, answer) {
+            if (this.inputLocked) return;
+            const question = this.currentQzQuestion;
+            const isCorrect = QUINTENZIRKEL.checkAnswer(question, answer);
+
+            if (isCorrect) {
+                // Richtig: alle Buttons deaktivieren, richtigen grün markieren
+                const allBtns = document.querySelectorAll('#qzInput .qz-btn');
+                allBtns.forEach(btn => { btn.disabled = true; });
+                btnEl.classList.add('qz-correct');
+                this._handleQzAnswer(true);
+            } else {
+                // Falsch: kurzes Aufflackern (wie RT), Button bleibt klickbar
+                btnEl.classList.add('qz-incorrect');
+                setTimeout(() => { btnEl.classList.remove('qz-incorrect'); }, 600);
+                // Merksatz als Hilfestellung einblenden
+                this._showQzMerksatzHint(question);
+                // Fehler zählen (nicht locken — User soll selbst richtige Antwort finden)
+                this._handleQzAnswer(false, null, true);
+            }
+        },
+
+        checkQzText() {
+            if (this.inputLocked) return;
+            const input = document.getElementById('qzTextAnswer');
+            if (!input) return;
+            const answer = input.value.trim();
+            if (!answer) return;
+
+            const question = this.currentQzQuestion;
+            const isCorrect = QUINTENZIRKEL.checkAnswer(question, answer);
+
+            if (isCorrect) {
+                input.classList.add('input-correct');
+            } else {
+                input.classList.add('input-incorrect');
+            }
+
+            this._handleQzAnswer(isCorrect, !isCorrect ? question.correct : null);
+        },
+
+        toggleQzMulti(btnEl, value) {
+            if (this.inputLocked) return;
+            if (this._qzMultiSelected.has(value)) {
+                this._qzMultiSelected.delete(value);
+                btnEl.classList.remove('qz-selected');
+            } else {
+                this._qzMultiSelected.add(value);
+                btnEl.classList.add('qz-selected');
+            }
+        },
+
+        checkQzMulti() {
+            if (this.inputLocked) return;
+            const question = this.currentQzQuestion;
+            const selected = Array.from(this._qzMultiSelected);
+            const isCorrect = QUINTENZIRKEL.checkAnswer(question, selected);
+
+            // Visuelles Feedback
+            const allBtns = document.querySelectorAll('#qzInput .qz-multi-btn');
+            const correctSet = new Set(question.correct.map(c => c.toLowerCase()));
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                const val = btn.textContent.toLowerCase();
+                if (correctSet.has(val)) {
+                    btn.classList.add('qz-correct');
+                } else if (btn.classList.contains('qz-selected') && !correctSet.has(val)) {
+                    btn.classList.add('qz-incorrect');
+                }
+            });
+
+            this._handleQzAnswer(isCorrect);
+        },
+
+        // Merksatz-Hilfe bei Fehler einblenden — nur den passenden Merksatz
+        _showQzMerksatzHint(question) {
+            const fbEl = document.getElementById('qzFeedback');
+            let merksatz = '';
+
+            // Tonart aus der Frage extrahieren, um ♯ vs ♭ zu bestimmen
+            const qText = question.question;
+            const sharpNames = ['G', 'D', 'A', 'E', 'H', 'Fis'];
+            const flatNames = ['F', 'B', 'Es', 'As', 'Des', 'Ges'];
+            // Prüfe ob die Frage eine Kreuz- oder b-Tonart betrifft
+            const mentionedKey = QUINTENZIRKEL.allKeys.find(k => qText.includes(k + '-Dur'));
+            const isSharpContext = mentionedKey ? sharpNames.includes(mentionedKey) : null;
+            const isFlatContext = mentionedKey ? flatNames.includes(mentionedKey) : null;
+            // Auch aus Antwort-Optionen oder "Kreuz"/"♭" im Text ableiten
+            const textHasSharp = qText.includes('Kreuz') || qText.includes('♯');
+            const textHasFlat = qText.includes('♭');
+
+            // Bestimme welcher Sub-Skill aktiv ist
+            const activeOpts = quickStart.currentOptions || [];
+            const highestOpt = activeOpts[activeOpts.length - 1] || 'aussenkr';
+
+            if (highestOpt === 'aussenkr' || qText.includes('Vorzeichen')) {
+                if (isSharpContext || textHasSharp) {
+                    merksatz = '„<b>G</b>eh <b>D</b>u <b>A</b>lter <b>E</b>sel <b>H</b>ole <b>Fis</b>che"';
+                } else if (isFlatContext || textHasFlat) {
+                    merksatz = '„<b>F</b>reche <b>B</b>uben <b>Es</b>sen <b>As</b>pirin <b>Des</b>halb <b>Ges</b>und"';
+                } else if (mentionedKey === 'C') {
+                    merksatz = 'C-Dur steht ganz oben im Quintenzirkel — keine Vorzeichen!';
+                } else {
+                    merksatz = '„<b>G</b>eh <b>D</b>u <b>A</b>lter <b>E</b>sel <b>H</b>ole <b>Fis</b>che" · „<b>F</b>reche <b>B</b>uben <b>Es</b>sen <b>As</b>pirin <b>Des</b>halb <b>Ges</b>und"';
+                }
+            } else if (highestOpt === 'innenkr' || qText.includes('parallele')) {
+                merksatz = 'Mollparallele = kleine Terz tiefer (3 Halbtöne)';
+            } else if (highestOpt === 'vorz_ableitung' || qText.includes('Leitton')) {
+                merksatz = 'Der Leitton liegt einen <b>Halbton unter</b> dem Grundton';
+            } else if (highestOpt === 'symmetrien') {
+                if (qText.includes('Tritonus') || qText.includes('gegenüber')) {
+                    merksatz = '<b>Tritonus</b> = gegenüber im Quintenzirkel (6 Quinten Abstand)';
+                } else if (qText.includes('Großterz') || qText.includes('Dreieck')) {
+                    merksatz = '<b>Großterz-Dreieck</b> = 4 Quinten Abstand zwischen den Ecken';
+                } else if (qText.includes('Kleinterz') || qText.includes('Raute')) {
+                    merksatz = '<b>Kleinterz-Raute</b> = 3 Quinten Abstand zwischen den Ecken';
+                }
+            } else if (highestOpt === 'verwandte') {
+                merksatz = 'Direkte Nachbarn im Quintenzirkel = ±1 Vorzeichen Unterschied';
+            } else if (highestOpt === 'enharmonisch') {
+                merksatz = 'Am Boden des Zirkels: <b>Fis</b>=<b>Ges</b>, <b>H</b>=<b>Ces</b>, <b>Cis</b>=<b>Des</b>';
+            }
+
+            if (merksatz) {
+                fbEl.innerHTML = '⚠️ Prüfe nochmal!<br><span class="qz-merksatz">' + merksatz + '</span>';
+            } else {
+                fbEl.textContent = '⚠️ Prüfe nochmal!';
+            }
+            fbEl.className = 'feedback incorrect';
+            fbEl.style.display = 'block';
+        },
+
+        _handleQzAnswer(isCorrect, correctAnswer, waitForCorrect) {
+            // waitForCorrect = true → User muss noch die richtige Antwort klicken (Buttons)
+            if (waitForCorrect) {
+                // Nicht locken! Fehler zählen, aber auf korrekte Antwort warten
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(false);
+                    quickStart.updateQuizOverlay();
+                } else {
+                    if (!this.freeRetry) { this.score.total++; }
+                    this.freeRetry = true;
+                    this.updateScoreDisplay();
+                }
+                return; // Kein Auto-Advance — User klickt richtige Antwort
+            }
+
+            this.inputLocked = true;
+            const fbEl = document.getElementById('qzFeedback');
+
+            if (isCorrect) {
+                fbEl.textContent = '✓ Richtig!';
+                fbEl.className = 'feedback correct';
+                fbEl.style.display = 'block';
+            } else {
+                const hint = correctAnswer ? ` — Richtige Antwort: ${correctAnswer}` : '';
+                fbEl.textContent = '✗ Leider falsch.' + hint;
+                fbEl.className = 'feedback incorrect';
+                fbEl.style.display = 'block';
+            }
+
+            // An quickStart weiterleiten
+            if (quickStart.isActive) {
+                if (!waitForCorrect) {
+                    quickStart.handleAnswer(isCorrect);
+                    quickStart.updateQuizOverlay();
+                }
+            } else {
+                // Freies Üben
+                if (isCorrect && !this.freeRetry) {
+                    this.score.correct++;
+                }
+                if (!this.freeRetry) {
+                    this.score.total++;
+                }
+                this.freeRetry = !isCorrect;
+                this.updateScoreDisplay();
+            }
+
+            // Nächste Aufgabe nach Verzögerung
+            const delay = isCorrect ? 1000 : 2500;
+            setTimeout(() => {
+                if (isCorrect || !quickStart.isActive) {
+                    if (!isCorrect && !quickStart.isActive) {
+                        this.generateQuintenzirkelTask();
+                    } else if (isCorrect) {
+                        this.generateNewTask();
+                    }
+                } else {
+                    this.generateQuintenzirkelTask();
+                }
+            }, delay);
         },
 
         getAvailableScales() {
@@ -4359,7 +5285,14 @@
             this.useAllKeys = allKeys;
             this.useKirchentonarten = kirchentonarten;
             this.useStufenButtons = useStufen && (stage === 'aufsteiger' || stage === 'profi');
-            this.configureForStage(stage, showKb);
+
+            // Für Quintenzirkel: currentOptions setzen
+            if (stage === 'meister') {
+                quickStart.currentOptions = quickStart.getOptionsForLevel('meister');
+                quickStart.currentLevel = 'meister';
+            }
+
+            this.configureForStage(stage, stage === 'meister' ? false : showKb);
             this.generateNewTask();
         },
 
@@ -4377,7 +5310,7 @@
                 const opts = quickStart.currentOptions;
                 const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
                 const subs = quickStart.nodeSubSkills[nodeId];
-                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen' };
+                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Quintenzirkel' };
                 const nodeName = nodeNames[nodeId] || '';
 
                 titleEl.textContent = `Hilfe: ${nodeName}`;
@@ -4417,6 +5350,34 @@
                         'ohne_hilfe': `<p><strong>Ohne Klaviatur-Hilfe</strong></p>
                             <p>Die Klaviatur wird ausgeblendet. Du musst die Halbtonschritte und Tonleitern aus dem Kopf erkennen.</p>
                             <p><strong>Tipp:</strong> Denke dir die Klaviatur vor deinem inneren Auge vor!</p>`
+                    },
+                    'meister': {
+                        'aussenkr': `<p><strong>Außenkreis + Merksätze</strong></p>
+                            <p>Der <strong>Quintenzirkel</strong> ordnet alle Dur-Tonarten im Kreis an. Im Uhrzeigersinn kommen die <strong>Kreuz-Tonarten</strong> hinzu, gegen den Uhrzeigersinn die <strong>b-Tonarten</strong>.</p>
+                            <p><strong>Merksatz Kreuz-Tonarten:</strong> <em>„Geh Du Alter Esel Hole Fische"</em> → G (1♯), D (2♯), A (3♯), E (4♯), H (5♯), Fis (6♯)</p>
+                            <p><strong>Merksatz b-Tonarten:</strong> <em>„Freche Buben Essen Aspirin Deshalb Gesund"</em> → F (1♭), B (2♭), Es (3♭), As (4♭), Des (5♭), Ges (6♭)</p>
+                            <p>C-Dur steht ganz oben und hat keine Vorzeichen.</p>`,
+                        'innenkr': `<p><strong>Innenkreis + Mollparallelen</strong></p>
+                            <p>Jede Dur-Tonart hat eine <strong>parallele Molltonart</strong>, die dieselben Vorzeichen teilt. Die Mollparallele liegt eine <strong>kleine Terz tiefer</strong> (3 Halbtöne).</p>
+                            <p><strong>Beispiele:</strong> C-Dur → a-Moll, G-Dur → e-Moll, F-Dur → d-Moll</p>
+                            <p>Im Quintenzirkel stehen die Molltonarten im Innenkreis, direkt neben ihrer Dur-Parallele.</p>`,
+                        'vorz_ableitung': `<p><strong>Vorzeichen-Ableitung + Leitton</strong></p>
+                            <p>Die Vorzeichen einer Tonart lassen sich direkt aus dem Quintenzirkel ablesen:</p>
+                            <p><strong>Kreuz-Tonarten:</strong> Gehe 2 Stellen im Uhrzeigersinn vor – das ergibt das nächste Kreuz-Vorzeichen. G-Dur → Fis, D-Dur → Fis + Cis, usw.</p>
+                            <p><strong>b-Tonarten:</strong> Gehe 1 Stelle gegen den Uhrzeigersinn zurück – das ergibt das nächste b-Vorzeichen. F-Dur → B, B-Dur → B + Es, usw.</p>
+                            <p>Der <strong>Leitton</strong> ist immer das letzte hinzukommende Kreuz-Vorzeichen — er liegt einen Halbton unter dem Grundton.</p>`,
+                        'symmetrien': `<p><strong>Symmetrien im Quintenzirkel</strong></p>
+                            <p><strong>Tritonus:</strong> Tonarten, die sich im Quintenzirkel gegenüberliegen (6 Quinten Abstand), bilden ein Tritonus-Paar. Beispiel: C ↔ Fis.</p>
+                            <p><strong>Großterz-Dreieck:</strong> Drei Tonarten im Abstand von jeweils 4 Quinten bilden ein gleichseitiges Dreieck. Beispiel: C – E – As.</p>
+                            <p><strong>Kleinterz-Raute:</strong> Vier Tonarten im Abstand von jeweils 3 Quinten bilden eine Raute. Beispiel: C – Es – Fis – A.</p>`,
+                        'verwandte': `<p><strong>Verwandte Tonarten</strong></p>
+                            <p>Tonarten, die im Quintenzirkel direkt <strong>nebeneinander</strong> stehen, sind eng verwandt — sie unterscheiden sich nur um ein Vorzeichen und teilen die meisten Töne.</p>
+                            <p><strong>Beispiel:</strong> G-Dur (1♯) hat als Nachbarn C-Dur (0) und D-Dur (2♯). Alle drei Tonarten teilen fast alle Töne.</p>
+                            <p>Je weiter Tonarten im Quintenzirkel voneinander entfernt sind, desto weniger Töne teilen sie.</p>`,
+                        'enharmonisch': `<p><strong>Enharmonische Verwechslung</strong></p>
+                            <p>Am „Boden" des Quintenzirkels treffen sich Kreuz- und b-Tonarten, die <strong>gleich klingen</strong>, aber unterschiedlich geschrieben werden.</p>
+                            <p><strong>Paare:</strong> Fis-Dur = Ges-Dur, H-Dur = Ces-Dur, Cis-Dur = Des-Dur</p>
+                            <p>Diese heißen <strong>enharmonische Verwechslungen</strong> — gleicher Klang, anderer Name.</p>`
                     }
                 };
 
@@ -4441,7 +5402,7 @@
                 contentEl.innerHTML = `
                     <p>Willkommen im <strong>Tonleitertrainer</strong>! Hier lernst du Schritt für Schritt, Tonleitern zu erkennen und zu benennen.</p>
                     <p><strong>So funktioniert's:</strong></p>
-                    <p>Dein Lernpfad besteht aus drei Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
+                    <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
                     <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
                     <p><strong>Voraussetzung:</strong> Grundlegende Notenkenntnisse (Notentrainer: Vorzeichen &amp; Bassschlüssel).</p>
                 `;
@@ -4457,7 +5418,9 @@
         // ---- Feedback Modal ----
         showFeedbackModal() {
             document.getElementById('introModal').classList.remove('active');
-            document.getElementById('feedbackModal').classList.add('active');
+            const modal = document.getElementById('feedbackModal');
+            document.body.appendChild(modal);
+            modal.classList.add('active');
         },
 
         closeFeedbackModal() {

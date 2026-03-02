@@ -1503,6 +1503,8 @@
                     <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #10b981; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
                     <span style="color: #d1d5db;">|</span>
                     <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
+                    <span style="color: #d1d5db;">|</span>
+                    <a onclick="app.showFeedback()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Feedback</a>
                 </div>
 
                 <div class="st-legend">
@@ -5444,7 +5446,9 @@
 
             showFeedback() {
                 document.getElementById('introModal').classList.remove('active');
-                document.getElementById('feedbackModal').classList.add('active');
+                const modal = document.getElementById('feedbackModal');
+                document.body.appendChild(modal);
+                modal.classList.add('active');
             },
 
             closeFeedback() {
