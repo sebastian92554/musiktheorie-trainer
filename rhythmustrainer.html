@@ -2313,6 +2313,10 @@
                     document.getElementById('showCountingTimes').disabled = true;
                     document.getElementById('showRhythmSyllables').checked = false;
                     document.getElementById('showRhythmSyllables').disabled = true;
+                    // Interaction-Hint ausblenden (kein Hover in Taktarten-Modus)
+                    const hint = document.getElementById('interactionHint');
+                    if (hint) hint.classList.add('hidden');
+                    app.interactionHintShown = false;
                     console.log('[QuickStart] Taktarten-Modus: Pool =', pool);
                 }
 
