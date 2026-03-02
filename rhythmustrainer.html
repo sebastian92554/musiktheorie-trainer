@@ -2308,7 +2308,11 @@
                     document.getElementById('includeTriplets').checked = false;
                     document.getElementById('showLegend').checked = false;
                     document.getElementById('showGrid').checked = false;
+                    document.getElementById('showGrid').disabled = true;
                     document.getElementById('showCountingTimes').checked = false;
+                    document.getElementById('showCountingTimes').disabled = true;
+                    document.getElementById('showRhythmSyllables').checked = false;
+                    document.getElementById('showRhythmSyllables').disabled = true;
                     console.log('[QuickStart] Taktarten-Modus: Pool =', pool);
                 }
 
@@ -3558,6 +3562,18 @@ Gerät:
                     showRhythmSyllablesCheckbox.disabled = true;
                     showCountingTimesCheckbox.disabled = false;
                     this.settings.showRhythmSyllables = false;
+                } else if (this.settings.taskType === 'time-signature-id') {
+                    // Taktart-Erkennung: Alle Hilfen aus (verraten die Taktart!)
+                    showCountingTimesCheckbox.checked = false;
+                    showCountingTimesCheckbox.disabled = true;
+                    showRhythmSyllablesCheckbox.checked = false;
+                    showRhythmSyllablesCheckbox.disabled = true;
+                    this.settings.showCountingTimes = false;
+                    this.settings.showRhythmSyllables = false;
+                    const showGridCheckbox = document.getElementById('showGrid');
+                    showGridCheckbox.checked = false;
+                    showGridCheckbox.disabled = true;
+                    this.settings.showGrid = false;
                 }
                 
                 // Toggle Input Card + Task Focus visibility
