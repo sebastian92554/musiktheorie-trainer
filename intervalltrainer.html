@@ -1933,7 +1933,7 @@
                 ],
                 'int2': [
                     { id: 'basis', label: 'Stammtöne auf der Tastatur' },
-                    { id: 'augdim', label: 'Mit übermäßigen/verminderten Intervallen' },
+                    { id: 'augdim', label: 'Mit Vorzeichen' },
                     { id: 'bothclefs', label: 'Beide Schlüssel' }
                 ],
                 'int3': [
@@ -2344,7 +2344,7 @@
 
                 // Lernkarte anzeigen — danach startet dismissLernkarte() die erste Aufgabe
                 const currentSub = this.currentOptions[this.currentOptions.length - 1];
-                if (currentSub && app.showLernkarte(currentSub)) return;
+                if (currentSub && app.showLernkarte(currentSub, true)) return;
                 // Fallback: direkt Aufgabe starten
                 if (level === 'meister') {
                     app.generateInt4Task();
@@ -2362,6 +2362,7 @@
                 app.settings.showLargeIntervals = false;
                 app.settings.requireKeyboard = false;
                 app.settings.feinbestimmungLernen = false;
+                app.settings.stammtöneOnly = false;
                 app.settings.clef = 'treble';
                 app.settings.displayMode = 'melodic';
                 app.settings.noAudio = false;
@@ -2390,6 +2391,7 @@
 
                     case 'aufsteiger':
                         app.settings.requireKeyboard = true;
+                        app.settings.stammtöneOnly = !options.includes('augdim');
                         if (options.includes('augdim')) app.settings.onlyAugDim = true;
                         if (options.includes('bothclefs')) app.settings.clef = 'both';
                         break;
@@ -3217,7 +3219,13 @@
                     }
 
                     const adjustment = targetSemitones - naturalSemitones;
-                    
+
+                    // Nur Stammtöne (keine Vorzeichen) wenn stammtöneOnly aktiv
+                    if (this.settings.stammtöneOnly && adjustment !== 0) {
+                        attempts++;
+                        continue;
+                    }
+
                     if (Math.abs(adjustment) > 1) {
                         attempts++;
                         continue;
@@ -3355,10 +3363,11 @@
                 return subSkillId;
             },
 
-            showLernkarte(subSkillId) {
+            showLernkarte(subSkillId, fromStart) {
                 const key = this.getLernkarteKey(subSkillId);
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
+                this._lernkarteFromStart = !!fromStart;
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
 
@@ -3421,10 +3430,10 @@
                 else if (key === 'extended') {
                     const el = document.getElementById('lkVisualExtended');
                     if (el) {
-                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">' +
-                            [['rein',9,'None (9)<br>= Okt+Sek'],['rein',10,'Dezime (10)<br>= Okt+Terz'],['rein',11,'Undezime (11)<br>= Okt+Quarte'],['rein',12,'Duodezime (12)<br>= Okt+Quinte']].map(([q,s,lbl]) =>
-                                `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:3px">${this.renderLernkarteStaff('rein',s,80,110)}</div><div style="font-size:0.6rem;margin-top:1px;color:#9a3412;font-weight:600">${lbl}</div></div>`
-                            ).join('') + '</div>';
+                        el.innerHTML = this.renderLernkarteStaffRow([
+                            {quality:'groß',size:9,label:'None (9)'},{quality:'groß',size:10,label:'Dezime (10)'},
+                            {quality:'rein',size:11,label:'Undezime (11)'},{quality:'rein',size:12,label:'Duodezime (12)'}
+                        ]);
                     }
                 }
                 // ---- INT2: Basis — Stammtöne auf Tastatur ----
@@ -3432,19 +3441,22 @@
                     const el = document.getElementById('lkVisualInt2Basis');
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
-                            highlightKeys: [{key:'C',color:'#bbf7d0'},{key:'D',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'F',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'},{key:'A',color:'#bbf7d0'},{key:'H',color:'#bbf7d0'}],
-                            title: 'Die weißen Tasten: C D E F G A H'
+                            numOctaves: 2,
+                            highlightKeys: [{key:'C',color:'#fed7aa'},{key:'F',color:'#fed7aa'},{key:'C2',color:'#fed7aa'},{key:'F2',color:'#fed7aa'}]
                         });
                     }
                 }
-                // ---- INT2: Augdim — Schwarze Tasten ----
+                // ---- INT2: Augdim — Vorzeichen auf der Tastatur ----
                 else if (key === 'int2_augdim') {
                     const el = document.getElementById('lkVisualInt2Augdim');
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
-                            highlightKeys: [{key:'Cis',color:'#fbbf24'},{key:'Dis',color:'#fbbf24'},{key:'Fis',color:'#fbbf24'},{key:'Gis',color:'#fbbf24'},{key:'Ais',color:'#fbbf24'}],
-                            title: '♯ = rechts (höher), ♭ = links (tiefer)'
+                            highlightKeys: [{key:'G',color:'#fed7aa'}],
+                            onKeyArrows: [
+                                {from:'G',to:'Gis',labelKey:'A',label:'♯ = Gis',color:'#16a34a'},
+                                {from:'G',to:'Fis',labelKey:'F',label:'♭ = Ges',color:'#dc2626'}
+                            ]
                         });
                     }
                 }
@@ -3519,11 +3531,14 @@
 
             dismissLernkarte() {
                 document.getElementById('lernkarteOverlay').classList.remove('active');
-                // Starte die erste Aufgabe nach dem Schließen
-                if (this.settings.feinbestimmungLernen) {
-                    this.generateInt4Task();
-                } else {
-                    this.generateInterval();
+                // Nur beim Levelstart die erste Aufgabe generieren, nicht bei Hilfe-Aufruf
+                if (this._lernkarteFromStart) {
+                    this._lernkarteFromStart = false;
+                    if (this.settings.feinbestimmungLernen) {
+                        this.generateInt4Task();
+                    } else {
+                        this.generateInterval();
+                    }
                 }
             },
 
@@ -3556,17 +3571,18 @@
                 // ---- INT2: Aufsteiger (Tastatur) ----
                 'int2_basis': {
                     title: 'Stammtöne auf der Tastatur',
-                    body: `<p>Du siehst ein Intervall im Notensystem und musst beide Töne <strong>auf der Klaviatur finden</strong>.</p>
+                    body: `<p>Du siehst ein Intervall im Notensystem und musst beide Töne <strong>auf der Klaviatur finden</strong>. Lerne die Stammtonreihe in beide Richtungen auswendig: aufwärts <strong>C D E F G A H</strong>, abwärts <strong>C H A G F E D</strong>.</p>
                         <div class="lk-visual" id="lkVisualInt2Basis"></div>
-                        <div class="lk-rule"><strong>Orientierung:</strong> Die weißen Tasten von links: C D E F G A H. Nutze die Zweier- und Dreiergruppen der schwarzen Tasten als Orientierungspunkte.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die beiden richtigen Tasten auf der Klaviatur an.</div>`
+                        <div class="lk-rule"><strong>Ankertöne finden:</strong> Links neben der <strong>2er-Gruppe</strong> der schwarzen Tasten liegt immer <strong>C</strong>. Links neben der <strong>3er-Gruppe</strong> liegt immer <strong>F</strong>. Alle anderen Töne leitest du vom nächsten Ankerton ab — aufwärts oder abwärts, je nachdem was kürzer ist.</div>
+                        <div class="lk-tip"><strong>Beispiel:</strong> Wo liegt H? Vom C aus <strong>eine Taste abwärts</strong> — viel schneller, als von F aus fünf Tasten aufwärts zu zählen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst zwei Noten ohne Vorzeichen. Klicke die richtigen weißen Tasten auf der Klaviatur an.</div>`
                 },
                 'int2_augdim': {
                     title: 'Vorzeichen auf der Tastatur',
-                    body: `<p>Jetzt kommen auch Töne mit <strong>Vorzeichen</strong> vor — das sind die schwarzen Tasten.</p>
+                    body: `<p>Ein <strong>♯ (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst eine Taste nach <strong>rechts</strong>. Ein <strong>♭ (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
                         <div class="lk-visual" id="lkVisualInt2Augdim"></div>
-                        <div class="lk-rule"><strong>♯ (Kreuz)</strong> = einen Halbton höher → nächste Taste <strong>rechts</strong>. <strong>♭ (Be)</strong> = einen Halbton tiefer → nächste Taste <strong>links</strong>.</div>
-                        <div class="lk-tip"><strong>Merke:</strong> Schwarze Tasten haben zwei Namen: Cis = Des, Dis = Es, Fis = Ges, Gis = As, Ais = B. Für die Tastatur ist es dieselbe Taste.</div>
+                        <div class="lk-rule"><strong>Wichtig:</strong> Zwischen E–F und H–C liegt kein Halbton dazwischen (keine schwarze Taste). Deshalb ist <strong>Eis = F</strong> und <strong>His = C</strong> — ein Vorzeichen landet hier auf einer weißen Taste!</div>
+                        <div class="lk-tip"><strong>Enharmonik:</strong> Jede schwarze Taste hat zwei Namen: Cis = Des, Dis = Es, Fis = Ges, Gis = As, Ais = B. Auf der Tastatur ist es dieselbe Taste.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die richtigen Tasten — auch schwarze.</div>`
                 },
                 'int2_bothclefs': {
@@ -3707,7 +3723,7 @@
 
                 // Proportional vom Quiz: lineSpacing 20→12, Faktor 0.6
                 const pad = 6; // Rand links
-                const spacing = 44; // Abstand zwischen Intervallen
+                const spacing = intervals.length <= 4 ? 64 : 44; // Mehr Platz bei wenigen Intervallen
                 const totalW = pad + intervals.length * spacing + 6;
                 const baseY = 100;
                 const lineSpacing = 12;
@@ -3744,7 +3760,7 @@
                 const minY = Math.min(...allYs, 52);
                 const maxY = Math.max(...allYs, 100);
                 const svgTop = minY - 12;
-                const labelH = 14; // Platz für Labels unter dem System
+                const labelH = 18; // Platz für Labels unter dem System
                 const svgBottom = maxY + 12 + labelH;
                 const svgH = svgBottom - svgTop;
 
@@ -3762,12 +3778,13 @@
                     const rx = 7.5, ry = 5.7;
 
                     // Hilfslinien (Abstand = lineSpacing = 12)
-                    if (c.y1 > 100) for (let ly = 112; ly <= c.y1; ly += 12) svg += `<line x1="${cx1-8}" y1="${ly}" x2="${cx1+8}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
-                    if (c.y2 < 52) for (let ly = 40; ly >= c.y2; ly -= 12) svg += `<line x1="${cx2-8}" y1="${ly}" x2="${cx2+8}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
-                    if (c.y2 > 100) for (let ly = 112; ly <= c.y2; ly += 12) svg += `<line x1="${cx2-8}" y1="${ly}" x2="${cx2+8}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    const hlW = 12; // Hilfslinie: Notenkopf-Breite + Überhang
+                    if (c.y1 > 100) for (let ly = 112; ly <= c.y1; ly += 12) svg += `<line x1="${cx1-hlW}" y1="${ly}" x2="${cx1+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    if (c.y2 < 52) for (let ly = 40; ly >= c.y2; ly -= 12) svg += `<line x1="${cx2-hlW}" y1="${ly}" x2="${cx2+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    if (c.y2 > 100) for (let ly = 112; ly <= c.y2; ly += 12) svg += `<line x1="${cx2-hlW}" y1="${ly}" x2="${cx2+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
                     // Prime: breite Hilfslinie
                     if (c.tooClose && c.y1 > 100) {
-                        for (let ly = 112; ly <= c.y1; ly += 12) svg += `<line x1="${c.cx-10}" y1="${ly}" x2="${c.cx+10}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                        for (let ly = 112; ly <= c.y1; ly += 12) svg += `<line x1="${c.cx-13}" y1="${ly}" x2="${c.cx+13}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
                     }
 
                     // Vorzeichen (proportional: Quiz font-size 22 bei rx 12.5 → 13 bei rx 7.5)
@@ -3781,10 +3798,17 @@
                     svg += `<ellipse cx="${cx2}" cy="${c.y2}" rx="${rx}" ry="${ry}" fill="#1f2937" transform="rotate(-20 ${cx2} ${c.y2})"/>`;
 
                     // Label unter dem System
-                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 2}" text-anchor="middle" font-size="7" fill="#9a3412" font-weight="600">${c.label}</text>`;
+                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 2}" text-anchor="middle" font-size="8.5" fill="#9a3412" font-weight="600">${c.label}</text>`;
                 });
 
                 svg += '</svg>';
+                // Bei weniger als 8 Intervallen: Breite begrenzen, damit SVG nicht riesig wird
+                // Breite begrenzen: Referenz ist 8 Intervalle à 44px
+                const refW = 6 + 8 * 44 + 6;
+                if (totalW < refW) {
+                    const pct = Math.round(totalW / refW * 100);
+                    return `<div style="max-width:${pct}%;margin:0 auto">${svg}</div>`;
+                }
                 return svg;
             },
 
@@ -3891,13 +3915,13 @@
             renderLernkarteTastatur(options = {}) {
                 const {
                     numOctaves = 1,
-                    highlightKeys = [], arrows = [],
-                    showBlackLabels = false, title = ''
+                    highlightKeys = [], arrows = [], topArrows = [], onKeyArrows = [],
+                    showBlackLabels = false, showHalftoneArrows = false, title = ''
                 } = options;
 
                 const allWhite = ['C','D','E','F','G','A','H'];
                 const blackMap = { 'C': 'Cis', 'D': 'Dis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais' };
-                const blackLabels = { 'Cis': 'Cis/Des', 'Dis': 'Dis/Es', 'Fis': 'Fis/Ges', 'Gis': 'Gis/As', 'Ais': 'Ais/B' };
+                const blackLabels = { 'Cis': ['Cis','Des'], 'Dis': ['Dis','Es'], 'Fis': ['Fis','Ges'], 'Gis': ['Gis','As'], 'Ais': ['Ais','B'] };
 
                 // Weiße Tasten über alle Oktaven generieren (Key-ID mit Oktav-Suffix)
                 const whiteKeys = [];
@@ -3917,7 +3941,9 @@
                 const labelSpace = hasLabels ? 16 : 0;
                 const arrowSpace = arrows.length > 0 ? 30 : 0;
                 const titleSpace = title ? 18 : 0;
-                const totalH = wh + pad * 2 + labelSpace + arrowSpace + titleSpace;
+                const htSpace = showHalftoneArrows ? 22 : 0;
+                const topArrowSpace = topArrows.length > 0 ? 32 : 0;
+                const totalH = htSpace + topArrowSpace + wh + pad * 2 + labelSpace + arrowSpace + titleSpace;
 
                 // Positionen (x-Mitte) jeder Taste — Key-ID als Schlüssel
                 const keyPositions = {};
@@ -3935,7 +3961,7 @@
                 if (title) {
                     svg += `<text x="${totalW/2}" y="14" text-anchor="middle" font-size="11" fill="#6b7280" font-weight="600">${title}</text>`;
                 }
-                const ky = titleSpace;
+                const ky = titleSpace + htSpace + topArrowSpace;
 
                 // Weiße Tasten
                 whiteKeys.forEach((wk, i) => {
@@ -3962,14 +3988,117 @@
                         const fill = hl ? (hl.color || '#fbbf24') : '#222';
                         svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
                         if (showBlackLabels) {
-                            const lbl = blackLabels[blackMap[wk.name]] || blackMap[wk.name];
-                            svg += `<text x="${bx + bw/2}" y="${ky + pad + bh - 6}" text-anchor="middle" font-size="7" fill="#fff" font-weight="600">${lbl}</text>`;
+                            const lblArr = blackLabels[blackMap[wk.name]];
+                            if (lblArr) {
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
+                            }
                         }
                         if (hl && hl.label) {
                             svg += `<text x="${bx + bw/2}" y="${ky + pad + 18}" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">${hl.label}</text>`;
                         }
                     }
                 });
+
+                // Pfeile direkt auf der Tastatur (onKeyArrows)
+                // Schräge Pfeile von Starttaste nach oben (11-Uhr / 1-Uhr Richtung)
+                if (onKeyArrows.length > 0) {
+                    onKeyArrows.forEach(a => {
+                        const fromX = keyPositions[a.from];
+                        const labelX = a.labelKey ? keyPositions[a.labelKey] : null;
+                        if (fromX === undefined) return;
+                        const color = a.color || '#ea580c';
+                        // Start: über der Tonnamen-Beschriftung
+                        const startY = ky + pad + wh - 22;
+                        // Richtung: links oben (-60°) oder rechts oben (-120°) je nach Pfeilrichtung
+                        const goesRight = a.to && keyPositions[a.to] !== undefined && keyPositions[a.to] > fromX;
+                        const angle = goesRight ? (-60 * Math.PI / 180) : (-120 * Math.PI / 180);
+                        const arrowLen = bh * 0.7;
+                        const endX = fromX + Math.cos(angle) * arrowLen;
+                        const endY = startY + Math.sin(angle) * arrowLen;
+                        // Pfeilspitze und Linie
+                        const dx = endX - fromX, dy = endY - startY;
+                        const len = Math.sqrt(dx*dx + dy*dy);
+                        const ux = dx/len, uy = dy/len;
+                        const tipLen = 8, tipW = 5;
+                        const px = -uy * tipW, py = ux * tipW;
+                        // Linie endet vor der Spitze
+                        svg += `<line x1="${fromX}" y1="${startY}" x2="${endX - ux*tipLen}" y2="${endY - uy*tipLen}" stroke="${color}" stroke-width="2"/>`;
+                        svg += `<polygon points="${endX},${endY} ${endX-ux*tipLen+px},${endY-uy*tipLen+py} ${endX-ux*tipLen-px},${endY-uy*tipLen-py}" fill="${color}"/>`;
+                        // Farbiges Label auf der Nachbar-Taste, auf Höhe des Pfeilstarts
+                        if (a.label && labelX !== null) {
+                            svg += `<text x="${labelX}" y="${startY + 3}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${a.label}</text>`;
+                        }
+                    });
+                }
+
+                // Gezielte Bögen oberhalb der Tasten (topArrows)
+                if (topArrows.length > 0) {
+                    topArrows.forEach(a => {
+                        const fromX = keyPositions[a.from];
+                        const toX = keyPositions[a.to];
+                        if (fromX === undefined || toX === undefined) return;
+                        const color = a.color || '#ea580c';
+                        const midX = (fromX + toX) / 2;
+                        const dist = Math.abs(toX - fromX);
+                        const bowTop = ky - 8;
+                        const bowH = Math.min(dist * 0.8, 20);
+                        // Bogen
+                        svg += `<path d="M${fromX},${bowTop} Q${midX},${bowTop - bowH} ${toX},${bowTop}" fill="none" stroke="${color}" stroke-width="2"/>`;
+                        // Pfeilspitze
+                        const dir = toX > fromX ? 1 : -1;
+                        svg += `<polygon points="${toX},${bowTop} ${toX - dir*5},${bowTop-4} ${toX - dir*5},${bowTop+4}" fill="${color}"/>`;
+                        // Startpunkt
+                        svg += `<circle cx="${fromX}" cy="${bowTop}" r="2.5" fill="${color}"/>`;
+                        // Label
+                        if (a.label) {
+                            svg += `<text x="${midX}" y="${bowTop - bowH - 3}" text-anchor="middle" font-size="9" fill="${color}" font-weight="600">${a.label}</text>`;
+                        }
+                    });
+                }
+
+                // Halbtonschritt-Bögen oberhalb der Tasten
+                if (showHalftoneArrows) {
+                    // Chromatische Reihenfolge einer Oktave: jeder Schritt = 1 Halbton
+                    const chromatic = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','Ais','H'];
+                    const allChrom = [];
+                    for (let oct = 1; oct <= numOctaves; oct++) {
+                        const suffix = oct === 1 ? '' : String(oct);
+                        chromatic.forEach(n => allChrom.push(n + suffix));
+                    }
+                    // Nächstes C nach letzter Oktave (Ziel für H→C)
+                    if (numOctaves === 1) allChrom.push('C2');
+                    else allChrom.push('C' + (numOctaves + 1));
+
+                    const bowY = ky - 4; // Oberhalb der Tasten
+                    for (let i = 0; i < allChrom.length - 1; i++) {
+                        const fromId = allChrom[i];
+                        const toId = allChrom[i + 1];
+                        const x1 = keyPositions[fromId];
+                        const x2 = keyPositions[toId];
+                        if (x1 === undefined || x2 === undefined) continue;
+                        const midX = (x1 + x2) / 2;
+                        const dist = Math.abs(x2 - x1);
+                        const bowH = Math.min(dist * 0.6, 14);
+                        // Bogen
+                        svg += `<path d="M${x1},${bowY} Q${midX},${bowY - bowH} ${x2},${bowY}" fill="none" stroke="#9a3412" stroke-width="1.2"/>`;
+                        // Pfeilspitze
+                        svg += `<polygon points="${x2},${bowY} ${x2-3},${bowY-3} ${x2-4},${bowY+1}" fill="#9a3412"/>`;
+                    }
+                    // Label "Halbtonschritt" bei E→F und H→C (die ohne schwarze Taste)
+                    const efPairs = [];
+                    for (let oct = 1; oct <= numOctaves; oct++) {
+                        const s = oct === 1 ? '' : String(oct);
+                        const eId = 'E' + s, fId = 'F' + s;
+                        const hId = 'H' + s, cId = 'C' + (oct === 1 ? '2' : String(oct + 1));
+                        if (keyPositions[eId] && keyPositions[fId]) efPairs.push([eId, fId]);
+                        if (keyPositions[hId] && keyPositions[cId]) efPairs.push([hId, cId]);
+                    }
+                    efPairs.forEach(([a, b]) => {
+                        const mx = (keyPositions[a] + keyPositions[b]) / 2;
+                        svg += `<text x="${mx}" y="${bowY - 12}" text-anchor="middle" font-size="7" fill="#9a3412" font-weight="600">½</text>`;
+                    });
+                }
 
                 // Pfeile
                 if (arrows.length > 0) {
@@ -4331,7 +4460,16 @@
 
                 if (task.type === 'bidirektional') {
                     const input = document.getElementById('intervalInput');
-                    if (!input || !input.value.trim()) return;
+                    if (!input) return;
+                    if (!input.value.trim()) {
+                        const feedbackEl = document.getElementById('feedback');
+                        feedbackEl.textContent = '💡 Bitte eine Antwort eingeben.';
+                        feedbackEl.className = 'feedback incorrect';
+                        feedbackEl.classList.remove('hidden');
+                        setTimeout(() => feedbackEl.classList.add('hidden'), 2000);
+                        input.focus();
+                        return;
+                    }
 
                     if (task.direction === 'htToName') {
                         const parsed = parseInput(input.value);
@@ -4353,7 +4491,15 @@
                     const htInput = document.getElementById('semitonesInput');
                     const nameInput = document.getElementById('intervalInput');
                     if (!htInput || !nameInput) return;
-                    if (!htInput.value.trim() && !nameInput.value.trim()) return;
+                    if (!htInput.value.trim() && !nameInput.value.trim()) {
+                        const feedbackEl = document.getElementById('feedback');
+                        feedbackEl.textContent = '💡 Bitte beide Felder ausfüllen.';
+                        feedbackEl.className = 'feedback incorrect';
+                        feedbackEl.classList.remove('hidden');
+                        setTimeout(() => feedbackEl.classList.add('hidden'), 2000);
+                        htInput.focus();
+                        return;
+                    }
 
                     const htCorrect = parseInt(htInput.value.trim()) === task.answerHT;
                     const parsed = parseInput(nameInput.value);

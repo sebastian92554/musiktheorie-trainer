@@ -2891,7 +2891,14 @@
                 if (!noteInput) return;
 
                 let userInput = noteInput.value.trim();
-                if (!userInput) return;
+                if (!userInput) {
+                    feedbackEl.textContent = '💡 Bitte eine Antwort eingeben.';
+                    feedbackEl.className = 'feedback incorrect';
+                    feedbackEl.classList.remove('hidden');
+                    setTimeout(() => { feedbackEl.classList.add('hidden'); }, 2000);
+                    noteInput.focus();
+                    return;
+                }
                 
                 // Determine if this is the FIRST check of this task
                 const isFirstCheck = !this.validationState.hasBeenChecked;

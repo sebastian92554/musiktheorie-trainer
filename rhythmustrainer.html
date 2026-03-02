@@ -1396,6 +1396,17 @@
 
                 <!-- showLegend checkbox removed - legend is now in help menu -->
                 <input type="checkbox" id="showLegend" checked style="display:none;">
+
+                <!-- Tempo-Regler (nur bei Audio-Aufgabentypen sichtbar) -->
+                <div id="tempoControl" class="select-group" style="margin-top: 0.75rem; border-top: 1px solid #e9d5ff; padding-top: 0.75rem; display: none;">
+                    <label style="font-weight: 600; color: #4c1d95;">🎵 Tempo: <span id="tempoValue">80</span> BPM</label>
+                    <input type="range" id="tempoSlider" min="40" max="160" value="80" step="5"
+                        oninput="app.tempo = Number(this.value); document.getElementById('tempoValue').textContent = this.value;"
+                        style="width: 100%; accent-color: #8b5cf6; margin-top: 0.25rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #9ca3af;">
+                        <span>40</span><span>100</span><span>160</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Score Display -->
@@ -3281,8 +3292,10 @@ Gerät:
                     this.noAudio = !hasAudioTask;
                     const playBtn = document.getElementById('playRhythmBtn');
                     const audioControls = document.getElementById('audioControls');
+                    const tempoControl = document.getElementById('tempoControl');
                     if (playBtn) playBtn.style.display = this.noAudio ? 'none' : '';
                     if (audioControls) audioControls.style.display = this.noAudio ? 'none' : '';
+                    if (tempoControl) tempoControl.style.display = this.noAudio ? 'none' : '';
                 }
                 this.settings.includeEighths = document.getElementById('includeEighths').checked;
                 this.settings.includeSixteenths = document.getElementById('includeSixteenths').checked;
@@ -4373,7 +4386,7 @@ Gerät:
                     const maxValue = this.getMaxValue();
                     const totalBeats = Math.ceil(maxValue / beatUnit);
                     for (let i = 0; i < totalBeats; i++) {
-                        this._hit(ctx, rhythmStart + i * beatSec * beatUnit, 'hihat', 0.25);
+                        this._hit(ctx, rhythmStart + i * beatSec * beatUnit, 'hihat', 0.12);
                     }
 
                     // Rhythmus abspielen
@@ -5565,7 +5578,18 @@ Gerät:
                 const feedback = document.getElementById('feedback');
                 
                 const userAnswer = startInput.value.trim().toLowerCase();
-                
+
+                // Leere Eingabe: Hinweis statt Fehler
+                if (!userAnswer) {
+                    const feedback = document.getElementById('feedback');
+                    feedback.textContent = '💡 Bitte eine Antwort eingeben.';
+                    feedback.className = 'feedback incorrect';
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => { feedback.classList.add('hidden'); }, 2000);
+                    startInput.focus();
+                    return;
+                }
+
                 // Bestimme korrekte Antwort basierend auf Aufgabentyp
                 let correctAnswer;
                 let feedbackLabel;
@@ -5686,10 +5710,20 @@ Gerät:
                 const status = document.getElementById('additionStatus');
                 const feedback = document.getElementById('additionFeedback');
                 
+                // Leere Eingabe: Hinweis statt Fehler
+                if (!input.value.trim()) {
+                    feedback.textContent = '💡 Bitte eine Antwort eingeben.';
+                    feedback.className = 'feedback incorrect';
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => { feedback.classList.add('hidden'); }, 2000);
+                    input.focus();
+                    return;
+                }
+
                 // Parse Eingabe (akzeptiere Komma oder Punkt als Dezimaltrennzeichen)
                 const userInput = input.value.trim().replace(',', '.');
                 const userAnswer = parseFloat(userInput);
-                
+
                 if (isNaN(userAnswer)) {
                     feedback.textContent = '❓ Bitte eine Zahl eingeben (z.B. 3.5 oder 3,5)';
                     feedback.className = 'feedback incorrect';
