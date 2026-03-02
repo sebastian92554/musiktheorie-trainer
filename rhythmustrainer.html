@@ -2284,10 +2284,15 @@
 
                 // TAKTARTEN-KNOTEN: Cascade-Pool basierend auf Sub-Skills aufbauen
                 if (level === 'taktarten') {
-                    // Cascade: Jeder Sub-Skill fügt Taktarten zum Pool hinzu
-                    const pool = ['2/4', '3/4', '4/4']; // Regelmäßige (immer dabei)
-                    if (options.includes('unregelmaessig1')) { pool.push('5/4'); pool.push('7/4'); }
-                    if (options.includes('unregelmaessig2')) { pool.push('7/8'); pool.push('9/8'); }
+                    // Pool je nach höchstem Sub-Skill (kein Cascade — Fokus auf neue Taktarten)
+                    let pool;
+                    if (options.includes('unregelmaessig2')) {
+                        pool = ['5/4', '7/4', '7/8', '9/8']; // Nur ungerade Takte
+                    } else if (options.includes('unregelmaessig1')) {
+                        pool = ['4/4', '5/4', '7/4']; // Ohne 2/4, 3/4
+                    } else {
+                        pool = ['2/4', '3/4', '4/4']; // Regelmäßige
+                    }
                     app.settings._taktartenPool = pool;
                     app.settings.timeSignature = pool[Math.floor(Math.random() * pool.length)];
                     // Einfache Notenwerte: Basis + Achtel (Fokus auf Takterkennung)
