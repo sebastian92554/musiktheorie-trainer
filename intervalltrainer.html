@@ -3460,29 +3460,20 @@
                         });
                     }
                 }
-                // ---- INT2/INT3: Bothclefs — Violin/Bass-Vergleich ----
+                // ---- INT2/INT3: Bothclefs ----
                 else if (key === 'int2_bothclefs' || key === 'int3_bothclefs') {
-                    const el = document.getElementById('lkVisualBothClefs');
-                    if (el) {
-                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:12px">' +
-                            `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff('rein',3,80,95)}</div><div style="font-size:0.65rem;color:#9a3412;font-weight:600">Violinschlüssel</div></div>` +
-                            `<div style="text-align:center"><div style="background:white;border-radius:6px;padding:4px">${this.renderLernkarteStaff('rein',3,80,95)}</div><div style="font-size:0.65rem;color:#9a3412;font-weight:600">Bassschlüssel</div></div>` +
-                        '</div>';
-                    }
+                    // Kein Visualisierungsblock — Schlüsselwissen gehört in den Notentrainer
                 }
                 // ---- INT3: Basis — HS-Zählung mit Pfeilen ----
                 else if (key === 'int3_basis') {
                     const el = document.getElementById('lkVisualInt3Basis');
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
-                            highlightKeys: [{key:'C',color:'#bbf7d0',label:''},{key:'E',color:'#fbbf24',label:''}],
-                            arrows: [
-                                {from:'C',to:'Cis',label:'1',color:'#dc2626'},
-                                {from:'Cis',to:'D',label:'2',color:'#dc2626'},
-                                {from:'D',to:'Dis',label:'3',color:'#dc2626'},
-                                {from:'Dis',to:'E',label:'4',color:'#dc2626'}
-                            ],
-                            title: 'C → E = 4 Halbtonschritte (Starttaste zählt NICHT mit!)'
+                            highlightKeys: [{key:'C',color:'#fed7aa'},{key:'E',color:'#fed7aa'}],
+                            keyStepArrows: [{
+                                steps: ['C','Cis','D','Dis','E'],
+                                color: '#dc2626'
+                            }]
                         });
                     }
                 }
@@ -3504,16 +3495,7 @@
                         '</div>';
                     }
                 }
-                // ---- INT5: Basis — Übersicht rein vs. groß/klein ----
-                else if (key === 'int5_basis') {
-                    const el = document.getElementById('lkVisualInt5Basis');
-                    if (el) {
-                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:16px;font-size:0.8rem">' +
-                            '<div style="text-align:center;background:#dbeafe;padding:8px 12px;border-radius:6px"><strong>Rein</strong><br>Prime · Quarte<br>Quinte · Oktave</div>' +
-                            '<div style="text-align:center;background:#fef3c7;padding:8px 12px;border-radius:6px"><strong>Groß / Klein</strong><br>Sekunde · Terz<br>Sexte · Septime</div>' +
-                        '</div>';
-                    }
-                }
+                // ---- INT5: Basis — kein Visualisierungsblock nötig ----
                 // ---- INT5: Augdim — Kontrastpaar ----
                 else if (key === 'int5_augdim') {
                     const el = document.getElementById('lkVisualInt5Augdim');
@@ -3587,15 +3569,15 @@
                 },
                 'int2_bothclefs': {
                     title: 'Beide Schlüssel',
-                    body: `<p>Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> erscheinen.</p>
-                        <div class="lk-visual" id="lkVisualBothClefs"></div>
-                        <div class="lk-rule"><strong>Wichtig:</strong> Im Bassschlüssel liegen die Noten auf anderen Linien als im Violinschlüssel. Achte auf den Schlüssel am Anfang der Notenzeile!</div>
+                    body: `<p>Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> erscheinen. Die Tonnamen bleiben gleich — nur ihre Position im Notensystem ändert sich.</p>
+                        <div class="lk-rule"><strong>Wichtig:</strong> Achte auf den Schlüssel am Anfang der Notenzeile! Im Bassschlüssel liegen die Noten auf anderen Linien als im Violinschlüssel.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die Töne auf der Tastatur — egal in welchem Schlüssel.</div>`
                 },
                 // ---- INT3: Profi (Halbtonschritte) ----
                 'int3_basis': {
                     title: 'Halbtonschritte zählen',
                     body: `<p>Ein <strong>Halbtonschritt</strong> ist der kleinste Abstand auf der Tastatur — von einer Taste zur direkt benachbarten (weiß oder schwarz).</p>
+                        <div class="lk-tip"><strong>Beispiel C → E:</strong> C → Cis (1) → D (2) → Dis (3) → E (4) = <strong>4 Halbtonschritte</strong></div>
                         <div class="lk-visual" id="lkVisualInt3Basis"></div>
                         <div class="lk-rule"><strong>Wichtig:</strong> Die Starttaste zählt <strong>nicht</strong> mit! Du zählst nur die Schritte, nicht die Tasten. Das ist anders als beim Intervall-Abzählen, wo die erste Note als 1 zählt.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Nutze die Klaviatur unter dem Notensystem als Zählhilfe.</div>
@@ -3677,11 +3659,10 @@
                 'int5_basis': {
                     title: 'Grundqualitäten bestimmen',
                     body: `<p>Hier bestimmst du Intervalle vollständig: Du siehst ein Intervall auf dem Notenblatt und gibst die <strong>Feinbestimmung</strong> ein — also Qualität und Intervallname.</p>
-                        <div class="lk-visual" id="lkVisualInt5Basis"></div>
                         <div class="lk-rule"><strong>Strategie:</strong> 1. Stufen abzählen (Grobbestimmung) → 2. Halbtonschritte zählen → 3. Qualität ableiten. Die Kompetenzen aus den vorherigen Knoten kommen hier zusammen.</div>
                         <div class="lk-rule"><strong>Rein:</strong> Prime, Quarte, Quinte, Oktave. <strong>Groß/Klein:</strong> Sekunde, Terz, Sexte, Septime.</div>
-                        <div class="lk-tip"><strong>Eingabeformat:</strong> „große Terz", „g3", „reine Quinte", „r5", „kleine Sexte", „k6".</div>
-                        <div class="lk-tip"><strong>🔊 Hörbeispiel:</strong> Mit dem Lautsprecher-Symbol kannst du dir das Intervall vorspielen lassen.</div>
+                        <div class="lk-tip"><strong>Eingabe:</strong> Auch Kurzschreibweisen gehen, z.B. „g3" statt „große Terz" oder „r5" statt „reine Quinte".</div>
+                        <div class="lk-tip"><strong>Hörbeispiel:</strong> Über das 🔊-Symbol kannst du das Intervall hören. Mit <em>melodisch</em> und <em>harmonisch</em> wechselst du zwischen nacheinander und gleichzeitig.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den vollständigen Intervallnamen mit Qualität ein.</div>`
                 },
                 'int5_augdim': {
@@ -3916,6 +3897,7 @@
                 const {
                     numOctaves = 1,
                     highlightKeys = [], arrows = [], topArrows = [], onKeyArrows = [],
+                    keyStepArrows = [],
                     showBlackLabels = false, showHalftoneArrows = false, title = ''
                 } = options;
 
@@ -3951,7 +3933,7 @@
                     keyPositions[wk.id] = pad + i * ww + ww / 2;
                     if (blackMap[wk.name] && i < numWhite - 1) {
                         const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
-                        keyPositions[blackMap[wk.name] + suffix] = pad + i * ww + ww - bw / 2 + 1;
+                        keyPositions[blackMap[wk.name] + suffix] = pad + i * ww + ww;
                     }
                 });
 
@@ -4028,6 +4010,45 @@
                         // Farbiges Label auf der Nachbar-Taste, auf Höhe des Pfeilstarts
                         if (a.label && labelX !== null) {
                             svg += `<text x="${labelX}" y="${startY + 3}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${a.label}</text>`;
+                        }
+                    });
+                }
+
+                // Diagonale Schrittfolge-Pfeile auf der Tastatur (keyStepArrows)
+                // keyStepArrows: [{steps: ['C','Cis','D','Dis','E'], color, labelColor}]
+                if (keyStepArrows.length > 0) {
+                    const blackKeys = new Set();
+                    whiteKeys.forEach(wk => {
+                        if (blackMap[wk.name]) {
+                            const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                            blackKeys.add(blackMap[wk.name] + suffix);
+                        }
+                    });
+                    keyStepArrows.forEach(chain => {
+                        const steps = chain.steps;
+                        const color = chain.color || '#dc2626';
+                        for (let i = 0; i < steps.length - 1; i++) {
+                            const fromId = steps[i], toId = steps[i + 1];
+                            const x1 = keyPositions[fromId], x2 = keyPositions[toId];
+                            if (x1 === undefined || x2 === undefined) continue;
+                            const fromIsBlack = blackKeys.has(fromId);
+                            const toIsBlack = blackKeys.has(toId);
+                            // Y-Positionen: schwarze Tasten Mitte, weiße unten
+                            const y1 = fromIsBlack ? ky + pad + bh * 0.5 : ky + pad + wh * 0.55;
+                            const y2 = toIsBlack ? ky + pad + bh * 0.5 : ky + pad + wh * 0.55;
+                            // Pfeil-Linie
+                            const dx = x2 - x1, dy = y2 - y1;
+                            const len = Math.sqrt(dx*dx + dy*dy);
+                            const ux = dx/len, uy = dy/len;
+                            const tipLen = 5, tipW = 3;
+                            const px = -uy * tipW, py = ux * tipW;
+                            svg += `<line x1="${x1}" y1="${y1}" x2="${x2 - ux*tipLen}" y2="${y2 - uy*tipLen}" stroke="${color}" stroke-width="1.5"/>`;
+                            svg += `<polygon points="${x2},${y2} ${x2-ux*tipLen+px},${y2-uy*tipLen+py} ${x2-ux*tipLen-px},${y2-uy*tipLen-py}" fill="${color}"/>`;
+                            // Schrittnummer neben dem Pfeil
+                            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+                            const lblColor = chain.labelColor || color;
+                            const offsetX = (y2 > y1) ? -7 : -6; // Alle links vom Pfeil
+                            svg += `<text x="${mx + offsetX}" y="${my + 3}" text-anchor="middle" font-size="9" fill="${lblColor}" font-weight="700">${i + 1}</text>`;
                         }
                     });
                 }
