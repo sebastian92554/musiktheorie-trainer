@@ -1444,8 +1444,10 @@
                         <option value="3/4">3/4 (Dreivierteltakt)</option>
                         <option value="2/4">2/4 (Zweivierteltakt)</option>
                         <option value="5/4">5/4 (Fünfvierteltakt)</option>
+                        <option value="7/4">7/4 (Siebenvierteltakt)</option>
                         <option value="6/8">6/8 (Sechsachteltakt)</option>
                         <option value="7/8">7/8 (Siebenachteltakt)</option>
+                        <option value="9/8">9/8 (Neunachteltakt)</option>
                     </select>
                 </div>
 
@@ -1785,10 +1787,9 @@
                     { id: 'hilfen_aus', label: 'Ohne Legende' }
                 ],
                 'rhy2': [
-                    { id: 'grundlagen', label: 'Grundlagen (4/4 + 3/4)' },
-                    { id: 'einfach', label: 'Einfache Taktarten (+ 2/4)' },
-                    { id: 'ungerade', label: 'Ungerade Taktarten (+ 5/4)' },
-                    { id: 'zusammengesetzt', label: 'Zusammengesetzte Taktarten (+ 7/8)' }
+                    { id: 'regelmaessig', label: 'Regelmäßige Taktarten (2/4, 3/4, 4/4)' },
+                    { id: 'unregelmaessig1', label: 'Unregelmäßig 1 (+ 5/4, 7/4)' },
+                    { id: 'unregelmaessig2', label: 'Unregelmäßig 2 (+ 7/8, 9/8)' }
                 ],
                 'rhy3': [
                     { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
@@ -2284,10 +2285,9 @@
                 // TAKTARTEN-KNOTEN: Cascade-Pool basierend auf Sub-Skills aufbauen
                 if (level === 'taktarten') {
                     // Cascade: Jeder Sub-Skill fügt Taktarten zum Pool hinzu
-                    const pool = ['4/4', '3/4']; // Grundlagen (immer dabei)
-                    if (options.includes('einfach')) pool.push('2/4');
-                    if (options.includes('ungerade')) pool.push('5/4');
-                    if (options.includes('zusammengesetzt')) pool.push('7/8');
+                    const pool = ['2/4', '3/4', '4/4']; // Regelmäßige (immer dabei)
+                    if (options.includes('unregelmaessig1')) { pool.push('5/4'); pool.push('7/4'); }
+                    if (options.includes('unregelmaessig2')) { pool.push('7/8'); pool.push('9/8'); }
                     app.settings._taktartenPool = pool;
                     app.settings.timeSignature = pool[Math.floor(Math.random() * pool.length)];
                     // Einfache Notenwerte: Basis + Achtel (Fokus auf Takterkennung)
@@ -2296,7 +2296,7 @@
                     app.settings.includeDotted = false;
                     app.settings.includeRests = false;
                     app.settings.includeTriplets = false;
-                    // Hilfen aus (Fokus auf Takt)
+                    // Alle Hilfen aus (Raster + Zählzeiten verraten die Taktart!)
                     app.settings.showLegend = false;
                     app.settings.showGrid = false;
                     app.settings.showCountingTimes = false;
@@ -2309,7 +2309,7 @@
                     document.getElementById('showLegend').checked = false;
                     document.getElementById('showGrid').checked = false;
                     document.getElementById('showCountingTimes').checked = false;
-                    console.log('[QuickStart] Taktarten-Modus: Taktart =', app.settings.timeSignature);
+                    console.log('[QuickStart] Taktarten-Modus: Pool =', pool);
                 }
 
                 // AUDIO: Nur in rhy3/rhy4 aktiv (nicht rhy1/rhy2)
@@ -2456,7 +2456,7 @@
 
                             // TAKTART-WECHSEL: Ab Frage 7 gemischte Taktarten (nicht im Taktarten-Knoten)
                             if (this.questionsAnswered >= 6 && this.currentLevel !== 'taktarten') {
-                                const tsPool = ['4/4', '3/4', '2/4', '5/4', '7/8'];
+                                const tsPool = ['2/4', '3/4', '4/4', '5/4', '7/4', '7/8', '9/8'];
                                 app.settings.timeSignature = tsPool[Math.floor(Math.random() * tsPool.length)];
                                 // Hinweis bei erster Taktart-Wechsel-Frage
                                 if (this.questionsAnswered === 6) {
@@ -3030,16 +3030,20 @@
                                 <p>Triolen = „du-da-di" für drei gleiche Noten auf einem Schlag.</p>`
                         },
                         'taktarten': {
-                            'grundlagen': `<p><strong>Taktarten erkennen: Grundlagen</strong></p>
+                            'regelmaessig': `<p><strong>Regelmäßige Taktarten (2/4, 3/4, 4/4)</strong></p>
                                 <p>Du siehst einen Rhythmus und bestimmst die Taktart. Zähle die Notenwerte zusammen — die Summe verrät die Taktart!</p>
-                                <p><strong>4/4-Takt:</strong> 4 Viertelschläge pro Takt (Summe = 4).</p>
-                                <p><strong>3/4-Takt:</strong> 3 Viertelschläge pro Takt (Summe = 3). Typisch für Walzer.</p>`,
-                            'einfach': `<p><strong>+ 2/4-Takt</strong></p>
-                                <p><strong>2/4:</strong> 2 Viertelschläge pro Takt (Summe = 2). Kurze, marschähnliche Takte.</p>`,
-                            'ungerade': `<p><strong>+ 5/4-Takt</strong></p>
-                                <p><strong>5/4:</strong> 5 Viertelschläge pro Takt (Summe = 5). Ungerader Takt, oft in 3+2 oder 2+3 gruppiert.</p>`,
-                            'zusammengesetzt': `<p><strong>+ 7/8-Takt</strong></p>
-                                <p><strong>7/8:</strong> 7 Achtelschläge pro Takt (Summe = 3,5 Viertel). Asymmetrischer Takt, oft 4+3 oder 3+4 gruppiert.</p>`
+                                <p><strong>Regelmäßig</strong> bedeutet: Der Zähler ist durch 2 oder 3 teilbar.</p>
+                                <p><strong>2/4-Takt:</strong> 2 Viertelschläge pro Takt (Summe = 2). Kurze, marschähnliche Takte.</p>
+                                <p><strong>3/4-Takt:</strong> 3 Viertelschläge pro Takt (Summe = 3). Typisch für Walzer.</p>
+                                <p><strong>4/4-Takt:</strong> 4 Viertelschläge pro Takt (Summe = 4). Der häufigste Takt.</p>`,
+                            'unregelmaessig1': `<p><strong>+ Unregelmäßige Taktarten: 5/4, 7/4</strong></p>
+                                <p><strong>Unregelmäßig</strong> bedeutet: Der Zähler ist weder durch 2 noch durch 3 teilbar.</p>
+                                <p><strong>5/4-Takt:</strong> 5 Viertelschläge pro Takt (Summe = 5). Oft in 3+2 gruppiert.</p>
+                                <p><strong>7/4-Takt:</strong> 7 Viertelschläge pro Takt (Summe = 7). Oft in 4+3 gruppiert.</p>`,
+                            'unregelmaessig2': `<p><strong>+ Unregelmäßige Taktarten: 7/8, 9/8</strong></p>
+                                <p>Hier wird in <strong>Achteln</strong> statt Vierteln gezählt — der Nenner ist 8.</p>
+                                <p><strong>7/8-Takt:</strong> 7 Achtelschläge pro Takt (Summe = 3,5 Viertel). Oft in 4+3 gruppiert.</p>
+                                <p><strong>9/8-Takt:</strong> 9 Achtelschläge pro Takt (Summe = 4,5 Viertel). Oft in 3+3+3 gruppiert.</p>`
                         }
                     };
 
@@ -3716,8 +3720,10 @@ Gerät:
                     case '2/4': return [];     // Keine Teilung (Halbe = ganzer Takt)
                     case '3/4': return [];     // Keine Teilung (ungerade)
                     case '5/4': return [3.0];  // 3+2 Gruppierung
+                    case '7/4': return [4.0];  // 4+3 Gruppierung
                     case '6/8': return [1.5];  // Nach Zählzeit 3 (zwei 3er-Gruppen)
                     case '7/8': return [2.0];  // 4+3 Gruppierung (2.0 Viertelwerte = 4 Achtel)
+                    case '9/8': return [1.5, 3.0]; // 3+3+3 Gruppierung (je 1.5 Viertelwerte)
                     default: return [];
                 }
             },
@@ -4283,20 +4289,10 @@ Gerät:
                 this.hasBeenChecked = false;
                 this.freeRetry = false;
 
-                // Distraktor-Optionen generieren
-                const allTS = ['4/4', '2/4', '3/4', '5/4', '7/8'];
-                const distractors = allTS.filter(ts => ts !== correctTS);
-                // 3 zufällige Distraktoren
-                for (let i = distractors.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
-                }
-                const options = [correctTS, ...distractors.slice(0, 3)];
-                // Optionen mischen
-                for (let i = options.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [options[i], options[j]] = [options[j], options[i]];
-                }
+                // Buttons: Alle Taktarten aus dem Pool, in fester Reihenfolge
+                const fixedOrder = ['2/4', '3/4', '4/4', '5/4', '7/4', '7/8', '9/8'];
+                const buttonPool = this.settings._taktartenPool || ['2/4', '3/4', '4/4'];
+                const options = fixedOrder.filter(ts => buttonPool.includes(ts));
                 this.currentTask.tsOptions = options;
 
                 // Rendern
