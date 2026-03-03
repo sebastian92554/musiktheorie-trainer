@@ -2614,10 +2614,16 @@
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
-                            highlightKeys: [{key:'F',color:'#c7d2fe'}],
+                            highlightKeys: [
+                                {key:'F',color:'#c7d2fe'},
+                                {key:'Fis',color:'#bbf7d0'}
+                            ],
                             onKeyArrows: [
-                                {from:'F',to:'Fis',labelKey:'G',label:'♯ → Fis',color:'#16a34a'},
-                                {from:'F',to:'E',labelKey:'E',label:'♭ → Fes',color:'#dc2626'}
+                                {from:'F',to:'Fis',label:'♯',color:'#16a34a'},
+                                {from:'F',to:'E',label:'♭',color:'#dc2626'}
+                            ],
+                            _customLabels: [
+                                {key:'E',text:'Fes',color:'#dc2626',above:true}
                             ]
                         });
                     }
@@ -2669,10 +2675,16 @@
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
-                            highlightKeys: [{key:'A',color:'#c7d2fe'}],
+                            highlightKeys: [
+                                {key:'A',color:'#c7d2fe'},
+                                {key:'Ais',color:'#bbf7d0'}
+                            ],
                             onKeyArrows: [
-                                {from:'A',to:'Ais',labelKey:'H',label:'♯ → Ais',color:'#16a34a'},
-                                {from:'A',to:'Gis',labelKey:'G',label:'♭ → As',color:'#dc2626'}
+                                {from:'A',to:'Ais',label:'♯',color:'#16a34a'},
+                                {from:'A',to:'Gis',label:'♭',color:'#dc2626'}
+                            ],
+                            _customLabels: [
+                                {key:'Gis',text:'As',color:'#dc2626',above:true}
                             ]
                         });
                     }
@@ -2753,7 +2765,7 @@
                 },
                 'vorzeichen': {
                     title: 'Mit Vorzeichen',
-                    body: `<p>Ein <strong>♯ (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst auf der Tastatur eine Taste nach <strong>rechts</strong>. Ein <strong>♭ (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
+                    body: `<p>Ein <strong>♯ (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst auf der Tastatur eine Taste nach <strong>rechts</strong>. Ein <strong>♭ (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>. <strong>Achtung:</strong> Das Ziel ist nicht immer eine schwarze Taste! Zum Beispiel ist F – 1 Halbton = <strong>Fes</strong>, und das ist die weiße Taste E.</p>
                         <div class="lk-visual" id="lkVisualVorzeichen"></div>
                         <div class="lk-rule"><strong>Benennung mit ♯:</strong> Stammton + „is" → Fis, Cis, Gis, Dis, Ais.<br><strong>Benennung mit ♭:</strong> Stammton + „es" → Des, Ges.<br><strong>Drei Ausnahmen:</strong> E + ♭ = <strong>Es</strong> (nicht Ees), A + ♭ = <strong>As</strong> (nicht Aes), H + ♭ = <strong>B</strong> (nicht Hes).</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Lies zuerst den Stammton, dann schau, ob ein Vorzeichen davor steht. Das Vorzeichen steht immer direkt vor der Note auf derselben Linie oder im selben Zwischenraum.</div>
@@ -2788,7 +2800,7 @@
                 },
                 'noten2_vorzeichen': {
                     title: 'Vorzeichen im Bassschlüssel',
-                    body: `<p>Auch im Bassschlüssel kommen Vorzeichen (♯ und ♭) vor. Die Regeln sind identisch zum Violinschlüssel.</p>
+                    body: `<p>Auch im Bassschlüssel kommen Vorzeichen (♯ und ♭) vor. Die Regeln sind identisch zum Violinschlüssel. Denke daran: Das Ziel kann auch eine schwarze Taste sein — hier ist As (= A♭) dieselbe Taste wie Gis.</p>
                         <div class="lk-visual" id="lkVisualNoten2Vorzeichen"></div>
                         <div class="lk-rule"><strong>Zur Erinnerung:</strong> ♯ → Stammton + „is" (Fis, Cis, …). ♭ → Stammton + „es" (Des, Ges, …).<br><strong>Ausnahmen:</strong> E + ♭ = <strong>Es</strong>, A + ♭ = <strong>As</strong>, H + ♭ = <strong>B</strong>.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Der Bassschlüssel ändert nur die Position der Noten auf dem System — die Vorzeichen-Logik bleibt gleich.</div>
@@ -3100,9 +3112,8 @@
                             const targetY = toIsBlack ? ky + pad + bh * 0.5 : ky + pad + wh * 0.5;
                             const dx = toX - fromX, dy = targetY - startY;
                             const dist = Math.sqrt(dx*dx + dy*dy);
-                            const shrink = 6; // Knapp vor dem Ziel stoppen
-                            endX = fromX + dx * (1 - shrink/dist);
-                            endY = startY + dy * (1 - shrink/dist);
+                            endX = toX;
+                            endY = targetY;
                         } else {
                             const goesRight = a.to && toX !== undefined && toX > fromX;
                             const angle = goesRight ? (-60 * Math.PI / 180) : (-120 * Math.PI / 180);
@@ -3117,8 +3128,30 @@
                         const px = -uy * tipW, py = ux * tipW;
                         svg += `<line x1="${fromX}" y1="${startY}" x2="${endX - ux*tipLen}" y2="${endY - uy*tipLen}" stroke="${color}" stroke-width="2"/>`;
                         svg += `<polygon points="${endX},${endY} ${endX-ux*tipLen+px},${endY-uy*tipLen+py} ${endX-ux*tipLen-px},${endY-uy*tipLen-py}" fill="${color}"/>`;
-                        if (a.label && labelX !== null) {
-                            svg += `<text x="${labelX}" y="${startY + 3}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${a.label}</text>`;
+                        // Label neben dem Pfeil (Mitte des Pfeils, leicht versetzt)
+                        if (a.label) {
+                            const mx = (fromX + endX) / 2;
+                            const my = (startY + endY) / 2;
+                            const goesRight = endX > fromX;
+                            const offsetX = goesRight ? 8 : -8;
+                            svg += `<text x="${mx + offsetX}" y="${my}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${a.label}</text>`;
+                        }
+                    });
+                }
+
+                // Custom Labels über/unter Tasten (_customLabels)
+                const _customLabels = options._customLabels || [];
+                if (_customLabels.length > 0) {
+                    _customLabels.forEach(cl => {
+                        const cx = keyPositions[cl.key];
+                        if (cx === undefined) return;
+                        const color = cl.color || '#4f46e5';
+                        if (cl.above) {
+                            const ty = ky + pad - 4;
+                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="10" fill="${color}" font-weight="700">${cl.text}</text>`;
+                        } else {
+                            const ty = ky + pad + wh + 14;
+                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="10" fill="${color}" font-weight="700">${cl.text}</text>`;
                         }
                     });
                 }
