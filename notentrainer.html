@@ -2698,11 +2698,12 @@
                     const el = document.getElementById('lkVisualNoten2Hilfslinien');
                     if (el) {
                         el.innerHTML = this.renderLernkarteNotensystem('bass', [
-                            {name:'E',octave:'gross',label:'E'},
-                            {name:'D',octave:'gross',label:'D'},
                             {name:'C',octave:'gross',label:'C'},
-                            {name:'H',octave:'klein',label:'H'},
-                            {name:'C',octave:'eingestrichen',label:'c\''}
+                            {name:'D',octave:'gross',label:'D'},
+                            {name:'E',octave:'gross',label:'E'},
+                            {name:'C',octave:'eingestrichen',label:'c\''},
+                            {name:'D',octave:'eingestrichen',label:'d\''},
+                            {name:'E',octave:'eingestrichen',label:'e\''}
                         ]);
                     }
                 }
@@ -2713,7 +2714,7 @@
                         el.innerHTML = this.renderLernkarteNotensystem('bass', [
                             {name:'C',octave:'gross',label:'C (groß)'},
                             {name:'C',octave:'klein',label:'c (klein)'},
-                            {name:'C',octave:'eingestrichen',label:'c\' (1-gestr.)'}
+                            {name:'C',octave:'eingestrichen',label:'c\''}
                         ]);
                     }
                 }
@@ -2829,9 +2830,9 @@
                     title: 'Hilfslinien im Bassschlüssel',
                     body: `<p>Auch im Bassschlüssel erweitern <strong>Hilfslinien</strong> den Tonumfang nach oben und unten.</p>
                         <div class="lk-visual" id="lkVisualNoten2Hilfslinien"></div>
-                        <div class="lk-rule"><strong>Wichtig:</strong> Das c' auf der 1. Hilfslinie <strong>über</strong> dem Bassschlüssel ist dasselbe c' wie auf der 1. Hilfslinie <strong>unter</strong> dem Violinschlüssel — hier treffen sich die beiden Systeme!</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Die Hilfslinien-Noten über dem Bassschlüssel überschneiden sich mit dem Violinschlüssel-Bereich.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne Töne auf Hilfslinien im Bassschlüssel.</div>`
+                        <div class="lk-rule"><strong>Orientierung:</strong> Unten: Vom G (1. Linie) abwärts → E, D, C. Oben: Vom a (5. Linie) aufwärts → c', d', e'. Das c' auf der 1. Hilfslinie <strong>über</strong> dem Bassschlüssel ist dasselbe c' wie unter dem Violinschlüssel.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Die Stammtonreihe musst du in beide Richtungen kennen: aufwärts (C–D–E–F–G–A–H) und abwärts (C–H–A–G–F–E–D). Unter dem System zählst du abwärts, über dem System aufwärts — immer von der nächsten bekannten Note aus.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auch Töne auf Hilfslinien im Bassschlüssel.</div>`
                 },
                 'noten2_lagen': {
                     title: 'Lagen im Bassschlüssel',
@@ -3183,7 +3184,7 @@
                             if (a.label === '♯') {
                                 svg += this._svgSharp(mx + offsetX, my, color, 11);
                             } else if (a.label === '♭') {
-                                svg += this._svgFlat(mx + offsetX + 5, my + 8 - 1, color, 11);
+                                svg += this._svgFlat(mx + offsetX + 4, my + 5, color, 11);
                             } else {
                                 svg += `<text x="${mx + offsetX}" y="${my}" text-anchor="middle" font-size="12" fill="${color}" font-weight="700">${a.label}</text>`;
                             }
