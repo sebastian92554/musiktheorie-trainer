@@ -2641,12 +2641,12 @@
                     const el = document.getElementById('lkVisualHilfslinien');
                     if (el) {
                         el.innerHTML = this.renderLernkarteNotensystem('treble', [
-                            {name:'H',octave:'klein',label:'H'},
-                            {name:'C',octave:'eingestrichen',label:'C'},
-                            {name:'D',octave:'eingestrichen',label:'D'},
-                            {name:'F',octave:'zweigestrichen',label:'F\'\''},
-                            {name:'G',octave:'zweigestrichen',label:'G\'\''},
-                            {name:'A',octave:'zweigestrichen',label:'A\'\''}
+                            {name:'A',octave:'klein',label:'a'},
+                            {name:'H',octave:'klein',label:'h'},
+                            {name:'C',octave:'eingestrichen',label:'c\''},
+                            {name:'A',octave:'zweigestrichen',label:'a\'\''},
+                            {name:'H',octave:'zweigestrichen',label:'h\'\''},
+                            {name:'C',octave:'dreigestrichen',label:'c\'\'\''}
                         ]);
                     }
                 }
@@ -2655,9 +2655,9 @@
                     const el = document.getElementById('lkVisualLagen');
                     if (el) {
                         el.innerHTML = this.renderLernkarteNotensystem('treble', [
-                            {name:'C',octave:'klein',label:'c (klein)'},
-                            {name:'C',octave:'eingestrichen',label:'c\' (1-gestr.)'},
-                            {name:'C',octave:'zweigestrichen',label:'c\'\' (2-gestr.)'}
+                            {name:'C',octave:'eingestrichen',label:"c'"},
+                            {name:'C',octave:'zweigestrichen',label:"c''"},
+                            {name:'C',octave:'dreigestrichen',label:"c'''"}
                         ]);
                     }
                 }
@@ -2794,16 +2794,16 @@
                     title: 'Mit Hilfslinien',
                     body: `<p><strong>Hilfslinien</strong> erweitern das Notensystem nach oben und unten. Jede Hilfslinie funktioniert wie eine reguläre Linie — abwechselnd Linie und Zwischenraum.</p>
                         <div class="lk-visual" id="lkVisualHilfslinien"></div>
-                        <div class="lk-rule"><strong>Orientierung:</strong> Unten: Vom E (1. Linie) abwärts → D, C, H. Oben: Vom F (5. Linie) aufwärts → G, A, H.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Zähle von der nächsten bekannten Linie aus weiter — nicht vom Anfang des Systems!</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne auch Töne auf Hilfslinien.</div>`
+                        <div class="lk-rule"><strong>Orientierung:</strong> Unten: Vom c' (1. Hilfslinie) abwärts → h, a. Oben: Vom a'' (1. Hilfslinie) aufwärts → h'', c'''.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Die Stammtonreihe musst du in beide Richtungen kennen: aufwärts (C–D–E–F–G–A–H) und abwärts (C–H–A–G–F–E–D). Unter dem System zählst du abwärts, über dem System aufwärts — immer von der nächsten bekannten Note aus.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auch Töne auf Hilfslinien.</div>`
                 },
                 'lagen': {
                     title: 'Lagen bestimmen',
                     body: `<p>Gleiche Notennamen können in verschiedenen <strong>Oktavlagen</strong> vorkommen. Die Lage gibt an, wie hoch oder tief der Ton klingt.</p>
                         <div class="lk-visual" id="lkVisualLagen"></div>
-                        <div class="lk-rule"><strong>Lagen im Violinschlüssel:</strong> Das <strong>eingestrichene c (c')</strong> liegt auf der 1. Hilfslinie unter dem System. Darüber: zweigestrichen (c''). Darunter: klein (c).</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Orientiere dich am c' — es ist dein Anker. Alles darüber ist mindestens eingestrichen, alles darunter klein oder tiefer.</div>
+                        <div class="lk-rule"><strong>Lagen im Violinschlüssel:</strong> Das <strong>eingestrichene c (c')</strong> liegt auf der 1. Hilfslinie unter dem System. Alle Töne von dort bis zum h' sind <strong>eingestrichen</strong>. Ab c'' beginnt die <strong>zweigestrichene</strong> Oktave, ab c''' die <strong>dreigestrichene</strong>. Unterhalb von c' liegt die <strong>kleine</strong> Oktave.</div>
+                        <div class="lk-tip"><strong>Der Lagenwechsel</strong> passiert immer beim C: Sobald du von H aufwärts zum nächsten C kommst, wechselt die Oktavlage. Abwärts gilt dasselbe — unter c' beginnt die kleine Oktave (h, a, g, …). Merke: c' ist dein Anker in der Mitte.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme den Tonnamen UND wähle die richtige Oktavlage im Dropdown.</div>`
                 },
                 // ---- NOTEN2: Aufsteiger (Bassschlüssel) ----
@@ -2929,7 +2929,7 @@
                     svg += `<ellipse cx="${c.cx}" cy="${c.y}" rx="${rx}" ry="${ry}" fill="#1f2937" transform="rotate(-20 ${c.cx} ${c.y})"/>`;
 
                     // Label
-                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 4}" text-anchor="middle" font-size="8.5" fill="#3730a3" font-weight="600">${c.label}</text>`;
+                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 4}" text-anchor="middle" font-size="12.5" fill="#3730a3" font-weight="600">${c.label}</text>`;
                 });
 
                 svg += '</svg>';
