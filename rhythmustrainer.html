@@ -4496,15 +4496,410 @@ Gerät:
                 feedback.className = 'ts-feedback ' + (isCorrect ? 'ts-feedback-correct' : 'ts-feedback-wrong');
             },
 
-            _generateRetryCount: 0,
+            // ========================================================
+            // REFACTORED TASK GENERATION (Zwei-Phasen-Architektur)
+            // Regel-Hierarchie:
+            //   1. Hard:       Takt muss voll sein, gültige Notenwerte
+            //   2. Notation:   splitNotesAtDivisions()-Ties IMMER erlaubt
+            //   3. Pädagogisch: Synkopen-Markierung erst ab Q6, ZZ1-Regeln
+            //   4. Kompetenz:  Fokus-Notentyp mind. 1× im Takt
+            //   5. Soft:       Keine 5+ konsek. 16tel-Pausen, max 50% Pausen
+            // ========================================================
+
+            // Phase 0: Parameter bestimmen
+            _determineTaskParams() {
+                const qAnswered = quickStart.isActive ? quickStart.questionsAnswered : 999;
+                const opts = quickStart.isActive ? (quickStart.currentOptions || []) : [];
+                const currentSub = opts[opts.length - 1] || '';
+                const isQuiz = quickStart.isActive;
+                const taskType = this.settings.taskType;
+                const needsMarker = (taskType === 'counting-time' || taskType === 'rhythm-syllable');
+
+                return {
+                    maxValue: this.getMaxValue(),
+                    availableNotes: this.getAvailableNotes(),
+                    qAnswered,
+                    currentSub,
+                    isQuiz,
+                    taskType,
+                    needsMarker,
+                    isBasis: currentSub === 'basis',
+                    // Kompetenz-Fokus
+                    focusTypes: this.subSkillNoteTypes[currentSub] || [],
+                    // Basis-Level prüfen (keine erweiterten Optionen)
+                    isBasicLevel: !this.settings.includeEighths &&
+                                  !this.settings.includeSixteenths &&
+                                  !this.settings.includeDotted &&
+                                  !this.settings.includeRests &&
+                                  !this.settings.includeTriplets
+                };
+            },
+
+            // Phase 1a: Einen einzelnen Takt-Versuch generieren (KEIN rekursiver Aufruf)
+            _buildBar(params) {
+                const bar = {
+                    notes: [],
+                    currentValue: 0,
+                    maxValue: params.maxValue,
+                    tripletGroupCounter: 0
+                };
+
+                let lastNoteType = null;
+                const tolerance = 0.001;
+
+                // Noten füllen
+                while (bar.currentValue < bar.maxValue - tolerance) {
+                    const remainingValue = bar.maxValue - bar.currentValue;
+                    const fittingNotes = params.availableNotes.filter(noteType => {
+                        if (noteType.startsWith('triplet-group-')) {
+                            return this.getTripletGroupValue(noteType) <= remainingValue + tolerance;
+                        }
+                        return this.noteValues[noteType].value <= remainingValue + tolerance;
+                    });
+
+                    if (fittingNotes.length === 0) break;
+
+                    const noteType = this.weightedRandomChoice(fittingNotes, lastNoteType);
+                    lastNoteType = noteType;
+
+                    if (noteType.startsWith('triplet-group-')) {
+                        const tripletNoteType = this.getTripletNoteType(noteType);
+                        const tripletNoteValue = this.noteValues[tripletNoteType];
+                        const groupId = bar.tripletGroupCounter++;
+                        for (let i = 0; i < 3; i++) {
+                            bar.notes.push({
+                                type: tripletNoteType,
+                                value: tripletNoteValue.value,
+                                symbol: tripletNoteValue.symbol,
+                                name: tripletNoteValue.name,
+                                tripletGroupId: groupId,
+                                tripletPosition: i
+                            });
+                        }
+                        bar.currentValue += this.getTripletGroupValue(noteType);
+                    } else {
+                        const noteValue = this.noteValues[noteType];
+                        bar.notes.push({
+                            type: noteType,
+                            value: noteValue.value,
+                            symbol: noteValue.symbol,
+                            name: noteValue.name
+                        });
+                        bar.currentValue += noteValue.value;
+                    }
+                }
+
+                // Takt auffüllen wenn nicht voll (z.B. bei punktierten Noten ohne passende Achtel)
+                if (Math.abs(bar.currentValue - bar.maxValue) > tolerance && bar.notes.length > 0) {
+                    const lastNote = bar.notes.pop();
+                    bar.currentValue -= lastNote.value;
+                    const fillTypes = ['whole', 'half', 'dotted-half', 'dotted-quarter', 'quarter', 'dotted-eighth', 'eighth', 'sixteenth'];
+                    while (bar.currentValue < bar.maxValue - tolerance) {
+                        const remaining = bar.maxValue - bar.currentValue;
+                        let foundNote = false;
+                        for (const nt of fillTypes) {
+                            const info = this.noteValues[nt];
+                            if (info && info.value <= remaining + tolerance) {
+                                bar.notes.push({ type: nt, value: info.value, symbol: info.symbol, name: info.name });
+                                bar.currentValue += info.value;
+                                foundNote = true;
+                                break;
+                            }
+                        }
+                        if (!foundNote) break;
+                    }
+                }
+
+                // Hard-Check: Takt muss voll sein
+                if (Math.abs(bar.currentValue - bar.maxValue) > tolerance) return null;
+
+                return bar;
+            },
+
+            // Phase 1b: Verbesserte Pausen-Zusammenfassung
+            // - Fasst konsekutive Pausen < 1 Schlag zusammen
+            // - Verhindert 3+ konsekutive gleichartige kleine Pausen
+            _mergeSmallRests(bar) {
+                // Erst: Standard-Merge (bestehende Logik)
+                bar = this.mergeConsecutiveRests(bar);
+
+                // Dann: Prüfe auf excessive konsekutive kleine Pausen (16tel)
+                // Zähle konsekutive gleiche kleine Pausen
+                let consecutiveSmallRests = 0;
+                let lastRestType = null;
+                let hasExcessiveRests = false;
+
+                for (const note of bar.notes) {
+                    const isRest = this.noteValues[note.type]?.isRest || false;
+                    const isSmall = isRest && note.value <= 0.5; // Achtel oder kleiner
+
+                    if (isSmall && note.type === lastRestType) {
+                        consecutiveSmallRests++;
+                        if (consecutiveSmallRests >= 3) { hasExcessiveRests = true; break; }
+                    } else if (isSmall) {
+                        consecutiveSmallRests = 1;
+                        lastRestType = note.type;
+                    } else {
+                        consecutiveSmallRests = 0;
+                        lastRestType = null;
+                    }
+                }
+
+                bar._hasExcessiveRests = hasExcessiveRests;
+                return bar;
+            },
+
+            // Phase 1c: Zentrale Validierung aller Regeln
+            _validateBar(bar, params) {
+                const tolerance = 0.001;
+
+                // Hard: Takt voll?
+                if (Math.abs(bar.currentValue - bar.maxValue) > tolerance) {
+                    return { valid: false, reason: 'bar-not-full' };
+                }
+
+                // Hard: Mindestanzahl Noten (kn3/kn4)
+                if (params.needsMarker) {
+                    const minNotes = params.isBasicLevel ? 2 : 3;
+                    if (bar.originalNoteCount < minNotes) {
+                        return { valid: false, reason: 'too-few-notes' };
+                    }
+                }
+
+                // Kompetenz: Fokus-Notentyp muss vorkommen (Ebene 4)
+                if (params.needsMarker && params.isQuiz && params.focusTypes.length > 0) {
+                    const hasFocus = bar.notes.some(n => params.focusTypes.includes(n.type));
+                    if (!hasFocus) {
+                        return { valid: false, reason: 'missing-focus-note' };
+                    }
+                }
+
+                // Soft: Max 50% Pausen (Ebene 5)
+                const restPct = this.calculateRestPercentage(bar);
+                if (restPct > 0.5) {
+                    return { valid: false, reason: 'too-many-rests' };
+                }
+
+                // Soft: Keine excessiven konsekutiven Pausen (Ebene 5)
+                if (bar._hasExcessiveRests) {
+                    return { valid: false, reason: 'excessive-consecutive-rests' };
+                }
+
+                return { valid: true, reason: null };
+            },
+
+            // Phase 1: Takt generieren mit Retry-Loop (max 30 Versuche)
+            _generateBarWithRetries(params) {
+                for (let attempt = 0; attempt < 30; attempt++) {
+                    let bar = this._buildBar(params);
+                    if (!bar) continue;
+
+                    // Notation: splitNotesAtDivisions (Ebene 2 — Ties IMMER erlaubt)
+                    bar = this.splitNotesAtDivisions(bar);
+
+                    // Pausen zusammenfassen (Ebene 5)
+                    bar = this._mergeSmallRests(bar);
+
+                    // Validierung
+                    const result = this._validateBar(bar, params);
+                    if (result.valid) return bar;
+                }
+
+                // Fallback: Vordefinierte Patterns für eingeschränkte Notenräume
+                console.warn('[App] _generateBarWithRetries: 30 Versuche fehlgeschlagen, nutze Fallback');
+                return this._fallbackBar(params);
+            },
+
+            // Fallback-Generator für eingeschränkte Notenräume
+            _fallbackBar(params) {
+                const patterns = [];
+                const maxVal = params.maxValue;
+
+                if (maxVal === 3) {
+                    // 3/4-Takt
+                    patterns.push(
+                        ['quarter', 'quarter', 'quarter'],
+                        ['half', 'quarter'],
+                        ['quarter', 'half']
+                    );
+                    if (params.availableNotes.includes('eighth')) {
+                        patterns.push(
+                            ['quarter', 'eighth', 'eighth', 'quarter'],
+                            ['eighth', 'eighth', 'quarter', 'quarter']
+                        );
+                    }
+                } else if (maxVal === 4) {
+                    // 4/4-Takt
+                    patterns.push(
+                        ['quarter', 'quarter', 'quarter', 'quarter'],
+                        ['half', 'quarter', 'quarter'],
+                        ['quarter', 'quarter', 'half'],
+                        ['half', 'half'],
+                        ['whole']
+                    );
+                    if (params.availableNotes.includes('eighth')) {
+                        patterns.push(
+                            ['quarter', 'eighth', 'eighth', 'quarter', 'quarter'],
+                            ['eighth', 'eighth', 'quarter', 'half']
+                        );
+                    }
+                } else if (maxVal === 5) {
+                    // 5/4-Takt
+                    patterns.push(
+                        ['half', 'quarter', 'half'],
+                        ['quarter', 'quarter', 'quarter', 'quarter', 'quarter']
+                    );
+                } else if (maxVal === 3.5) {
+                    // 7/8-Takt
+                    patterns.push(
+                        ['quarter', 'quarter', 'quarter', 'eighth'],
+                        ['quarter', 'eighth', 'quarter', 'quarter']
+                    );
+                }
+
+                // Wähle zufälliges Pattern, das mit verfügbaren Noten kompatibel ist
+                const validPatterns = patterns.filter(p =>
+                    p.every(noteType => params.availableNotes.includes(noteType) || ['whole', 'half', 'quarter'].includes(noteType))
+                );
+
+                const chosenPattern = validPatterns.length > 0
+                    ? validPatterns[Math.floor(Math.random() * validPatterns.length)]
+                    : ['quarter', 'quarter', 'quarter']; // Absoluter Notfall
+
+                const bar = {
+                    notes: chosenPattern.map(type => ({
+                        type,
+                        value: this.noteValues[type].value,
+                        symbol: this.noteValues[type].symbol,
+                        name: this.noteValues[type].name
+                    })),
+                    currentValue: maxVal,
+                    maxValue: maxVal,
+                    tripletGroupCounter: 0
+                };
+
+                // splitNotesAtDivisions anwenden
+                const splitBar = this.splitNotesAtDivisions(bar);
+                return this._mergeSmallRests(splitBar);
+            },
+
+            // Phase 2: Markierte Note wählen (kn3/kn4)
+            // Pädagogische Regeln (Ebene 3) wirken hier, NICHT auf die Takt-Generierung
+            _selectMarkedNote(bar, params) {
+                const taskType = params.taskType;
+
+                if (taskType === 'counting-time') {
+                    return this._selectMarkedNote_countingTime(bar, params);
+                } else if (taskType === 'rhythm-syllable') {
+                    return this._selectMarkedNote_rhythmSyllable(bar, params);
+                }
+                return null; // Kein Marker nötig
+            },
+
+            _selectMarkedNote_countingTime(bar, params) {
+                // Sammle alle markierbaren Kandidaten (nicht-gebundene Noten)
+                const candidates = [];
+                for (let i = 0; i < bar.notes.length; i++) {
+                    const n = bar.notes[i];
+                    if (n.tiedFrom === null || n.tiedFrom === undefined) {
+                        candidates.push({ index: i, originalIndex: n.originalIndex, note: n });
+                    }
+                }
+
+                if (candidates.length === 0) return null;
+
+                // Pädagogische Filter (Ebene 3):
+                let filtered = candidates;
+
+                // ZZ1-Logik
+                const isZZ1 = (c) => c.originalIndex === 0;
+
+                if (params.isBasis && params.qAnswered < 3) {
+                    // Basis Q1-3: ZZ1 erlaubt (mit Garantie)
+                    const forceZZ1 = params.isBasis && params.qAnswered === 2 && params.isQuiz && !quickStart.zz1Shown;
+                    if (forceZZ1) {
+                        const zz1Candidate = candidates.find(c => isZZ1(c));
+                        if (zz1Candidate) {
+                            if (params.isQuiz) quickStart.zz1Shown = true;
+                            return zz1Candidate.index;
+                        }
+                    }
+                    // ZZ1 mit 30% Wahrscheinlichkeit erlaubt
+                    if (Math.random() >= 0.3 && candidates.length > 1) {
+                        filtered = candidates.filter(c => !isZZ1(c));
+                        if (filtered.length === 0) filtered = candidates;
+                    }
+                } else if (candidates.length > 1) {
+                    // Ab Basis Q4 oder ab Sub-Skill 3b: ZZ1 ausschließen
+                    filtered = candidates.filter(c => !isZZ1(c));
+                    if (filtered.length === 0) filtered = candidates;
+                }
+
+                // Synkopen-Einschränkung (Ebene 3): Vor Q6 keine Synkopen-Noten markieren
+                if (params.isQuiz && params.qAnswered < 5 && filtered.length > 1) {
+                    const nonSynkope = filtered.filter(c => !this._isSynkopeNote(c.index, bar));
+                    if (nonSynkope.length > 0) filtered = nonSynkope;
+                }
+
+                // Zufällige Auswahl aus gefilterten Kandidaten
+                const chosen = filtered[Math.floor(Math.random() * filtered.length)];
+                if (chosen.originalIndex === 0 && params.isQuiz) quickStart.zz1Shown = true;
+                return chosen.index;
+            },
+
+            _selectMarkedNote_rhythmSyllable(bar, params) {
+                // Sammle alle gültigen Kandidaten (nur Noten, keine Pausen, nicht gebunden)
+                const candidates = [];
+                let seenOriginalIndices = new Set();
+                for (let i = 0; i < bar.notes.length; i++) {
+                    const n = bar.notes[i];
+                    if (seenOriginalIndices.has(n.originalIndex)) continue;
+                    seenOriginalIndices.add(n.originalIndex);
+                    const isRest = this.noteValues[n.type]?.isRest || false;
+                    if (!isRest && (n.tiedFrom === null || n.tiedFrom === undefined)) {
+                        candidates.push({ index: i, originalIndex: n.originalIndex, note: n });
+                    }
+                }
+
+                if (candidates.length === 0) return null;
+
+                // Pädagogische Filter (Ebene 3):
+                let filtered = candidates;
+
+                // ZZ1 ausschließen (immer bei Rhythmussprache, da trivial)
+                if (candidates.length > 1) {
+                    filtered = candidates.filter(c => c.originalIndex !== 0);
+                    if (filtered.length === 0) filtered = candidates;
+                }
+
+                // Synkopen-Einschränkung vor Q6
+                if (params.isQuiz && params.qAnswered < 5 && filtered.length > 1) {
+                    const nonSynkope = filtered.filter(c => !this._isSynkopeNote(c.index, bar));
+                    if (nonSynkope.length > 0) filtered = nonSynkope;
+                }
+
+                const chosen = filtered[Math.floor(Math.random() * filtered.length)];
+                return chosen.index;
+            },
+
+            // Prüft ob eine Note an einer Synkopen-Position steht
+            // (d.h. sie beginnt auf einer schwachen Zählzeit und ist übergebunden)
+            _isSynkopeNote(noteIndex, bar) {
+                const note = bar.notes[noteIndex];
+                // Eine Note ist synkopiert, wenn sie einen Haltebogen zum nächsten Teil hat
+                // (tiedTo zeigt auf den Index des gebundenen Teils)
+                return note.tiedTo !== null && note.tiedTo !== undefined;
+            },
 
             generateNewTask() {
-                // Rekursions-Schutz: Max 20 Versuche, dann Fallback
-                this._generateRetryCount++;
-                if (this._generateRetryCount > 20) {
-                    console.warn('[App] generateNewTask: Max Retries erreicht, nutze Fallback');
-                    this._generateRetryCount = 0;
-                    // Fallback wird unten bei markedIndex === -1 gehandelt
+                // Separater Generator für andere Aufgabentypen
+                if (this.settings.taskType === 'note-addition') {
+                    this.generateAdditionTask();
+                    return;
+                }
+                if (this.settings.taskType === 'time-signature-id') {
+                    this.generateTimeSignatureTask();
+                    return;
                 }
 
                 // Progressive Hilfen-Ausblendung: Ab Frage 4 Raster + Zählzeiten ausblenden (kn3/kn4)
@@ -4515,346 +4910,77 @@ Gerät:
                         this.settings.showCountingTimes = false;
                         document.getElementById('showGrid').checked = false;
                         document.getElementById('showCountingTimes').checked = false;
-                        console.log('[App] Ab Frage 4: Raster + Zählzeiten ausgeblendet');
                     }
                 }
 
-                // Bei Addition-Aufgabe: Separater Generator
-                if (this.settings.taskType === 'note-addition') {
-                    this.generateAdditionTask();
-                    return;
-                }
+                // Phase 0: Parameter bestimmen
+                const params = this._determineTaskParams();
 
-                // Bei Taktarten-Erkennung: Separater Generator
-                if (this.settings.taskType === 'time-signature-id') {
-                    this.generateTimeSignatureTask();
-                    return;
-                }
-                
-                const maxValue = this.getMaxValue();
-                const availableNotes = this.getAvailableNotes();
-                
-                let bar = {
-                    notes: [],
-                    currentValue: 0,
-                    maxValue: maxValue,
-                    tripletGroupCounter: 0 // Zähler für eindeutige Triolen-Gruppen-IDs
-                };
-                
-                let lastNoteType = null; // Für Gruppenbildung
-                
-                // Generate a valid bar
-                while (bar.currentValue < bar.maxValue) {
-                    const remainingValue = bar.maxValue - bar.currentValue;
-                    
-                    // Filter notes/groups that fit
-                    const fittingNotes = availableNotes.filter(noteType => {
-                        // Triolen-Gruppen haben spezielle Werte
-                        if (noteType.startsWith('triplet-group-')) {
-                            return this.getTripletGroupValue(noteType) <= remainingValue;
-                        }
-                        return this.noteValues[noteType].value <= remainingValue;
-                    });
-                    
-                    if (fittingNotes.length === 0) break;
-                    
-                    // Gewichtete Zufallsauswahl mit Gruppenbildung
-                    const noteType = this.weightedRandomChoice(fittingNotes, lastNoteType);
-                    lastNoteType = noteType;
-                    
-                    // Handle triplet groups specially
-                    if (noteType.startsWith('triplet-group-')) {
-                        const tripletNoteType = this.getTripletNoteType(noteType);
-                        const tripletNoteValue = this.noteValues[tripletNoteType];
-                        const groupId = bar.tripletGroupCounter++;
-                        
-                        // Füge 3 Triolen-Noten mit gemeinsamer groupId hinzu
-                        for (let i = 0; i < 3; i++) {
-                            bar.notes.push({
-                                type: tripletNoteType,
-                                value: tripletNoteValue.value,
-                                symbol: tripletNoteValue.symbol,
-                                name: tripletNoteValue.name,
-                                tripletGroupId: groupId,
-                                tripletPosition: i // 0, 1, 2 (erste, zweite, dritte)
-                            });
-                        }
-                        
-                        bar.currentValue += this.getTripletGroupValue(noteType);
-                    } else {
-                        // Normale Note
-                        const noteValue = this.noteValues[noteType];
-                        
-                        bar.notes.push({
-                            type: noteType,
-                            value: noteValue.value,
-                            symbol: noteValue.symbol,
-                            name: noteValue.name
-                        });
-                        
-                        bar.currentValue += noteValue.value;
-                    }
-                }
-                
-                // Sicherheitscheck: Wenn Takt nicht voll, letzte Note ersetzen und neu versuchen
-                // (kann passieren wenn z.B. punktierte Noten ohne Achtel aktiv sind)
-                const tolerance = 0.001;
-                if (Math.abs(bar.currentValue - bar.maxValue) > tolerance && bar.notes.length > 0) {
-                    // Entferne letzte Note und versuche mit kleineren Noten aufzufüllen
-                    const lastNote = bar.notes.pop();
-                    bar.currentValue -= lastNote.value;
-                    
-                    // Finde alle Noten die in den Rest passen könnten (sortiert nach Größe, absteigend)
-                    const allNoteTypes = ['whole', 'half', 'dotted-half', 'dotted-quarter', 'quarter', 'dotted-eighth', 'eighth', 'sixteenth'];
-                    
-                    while (bar.currentValue < bar.maxValue - tolerance) {
-                        const remaining = bar.maxValue - bar.currentValue;
-                        let foundNote = false;
-                        
-                        for (const noteType of allNoteTypes) {
-                            const noteInfo = this.noteValues[noteType];
-                            if (noteInfo && noteInfo.value <= remaining + tolerance) {
-                                bar.notes.push({
-                                    type: noteType,
-                                    value: noteInfo.value,
-                                    symbol: noteInfo.symbol,
-                                    name: noteInfo.name
-                                });
-                                bar.currentValue += noteInfo.value;
-                                foundNote = true;
-                                break;
-                            }
-                        }
-                        
-                        if (!foundNote) break; // Sollte nie passieren
-                    }
-                }
-                
-                // Teile Noten an Taktmitte wenn nötig
-                bar = this.splitNotesAtDivisions(bar);
-
-                // Synkopen-Regel: In kn3/kn4 erst ab Frage 6 erlaubt
-                // Wenn Überbindungen entstanden und Frage < 6 → neu generieren (nur wenn Retries übrig)
-                if (this._generateRetryCount <= 20 &&
-                    (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') &&
-                    quickStart.isActive && quickStart.questionsAnswered < 5) {
-                    const hasTies = bar.notes.some(n => n.tiedTo !== null && n.tiedTo !== undefined);
-                    if (hasTies) {
-                        this.generateNewTask();
-                        return;
-                    }
-                }
-
-                // Fasse aufeinanderfolgende Pausen zusammen
-                bar = this.mergeConsecutiveRests(bar);
-                
-                // Prüfe Pausen-Anteil (max 50%)
-                const restPercentage = this.calculateRestPercentage(bar);
-                if (restPercentage > 0.5) {
-                    // Zu viele Pausen - neu generieren
-                    this.generateNewTask();
-                    return;
-                }
-                
-                // Kompetenz-Garantie: Der Notenwert des aktuellen Sub-Skills muss mindestens 1× vorkommen
-                if (this._generateRetryCount <= 20 &&
-                    (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') &&
-                    quickStart.isActive) {
-                    const qOpts = quickStart.currentOptions || [];
-                    const focusSub = qOpts[qOpts.length - 1];
-                    const focusTypes = this.subSkillNoteTypes[focusSub] || [];
-                    if (focusTypes.length > 0) {
-                        const hasFocusNote = bar.notes.some(n => focusTypes.includes(n.type));
-                        if (!hasFocusNote) {
-                            this.generateNewTask();
-                            return;
-                        }
-                    }
-                }
-
+                // Phase 1: Takt generieren (mit Retries + Fallback)
+                const bar = this._generateBarWithRetries(params);
                 this.currentTask = bar;
 
-                // Bei Zählzeit/Rhythmussilben: Mindestanzahl Noten prüfen
-                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') {
-                    // Prüfe ob Basisniveau (keine zusätzlichen Optionen) oder erweitert
-                    const isBasicLevel = !this.settings.includeEighths && 
-                                         !this.settings.includeSixteenths && 
-                                         !this.settings.includeDotted && 
-                                         !this.settings.includeRests && 
-                                         !this.settings.includeTriplets;
-                    
-                    // Basisniveau: min 2 Noten, Erweitert: min 3 Noten
-                    const minNotes = isBasicLevel ? 2 : 3;
-                    
-                    if (bar.originalNoteCount < minNotes) {
-                        console.log(`[App] Zu wenig Noten (${bar.originalNoteCount}), brauche min ${minNotes} - neu generieren`);
-                        this.generateNewTask();
-                        return;
-                    }
-                }
-                
-                // Bei Zählzeit-Aufgabe: Markiere random Note (basierend auf originalIndex)
-                if (this.settings.taskType === 'counting-time' && bar.originalNoteCount > 0) {
-                    // ZZ1-Logik für Sub-Skill "basis" (3a):
-                    // - Erste 3 Fragen: ZZ1 mindestens 1× garantiert (forceZZ1 wenn noch nicht vorgekommen)
-                    // - Fragen 1-3 allgemein: ZZ1 mit 30% Wahrscheinlichkeit
-                    // - Ab Frage 4 und ab Sub-Skill 3b: ZZ1 komplett ausschließen
-                    const opts = quickStart.isActive ? (quickStart.currentOptions || []) : [];
-                    const currentSub = opts[opts.length - 1];
-                    const qAnswered = quickStart.isActive ? quickStart.questionsAnswered : 999;
-                    const isBasis = currentSub === 'basis';
+                // Phase 2: Markierung wählen (kn3/kn4)
+                if (params.needsMarker && bar.originalNoteCount > 0) {
+                    const markedIndex = this._selectMarkedNote(bar, params);
 
-                    // Garantie: Wenn Frage 3 (Index 2) und ZZ1 noch nie vorkam → erzwingen
-                    const forceZZ1 = isBasis && qAnswered === 2 && quickStart.isActive && !quickStart.zz1Shown;
-                    const allowZZ1 = forceZZ1 || (isBasis && qAnswered < 3 && Math.random() < 0.3);
-
-                    let randomOriginalIndex;
-                    if (bar.originalNoteCount === 1) {
-                        randomOriginalIndex = 0; // Nur eine Note vorhanden — keine Alternative
-                    } else if (allowZZ1) {
-                        // Basis-Einführung: ZZ1 erlaubt
-                        randomOriginalIndex = forceZZ1 ? 0 : Math.floor(Math.random() * bar.originalNoteCount);
-                        if (randomOriginalIndex === 0 && quickStart.isActive) quickStart.zz1Shown = true;
+                    // Fingerprint: Wiederholungs-Check (1 Versuch)
+                    const fingerprint = bar.notes.map(n => n.type).join(',') + ':' + markedIndex;
+                    if (fingerprint === this.lastTaskFingerprint) {
+                        // Einmal neu versuchen bei Wiederholung
+                        const bar2 = this._generateBarWithRetries(params);
+                        this.currentTask = bar2;
+                        const markedIndex2 = this._selectMarkedNote(bar2, params);
+                        const fp2 = bar2.notes.map(n => n.type).join(',') + ':' + markedIndex2;
+                        this.lastTaskFingerprint = fp2;
+                        this._applyMarker(bar2, markedIndex2, params);
                     } else {
-                        // Ab 2 Noten: Nur aus Index 1..n wählen (ZZ1 wird übersprungen)
-                        randomOriginalIndex = Math.floor(Math.random() * (bar.originalNoteCount - 1)) + 1;
+                        this.lastTaskFingerprint = fingerprint;
+                        this._applyMarker(bar, markedIndex, params);
                     }
-                    
-                    // Finde den ersten Teil der Note mit diesem originalIndex
-                    // (tiedFrom ist null oder undefined bei Noten die nicht der zweite Teil eines Haltebogens sind)
-                    const markedIndex = bar.notes.findIndex(n =>
-                        n.originalIndex === randomOriginalIndex && (n.tiedFrom === null || n.tiedFrom === undefined)
-                    );
+                } else {
+                    this.currentTask.markedNoteIndex = null;
+                    this.currentTask.correctStartCounting = null;
+                    this.currentTask.correctRhythmSyllable = null;
+                }
 
-                    // Sicherheit: Wenn kein passender Index gefunden
-                    let finalMarkedIndex = markedIndex;
-                    if (markedIndex === -1) {
-                        if (this._generateRetryCount <= 20) {
-                            console.log('[App] markedIndex -1 (counting-time) - neu generieren');
-                            this.generateNewTask();
-                            return;
-                        }
-                        // Fallback: Erste nicht-gebundene Note nehmen
-                        finalMarkedIndex = bar.notes.findIndex(n => n.tiedFrom === null || n.tiedFrom === undefined);
-                        if (finalMarkedIndex === -1) finalMarkedIndex = 0;
-                        console.warn('[App] markedIndex Fallback auf', finalMarkedIndex);
-                    }
+                this.renderTask();
+                this.updateScoreDisplay();
+                this.taskCounter++;
+            },
 
-                    // Fingerprint: Wiederholungs-Check
-                    const taskFingerprint = bar.notes.map(n => n.type).join(',') + ':' + finalMarkedIndex;
-                    if (taskFingerprint === this.lastTaskFingerprint && this._generateRetryCount <= 20) {
-                        this.generateNewTask();
-                        return;
-                    }
-                    this.lastTaskFingerprint = taskFingerprint;
-                    this._generateRetryCount = 0; // Erfolg → Counter zurücksetzen
+            // Marker + UI-Updates nach erfolgreicher Marker-Auswahl
+            _applyMarker(bar, markedIndex, params) {
+                // Fallback: Wenn kein Marker gefunden
+                if (markedIndex === null || markedIndex === undefined || markedIndex < 0) {
+                    // Nimm erste nicht-gebundene Note
+                    markedIndex = bar.notes.findIndex(n => n.tiedFrom === null || n.tiedFrom === undefined);
+                    if (markedIndex === -1) markedIndex = 0;
+                    console.warn('[App] _applyMarker: Fallback auf Index', markedIndex);
+                }
 
-                    this.currentTask.markedNoteIndex = finalMarkedIndex;
-                    this.currentTask.markedOriginalIndex = randomOriginalIndex;
+                this.currentTask.markedNoteIndex = markedIndex;
+                this.currentTask.markedOriginalIndex = bar.notes[markedIndex]?.originalIndex ?? 0;
 
-                    // Berechne Start-Zählzeit der markierten Note
-                    this.currentTask.correctStartCounting = this.calculateStartCounting(finalMarkedIndex);
+                if (params.taskType === 'counting-time') {
+                    this.currentTask.correctStartCounting = this.calculateStartCounting(markedIndex);
                     this.currentTask.correctRhythmSyllable = null;
 
                     // Fragetext dynamisch anpassen: "Note" vs "Pause"
-                    const markedType = bar.notes[finalMarkedIndex]?.type || '';
+                    const markedType = bar.notes[markedIndex]?.type || '';
                     const isRest = this.noteValues[markedType]?.isRest || false;
                     const label = isRest ? 'Pause' : 'Note';
                     const badge = document.getElementById('taskFocusBadge');
                     if (badge) badge.textContent = `🎯 Auf welcher Zählzeit ist diese ${label}?`;
                     const inputLabel = document.getElementById('inputLabel');
                     if (inputLabel) inputLabel.textContent = `Start-Zählzeit der markierten ${label}:`;
-
-                    // Reset Input und Validierung
-                    this.hasBeenChecked = false;
-                    this.resetInputs();
-                } else if (this.settings.taskType === 'rhythm-syllable' && bar.originalNoteCount > 0) {
-                    // Wähle zufälligen originalIndex (nur Noten, keine Pausen!)
-                    // Sammle alle gültigen Indizes (nur Noten)
-                    const validIndices = [];
-                    let currentOriginalIndex = -1;
-                    bar.notes.forEach(n => {
-                        if (n.originalIndex !== currentOriginalIndex) {
-                            currentOriginalIndex = n.originalIndex;
-                            // Nur Noten, keine Pausen, und nicht der zweite Teil eines Haltebogens
-                            if (!this.noteValues[n.type]?.isRest && (n.tiedFrom === null || n.tiedFrom === undefined)) {
-                                validIndices.push(n.originalIndex);
-                            }
-                        }
-                    });
-                    
-                    // Fallback: wenn keine Noten vorhanden, generiere neuen Takt
-                    if (validIndices.length === 0) {
-                        this.generateNewTask();
-                        return;
-                    }
-                    
-                    // ZZ1 ausschließen: Erste Note (Zählzeit 1) ist trivial → nie markieren (wenn >1 Note)
-                    let randomOriginalIndex;
-                    if (validIndices.length === 1) {
-                        randomOriginalIndex = validIndices[0]; // Nur eine Note vorhanden — keine Alternative
-                    } else {
-                        // Ab 2 Noten: ZZ1 (originalIndex 0) ausschließen
-                        const nonTrivialIndices = validIndices.filter(idx => idx !== 0);
-                        if (nonTrivialIndices.length > 0) {
-                            randomOriginalIndex = nonTrivialIndices[Math.floor(Math.random() * nonTrivialIndices.length)];
-                        } else {
-                            // Fallback: Alle Noten haben Index 0 (sollte nicht vorkommen)
-                            randomOriginalIndex = validIndices[Math.floor(Math.random() * validIndices.length)];
-                        }
-                    }
-                    
-                    // Finde den ersten Teil der Note mit diesem originalIndex
-                    // (tiedFrom ist null oder undefined bei Noten die nicht der zweite Teil eines Haltebogens sind)
-                    const markedIndex = bar.notes.findIndex(n =>
-                        n.originalIndex === randomOriginalIndex && (n.tiedFrom === null || n.tiedFrom === undefined)
-                    );
-
-                    // Sicherheit: Wenn kein passender Index gefunden
-                    let finalMarkedIndex2 = markedIndex;
-                    if (markedIndex === -1) {
-                        if (this._generateRetryCount <= 20) {
-                            console.log('[App] markedIndex -1 (rhythm-syllable) - neu generieren');
-                            this.generateNewTask();
-                            return;
-                        }
-                        // Fallback: Erste nicht-gebundene, nicht-Pause Note nehmen
-                        finalMarkedIndex2 = bar.notes.findIndex(n =>
-                            !this.noteValues[n.type]?.isRest && (n.tiedFrom === null || n.tiedFrom === undefined));
-                        if (finalMarkedIndex2 === -1) finalMarkedIndex2 = 0;
-                        console.warn('[App] markedIndex Fallback (rhythm-syllable) auf', finalMarkedIndex2);
-                    }
-
-                    // Fingerprint: Wiederholungs-Check
-                    const taskFingerprint = bar.notes.map(n => n.type).join(',') + ':' + finalMarkedIndex2;
-                    if (taskFingerprint === this.lastTaskFingerprint && this._generateRetryCount <= 20) {
-                        this.generateNewTask();
-                        return;
-                    }
-                    this.lastTaskFingerprint = taskFingerprint;
-                    this._generateRetryCount = 0; // Erfolg → Counter zurücksetzen
-
-                    this.currentTask.markedNoteIndex = finalMarkedIndex2;
-                    this.currentTask.markedOriginalIndex = randomOriginalIndex;
-                    
-                    // Berechne Rhythmussilbe der markierten Note
+                } else if (params.taskType === 'rhythm-syllable') {
                     this.currentTask.correctRhythmSyllable = this.calculateRhythmSyllable(markedIndex);
                     this.currentTask.correctStartCounting = null;
-                    
-                    // Reset Input und Validierung
-                    this.hasBeenChecked = false;
-                    this.resetInputs();
-                } else {
-                    this.currentTask.markedNoteIndex = null;
-                    this.currentTask.correctStartCounting = null;
-                    this.currentTask.correctRhythmSyllable = null;
                 }
-                
-                this.renderTask();
-                
-                // Update display
-                this.updateScoreDisplay();
-                this.taskCounter++;
+
+                this.hasBeenChecked = false;
+                this.resetInputs();
             },
 
             // ---- Audio-Engine (perkussiv) ----
