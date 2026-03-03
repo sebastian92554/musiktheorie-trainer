@@ -460,6 +460,14 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #c2410c; }
+        .vz-sharp, .vz-flat {
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            top: -3px;
+            line-height: 0;
+        }
+        .vz-sharp svg, .vz-flat svg { display: block; }
 
         /* int4 Aufgaben-Bereich */
         .int4-task-area {
@@ -2421,7 +2429,10 @@
                         app.settings.requireKeyboard = false;
                         if (options.includes('augdim')) app.settings.onlyAugDim = true;
                         if (options.includes('extended')) app.settings.showLargeIntervals = true;
-                        if (options.includes('bothclefs')) app.settings.clef = 'both';
+                        if (options.includes('bothclefs')) {
+                            app.settings.clef = 'both';
+                            app.settings.allowBaseAccidental = true;
+                        }
                         if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
                         break;
                 }
@@ -2677,6 +2688,10 @@
             _svgFlat(x, y, color, targetH = 11) {
                 const s = targetH / this._FLAT_REF.h;
                 return `<g transform="translate(${x},${y}) scale(${s}) translate(${-this._FLAT_REF.cx},${-this._FLAT_REF.cy})"><path d="${this._flatPathD}" fill="${color}" stroke="none"/></g>`;
+            },
+            _inlineVz(pathD, ref, w, h) {
+                const s = h / ref.h;
+                return `<svg width="${w}" height="${h}" viewBox="0 0 ${Math.round(ref.cx*2*s)} ${Math.round(ref.h*s)}" style="vertical-align:middle"><g transform="scale(${s})"><path d="${pathD}" fill="currentColor" stroke="none"/></g></svg>`;
             },
 
             currentInterval: null,
@@ -3266,15 +3281,55 @@
                         }
                     }
                     
+                    // Vorzeichen auf Basiston (int5d): ~40% Chance, beide Töne ±1 HT verschieben
+                    let finalBaseName = baseName;
+                    if (this.settings.allowBaseAccidental && Math.random() < 0.4) {
+                        const dir = Math.random() < 0.5 ? 1 : -1; // +1 = sharp, -1 = flat
+                        const note2HasSharp = finalTargetName.includes('is');
+                        const note2HasFlat = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' || finalTargetName.includes('es');
+                        // Keine Doppelvorzeichen: skip wenn note2 schon Vorzeichen in gleicher Richtung hat
+                        if (!(dir === 1 && note2HasSharp) && !(dir === -1 && note2HasFlat)) {
+                            // Basiston verschieben (immer Stammton → einfaches Vorzeichen)
+                            if (dir === 1) {
+                                finalBaseName = baseName + 'is';
+                            } else {
+                                if (baseName === 'A') finalBaseName = 'As';
+                                else if (baseName === 'E') finalBaseName = 'Es';
+                                else if (baseName === 'H') finalBaseName = 'B';
+                                else finalBaseName = baseName + 'es';
+                            }
+                            // Zweiten Ton verschieben
+                            if (dir === 1) {
+                                if (note2HasFlat) {
+                                    // Flat + sharp = zurück zum Stammton
+                                    const bn = finalTargetName.replace(/es$/, '').replace('As', 'A').replace('Es', 'E').replace('B', 'H');
+                                    finalTargetName = bn;
+                                } else {
+                                    finalTargetName = finalTargetName + 'is';
+                                }
+                            } else {
+                                if (note2HasSharp) {
+                                    // Sharp + flat = zurück zum Stammton
+                                    finalTargetName = finalTargetName.replace(/is$/, '');
+                                } else {
+                                    if (finalTargetName === 'A') finalTargetName = 'As';
+                                    else if (finalTargetName === 'E') finalTargetName = 'Es';
+                                    else if (finalTargetName === 'H') finalTargetName = 'B';
+                                    else finalTargetName = finalTargetName + 'es';
+                                }
+                            }
+                        }
+                    }
+
                     newInterval = {
-                        note1: { name: baseName, octave: baseOctave, clef },
+                        note1: { name: finalBaseName, octave: baseOctave, clef },
                         note2: { name: finalTargetName, octave: targetOctave, clef },
                         size: intervalSize,
                         quality: quality,
                         semitones: targetSemitones,
                         displayMode: displayMode
                     };
-                    
+
                     const taskId = `${newInterval.note1.name}-${newInterval.note1.octave}-${newInterval.note2.name}-${newInterval.note2.octave}-${newInterval.quality}`;
                     
                     if ((intervalSize === 1 || intervalSize === 8) && quality === 'rein') {
@@ -3471,11 +3526,12 @@
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
-                            highlightKeys: [{key:'G',color:'#fed7aa'}],
+                            highlightKeys: [{key:'A',color:'#fed7aa'}],
                             onKeyArrows: [
-                                {from:'G',to:'Gis',labelKey:'A',label:'♯ = Gis',color:'#16a34a'},
-                                {from:'G',to:'Fis',labelKey:'F',label:'♭ = Ges',color:'#dc2626'}
-                            ]
+                                {from:'A',to:'Ais',label:'♯',color:'#16a34a'},
+                                {from:'A',to:'Gis',label:'♭',color:'#dc2626'}
+                            ],
+                            _blackLabelColors: { 'Ais': '#4ade80', 'As': '#f87171' }
                         });
                     }
                 }
@@ -3525,6 +3581,14 @@
                         '</div>';
                     }
                 }
+
+                // Inline-SVG-Vorzeichen im Fließtext füllen
+                document.querySelectorAll('#lernkarteOverlay .vz-sharp').forEach(el => {
+                    el.innerHTML = this._inlineVz(this._sharpPathD, this._SHARP_REF, 19, 27);
+                });
+                document.querySelectorAll('#lernkarteOverlay .vz-flat').forEach(el => {
+                    el.innerHTML = this._inlineVz(this._flatPathD, this._FLAT_REF, 15, 27);
+                });
 
                 document.getElementById('lernkarteOverlay').classList.add('active');
                 return true;
@@ -3580,9 +3644,9 @@
                 },
                 'int2_augdim': {
                     title: 'Vorzeichen auf der Tastatur',
-                    body: `<p>Ein <strong>♯ (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst eine Taste nach <strong>rechts</strong>. Ein <strong>♭ (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
+                    body: `<p>Ein <strong><span class="vz-sharp"></span> (Kreuz)</strong> erhöht einen Ton um einen Halbton — eine Taste nach <strong>rechts</strong>. Ein <strong><span class="vz-flat"></span> (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
                         <div class="lk-visual" id="lkVisualInt2Augdim"></div>
-                        <div class="lk-rule"><strong>Wichtig:</strong> Zwischen E–F und H–C liegt kein Halbton dazwischen (keine schwarze Taste). Deshalb ist <strong>Eis = F</strong> und <strong>His = C</strong> — ein Vorzeichen landet hier auf einer weißen Taste!</div>
+                        <div class="lk-rule"><strong>Zur Erinnerung:</strong> <span class="vz-sharp"></span> → Stammton + „is" (Fis, Cis, …). <span class="vz-flat"></span> → Stammton + „es" (Des, Ges, …).<br><strong>Ausnahmen:</strong> E + <span class="vz-flat"></span> = <strong>Es</strong>, A + <span class="vz-flat"></span> = <strong>As</strong>, H + <span class="vz-flat"></span> = <strong>B</strong>.</div>
                         <div class="lk-tip"><strong>Enharmonik:</strong> Jede schwarze Taste hat zwei Namen: Cis = Des, Dis = Es, Fis = Ges, Gis = As, Ais = B. Auf der Tastatur ist es dieselbe Taste.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die richtigen Tasten — auch schwarze.</div>`
                 },
@@ -3604,7 +3668,7 @@
                 },
                 'int3_augdim': {
                     title: 'Übermäßige & verminderte Intervalle',
-                    body: `<p>Vorzeichen verändern die Halbtonschrittzahl. Achte besonders genau auf ♯ und ♭!</p>
+                    body: `<p>Vorzeichen verändern die Halbtonschrittzahl. Achte besonders genau auf <span class="vz-sharp"></span> und <span class="vz-flat"></span>!</p>
                         <div class="lk-visual" id="lkVisualInt3Augdim"></div>
                         <div class="lk-rule"><strong>Beispiel:</strong> C → F = 5 HS (reine Quarte). Aber C → Fis = 6 HS (übermäßige Quarte). Ein Vorzeichen verschiebt den Ton um genau 1 HS.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte — auch bei Tönen mit Vorzeichen.</div>`
@@ -3789,9 +3853,9 @@
 
                     // Vorzeichen (SVG-Glyph, proportional zu rx 7.5)
                     if (c.accidental) {
-                        const accGlyphX = cx2 - rx - 3;
-                        if (c.accidental === '♯') svg += this._svgSharp(accGlyphX, c.y2, '#1f2937', 7);
-                        else if (c.accidental === '♭') svg += this._svgFlat(accGlyphX, c.y2, '#1f2937', 7);
+                        const accGlyphX = cx2 - rx - 7;
+                        if (c.accidental === '♯') svg += this._svgSharp(accGlyphX, c.y2, '#1f2937', 21);
+                        else if (c.accidental === '♭') svg += this._svgFlat(accGlyphX, c.y2, '#1f2937', 21);
                     }
 
                     // Notenköpfe
@@ -3899,9 +3963,9 @@
                 const hasFlat2 = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' ||
                     (finalTargetName.length > 2 && finalTargetName.endsWith('es'));
                 // SVG-Glyph: Zentrum des Glyphs links vom Notenkopf
-                const accGlyphX = cx2 - 9 - (tooClose ? 14 : 8);
-                if (hasSharp2) svg += this._svgSharp(accGlyphX, y2, '#1f2937', 9);
-                if (hasFlat2) svg += this._svgFlat(accGlyphX, y2, '#1f2937', 9);
+                const accGlyphX = cx2 - (tooClose ? 28 : 19);
+                if (hasSharp2) svg += this._svgSharp(accGlyphX, y2, '#1f2937', 28);
+                if (hasFlat2) svg += this._svgFlat(accGlyphX, y2, '#1f2937', 28);
 
                 svg += `<ellipse cx="${cx1}" cy="${y1}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx1} ${y1})"/>`;
                 svg += `<ellipse cx="${cx2}" cy="${y2}" rx="9" ry="7" fill="#1f2937" transform="rotate(-20 ${cx2} ${y2})"/>`;
@@ -3991,9 +4055,13 @@
                         svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
                         if (showBlackLabels) {
                             const lblArr = blackLabels[blackMap[wk.name]];
+                            const blc = options._blackLabelColors || {};
                             if (lblArr) {
-                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
-                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
+                                const c0 = blc[lblArr[0]] || '#fff';
+                                const c1 = blc[lblArr[1]] || '#ddd';
+                                const w0 = blc[lblArr[0]] ? '700' : '600';
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="${c0}" font-weight="${w0}">${lblArr[0]}</text>`;
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="${c1}" font-weight="${blc[lblArr[1]] ? '700' : '400'}">${lblArr[1]}</text>`;
                             }
                         }
                         if (hl && hl.label) {
@@ -4002,34 +4070,56 @@
                     }
                 });
 
-                // Pfeile direkt auf der Tastatur (onKeyArrows)
-                // Schräge Pfeile von Starttaste nach oben (11-Uhr / 1-Uhr Richtung)
+                // Pfeile auf der Tastatur (onKeyArrows)
+                // Berechnet Richtung zum tatsächlichen Ziel (schwarze UND weiße Tasten)
+                const _blackKeySet = new Set();
+                whiteKeys.forEach(wk => {
+                    if (blackMap[wk.name]) {
+                        const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                        _blackKeySet.add(blackMap[wk.name] + suffix);
+                    }
+                });
                 if (onKeyArrows.length > 0) {
                     onKeyArrows.forEach(a => {
                         const fromX = keyPositions[a.from];
-                        const labelX = a.labelKey ? keyPositions[a.labelKey] : null;
                         if (fromX === undefined) return;
                         const color = a.color || '#ea580c';
-                        // Start: über der Tonnamen-Beschriftung
                         const startY = ky + pad + wh - 22;
-                        // Richtung: links oben (-60°) oder rechts oben (-120°) je nach Pfeilrichtung
-                        const goesRight = a.to && keyPositions[a.to] !== undefined && keyPositions[a.to] > fromX;
-                        const angle = goesRight ? (-60 * Math.PI / 180) : (-120 * Math.PI / 180);
-                        const arrowLen = bh * 0.7;
-                        const endX = fromX + Math.cos(angle) * arrowLen;
-                        const endY = startY + Math.sin(angle) * arrowLen;
-                        // Pfeilspitze und Linie
+                        // Tatsächliche Zielposition berechnen
+                        const toX = keyPositions[a.to];
+                        let endX, endY;
+                        if (toX !== undefined) {
+                            const toIsBlack = _blackKeySet.has(a.to);
+                            const targetY = toIsBlack ? ky + pad + bh * 0.5 : ky + pad + wh * 0.5;
+                            endX = toX;
+                            endY = targetY;
+                        } else {
+                            const goesRight = a.to && toX !== undefined && toX > fromX;
+                            const angle = goesRight ? (-60 * Math.PI / 180) : (-120 * Math.PI / 180);
+                            const arrowLen = bh * 0.7;
+                            endX = fromX + Math.cos(angle) * arrowLen;
+                            endY = startY + Math.sin(angle) * arrowLen;
+                        }
                         const dx = endX - fromX, dy = endY - startY;
                         const len = Math.sqrt(dx*dx + dy*dy);
                         const ux = dx/len, uy = dy/len;
                         const tipLen = 8, tipW = 5;
                         const px = -uy * tipW, py = ux * tipW;
-                        // Linie endet vor der Spitze
                         svg += `<line x1="${fromX}" y1="${startY}" x2="${endX - ux*tipLen}" y2="${endY - uy*tipLen}" stroke="${color}" stroke-width="2"/>`;
                         svg += `<polygon points="${endX},${endY} ${endX-ux*tipLen+px},${endY-uy*tipLen+py} ${endX-ux*tipLen-px},${endY-uy*tipLen-py}" fill="${color}"/>`;
-                        // Farbiges Label auf der Nachbar-Taste, auf Höhe des Pfeilstarts
-                        if (a.label && labelX !== null) {
-                            svg += `<text x="${labelX}" y="${startY + 3}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${a.label}</text>`;
+                        // SVG-Vorzeichen neben dem Pfeil
+                        if (a.label) {
+                            const mx = (fromX + endX) / 2;
+                            const my = (startY + endY) / 2;
+                            const goesRight = endX > fromX;
+                            const offsetX = goesRight ? 10 : -10;
+                            if (a.label === '♯') {
+                                svg += this._svgSharp(mx + offsetX, my, color, 11);
+                            } else if (a.label === '♭') {
+                                svg += this._svgFlat(mx + offsetX + 4, my + 5, color, 11);
+                            } else {
+                                svg += `<text x="${mx + offsetX}" y="${my}" text-anchor="middle" font-size="12" fill="${color}" font-weight="700">${a.label}</text>`;
+                            }
                         }
                     });
                 }
@@ -4695,15 +4785,15 @@
                         }
                     });
                     
-                    const accMel1X = 170 - 12.5 - 6;
-                    if (hasSharp1) svg += this._svgSharp(accMel1X, y1, '#000', 11);
-                    if (hasFlat1) svg += this._svgFlat(accMel1X, y1, '#000', 11);
+                    const accMel1X = 170 - 24;
+                    if (hasSharp1) svg += this._svgSharp(accMel1X, y1, '#000', 35);
+                    if (hasFlat1) svg += this._svgFlat(accMel1X, y1, '#000', 35);
 
                     svg += `<ellipse cx="170" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 170 ${y1})"/>`;
 
-                    const accMel2X = 245 - 12.5 - 6;
-                    if (hasSharp2) svg += this._svgSharp(accMel2X, y2, '#000', 11);
-                    if (hasFlat2) svg += this._svgFlat(accMel2X, y2, '#000', 11);
+                    const accMel2X = 245 - 24;
+                    if (hasSharp2) svg += this._svgSharp(accMel2X, y2, '#000', 35);
+                    if (hasFlat2) svg += this._svgFlat(accMel2X, y2, '#000', 35);
 
                     svg += `<ellipse cx="245" cy="${y2}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 245 ${y2})"/>`;
                 } else {
@@ -4743,24 +4833,24 @@
 
                         // Vorzeichen bei Sekunde/Prime: Verankert an cx2, 14px sichtbarer Abstand
                         // Sichtbarer Abstand = (cx2 - rx) - accBaseX = 14
-                        const accBaseX = x2 - 12.5 - 17; // Glyph-Zentrum links vom Notenkopf
+                        const accBaseX = x2 - 35; // Glyph-Zentrum links vom Notenkopf
                         if (bothHaveAcc) {
                             // Untere Note (note1, y1 > y2 → tiefer) normal, obere gestaffelt
                             // note1 ist immer tiefer (y1 >= y2), note2 immer höher
                             const accNearX = accBaseX;
                             const accFarX = accBaseX - accStaggerWidth;
-                            if (hasSharp1) svg += this._svgSharp(accNearX, y1, '#000', 11);
-                            if (hasFlat1) svg += this._svgFlat(accNearX, y1, '#000', 11);
-                            if (hasSharp2) svg += this._svgSharp(accFarX, y2, '#000', 11);
-                            if (hasFlat2) svg += this._svgFlat(accFarX, y2, '#000', 11);
+                            if (hasSharp1) svg += this._svgSharp(accNearX, y1, '#000', 35);
+                            if (hasFlat1) svg += this._svgFlat(accNearX, y1, '#000', 35);
+                            if (hasSharp2) svg += this._svgSharp(accFarX, y2, '#000', 35);
+                            if (hasFlat2) svg += this._svgFlat(accFarX, y2, '#000', 35);
                         } else {
                             if (hasSharp1 || hasFlat1) {
-                                if (hasSharp1) svg += this._svgSharp(accBaseX, y1, '#000', 11);
-                                if (hasFlat1) svg += this._svgFlat(accBaseX, y1, '#000', 11);
+                                if (hasSharp1) svg += this._svgSharp(accBaseX, y1, '#000', 35);
+                                if (hasFlat1) svg += this._svgFlat(accBaseX, y1, '#000', 35);
                             }
                             if (hasSharp2 || hasFlat2) {
-                                if (hasSharp2) svg += this._svgSharp(accBaseX, y2, '#000', 11);
-                                if (hasFlat2) svg += this._svgFlat(accBaseX, y2, '#000', 11);
+                                if (hasSharp2) svg += this._svgSharp(accBaseX, y2, '#000', 35);
+                                if (hasFlat2) svg += this._svgFlat(accBaseX, y2, '#000', 35);
                             }
                         }
 
@@ -4775,7 +4865,7 @@
                             }
                         });
 
-                        const accNormX = x - 12.5 - 6;
+                        const accNormX = x - 24;
                         if (bothHaveAcc && Math.abs(y1 - y2) < 35) {
                             // Zwei Vorzeichen nah beieinander: staffeln
                             // Obere Note (kleineres y) normal, untere gestaffelt
@@ -4783,22 +4873,22 @@
                             const accNearX = accNormX;
                             const accFarX = accNormX - accStaggerWidth;
                             if (upperIsNote2) {
-                                if (hasSharp2) svg += this._svgSharp(accNearX, y2, '#000', 11);
-                                if (hasFlat2) svg += this._svgFlat(accNearX, y2, '#000', 11);
-                                if (hasSharp1) svg += this._svgSharp(accFarX, y1, '#000', 11);
-                                if (hasFlat1) svg += this._svgFlat(accFarX, y1, '#000', 11);
+                                if (hasSharp2) svg += this._svgSharp(accNearX, y2, '#000', 35);
+                                if (hasFlat2) svg += this._svgFlat(accNearX, y2, '#000', 35);
+                                if (hasSharp1) svg += this._svgSharp(accFarX, y1, '#000', 35);
+                                if (hasFlat1) svg += this._svgFlat(accFarX, y1, '#000', 35);
                             } else {
-                                if (hasSharp1) svg += this._svgSharp(accNearX, y1, '#000', 11);
-                                if (hasFlat1) svg += this._svgFlat(accNearX, y1, '#000', 11);
-                                if (hasSharp2) svg += this._svgSharp(accFarX, y2, '#000', 11);
-                                if (hasFlat2) svg += this._svgFlat(accFarX, y2, '#000', 11);
+                                if (hasSharp1) svg += this._svgSharp(accNearX, y1, '#000', 35);
+                                if (hasFlat1) svg += this._svgFlat(accNearX, y1, '#000', 35);
+                                if (hasSharp2) svg += this._svgSharp(accFarX, y2, '#000', 35);
+                                if (hasFlat2) svg += this._svgFlat(accFarX, y2, '#000', 35);
                             }
                         } else {
                             // Genug Abstand oder nur ein Vorzeichen: alle an gleicher Position
-                            if (hasSharp1) svg += this._svgSharp(accNormX, y1, '#000', 11);
-                            if (hasFlat1) svg += this._svgFlat(accNormX, y1, '#000', 11);
-                            if (hasSharp2) svg += this._svgSharp(accNormX, y2, '#000', 11);
-                            if (hasFlat2) svg += this._svgFlat(accNormX, y2, '#000', 11);
+                            if (hasSharp1) svg += this._svgSharp(accNormX, y1, '#000', 35);
+                            if (hasFlat1) svg += this._svgFlat(accNormX, y1, '#000', 35);
+                            if (hasSharp2) svg += this._svgSharp(accNormX, y2, '#000', 35);
+                            if (hasFlat2) svg += this._svgFlat(accNormX, y2, '#000', 35);
                         }
 
                         svg += `<ellipse cx="${x}" cy="${y1}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x} ${y1})"/>`;
