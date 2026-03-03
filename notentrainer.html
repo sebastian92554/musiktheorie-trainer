@@ -2732,9 +2732,16 @@
                     const el = document.getElementById('lkVisualNoten3Vorzeichen');
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
-                            numOctaves: 2,
                             showBlackLabels: true,
-                            showHalftoneArrows: true
+                            highlightKeys: [{key:'F', color:'#c7d2fe'}],
+                            onKeyArrows: [
+                                {from:'F', to:'Fis', label:'♯', color:'#16a34a'},
+                                {from:'F', to:'E',   label:'♭', color:'#dc2626'}
+                            ],
+                            _customLabels: [
+                                {key:'E',   text:'Fes', color:'#dc2626', position:'aboveLabel'},
+                                {key:'Fis', text:'Fis', color:'#16a34a', position:'blackLabel'}
+                            ]
                         });
                     }
                 }
@@ -2845,11 +2852,11 @@
                 },
                 'noten3_vorzeichen': {
                     title: 'Vorzeichen auf der Tastatur',
-                    body: `<p>Finde auch Töne mit ♯ und ♭ auf der Klaviatur. Vorzeichen-Töne liegen <strong>meist auf schwarzen Tasten</strong> — aber nicht immer!</p>
+                    body: `<p>Du kennst <span class="vz-sharp"></span> und <span class="vz-flat"></span> bereits — jetzt findest du die Töne <strong>auf der Klaviatur</strong>. Zur Erinnerung: <span class="vz-sharp"></span> = eine Taste nach <strong>rechts</strong>, <span class="vz-flat"></span> = eine Taste nach <strong>links</strong>.</p>
                         <div class="lk-visual" id="lkVisualNoten3Vorzeichen"></div>
-                        <div class="lk-rule"><strong>Wichtig:</strong> Zwischen E–F und H–C liegt <strong>kein Halbton dazwischen</strong> (keine schwarze Taste). Deshalb ist <strong>Eis = F</strong> und <strong>His = C</strong> — ein Vorzeichen landet hier auf einer weißen Taste!</div>
+                        <div class="lk-rule"><strong>Wichtig:</strong> Zwischen E–F und H–C liegt kein Halbton dazwischen (keine schwarze Taste). Deshalb ist <strong>Eis = F</strong> und <strong>His = C</strong> — ein Vorzeichen landet hier auf einer weißen Taste!</div>
                         <div class="lk-tip"><strong>Enharmonik:</strong> Jede schwarze Taste hat zwei Namen: Cis = Des, Dis = Es, Fis = Ges, Gis = As, Ais = B. Auf der Tastatur ist es dieselbe Taste.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note mit Vorzeichen und klicke die richtige Taste — auch schwarze.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note mit Vorzeichen und klicke die richtige Taste auf der Klaviatur — auch schwarze.</div>`
                 },
                 'noten3_hilfslinien': {
                     title: 'Hilfslinien + Tastatur',
