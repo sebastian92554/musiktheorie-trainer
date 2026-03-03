@@ -183,26 +183,27 @@
             background: #fee2e2;
         }
 
-        /* Taktart-Wechsel Toast */
+        /* Taktart-Wechsel Toast — relativ zum Staff */
         .taktart-hint-toast {
-            position: fixed;
-            top: 80px;
+            position: absolute;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%) translateY(-20px);
-            background: #8b5cf6;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(139, 92, 246, 0.92);
             color: white;
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1.25rem;
             border-radius: 0.75rem;
             font-weight: 600;
             font-size: 0.95rem;
-            z-index: 9999;
+            z-index: 10;
             opacity: 0;
             transition: opacity 0.3s, transform 0.3s;
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            pointer-events: none;
         }
         .taktart-hint-toast.visible {
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
+            transform: translate(-50%, -50%) scale(1);
         }
         @keyframes badgePulse {
             0% { transform: scale(1); box-shadow: none; }
@@ -347,6 +348,7 @@
         }
 
         .bar-display {
+            position: relative; /* Anker für Taktartwechsel-Toast */
             border: 3px solid #8b5cf6;
             border-radius: 0.5rem;
             padding: 1.5rem 1rem;
@@ -2520,10 +2522,16 @@
 
             // Toast-Hinweis: Taktart wechselt ab Frage 7
             _showTaktartHint() {
+                const barDisplay = document.getElementById('barDisplay');
+                if (!barDisplay) return;
+                // Alten Toast entfernen falls vorhanden
+                const old = barDisplay.querySelector('.taktart-hint-toast');
+                if (old) old.remove();
+
                 const toast = document.createElement('div');
                 toast.className = 'taktart-hint-toast';
-                toast.textContent = 'Achtung: Die Taktart wechselt!';
-                document.body.appendChild(toast);
+                toast.textContent = '⚡ Taktart wechselt!';
+                barDisplay.appendChild(toast);
                 // Einblenden
                 requestAnimationFrame(() => toast.classList.add('visible'));
                 // Ausblenden nach 2.5s
@@ -3770,10 +3778,10 @@ Gerät:
             // Gibt Positionen zurück, an denen Noten geteilt werden müssen
             getBarDivisionPoints() {
                 switch (this.settings.timeSignature) {
-                    case '4/4': return [2.0];  // Nach Zählzeit 2
-                    case '3/4': return [];     // Keine Teilung (ungerade)
-                    case '5/4': return [3.0];  // 3+2 Gruppierung
-                    case '7/8': return [2.0];  // 4+3 Gruppierung (2.0 Viertelwerte = 4 Achtel)
+                    case '4/4': return [2.0];        // Taktmitte
+                    case '3/4': return [1.0, 2.0];   // Jeder Schlag sichtbar
+                    case '5/4': return [3.0];         // 3+2 Gruppierung
+                    case '7/8': return [2.0];         // 4+3 Gruppierung (2.0 Viertelwerte = 4 Achtel)
                     default: return [];
                 }
             },
@@ -3835,7 +3843,9 @@ Gerät:
                     // 1. Normale Teilungspunkte (für Noten außer Ausnahmen)
                     if (!isRest) {
                         const isExemptFromNormal = (note.type === 'whole' || note.type === 'dotted-half') ||
-                                         (note.type === 'half' && noteStart === 1.0 && this.settings.timeSignature === '4/4');
+                                         (note.type === 'half' && noteStart === 1.0 && this.settings.timeSignature === '4/4') ||
+                                         // 3/4: Halbe auf Beat 1 (Pos 0) oder Beat 2 (Pos 1.0) ist Standard-Notation
+                                         (note.type === 'half' && (Math.abs(noteStart) < 0.001 || Math.abs(noteStart - 1.0) < 0.001) && this.settings.timeSignature === '3/4');
                         
                         if (!isExemptFromNormal) {
                             applicablePoints = [...divisionPoints];
