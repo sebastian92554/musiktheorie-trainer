@@ -4693,13 +4693,14 @@ Gerät:
                 }
 
                 // Pädagogisch (Ebene 3): Synkopen/Überbindungen einschränken
-                // - Sub-Skills a (basis), b (pausen), c (8tel): Keine Ties im Takt
+                // - Sub-Skill a (basis): Ties ERLAUBT (wenige Notenwerte → Synkopen unproblematisch)
+                // - Sub-Skills b (pausen), c (8tel): Keine Ties im Takt
                 // - Sub-Skill d (16tel): Ties erst ab Frage 5
                 // - Sub-Skills e+ (punktierte, triolen, noaudio): Ties erlaubt
                 if (params.needsMarker && params.isQuiz) {
                     const hasTies = bar.notes.some(n => n.tiedTo !== null && n.tiedTo !== undefined);
                     if (hasTies) {
-                        const noTieSubSkills = ['basis', 'pausen', '8tel'];
+                        const noTieSubSkills = ['pausen', '8tel'];
                         if (noTieSubSkills.includes(params.currentSub)) {
                             return { valid: false, reason: 'ties-not-allowed-yet' };
                         }
@@ -4779,16 +4780,34 @@ Gerät:
                         );
                     }
                 } else if (maxVal === 5) {
-                    // 5/4-Takt
+                    // 5/4-Takt (3+2 Gruppierung, Division bei 3.0)
+                    // Alle Patterns so gewählt, dass keine Note Position 3.0 überquert
                     patterns.push(
-                        ['half', 'quarter', 'half'],
-                        ['quarter', 'quarter', 'quarter', 'quarter', 'quarter']
+                        ['half', 'quarter', 'half'],                           // 2+1 | 2
+                        ['quarter', 'quarter', 'quarter', 'quarter', 'quarter'], // 1+1+1 | 1+1
+                        ['whole', 'quarter'],                                   // 4(exempt)+1
+                        ['quarter', 'whole'],                                   // 1+4(exempt)
+                        ['quarter', 'half', 'half'],                            // 1+2 | 2
+                        ['quarter', 'half', 'quarter', 'quarter'],              // 1+2 | 1+1
+                        ['half', 'quarter', 'quarter', 'quarter'],              // 2+1 | 1+1
+                        ['quarter', 'quarter', 'quarter', 'half']               // 1+1+1 | 2
                     );
+                    if (params.availableNotes.includes('eighth')) {
+                        patterns.push(
+                            ['half', 'quarter', 'quarter', 'eighth', 'eighth'],   // 2+1 | 1+0.5+0.5
+                            ['quarter', 'eighth', 'eighth', 'quarter', 'half'],   // 1+0.5+0.5+1 | 2
+                            ['half', 'eighth', 'eighth', 'half']                  // 2+0.5+0.5 | 2
+                        );
+                    }
                 } else if (maxVal === 3.5) {
-                    // 7/8-Takt
+                    // 7/8-Takt (4+3 Gruppierung in Achtelwerten)
                     patterns.push(
                         ['quarter', 'quarter', 'quarter', 'eighth'],
-                        ['quarter', 'eighth', 'quarter', 'quarter']
+                        ['quarter', 'eighth', 'quarter', 'quarter'],
+                        ['quarter', 'quarter', 'eighth', 'quarter'],
+                        ['half', 'quarter', 'eighth'],
+                        ['half', 'eighth', 'quarter'],
+                        ['quarter', 'eighth', 'half']
                     );
                 }
 
