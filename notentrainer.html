@@ -2594,9 +2594,18 @@
                 // SVG-Visualisierungen dynamisch rendern
                 // ---- noten1: basis — Stammtöne im Violinschlüssel ----
                 if (key === 'basis') {
-                    const el = document.getElementById('lkVisualBasis');
-                    if (el) {
-                        el.innerHTML = this.renderMerkhilfeStaff('treble');
+                    const el1 = document.getElementById('lkVisualBasisStammtoene');
+                    if (el1) {
+                        el1.innerHTML = this.renderLernkarteNotensystem('treble', [
+                            {name:'C',octave:'eingestrichen',label:'C'},{name:'D',octave:'eingestrichen',label:'D'},
+                            {name:'E',octave:'eingestrichen',label:'E'},{name:'F',octave:'eingestrichen',label:'F'},
+                            {name:'G',octave:'eingestrichen',label:'G'},{name:'A',octave:'eingestrichen',label:'A'},
+                            {name:'H',octave:'eingestrichen',label:'H'},{name:'C',octave:'zweigestrichen',label:'C'}
+                        ]);
+                    }
+                    const el2 = document.getElementById('lkVisualBasisMerkhilfe');
+                    if (el2) {
+                        el2.innerHTML = this.renderMerkhilfeStaff('treble');
                     }
                 }
                 // ---- noten1: vorzeichen — Halbtonschritte auf Tastatur ----
@@ -2640,9 +2649,18 @@
                 }
                 // ---- noten2: basis — Stammtöne im Bassschlüssel ----
                 else if (key === 'noten2_basis') {
-                    const el = document.getElementById('lkVisualNoten2Basis');
-                    if (el) {
-                        el.innerHTML = this.renderMerkhilfeStaff('bass');
+                    const el1 = document.getElementById('lkVisualNoten2BasisStammtoene');
+                    if (el1) {
+                        el1.innerHTML = this.renderLernkarteNotensystem('bass', [
+                            {name:'G',octave:'gross',label:'G'},{name:'A',octave:'gross',label:'A'},
+                            {name:'H',octave:'gross',label:'H'},{name:'C',octave:'klein',label:'C'},
+                            {name:'D',octave:'klein',label:'D'},{name:'E',octave:'klein',label:'E'},
+                            {name:'F',octave:'klein',label:'F'},{name:'G',octave:'klein',label:'G'}
+                        ]);
+                    }
+                    const el2 = document.getElementById('lkVisualNoten2BasisMerkhilfe');
+                    if (el2) {
+                        el2.innerHTML = this.renderMerkhilfeStaff('bass');
                     }
                 }
                 // ---- noten2: vorzeichen — Halbtonschritte auf Tastatur ----
@@ -2725,9 +2743,11 @@
                 // ---- NOTEN1: Einsteiger (Violinschlüssel) ----
                 'basis': {
                     title: 'Stammtöne im Violinschlüssel',
-                    body: `<p>Im <strong>Violinschlüssel</strong> liegt jeder Ton auf einer festen Position — auf einer Linie oder in einem Zwischenraum.</p>
-                        <div class="lk-visual" id="lkVisualBasis"></div>
+                    body: `<p>Es gibt sieben Stammtöne: <strong>C – D – E – F – G – A – H</strong>. Die Reihe folgt dem Alphabet — mit der Ausnahme, dass nach A nicht B, sondern <strong>H</strong> kommt. Nach H geht es wieder bei C weiter.</p>
+                        <div class="lk-visual" id="lkVisualBasisStammtoene"></div>
                         <div class="lk-rule"><strong>Ankerpunkt:</strong> Der Violinschlüssel umschließt die <strong>G-Linie</strong> (2. Linie von unten). Von G aus kannst du alle anderen Töne abzählen.</div>
+                        <p>Im Violinschlüssel liegt jeder Ton auf einer festen Position — auf einer <strong>Linie</strong> oder in einem <strong>Zwischenraum</strong>:</p>
+                        <div class="lk-visual" id="lkVisualBasisMerkhilfe"></div>
                         <div class="lk-tip"><strong>Merkhilfe Linien</strong> (von unten): <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß.<br><strong>Zwischenräume</strong> (von unten) buchstabieren: <strong>F</strong> – <strong>A</strong> – <strong>C</strong> – <strong>E</strong> (= „face").</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Note im Violinschlüssel. Gib ihren Namen ein (C, D, E, F, G, A oder H).</div>`
                 },
@@ -2758,10 +2778,12 @@
                 // ---- NOTEN2: Aufsteiger (Bassschlüssel) ----
                 'noten2_basis': {
                     title: 'Stammtöne im Bassschlüssel',
-                    body: `<p>Im <strong>Bassschlüssel</strong> liegen die Noten auf anderen Positionen als im Violinschlüssel — derselbe Notenkopf bedeutet hier einen anderen Ton!</p>
-                        <div class="lk-visual" id="lkVisualNoten2Basis"></div>
+                    body: `<p>Die sieben Stammtöne <strong>C – D – E – F – G – A – H</strong> gelten auch im Bassschlüssel — aber sie liegen auf <strong>anderen Positionen</strong> als im Violinschlüssel. Derselbe Notenkopf bedeutet hier einen anderen Ton!</p>
+                        <div class="lk-visual" id="lkVisualNoten2BasisStammtoene"></div>
                         <div class="lk-rule"><strong>Ankerpunkt:</strong> Der Bassschlüssel markiert die <strong>F-Linie</strong> (4. Linie von unten, zwischen den zwei Punkten). Von F aus kannst du abzählen.</div>
-                        <div class="lk-tip"><strong>Merkhilfe Linien</strong> (von unten): <strong>G</strong> – <strong>H</strong> – <strong>D</strong> – <strong>F</strong> – <strong>A</strong>.<br><strong>Zwischenräume</strong> (von unten): <strong>A</strong> – <strong>C</strong> – <strong>E</strong> – <strong>G</strong>.</div>
+                        <p>Auch hier hilft es, die <strong>Linien</strong> und <strong>Zwischenräume</strong> getrennt zu lernen:</p>
+                        <div class="lk-visual" id="lkVisualNoten2BasisMerkhilfe"></div>
+                        <div class="lk-tip"><strong>Merkhilfe Linien</strong> (von unten): <strong>G</strong>ute <strong>H</strong>unde <strong>D</strong>ürfen <strong>F</strong>utter <strong>A</strong>uswählen.<br><strong>Zwischenräume</strong> (von unten): <strong>A</strong>lle <strong>C</strong>oolen <strong>E</strong>ssen <strong>G</strong>ummibärchen.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne den angezeigten Ton im Bassschlüssel.</div>`
                 },
                 'noten2_vorzeichen': {
@@ -2819,7 +2841,7 @@
             renderLernkarteNotensystem(clef, notes) {
                 const pad = 6;
                 const spacing = notes.length <= 4 ? 64 : notes.length <= 6 ? 50 : 44;
-                const clefSpace = 40; // Platz für Schlüsselsymbol
+                const clefSpace = 50; // Platz für Schlüssel-SVG + Padding
                 const totalW = pad + clefSpace + notes.length * spacing + 6;
                 const baseY = 100;
                 const lineSpacing = 12;
@@ -2893,7 +2915,7 @@
                 const baseY = 100;
                 const staffLines = [100, 88, 76, 64, 52];
 
-                const clefSpace = 28;
+                const clefSpace = 38;
                 const noteSpace = 32;
                 const groupGap = 18;
                 const pad = 6;
