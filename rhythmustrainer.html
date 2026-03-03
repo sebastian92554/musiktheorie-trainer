@@ -2489,8 +2489,8 @@
                                         badge.classList.add('badge-pulse');
                                     }
                                 }
-                                // Hinweis bei erster Taktart-Wechsel-Frage
-                                if (this.questionsAnswered === 6) {
+                                // Hinweis nur wenn Taktart tatsächlich wechselt
+                                if (newTS !== oldTS) {
                                     this._showTaktartHint();
                                 }
                             }
@@ -3791,8 +3791,17 @@ Gerät:
                     }
                 }
                 
-                // Wenn keine Teilungspunkte, return bar (aber nur wenn auch keine quarterBeatPoints)
-                if (divisionPoints.length === 0 && quarterBeatPoints.length === 0) return bar;
+                // Wenn keine Teilungspunkte: originalIndex + originalNoteCount trotzdem setzen
+                if (divisionPoints.length === 0 && quarterBeatPoints.length === 0) {
+                    let idx = 0;
+                    const annotated = bar.notes.map(note => ({
+                        ...note,
+                        tiedTo: null,
+                        tiedFrom: null,
+                        originalIndex: idx++
+                    }));
+                    return { ...bar, notes: annotated, originalNoteCount: idx };
+                }
 
                 const newNotes = [];
                 let currentPosition = 0;
@@ -4671,6 +4680,23 @@ Gerät:
                     const hasFocus = bar.notes.some(n => params.focusTypes.includes(n.type));
                     if (!hasFocus) {
                         return { valid: false, reason: 'missing-focus-note' };
+                    }
+                }
+
+                // Pädagogisch (Ebene 3): Synkopen/Überbindungen einschränken
+                // - Sub-Skills a (basis), b (pausen), c (8tel): Keine Ties im Takt
+                // - Sub-Skill d (16tel): Ties erst ab Frage 5
+                // - Sub-Skills e+ (punktierte, triolen, noaudio): Ties erlaubt
+                if (params.needsMarker && params.isQuiz) {
+                    const hasTies = bar.notes.some(n => n.tiedTo !== null && n.tiedTo !== undefined);
+                    if (hasTies) {
+                        const noTieSubSkills = ['basis', 'pausen', '8tel'];
+                        if (noTieSubSkills.includes(params.currentSub)) {
+                            return { valid: false, reason: 'ties-not-allowed-yet' };
+                        }
+                        if (params.currentSub === '16tel' && params.qAnswered < 4) {
+                            return { valid: false, reason: 'ties-not-allowed-before-q5' };
+                        }
                     }
                 }
 
