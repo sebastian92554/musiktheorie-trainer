@@ -3096,10 +3096,11 @@
                         let endX, endY;
                         if (toX !== undefined) {
                             const toIsBlack = _blackKeySet.has(a.to);
-                            const targetY = toIsBlack ? ky + pad + bh * 0.45 : ky + pad + wh * 0.42;
+                            // Vertikale Mitte der Zieltaste
+                            const targetY = toIsBlack ? ky + pad + bh * 0.5 : ky + pad + wh * 0.5;
                             const dx = toX - fromX, dy = targetY - startY;
                             const dist = Math.sqrt(dx*dx + dy*dy);
-                            const shrink = 10; // Vor dem Ziel stoppen
+                            const shrink = 6; // Knapp vor dem Ziel stoppen
                             endX = fromX + dx * (1 - shrink/dist);
                             endY = startY + dy * (1 - shrink/dist);
                         } else {
