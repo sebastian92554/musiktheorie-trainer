@@ -2615,15 +2615,15 @@
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
                             highlightKeys: [
-                                {key:'F',color:'#c7d2fe'},
-                                {key:'Fis',color:'#bbf7d0'}
+                                {key:'F',color:'#c7d2fe'}
                             ],
                             onKeyArrows: [
                                 {from:'F',to:'Fis',label:'♯',color:'#16a34a'},
                                 {from:'F',to:'E',label:'♭',color:'#dc2626'}
                             ],
                             _customLabels: [
-                                {key:'E',text:'Fes',color:'#dc2626',above:true}
+                                {key:'E',text:'Fes',color:'#dc2626',position:'top'},
+                                {key:'Fis',text:'Fis',color:'#16a34a',position:'blackLabel'}
                             ]
                         });
                     }
@@ -2676,15 +2676,11 @@
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
                             highlightKeys: [
-                                {key:'A',color:'#c7d2fe'},
-                                {key:'Ais',color:'#bbf7d0'}
+                                {key:'A',color:'#c7d2fe'}
                             ],
                             onKeyArrows: [
                                 {from:'A',to:'Ais',label:'♯',color:'#16a34a'},
                                 {from:'A',to:'Gis',label:'♭',color:'#dc2626'}
-                            ],
-                            _customLabels: [
-                                {key:'Gis',text:'As',color:'#dc2626',above:true}
                             ]
                         });
                     }
@@ -2875,7 +2871,10 @@
                 const svgTop = minY - 14;
                 const labelH = 22;
                 const svgBottom = maxY + 12 + labelH;
-                const svgH = svgBottom - svgTop;
+                // Konsistente Mindesthöhe damit alle Staffs gleich groß gerendert werden
+                const minSvgH = 108;
+                const rawH = svgBottom - svgTop;
+                const svgH = Math.max(rawH, minSvgH);
 
                 let svg = `<svg width="100%" viewBox="0 ${svgTop} ${totalW} ${svgH}" preserveAspectRatio="xMidYMid meet">`;
 
@@ -3075,10 +3074,14 @@
                         const fill = hl ? (hl.color || '#c7d2fe') : '#222';
                         svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
                         if (showBlackLabels) {
-                            const lblArr = blackLabels[blackMap[wk.name]];
-                            if (lblArr) {
-                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
-                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
+                            const _cl = (options._customLabels || []);
+                            const hasCustomBL = _cl.some(c => c.key === bkId && c.position === 'blackLabel');
+                            if (!hasCustomBL) {
+                                const lblArr = blackLabels[blackMap[wk.name]];
+                                if (lblArr) {
+                                    svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
+                                    svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
+                                }
                             }
                         }
                         if (hl && hl.label) {
@@ -3134,24 +3137,35 @@
                             const my = (startY + endY) / 2;
                             const goesRight = endX > fromX;
                             const offsetX = goesRight ? 8 : -8;
-                            svg += `<text x="${mx + offsetX}" y="${my}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${a.label}</text>`;
+                            const labelSize = a.label === '♭' ? 10 : 10;
+                            const labelY = a.label === '♭' ? my + 8 : my;
+                            svg += `<text x="${mx + offsetX}" y="${labelY}" text-anchor="middle" font-size="${labelSize}" fill="${color}" font-weight="700">${a.label}</text>`;
                         }
                     });
                 }
 
-                // Custom Labels über/unter Tasten (_customLabels)
+                // Custom Labels über/unter/auf Tasten (_customLabels)
                 const _customLabels = options._customLabels || [];
                 if (_customLabels.length > 0) {
                     _customLabels.forEach(cl => {
                         const cx = keyPositions[cl.key];
                         if (cx === undefined) return;
                         const color = cl.color || '#4f46e5';
-                        if (cl.above) {
-                            const ty = ky + pad - 4;
-                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="10" fill="${color}" font-weight="700">${cl.text}</text>`;
+                        if (cl.position === 'top') {
+                            // Innerhalb der Taste oben, gleiche Höhe wie schwarze Labels (pad+12)
+                            const ty = ky + pad + 12;
+                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="11" fill="${color}" font-weight="600">${cl.text}</text>`;
+                        } else if (cl.position === 'blackLabel') {
+                            // Auf schwarzer Taste, ersetzt das Standard-Label
+                            const ty = ky + pad + 12;
+                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="6" fill="${color}" font-weight="700">${cl.text}</text>`;
+                        } else if (cl.above) {
+                            // Legacy: über der Taste
+                            const ty = ky + pad + 12;
+                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="11" fill="${color}" font-weight="600">${cl.text}</text>`;
                         } else {
                             const ty = ky + pad + wh + 14;
-                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="10" fill="${color}" font-weight="700">${cl.text}</text>`;
+                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="11" fill="${color}" font-weight="600">${cl.text}</text>`;
                         }
                     });
                 }
