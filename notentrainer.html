@@ -1153,6 +1153,107 @@
         }
         
         /* Quick Start Container */
+
+        /* ---- Lernkarten ---- */
+        .lernkarte-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 250;
+            justify-content: center;
+            align-items: center;
+        }
+        .lernkarte-overlay.active { display: flex; }
+        .lernkarte {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 520px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .lernkarte h2 {
+            font-size: 1.25rem;
+            color: #3730a3;
+            margin-bottom: 12px;
+        }
+        .lernkarte p {
+            color: #374151;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+        .lk-visual {
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .lk-visual svg { max-width: 100%; }
+        .lk-tip {
+            background: #ecfdf5;
+            border-left: 3px solid #10b981;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #065f46;
+        }
+        .lk-rule {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #1e40af;
+        }
+        .lk-task {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #92400e;
+        }
+        .lk-contrast {
+            display: flex;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .lk-contrast > div {
+            flex: 1;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .lk-contrast .lk-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #3730a3;
+        }
+        .lernkarte button {
+            width: 100%;
+            padding: 14px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 14px;
+        }
+        .lernkarte button:hover { background: #4338ca; }
     </style>
 </head>
 <body>
@@ -1254,6 +1355,15 @@
     <div id="originalApp" class="level-screen">
     
     <div class="container" id="app">
+        <!-- Lernkarte Overlay -->
+        <div class="lernkarte-overlay" id="lernkarteOverlay">
+            <div class="lernkarte">
+                <h2 id="lernkarteTitle"></h2>
+                <div id="lernkarteBody"></div>
+                <button onclick="app.dismissLernkarte()">Verstanden, los!</button>
+            </div>
+        </div>
+
         <!-- Modal (initial versteckt) -->
         <div class="modal-overlay" id="introModal">
             <div class="modal">
@@ -1975,7 +2085,12 @@
 
                 this.showQuizOverlay();
 
-                app.generateNote();
+                // Lernkarte vor der ersten Aufgabe anzeigen
+                const lastSubSkill = this.currentOptions[this.currentOptions.length - 1];
+                if (!app.showLernkarte(lastSubSkill, true)) {
+                    // Keine Lernkarte vorhanden → direkt erste Aufgabe
+                    app.generateNote();
+                }
             },
 
             // ---- App für Level konfigurieren ----
@@ -2448,6 +2563,565 @@
                         }
                     });
                 }
+            },
+
+            // ===============================================
+            // LERNKARTEN-SYSTEM
+            // ===============================================
+
+            _lernkarteFromStart: false,
+
+            // Mapping: Sub-Skill-ID + Level → lernkartenContent-Key
+            getLernkarteKey(subSkillId) {
+                const level = quickStart.currentLevel;
+                // noten1 Sub-Skills (basis, vorzeichen, hilfslinien, lagen) sind direkt
+                if (level === 'einsteiger') return subSkillId;
+                // noten2/noten3: prefixed keys
+                const prefixMap = { 'aufsteiger': 'noten2_', 'profi': 'noten3_' };
+                const prefix = prefixMap[level];
+                if (prefix) return prefix + subSkillId;
+                return subSkillId;
+            },
+
+            showLernkarte(subSkillId, fromStart) {
+                const key = this.getLernkarteKey(subSkillId);
+                const content = this.lernkartenContent[key];
+                if (!content) return false;
+                this._lernkarteFromStart = !!fromStart;
+                document.getElementById('lernkarteTitle').textContent = content.title;
+                document.getElementById('lernkarteBody').innerHTML = content.body;
+
+                // SVG-Visualisierungen dynamisch rendern
+                // ---- noten1: basis — Stammtöne im Violinschlüssel ----
+                if (key === 'basis') {
+                    const el = document.getElementById('lkVisualBasis');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteNotensystem('treble', [
+                            {name:'C',octave:'eingestrichen',label:'C'},{name:'D',octave:'eingestrichen',label:'D'},
+                            {name:'E',octave:'eingestrichen',label:'E'},{name:'F',octave:'eingestrichen',label:'F'},
+                            {name:'G',octave:'eingestrichen',label:'G'},{name:'A',octave:'eingestrichen',label:'A'},
+                            {name:'H',octave:'eingestrichen',label:'H'},{name:'C',octave:'zweigestrichen',label:'C'}
+                        ]);
+                    }
+                }
+                // ---- noten1: vorzeichen — Halbtonschritte auf Tastatur ----
+                else if (key === 'vorzeichen') {
+                    const el = document.getElementById('lkVisualVorzeichen');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteTastatur({
+                            showBlackLabels: true,
+                            highlightKeys: [{key:'F',color:'#c7d2fe'}],
+                            onKeyArrows: [
+                                {from:'F',to:'Fis',labelKey:'G',label:'♯ → Fis',color:'#16a34a'},
+                                {from:'F',to:'E',labelKey:'E',label:'♭ → ?',color:'#dc2626'}
+                            ]
+                        });
+                    }
+                }
+                // ---- noten1: hilfslinien — Noten auf Hilfslinien ----
+                else if (key === 'hilfslinien') {
+                    const el = document.getElementById('lkVisualHilfslinien');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteNotensystem('treble', [
+                            {name:'H',octave:'klein',label:'H'},
+                            {name:'C',octave:'eingestrichen',label:'C'},
+                            {name:'D',octave:'eingestrichen',label:'D'},
+                            {name:'F',octave:'zweigestrichen',label:'F\'\''},
+                            {name:'G',octave:'zweigestrichen',label:'G\'\''},
+                            {name:'A',octave:'zweigestrichen',label:'A\'\''}
+                        ]);
+                    }
+                }
+                // ---- noten1: lagen — Gleicher Ton in verschiedenen Oktaven ----
+                else if (key === 'lagen') {
+                    const el = document.getElementById('lkVisualLagen');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteNotensystem('treble', [
+                            {name:'C',octave:'klein',label:'c (klein)'},
+                            {name:'C',octave:'eingestrichen',label:'c\' (1-gestr.)'},
+                            {name:'C',octave:'zweigestrichen',label:'c\'\' (2-gestr.)'}
+                        ]);
+                    }
+                }
+                // ---- noten2: basis — Stammtöne im Bassschlüssel ----
+                else if (key === 'noten2_basis') {
+                    const el = document.getElementById('lkVisualNoten2Basis');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteNotensystem('bass', [
+                            {name:'G',octave:'gross',label:'G'},{name:'A',octave:'gross',label:'A'},
+                            {name:'H',octave:'gross',label:'H'},{name:'C',octave:'klein',label:'C'},
+                            {name:'D',octave:'klein',label:'D'},{name:'E',octave:'klein',label:'E'},
+                            {name:'F',octave:'klein',label:'F'},{name:'G',octave:'klein',label:'G'}
+                        ]);
+                    }
+                }
+                // ---- noten2: vorzeichen — Halbtonschritte auf Tastatur ----
+                else if (key === 'noten2_vorzeichen') {
+                    const el = document.getElementById('lkVisualNoten2Vorzeichen');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteTastatur({
+                            showBlackLabels: true,
+                            highlightKeys: [{key:'A',color:'#c7d2fe'}],
+                            onKeyArrows: [
+                                {from:'A',to:'Ais',labelKey:'H',label:'♯ → Ais',color:'#16a34a'},
+                                {from:'A',to:'Gis',labelKey:'G',label:'♭ → As',color:'#dc2626'}
+                            ]
+                        });
+                    }
+                }
+                // ---- noten2: hilfslinien ----
+                else if (key === 'noten2_hilfslinien') {
+                    const el = document.getElementById('lkVisualNoten2Hilfslinien');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteNotensystem('bass', [
+                            {name:'E',octave:'gross',label:'E'},
+                            {name:'D',octave:'gross',label:'D'},
+                            {name:'C',octave:'gross',label:'C'},
+                            {name:'H',octave:'klein',label:'H'},
+                            {name:'C',octave:'eingestrichen',label:'c\''}
+                        ]);
+                    }
+                }
+                // ---- noten2: lagen ----
+                else if (key === 'noten2_lagen') {
+                    const el = document.getElementById('lkVisualNoten2Lagen');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteNotensystem('bass', [
+                            {name:'C',octave:'gross',label:'C (groß)'},
+                            {name:'C',octave:'klein',label:'c (klein)'},
+                            {name:'C',octave:'eingestrichen',label:'c\' (1-gestr.)'}
+                        ]);
+                    }
+                }
+                // ---- noten3: basis — Stammtöne auf Tastatur ----
+                else if (key === 'noten3_basis') {
+                    const el = document.getElementById('lkVisualNoten3Basis');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteTastatur({
+                            numOctaves: 2,
+                            highlightKeys: [{key:'C',color:'#c7d2fe'},{key:'F',color:'#c7d2fe'},{key:'C2',color:'#c7d2fe'},{key:'F2',color:'#c7d2fe'}]
+                        });
+                    }
+                }
+                // ---- noten3: vorzeichen — Vorzeichen auf Tastatur ----
+                else if (key === 'noten3_vorzeichen') {
+                    const el = document.getElementById('lkVisualNoten3Vorzeichen');
+                    if (el) {
+                        el.innerHTML = this.renderLernkarteTastatur({
+                            numOctaves: 2,
+                            showBlackLabels: true,
+                            showHalftoneArrows: true
+                        });
+                    }
+                }
+                // ---- noten3: hilfslinien ----
+                // Kein separater Visualisierungsblock — Kombination beider Fähigkeiten
+
+                document.getElementById('lernkarteOverlay').classList.add('active');
+                return true;
+            },
+
+            dismissLernkarte() {
+                document.getElementById('lernkarteOverlay').classList.remove('active');
+                // Nur beim Levelstart die erste Aufgabe generieren, nicht bei Hilfe-Aufruf
+                if (this._lernkarteFromStart) {
+                    this._lernkarteFromStart = false;
+                    this.generateNote();
+                }
+            },
+
+            // ---- Lernkarten-Inhalte ----
+            lernkartenContent: {
+                // ---- NOTEN1: Einsteiger (Violinschlüssel) ----
+                'basis': {
+                    title: 'Stammtöne im Violinschlüssel',
+                    body: `<p>Im <strong>Violinschlüssel</strong> liegt jeder Ton auf einer festen Position — auf einer Linie oder in einem Zwischenraum.</p>
+                        <div class="lk-visual" id="lkVisualBasis"></div>
+                        <div class="lk-rule"><strong>Ankerpunkt:</strong> Der Violinschlüssel umschließt die <strong>G-Linie</strong> (2. Linie von unten). Von G aus kannst du alle anderen Töne abzählen.</div>
+                        <div class="lk-tip"><strong>Merkhilfe Linien</strong> (von unten): <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß.<br><strong>Zwischenräume</strong> (von unten): <strong>F</strong> – <strong>A</strong> – <strong>C</strong> – <strong>E</strong>.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Note im Violinschlüssel. Gib ihren Namen ein (C, D, E, F, G, A oder H).</div>`
+                },
+                'vorzeichen': {
+                    title: 'Mit Vorzeichen',
+                    body: `<p>Ein <strong>♯ (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst auf der Tastatur eine Taste nach <strong>rechts</strong>. Ein <strong>♭ (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
+                        <div class="lk-visual" id="lkVisualVorzeichen"></div>
+                        <div class="lk-rule"><strong>Benennung mit ♯:</strong> Stammton + „is" → Fis, Cis, Gis, Dis, Ais.<br><strong>Benennung mit ♭:</strong> Stammton + „es" → Des, Ges.<br><strong>Drei Ausnahmen:</strong> E + ♭ = <strong>Es</strong> (nicht Ees), A + ♭ = <strong>As</strong> (nicht Aes), H + ♭ = <strong>B</strong> (nicht Hes).</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Lies zuerst den Stammton, dann schau, ob ein Vorzeichen davor steht. Das Vorzeichen steht immer direkt vor der Note auf derselben Linie oder im selben Zwischenraum.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne den Ton mitsamt Vorzeichen.</div>`
+                },
+                'hilfslinien': {
+                    title: 'Mit Hilfslinien',
+                    body: `<p><strong>Hilfslinien</strong> erweitern das Notensystem nach oben und unten. Jede Hilfslinie funktioniert wie eine reguläre Linie — abwechselnd Linie und Zwischenraum.</p>
+                        <div class="lk-visual" id="lkVisualHilfslinien"></div>
+                        <div class="lk-rule"><strong>Orientierung:</strong> Unten: Vom E (1. Linie) abwärts → D, C, H. Oben: Vom F (5. Linie) aufwärts → G, A, H.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Zähle von der nächsten bekannten Linie aus weiter — nicht vom Anfang des Systems!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne auch Töne auf Hilfslinien.</div>`
+                },
+                'lagen': {
+                    title: 'Lagen bestimmen',
+                    body: `<p>Gleiche Notennamen können in verschiedenen <strong>Oktavlagen</strong> vorkommen. Die Lage gibt an, wie hoch oder tief der Ton klingt.</p>
+                        <div class="lk-visual" id="lkVisualLagen"></div>
+                        <div class="lk-rule"><strong>Lagen im Violinschlüssel:</strong> Das <strong>eingestrichene c (c')</strong> liegt auf der 1. Hilfslinie unter dem System. Darüber: zweigestrichen (c''). Darunter: klein (c).</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Orientiere dich am c' — es ist dein Anker. Alles darüber ist mindestens eingestrichen, alles darunter klein oder tiefer.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme den Tonnamen UND wähle die richtige Oktavlage im Dropdown.</div>`
+                },
+                // ---- NOTEN2: Aufsteiger (Bassschlüssel) ----
+                'noten2_basis': {
+                    title: 'Stammtöne im Bassschlüssel',
+                    body: `<p>Im <strong>Bassschlüssel</strong> liegen die Noten auf anderen Positionen als im Violinschlüssel — derselbe Notenkopf bedeutet hier einen anderen Ton!</p>
+                        <div class="lk-visual" id="lkVisualNoten2Basis"></div>
+                        <div class="lk-rule"><strong>Ankerpunkt:</strong> Der Bassschlüssel markiert die <strong>F-Linie</strong> (4. Linie von unten, zwischen den zwei Punkten). Von F aus kannst du abzählen.</div>
+                        <div class="lk-tip"><strong>Merkhilfe Linien</strong> (von unten): <strong>G</strong> – <strong>H</strong> – <strong>D</strong> – <strong>F</strong> – <strong>A</strong>.<br><strong>Zwischenräume</strong> (von unten): <strong>A</strong> – <strong>C</strong> – <strong>E</strong> – <strong>G</strong>.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne den angezeigten Ton im Bassschlüssel.</div>`
+                },
+                'noten2_vorzeichen': {
+                    title: 'Vorzeichen im Bassschlüssel',
+                    body: `<p>Auch im Bassschlüssel kommen Vorzeichen (♯ und ♭) vor. Die Regeln sind identisch zum Violinschlüssel.</p>
+                        <div class="lk-visual" id="lkVisualNoten2Vorzeichen"></div>
+                        <div class="lk-rule"><strong>Zur Erinnerung:</strong> ♯ → Stammton + „is" (Fis, Cis, …). ♭ → Stammton + „es" (Des, Ges, …).<br><strong>Ausnahmen:</strong> E + ♭ = <strong>Es</strong>, A + ♭ = <strong>As</strong>, H + ♭ = <strong>B</strong>.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Der Bassschlüssel ändert nur die Position der Noten auf dem System — die Vorzeichen-Logik bleibt gleich.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne den Ton mitsamt Vorzeichen im Bassschlüssel.</div>`
+                },
+                'noten2_hilfslinien': {
+                    title: 'Hilfslinien im Bassschlüssel',
+                    body: `<p>Auch im Bassschlüssel erweitern <strong>Hilfslinien</strong> den Tonumfang nach oben und unten.</p>
+                        <div class="lk-visual" id="lkVisualNoten2Hilfslinien"></div>
+                        <div class="lk-rule"><strong>Wichtig:</strong> Das c' auf der 1. Hilfslinie <strong>über</strong> dem Bassschlüssel ist dasselbe c' wie auf der 1. Hilfslinie <strong>unter</strong> dem Violinschlüssel — hier treffen sich die beiden Systeme!</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Die Hilfslinien-Noten über dem Bassschlüssel überschneiden sich mit dem Violinschlüssel-Bereich.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne Töne auf Hilfslinien im Bassschlüssel.</div>`
+                },
+                'noten2_lagen': {
+                    title: 'Lagen im Bassschlüssel',
+                    body: `<p>Im Bassschlüssel kommen typischerweise die <strong>tieferen Lagen</strong> vor.</p>
+                        <div class="lk-visual" id="lkVisualNoten2Lagen"></div>
+                        <div class="lk-rule"><strong>Lagen im Bassschlüssel:</strong> Große Oktave (C, D, …) – Kleine Oktave (c, d, …) – Eingestrichene Oktave (c', d', …). Das große C liegt auf der 2. Hilfslinie unter dem System.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Im Bassschlüssel bist du meist in der großen oder kleinen Oktave. Erst auf Hilfslinien oben kommt die eingestrichene Oktave.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme den Tonnamen UND die Oktavlage im Bassschlüssel.</div>`
+                },
+                // ---- NOTEN3: Profi (Tastatur) ----
+                'noten3_basis': {
+                    title: 'Stammtöne auf der Tastatur',
+                    body: `<p>Du siehst eine Note in einem zufälligen Schlüssel und musst die richtige <strong>Taste auf der Klaviatur</strong> finden.</p>
+                        <div class="lk-visual" id="lkVisualNoten3Basis"></div>
+                        <div class="lk-rule"><strong>Ankertasten finden:</strong> Links neben der <strong>2er-Gruppe</strong> schwarzer Tasten liegt immer <strong>C</strong>. Links neben der <strong>3er-Gruppe</strong> liegt immer <strong>F</strong>. Alle anderen Töne leitest du vom nächsten Ankerton ab.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Achte auf den Schlüssel am Anfang der Notenzeile — derselbe Notenkopf bedeutet in Violin- und Bassschlüssel unterschiedliche Töne!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note und klicke die richtige weiße Taste auf der Klaviatur.</div>`
+                },
+                'noten3_vorzeichen': {
+                    title: 'Vorzeichen auf der Tastatur',
+                    body: `<p>Finde auch Töne mit ♯ und ♭ auf der Klaviatur. Vorzeichen-Töne liegen <strong>meist auf schwarzen Tasten</strong> — aber nicht immer!</p>
+                        <div class="lk-visual" id="lkVisualNoten3Vorzeichen"></div>
+                        <div class="lk-rule"><strong>Wichtig:</strong> Zwischen E–F und H–C liegt <strong>kein Halbton dazwischen</strong> (keine schwarze Taste). Deshalb ist <strong>Eis = F</strong> und <strong>His = C</strong> — ein Vorzeichen landet hier auf einer weißen Taste!</div>
+                        <div class="lk-tip"><strong>Enharmonik:</strong> Jede schwarze Taste hat zwei Namen: Cis = Des, Dis = Es, Fis = Ges, Gis = As, Ais = B. Auf der Tastatur ist es dieselbe Taste.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note mit Vorzeichen und klicke die richtige Taste — auch schwarze.</div>`
+                },
+                'noten3_hilfslinien': {
+                    title: 'Hilfslinien + Tastatur',
+                    body: `<p>Hier brauchst du <strong>beide Fähigkeiten</strong>: Erst die Note auf Hilfslinien lesen, dann die richtige Taste finden.</p>
+                        <div class="lk-rule"><strong>Methode:</strong> 1. Schlüssel erkennen. 2. Note auf Hilfslinien lesen (von der nächsten bekannten Note abzählen). 3. Taste auf der Klaviatur finden (C und F als Anker).</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Bei Hilfslinien-Noten hilft es, zuerst den Tonnamen sicher zu bestimmen — und dann erst die Taste zu suchen. Nicht raten!</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note (auch auf Hilfslinien) und klicke die richtige Taste.</div>`
+                }
+            },
+
+            // ---- Lernkarte: Notensystem mit mehreren beschrifteten Noten ----
+            // clef: 'treble' oder 'bass', notes: [{name, octave, label}]
+            renderLernkarteNotensystem(clef, notes) {
+                const pad = 6;
+                const spacing = notes.length <= 4 ? 64 : notes.length <= 6 ? 50 : 44;
+                const clefSpace = 40; // Platz für Schlüsselsymbol
+                const totalW = pad + clefSpace + notes.length * spacing + 6;
+                const baseY = 100;
+                const lineSpacing = 12;
+                const staffLines = [100, 88, 76, 64, 52];
+
+                const allYs = [];
+                const computed = notes.map((n, i) => {
+                    const posKey = `${n.name}-${n.octave}-${clef}`;
+                    const pos = this.notePositions[posKey];
+                    if (pos === undefined) return null;
+                    const y = baseY - (pos * lineSpacing / 2);
+                    allYs.push(y);
+                    const cx = pad + clefSpace + i * spacing + spacing / 2;
+                    return { y, cx, label: n.label };
+                }).filter(Boolean);
+
+                const minY = Math.min(...allYs, 52);
+                const maxY = Math.max(...allYs, 100);
+                const svgTop = minY - 14;
+                const labelH = 22;
+                const svgBottom = maxY + 12 + labelH;
+                const svgH = svgBottom - svgTop;
+
+                let svg = `<svg width="100%" viewBox="0 ${svgTop} ${totalW} ${svgH}" preserveAspectRatio="xMidYMid meet">`;
+
+                // Notenlinien
+                staffLines.forEach(ly => {
+                    svg += `<line x1="${pad}" y1="${ly}" x2="${totalW - 4}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                });
+
+                // Schlüsselsymbol (vereinfacht als Text)
+                if (clef === 'treble') {
+                    svg += `<text x="${pad + 4}" y="${baseY + 6}" font-size="38" font-family="serif" fill="#666">𝄞</text>`;
+                } else {
+                    svg += `<text x="${pad + 4}" y="${76 + 4}" font-size="28" font-family="serif" fill="#666">𝄢</text>`;
+                }
+
+                // Noten rendern
+                const rx = 7.5, ry = 5.7;
+                const hlW = 12;
+                computed.forEach(c => {
+                    // Hilfslinien
+                    if (c.y > 100) for (let ly = 100 + lineSpacing; ly <= c.y; ly += lineSpacing) {
+                        svg += `<line x1="${c.cx-hlW}" y1="${ly}" x2="${c.cx+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    }
+                    if (c.y < 52) for (let ly = 52 - lineSpacing; ly >= c.y; ly -= lineSpacing) {
+                        svg += `<line x1="${c.cx-hlW}" y1="${ly}" x2="${c.cx+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    }
+
+                    // Notenkopf
+                    svg += `<ellipse cx="${c.cx}" cy="${c.y}" rx="${rx}" ry="${ry}" fill="#1f2937" transform="rotate(-20 ${c.cx} ${c.y})"/>`;
+
+                    // Label
+                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 4}" text-anchor="middle" font-size="8.5" fill="#3730a3" font-weight="600">${c.label}</text>`;
+                });
+
+                svg += '</svg>';
+
+                // Breite begrenzen bei wenigen Noten
+                const refW = pad + clefSpace + 8 * 44 + 6;
+                if (totalW < refW) {
+                    const pct = Math.round(totalW / refW * 100);
+                    return `<div style="max-width:${pct}%;margin:0 auto">${svg}</div>`;
+                }
+                return svg;
+            },
+
+            // ---- Lernkarte-Tastatur: Mini-Keyboard (portiert aus IT) ----
+            renderLernkarteTastatur(options = {}) {
+                const {
+                    numOctaves = 1,
+                    highlightKeys = [], arrows = [], topArrows = [], onKeyArrows = [],
+                    keyStepArrows = [],
+                    showBlackLabels = false, showHalftoneArrows = false, title = ''
+                } = options;
+
+                const allWhite = ['C','D','E','F','G','A','H'];
+                const blackMap = { 'C': 'Cis', 'D': 'Dis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais' };
+                const blackLabels = { 'Cis': ['Cis','Des'], 'Dis': ['Dis','Es'], 'Fis': ['Fis','Ges'], 'Gis': ['Gis','As'], 'Ais': ['Ais','B'] };
+
+                const whiteKeys = [];
+                for (let oct = 1; oct <= numOctaves; oct++) {
+                    const suffix = oct === 1 ? '' : String(oct);
+                    allWhite.forEach(k => whiteKeys.push({ name: k, id: k + suffix, label: k }));
+                }
+                const numWhite = whiteKeys.length;
+
+                const ww = numOctaves > 1 ? 24 : 32;
+                const wh = numOctaves > 1 ? 64 : 80;
+                const bw = numOctaves > 1 ? 15 : 20;
+                const bh = numOctaves > 1 ? 40 : 50;
+                const pad = 6;
+                const totalW = numWhite * ww + pad * 2;
+                const hasLabels = highlightKeys.some(h => h.label);
+                const labelSpace = hasLabels ? 16 : 0;
+                const arrowSpace = arrows.length > 0 ? 30 : 0;
+                const titleSpace = title ? 18 : 0;
+                const htSpace = showHalftoneArrows ? 22 : 0;
+                const topArrowSpace = topArrows.length > 0 ? 32 : 0;
+                const totalH = htSpace + topArrowSpace + wh + pad * 2 + labelSpace + arrowSpace + titleSpace;
+
+                const keyPositions = {};
+                whiteKeys.forEach((wk, i) => {
+                    keyPositions[wk.id] = pad + i * ww + ww / 2;
+                    if (blackMap[wk.name] && i < numWhite - 1) {
+                        const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                        keyPositions[blackMap[wk.name] + suffix] = pad + i * ww + ww;
+                    }
+                });
+
+                let svg = `<svg width="100%" viewBox="0 0 ${totalW} ${totalH}" preserveAspectRatio="xMidYMid meet">`;
+
+                if (title) {
+                    svg += `<text x="${totalW/2}" y="14" text-anchor="middle" font-size="11" fill="#6b7280" font-weight="600">${title}</text>`;
+                }
+                const ky = titleSpace + htSpace + topArrowSpace;
+
+                // Weiße Tasten
+                whiteKeys.forEach((wk, i) => {
+                    const x = pad + i * ww;
+                    const hl = highlightKeys.find(h => h.key === wk.id);
+                    const fill = hl ? (hl.color || '#c7d2fe') : '#fff';
+                    svg += `<rect x="${x}" y="${ky + pad}" width="${ww - 1}" height="${wh}" rx="3" fill="${fill}" stroke="#333" stroke-width="1.5"/>`;
+                    const labelColor = hl ? '#3730a3' : '#666';
+                    svg += `<text x="${x + ww/2}" y="${ky + pad + wh - 8}" text-anchor="middle" font-size="11" fill="${labelColor}" font-weight="600">${wk.label}</text>`;
+                    if (hl && hl.label) {
+                        svg += `<text x="${x + ww/2}" y="${ky + pad + wh + labelSpace - 3}" text-anchor="middle" font-size="12" fill="#3730a3" font-weight="700">${hl.label}</text>`;
+                    }
+                });
+
+                // Schwarze Tasten
+                whiteKeys.forEach((wk, i) => {
+                    if (blackMap[wk.name] && i < numWhite - 1) {
+                        const bx = pad + i * ww + ww - bw / 2;
+                        const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                        const bkId = blackMap[wk.name] + suffix;
+                        const hl = highlightKeys.find(h => h.key === bkId);
+                        const fill = hl ? (hl.color || '#c7d2fe') : '#222';
+                        svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
+                        if (showBlackLabels) {
+                            const lblArr = blackLabels[blackMap[wk.name]];
+                            if (lblArr) {
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
+                            }
+                        }
+                        if (hl && hl.label) {
+                            svg += `<text x="${bx + bw/2}" y="${ky + pad + 18}" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">${hl.label}</text>`;
+                        }
+                    }
+                });
+
+                // Pfeile auf der Tastatur (onKeyArrows)
+                if (onKeyArrows.length > 0) {
+                    onKeyArrows.forEach(a => {
+                        const fromX = keyPositions[a.from];
+                        const labelX = a.labelKey ? keyPositions[a.labelKey] : null;
+                        if (fromX === undefined) return;
+                        const color = a.color || '#4f46e5';
+                        const startY = ky + pad + wh - 22;
+                        const goesRight = a.to && keyPositions[a.to] !== undefined && keyPositions[a.to] > fromX;
+                        const angle = goesRight ? (-60 * Math.PI / 180) : (-120 * Math.PI / 180);
+                        const arrowLen = bh * 0.7;
+                        const endX = fromX + Math.cos(angle) * arrowLen;
+                        const endY = startY + Math.sin(angle) * arrowLen;
+                        const dx = endX - fromX, dy = endY - startY;
+                        const len = Math.sqrt(dx*dx + dy*dy);
+                        const ux = dx/len, uy = dy/len;
+                        const tipLen = 8, tipW = 5;
+                        const px = -uy * tipW, py = ux * tipW;
+                        svg += `<line x1="${fromX}" y1="${startY}" x2="${endX - ux*tipLen}" y2="${endY - uy*tipLen}" stroke="${color}" stroke-width="2"/>`;
+                        svg += `<polygon points="${endX},${endY} ${endX-ux*tipLen+px},${endY-uy*tipLen+py} ${endX-ux*tipLen-px},${endY-uy*tipLen-py}" fill="${color}"/>`;
+                        if (a.label && labelX !== null) {
+                            svg += `<text x="${labelX}" y="${startY + 3}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${a.label}</text>`;
+                        }
+                    });
+                }
+
+                // Schrittfolge-Pfeile (keyStepArrows)
+                if (keyStepArrows.length > 0) {
+                    const blackKeys = new Set();
+                    whiteKeys.forEach(wk => {
+                        if (blackMap[wk.name]) {
+                            const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                            blackKeys.add(blackMap[wk.name] + suffix);
+                        }
+                    });
+                    keyStepArrows.forEach(chain => {
+                        const steps = chain.steps;
+                        const color = chain.color || '#dc2626';
+                        for (let i = 0; i < steps.length - 1; i++) {
+                            const fromId = steps[i], toId = steps[i + 1];
+                            const x1 = keyPositions[fromId], x2 = keyPositions[toId];
+                            if (x1 === undefined || x2 === undefined) continue;
+                            const fromIsBlack = blackKeys.has(fromId);
+                            const toIsBlack = blackKeys.has(toId);
+                            const y1 = fromIsBlack ? ky + pad + bh * 0.5 : ky + pad + wh * 0.55;
+                            const y2 = toIsBlack ? ky + pad + bh * 0.5 : ky + pad + wh * 0.55;
+                            const dx = x2 - x1, dy = y2 - y1;
+                            const len = Math.sqrt(dx*dx + dy*dy);
+                            const ux = dx/len, uy = dy/len;
+                            const tipLen = 5, tipW = 3;
+                            const px = -uy * tipW, py = ux * tipW;
+                            svg += `<line x1="${x1}" y1="${y1}" x2="${x2 - ux*tipLen}" y2="${y2 - uy*tipLen}" stroke="${color}" stroke-width="1.5"/>`;
+                            svg += `<polygon points="${x2},${y2} ${x2-ux*tipLen+px},${y2-uy*tipLen+py} ${x2-ux*tipLen-px},${y2-uy*tipLen-py}" fill="${color}"/>`;
+                            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+                            const lblColor = chain.labelColor || color;
+                            const offsetX = (y2 > y1) ? -7 : -6;
+                            svg += `<text x="${mx + offsetX}" y="${my + 3}" text-anchor="middle" font-size="9" fill="${lblColor}" font-weight="700">${i + 1}</text>`;
+                        }
+                    });
+                }
+
+                // Bögen oberhalb der Tasten (topArrows)
+                if (topArrows.length > 0) {
+                    topArrows.forEach(a => {
+                        const fromX = keyPositions[a.from];
+                        const toX = keyPositions[a.to];
+                        if (fromX === undefined || toX === undefined) return;
+                        const color = a.color || '#4f46e5';
+                        const midX = (fromX + toX) / 2;
+                        const dist = Math.abs(toX - fromX);
+                        const bowTop = ky - 8;
+                        const bowH = Math.min(dist * 0.8, 20);
+                        svg += `<path d="M${fromX},${bowTop} Q${midX},${bowTop - bowH} ${toX},${bowTop}" fill="none" stroke="${color}" stroke-width="2"/>`;
+                        const dir = toX > fromX ? 1 : -1;
+                        svg += `<polygon points="${toX},${bowTop} ${toX - dir*5},${bowTop-4} ${toX - dir*5},${bowTop+4}" fill="${color}"/>`;
+                        svg += `<circle cx="${fromX}" cy="${bowTop}" r="2.5" fill="${color}"/>`;
+                        if (a.label) {
+                            svg += `<text x="${midX}" y="${bowTop - bowH - 3}" text-anchor="middle" font-size="9" fill="${color}" font-weight="600">${a.label}</text>`;
+                        }
+                    });
+                }
+
+                // Halbtonschritt-Bögen
+                if (showHalftoneArrows) {
+                    const chromatic = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','Ais','H'];
+                    const allChrom = [];
+                    for (let oct = 1; oct <= numOctaves; oct++) {
+                        const suffix = oct === 1 ? '' : String(oct);
+                        chromatic.forEach(n => allChrom.push(n + suffix));
+                    }
+                    if (numOctaves === 1) allChrom.push('C2');
+                    else allChrom.push('C' + (numOctaves + 1));
+
+                    const bowY = ky - 4;
+                    for (let i = 0; i < allChrom.length - 1; i++) {
+                        const fromId = allChrom[i];
+                        const toId = allChrom[i + 1];
+                        const x1 = keyPositions[fromId];
+                        const x2 = keyPositions[toId];
+                        if (x1 === undefined || x2 === undefined) continue;
+                        const midX = (x1 + x2) / 2;
+                        const dist = Math.abs(x2 - x1);
+                        const bowH = Math.min(dist * 0.6, 14);
+                        svg += `<path d="M${x1},${bowY} Q${midX},${bowY - bowH} ${x2},${bowY}" fill="none" stroke="#3730a3" stroke-width="1.2"/>`;
+                        svg += `<polygon points="${x2},${bowY} ${x2-3},${bowY-3} ${x2-4},${bowY+1}" fill="#3730a3"/>`;
+                    }
+                    const efPairs = [];
+                    for (let oct = 1; oct <= numOctaves; oct++) {
+                        const s = oct === 1 ? '' : String(oct);
+                        const eId = 'E' + s, fId = 'F' + s;
+                        const hId = 'H' + s, cId = 'C' + (oct === 1 ? '2' : String(oct + 1));
+                        if (keyPositions[eId] && keyPositions[fId]) efPairs.push([eId, fId]);
+                        if (keyPositions[hId] && keyPositions[cId]) efPairs.push([hId, cId]);
+                    }
+                    efPairs.forEach(([a, b]) => {
+                        const mx = (keyPositions[a] + keyPositions[b]) / 2;
+                        svg += `<text x="${mx}" y="${bowY - 12}" text-anchor="middle" font-size="7" fill="#3730a3" font-weight="600">½</text>`;
+                    });
+                }
+
+                // Pfeile unterhalb der Tastatur
+                if (arrows.length > 0) {
+                    const arrowY = ky + pad + wh + labelSpace + 10;
+                    arrows.forEach(a => {
+                        const fromX = keyPositions[a.from];
+                        const toX = keyPositions[a.to];
+                        if (fromX === undefined || toX === undefined) return;
+                        const color = a.color || '#4f46e5';
+                        svg += `<line x1="${fromX}" y1="${arrowY}" x2="${toX}" y2="${arrowY}" stroke="${color}" stroke-width="2"/>`;
+                        const dir = toX > fromX ? 1 : -1;
+                        svg += `<polygon points="${toX},${arrowY} ${toX - dir*6},${arrowY-4} ${toX - dir*6},${arrowY+4}" fill="${color}"/>`;
+                        svg += `<circle cx="${fromX}" cy="${arrowY}" r="3" fill="${color}"/>`;
+                        if (a.label) {
+                            svg += `<text x="${(fromX + toX) / 2}" y="${arrowY + 14}" text-anchor="middle" font-size="10" fill="${color}" font-weight="600">${a.label}</text>`;
+                        }
+                    });
+                }
+
+                svg += '</svg>';
+                return svg;
             },
 
             generateNote() {
@@ -3527,6 +4201,12 @@
                     !document.getElementById('quickStartScreen').classList.contains('active');
 
                 if (inExercise) {
+                    // Lernkarte zuerst versuchen (höchster aktiver Sub-Skill)
+                    const currentSubSkill = quickStart.currentOptions[quickStart.currentOptions.length - 1];
+                    if (currentSubSkill && this.showLernkarte(currentSubSkill, false)) {
+                        return; // Lernkarte gezeigt, kein Hilfe-Modal nötig
+                    }
+
                     const level = quickStart.currentLevel;
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
