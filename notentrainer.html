@@ -2596,12 +2596,7 @@
                 if (key === 'basis') {
                     const el = document.getElementById('lkVisualBasis');
                     if (el) {
-                        el.innerHTML = this.renderLernkarteNotensystem('treble', [
-                            {name:'C',octave:'eingestrichen',label:'C'},{name:'D',octave:'eingestrichen',label:'D'},
-                            {name:'E',octave:'eingestrichen',label:'E'},{name:'F',octave:'eingestrichen',label:'F'},
-                            {name:'G',octave:'eingestrichen',label:'G'},{name:'A',octave:'eingestrichen',label:'A'},
-                            {name:'H',octave:'eingestrichen',label:'H'},{name:'C',octave:'zweigestrichen',label:'C'}
-                        ]);
+                        el.innerHTML = this.renderMerkhilfeStaff('treble');
                     }
                 }
                 // ---- noten1: vorzeichen — Halbtonschritte auf Tastatur ----
@@ -2647,12 +2642,7 @@
                 else if (key === 'noten2_basis') {
                     const el = document.getElementById('lkVisualNoten2Basis');
                     if (el) {
-                        el.innerHTML = this.renderLernkarteNotensystem('bass', [
-                            {name:'G',octave:'gross',label:'G'},{name:'A',octave:'gross',label:'A'},
-                            {name:'H',octave:'gross',label:'H'},{name:'C',octave:'klein',label:'C'},
-                            {name:'D',octave:'klein',label:'D'},{name:'E',octave:'klein',label:'E'},
-                            {name:'F',octave:'klein',label:'F'},{name:'G',octave:'klein',label:'G'}
-                        ]);
+                        el.innerHTML = this.renderMerkhilfeStaff('bass');
                     }
                 }
                 // ---- noten2: vorzeichen — Halbtonschritte auf Tastatur ----
@@ -2738,7 +2728,7 @@
                     body: `<p>Im <strong>Violinschlüssel</strong> liegt jeder Ton auf einer festen Position — auf einer Linie oder in einem Zwischenraum.</p>
                         <div class="lk-visual" id="lkVisualBasis"></div>
                         <div class="lk-rule"><strong>Ankerpunkt:</strong> Der Violinschlüssel umschließt die <strong>G-Linie</strong> (2. Linie von unten). Von G aus kannst du alle anderen Töne abzählen.</div>
-                        <div class="lk-tip"><strong>Merkhilfe Linien</strong> (von unten): <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß.<br><strong>Zwischenräume</strong> (von unten): <strong>F</strong> – <strong>A</strong> – <strong>C</strong> – <strong>E</strong>.</div>
+                        <div class="lk-tip"><strong>Merkhilfe Linien</strong> (von unten): <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß.<br><strong>Zwischenräume</strong> (von unten) buchstabieren: <strong>F</strong> – <strong>A</strong> – <strong>C</strong> – <strong>E</strong> (= „face").</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Note im Violinschlüssel. Gib ihren Namen ein (C, D, E, F, G, A oder H).</div>`
                 },
                 'vorzeichen': {
@@ -2860,11 +2850,11 @@
                     svg += `<line x1="${pad}" y1="${ly}" x2="${totalW - 4}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
                 });
 
-                // Schlüsselsymbol (vereinfacht als Text)
+                // Schlüssel-SVG (skaliert: Faktor 0.6 von Haupt-Staff mit lineSpacing 20)
                 if (clef === 'treble') {
-                    svg += `<text x="${pad + 4}" y="${baseY + 6}" font-size="38" font-family="serif" fill="#666">𝄞</text>`;
+                    svg += `<g transform="translate(${pad - 45}, -56) scale(0.6)">${this.drawTrebleClefSVG()}</g>`;
                 } else {
-                    svg += `<text x="${pad + 4}" y="${76 + 4}" font-size="28" font-family="serif" fill="#666">𝄢</text>`;
+                    svg += `<g transform="translate(${pad - 30}, -56) scale(0.6)">${this.drawBassClefSVG()}</g>`;
                 }
 
                 // Noten rendern
@@ -2894,6 +2884,87 @@
                     const pct = Math.round(totalW / refW * 100);
                     return `<div style="max-width:${pct}%;margin:0 auto">${svg}</div>`;
                 }
+                return svg;
+            },
+
+            // ---- Lernkarte: Merkhilfe-Staff (Linien- und Zwischenraumnoten zweifarbig) ----
+            renderMerkhilfeStaff(clef) {
+                const lineSpacing = 12;
+                const baseY = 100;
+                const staffLines = [100, 88, 76, 64, 52];
+
+                const clefSpace = 28;
+                const noteSpace = 32;
+                const groupGap = 18;
+                const pad = 6;
+
+                // Linien- und Zwischenraumnoten je nach Schlüssel
+                let lineNotes, spaceNotes;
+                if (clef === 'treble') {
+                    // Violinschlüssel: Linien von unten E G H D F, Zwischenräume F A C E
+                    lineNotes = [{name:'E',y:100},{name:'G',y:88},{name:'H',y:76},{name:'D',y:64},{name:'F',y:52}];
+                    spaceNotes = [{name:'F',y:94},{name:'A',y:82},{name:'C',y:70},{name:'E',y:58}];
+                } else {
+                    // Bassschlüssel: Linien von unten G H D F A, Zwischenräume A C E G
+                    lineNotes = [{name:'G',y:100},{name:'H',y:88},{name:'D',y:76},{name:'F',y:64},{name:'A',y:52}];
+                    spaceNotes = [{name:'A',y:94},{name:'C',y:82},{name:'E',y:70},{name:'G',y:58}];
+                }
+
+                const totalW = pad + clefSpace + lineNotes.length * noteSpace + groupGap + spaceNotes.length * noteSpace + pad;
+
+                // Farben: dezent zweifarbig
+                const lineColor = '#4f46e5';  // Indigo (Linien)
+                const spaceColor = '#0891b2'; // Cyan (Zwischenräume)
+
+                const svgTop = 52 - 16;
+                const labelH = 14;
+                const groupLabelH = 14;
+                const svgBottom = 100 + labelH + groupLabelH + 4;
+                const svgH = svgBottom - svgTop;
+
+                let svg = `<svg width="100%" viewBox="0 ${svgTop} ${totalW} ${svgH}" preserveAspectRatio="xMidYMid meet">`;
+
+                // Notenlinien
+                staffLines.forEach(ly => {
+                    svg += `<line x1="${pad}" y1="${ly}" x2="${totalW - pad}" y2="${ly}" stroke="#bbb" stroke-width="1"/>`;
+                });
+
+                // Schlüssel-SVG (skaliert)
+                if (clef === 'treble') {
+                    svg += `<g transform="translate(${pad - 45}, -56) scale(0.6)">${this.drawTrebleClefSVG()}</g>`;
+                } else {
+                    svg += `<g transform="translate(${pad - 30}, -56) scale(0.6)">${this.drawBassClefSVG()}</g>`;
+                }
+
+                const rx = 7.5, ry = 5.7;
+
+                // Gruppe 1: Liniennoten
+                const g1Start = pad + clefSpace;
+                lineNotes.forEach((n, i) => {
+                    const cx = g1Start + i * noteSpace + noteSpace / 2;
+                    svg += `<ellipse cx="${cx}" cy="${n.y}" rx="${rx}" ry="${ry}" fill="${lineColor}" transform="rotate(-20 ${cx} ${n.y})"/>`;
+                    svg += `<text x="${cx}" y="${100 + labelH}" text-anchor="middle" font-size="9" fill="${lineColor}" font-weight="700">${n.name}</text>`;
+                });
+                // Gruppenlabel
+                const g1Mid = g1Start + (lineNotes.length * noteSpace) / 2;
+                svg += `<text x="${g1Mid}" y="${100 + labelH + groupLabelH}" text-anchor="middle" font-size="7.5" fill="${lineColor}" font-weight="600" font-style="italic">Linien</text>`;
+
+                // Trennlinie zwischen Gruppen
+                const sepX = g1Start + lineNotes.length * noteSpace + groupGap / 2;
+                svg += `<line x1="${sepX}" y1="${52 - 4}" x2="${sepX}" y2="${100 + 4}" stroke="#d1d5db" stroke-width="1" stroke-dasharray="3,3"/>`;
+
+                // Gruppe 2: Zwischenraumnoten
+                const g2Start = g1Start + lineNotes.length * noteSpace + groupGap;
+                spaceNotes.forEach((n, i) => {
+                    const cx = g2Start + i * noteSpace + noteSpace / 2;
+                    svg += `<ellipse cx="${cx}" cy="${n.y}" rx="${rx}" ry="${ry}" fill="${spaceColor}" transform="rotate(-20 ${cx} ${n.y})"/>`;
+                    svg += `<text x="${cx}" y="${100 + labelH}" text-anchor="middle" font-size="9" fill="${spaceColor}" font-weight="700">${n.name}</text>`;
+                });
+                // Gruppenlabel
+                const g2Mid = g2Start + (spaceNotes.length * noteSpace) / 2;
+                svg += `<text x="${g2Mid}" y="${100 + labelH + groupLabelH}" text-anchor="middle" font-size="7.5" fill="${spaceColor}" font-weight="600" font-style="italic">Zwischenräume</text>`;
+
+                svg += '</svg>';
                 return svg;
             },
 
