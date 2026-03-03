@@ -5385,13 +5385,21 @@ Gerät:
                 const gridEndX = 660; // Raster endet bei rechtem Taktstrich
                 const noteAreaWidth = gridEndX - gridStartX; // 600px für Noten
                 
-                // Determine subdivision level for grid
-                let gridSubdivisions = maxValue; // Default: quarter notes
-                if (this.settings.includeSixteenths) {
-                    gridSubdivisions = maxValue * 4; // 16 subdivisions for 4/4
-                } else if (this.settings.includeEighths) {
-                    gridSubdivisions = maxValue * 2; // 8 subdivisions for 4/4
+                // Determine beat unit and subdivision level for grid
+                const [, tsDenominator] = this.settings.timeSignature.split('/').map(Number);
+                const isEighthBased = (tsDenominator === 8);
+                // Bei /8-Taktarten: Grundeinheit = Achtel, sonst = Viertel
+                const beatsInBar = isEighthBased ? maxValue * 2 : maxValue; // Hauptschläge im Takt
+                let gridSubdivisions = beatsInBar; // Default: Hauptschläge
+                if (!isEighthBased) {
+                    // /4-Taktarten: Subdivision auf Achtel/16tel-Ebene
+                    if (this.settings.includeSixteenths) {
+                        gridSubdivisions = maxValue * 4;
+                    } else if (this.settings.includeEighths) {
+                        gridSubdivisions = maxValue * 2;
+                    }
                 }
+                // Bei /8: keine weiteren Subdivisions (Achtel IST die Grundeinheit)
                 
                 let svg = `<svg width="100%" viewBox="0 0 ${barWidth} ${barHeight}" preserveAspectRatio="xMidYMid meet" style="max-width: 800px; margin: 0 auto; display: block;">`;
                 
@@ -5416,16 +5424,17 @@ Gerät:
                 }
 
                 // Calculate grid positions
-                const gridSpacing = noteAreaWidth / maxValue; // Abstand zwischen Hauptzählzeiten
-                const subGridSpacing = gridSpacing / (gridSubdivisions / maxValue); // Abstand zwischen allen Rasterlinien
-                
+                const gridSpacing = noteAreaWidth / beatsInBar; // Abstand zwischen Hauptzählzeiten
+                const subGridSpacing = noteAreaWidth / gridSubdivisions; // Abstand zwischen allen Rasterlinien
+
                 // Draw grid lines (vertical) - GESTRICHELT
                 if (this.settings.showGrid) {
                     for (let i = 0; i <= gridSubdivisions; i++) {
                         const x = gridStartX + (i * subGridSpacing);
-                        
-                        // Stärkere Linien für Hauptzählzeiten (Viertel)
-                        const isMainBeat = (i % (gridSubdivisions / maxValue)) === 0;
+
+                        // Stärkere Linien für Hauptzählzeiten
+                        const subsPerBeat = gridSubdivisions / beatsInBar;
+                        const isMainBeat = (subsPerBeat >= 1) ? (i % subsPerBeat === 0) : true;
                         const strokeWidth = isMainBeat ? "2" : "1";
                         const strokeColor = isMainBeat ? "#9ca3af" : "#d1d5db";
                         const dashArray = isMainBeat ? "4,4" : "2,3"; // Gestrichelt
@@ -5437,25 +5446,32 @@ Gerät:
                 // Draw counting times if enabled (als SVG Text)
                 if (this.settings.showCountingTimes) {
                     const [numerator] = this.settings.timeSignature.split('/').map(Number);
-                    let subdivisions = 1;
-                    
-                    if (this.settings.includeSixteenths) {
-                        subdivisions = 4;
-                    } else if (this.settings.includeEighths) {
-                        subdivisions = 2;
-                    }
-                    
                     const countingTimes = [];
-                    for (let beat = 1; beat <= numerator; beat++) {
-                        if (subdivisions === 1) {
+
+                    if (isEighthBased) {
+                        // /8-Taktarten: Jede Achtel ist ein Beat (1, 2, 3, 4, 5, 6, 7)
+                        for (let beat = 1; beat <= numerator; beat++) {
                             countingTimes.push(`${beat}`);
-                        } else if (subdivisions === 2) {
-                            countingTimes.push(`${beat}`, 'und');
-                        } else if (subdivisions === 4) {
-                            countingTimes.push(`${beat}`, 'e', 'und', 'te');
+                        }
+                    } else {
+                        // /4-Taktarten: Subdivisions auf Achtel/16tel-Ebene
+                        let subdivisions = 1;
+                        if (this.settings.includeSixteenths) {
+                            subdivisions = 4;
+                        } else if (this.settings.includeEighths) {
+                            subdivisions = 2;
+                        }
+                        for (let beat = 1; beat <= numerator; beat++) {
+                            if (subdivisions === 1) {
+                                countingTimes.push(`${beat}`);
+                            } else if (subdivisions === 2) {
+                                countingTimes.push(`${beat}`, 'und');
+                            } else if (subdivisions === 4) {
+                                countingTimes.push(`${beat}`, 'e', 'und', 'te');
+                            }
                         }
                     }
-                    
+
                     countingTimes.forEach((time, index) => {
                         const xPos = gridStartX + (index * subGridSpacing);
                         svg += `<text x="${xPos}" y="${staffY - 70}" class="counting-time-label" data-index="${index}" font-size="14" font-weight="600" fill="#6d28d9" text-anchor="middle">${time}</text>`;
@@ -6189,20 +6205,31 @@ Gerät:
 
             calculateStartCounting(noteIndex) {
                 // Berechnet die Start-Zählzeit einer Note basierend auf ihrer Position
-                let position = 0;
-                
+                let position = 0; // Position in Viertelwerten
+
                 // Summiere alle Noten vor dieser Note
                 for (let i = 0; i < noteIndex; i++) {
                     position += this.currentTask.notes[i].value;
                 }
-                
-                const beat = Math.floor(position) + 1; // 1-basiert
+
+                // Taktart-Nenner bestimmen: Bei /8-Taktarten sind Zählzeiten auf Achtelbasis
+                const [, denominator] = this.settings.timeSignature.split('/').map(Number);
+                const isEighthBased = (denominator === 8);
+
+                if (isEighthBased) {
+                    // Position in Achtelwerte umrechnen (× 2)
+                    const posInEighths = position * 2;
+                    const beat = Math.floor(posInEighths + 0.001) + 1; // 1-basiert
+                    return `${beat}`;
+                }
+
+                const beat = Math.floor(position + 0.001) + 1; // 1-basiert
                 const fraction = position % 1;
-                
+
                 // Prüfe ob es sich um eine Triole handelt
                 const note = this.currentTask.notes[noteIndex];
                 const isTriplet = note && note.tripletGroupId !== undefined;
-                
+
                 if (isTriplet) {
                     // Triolen-Zählzeiten: "1", "la", "li"
                     const tripletPos = note.tripletPosition;
@@ -6210,11 +6237,11 @@ Gerät:
                     if (tripletPos === 1) return `${beat} la`;
                     if (tripletPos === 2) return `${beat} li`;
                 }
-                
+
                 // Normale Zählzeiten
                 // Runde auf nächste relevante Position (wegen Floating-Point)
                 const roundedFraction = Math.round(fraction * 4) / 4;
-                
+
                 // Determine subdivision level
                 let subdivisions = 1;
                 if (this.settings.includeSixteenths) {
@@ -6222,7 +6249,7 @@ Gerät:
                 } else if (this.settings.includeEighths) {
                     subdivisions = 2;
                 }
-                
+
                 if (subdivisions === 1) {
                     return `${beat}`;
                 } else if (subdivisions === 2) {
@@ -6236,18 +6263,18 @@ Gerät:
                     if (roundedFraction === 0.75) return `${beat} te`;
                     return `${beat}`;
                 }
-                
+
                 return `${beat}`;
             },
 
             calculateRhythmSyllable(noteIndex) {
                 // Berechnet die Rhythmussilbe einer Note basierend auf ihrer Position
                 // Regeln:
-                // - Grundschlag (1, 2, 3, 4) = "du"
+                // - Grundschlag = "du"
                 // - Achtel-Ebene ("und") = "dei"
                 // - 16tel-Ebene ("e", "te") = "te"
                 // - Triolen: "du da di"
-                
+
                 // Prüfe ob es sich um eine Triole handelt
                 const note = this.currentTask.notes[noteIndex];
                 if (note && note.tripletGroupId !== undefined) {
@@ -6256,45 +6283,47 @@ Gerät:
                     if (tripletPos === 1) return 'da';
                     if (tripletPos === 2) return 'di';
                 }
-                
-                let position = 0;
-                
-                // Summiere alle Noten vor dieser Note
+
+                let position = 0; // Position in Viertelwerten
                 for (let i = 0; i < noteIndex; i++) {
                     position += this.currentTask.notes[i].value;
                 }
-                
-                const fraction = position % 1;
-                
+
+                // Bei /8-Taktarten: Grundeinheit ist die Achtel (0.5 Viertel)
+                const [, denominator] = this.settings.timeSignature.split('/').map(Number);
+                const beatUnit = (denominator === 8) ? 0.5 : 1.0; // Grundschlag-Wert in Vierteln
+                const fraction = (position % beatUnit) / beatUnit; // 0..1 innerhalb eines Grundschlags
+
                 // Runde auf nächste relevante Position (wegen Floating-Point)
                 const roundedFraction = Math.round(fraction * 4) / 4;
-                
-                if (roundedFraction === 0) {
+
+                if (roundedFraction === 0 || roundedFraction === 1) {
                     return 'du';  // Grundschlag
                 } else if (roundedFraction === 0.5) {
-                    return 'dei'; // "und" (Achtel-Ebene)
+                    return 'dei'; // "und" (Hälfte des Grundschlags)
                 } else if (roundedFraction === 0.25 || roundedFraction === 0.75) {
-                    return 'te';  // "e" oder "te" (16tel-Ebene)
+                    return 'te';  // "e" oder "te" (Viertel des Grundschlags)
                 }
-                
+
                 return 'du'; // Fallback
             },
 
             calculateRhythmSyllableAtPosition(position) {
                 // Berechnet die Rhythmussilbe basierend auf der Position (für Anzeige)
-                const fraction = position % 1;
-                
-                // Runde auf nächste relevante Position (wegen Floating-Point)
+                const [, denominator] = this.settings.timeSignature.split('/').map(Number);
+                const beatUnit = (denominator === 8) ? 0.5 : 1.0;
+                const fraction = (position % beatUnit) / beatUnit;
+
                 const roundedFraction = Math.round(fraction * 4) / 4;
-                
-                if (roundedFraction === 0) {
+
+                if (roundedFraction === 0 || roundedFraction === 1) {
                     return 'du';  // Grundschlag
                 } else if (roundedFraction === 0.5) {
-                    return 'dei'; // "und" (Achtel-Ebene)
+                    return 'dei'; // Hälfte des Grundschlags
                 } else if (roundedFraction === 0.25 || roundedFraction === 0.75) {
-                    return 'te';  // "e" oder "te" (16tel-Ebene)
+                    return 'te';  // Viertel des Grundschlags
                 }
-                
+
                 return 'du'; // Fallback
             },
 
