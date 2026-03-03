@@ -1907,12 +1907,14 @@
             },
 
             backToStart() {
+                const lastNode = this.selectedNode;
                 this.selectedNode = null;
                 this.selectedSub = null;
                 this.hideQuizOverlay();
                 document.getElementById('appTitle').textContent = 'Notentrainer';
                 this.updateAllProgress();
                 this.showQuickStart();
+                if (lastNode) this.selectNode(lastNode);
             },
 
             // ---- Start from Skilltree ----

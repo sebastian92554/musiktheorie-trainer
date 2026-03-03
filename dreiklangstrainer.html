@@ -2549,6 +2549,7 @@
             },
 
             backToStart() {
+                const lastNode = this.selectedNode;
                 this.selectedNode = null;
                 this.selectedSub = null;
                 this.hideQuizOverlay();
@@ -2557,6 +2558,7 @@
                 app.quickStartMode = null;
                 this.updateAllProgress();
                 this.showQuickStart();
+                if (lastNode) this.selectNode(lastNode);
             },
 
             confirmReset() {

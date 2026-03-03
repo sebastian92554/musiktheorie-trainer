@@ -2645,6 +2645,7 @@
             },
 
             backToStart() {
+                const lastNode = this.selectedNode;
                 this.hideQuizOverlay();
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('successScreen').style.display = 'none';
@@ -2654,6 +2655,7 @@
                 this.currentLevel = null;
                 this.updateAllProgress();
                 this.showQuickStart();
+                if (lastNode) this.selectNode(lastNode);
             },
 
             confirmReset() {
