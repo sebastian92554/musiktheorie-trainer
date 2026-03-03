@@ -186,7 +186,7 @@
         /* Taktart-Wechsel Toast — über dem Staff zentriert */
         .taktart-hint-toast {
             position: absolute;
-            top: 50%;
+            top: calc(50% - 20px);
             left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
             background: rgba(139, 92, 246, 0.95);
@@ -203,7 +203,7 @@
         }
         .taktart-hint-toast.visible {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
+            transform: translate(-50%, -50%);
         }
         @keyframes badgePulse {
             0% { transform: scale(1); box-shadow: none; }
@@ -2529,7 +2529,7 @@
 
                 const toast = document.createElement('div');
                 toast.className = 'taktart-hint-toast';
-                toast.textContent = '⚡ Taktart wechselt!';
+                toast.textContent = 'Achtung: Die Taktart wechselt!';
                 wrapper.appendChild(toast);
                 // Einblenden
                 requestAnimationFrame(() => toast.classList.add('visible'));
