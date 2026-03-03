@@ -316,14 +316,7 @@
         }
 
         .time-signature-badge {
-            display: inline-block;
-            background: #ede9fe;
-            color: #6d28d9;
-            padding: 0.15rem 0.5rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            margin-bottom: 0.25rem;
+            display: none; /* Taktart wird nur in SVG-Notation angezeigt */
         }
         #playRhythmBtn:hover { opacity: 1 !important; }
         .count-display {
@@ -775,9 +768,6 @@
 
         /* Mobile Portrait: Kompakterer Takt */
         @media (max-width: 768px) and (orientation: portrait) {
-            #barDisplay svg {
-                max-height: 140px;
-            }
             
             .bar-display {
                 padding: 0.5rem;
@@ -1803,7 +1793,7 @@
                     { id: '8tel', label: 'Mit Achtelnoten' },
                     { id: '16tel', label: 'Mit Sechzehntelnoten' },
                     { id: 'punktierte', label: 'Mit punktierten Noten' },
-                    { id: 'hilfen_aus', label: 'Ohne Hilfen' },
+                    // hilfen_aus entfernt: Raster wird ab Frage 4 automatisch ausgeblendet
                     { id: 'noaudio', label: 'Ohne Hörbeispiel' }
                 ],
                 'rhy4': [
@@ -2180,6 +2170,7 @@
                 this.questionsCorrect = 0;
                 this.questionsCorrectInRow = 0;
                 this.hasBeenCheckedForTask = false;
+                this.zz1Shown = false; // Tracker: ZZ1 wurde mindestens einmal gezeigt
 
                 // Taktart auf 4/4 zurücksetzen (wird in configureApp ggf. überschrieben für Taktarten-Knoten)
                 app.settings.timeSignature = '4/4';
@@ -2478,9 +2469,13 @@
                             console.log('[QuickStart] Generiere Frage', this.questionsAnswered + 1);
                             this.hasBeenCheckedForTask = false; // Reset für nächste Aufgabe
 
-                            // TAKTART-WECHSEL: Ab Frage 7 gemischte Taktarten (nicht im Taktarten-Knoten)
+                            // TAKTART-WECHSEL: Ab Frage 7 regelmäßige, ab Frage 9 auch unregelmäßige Taktarten
                             if (this.questionsAnswered >= 6 && this.currentLevel !== 'taktarten') {
-                                const tsPool = ['4/4', '3/4', '5/4', '7/8'];
+                                // Ab Frage 7: nur regelmäßige Taktarten (3/4, 4/4)
+                                // Ab Frage 9: auch unregelmäßige (5/4, 7/8)
+                                const tsPool = this.questionsAnswered >= 8
+                                    ? ['4/4', '3/4', '5/4', '7/8']
+                                    : ['4/4', '3/4'];
                                 const newTS = tsPool[Math.floor(Math.random() * tsPool.length)];
                                 const oldTS = app.settings.timeSignature;
                                 app.settings.timeSignature = newTS;
@@ -4104,24 +4099,78 @@ Gerät:
             },
             
             // Gewichtete Zufallsauswahl
+            // Kompetenz-Schwerpunkt: Welche Notentypen gehören zu welchem Sub-Skill?
+            subSkillNoteTypes: {
+                '8tel': ['eighth', 'eighth-rest'],
+                '16tel': ['sixteenth', 'sixteenth-rest'],
+                'pausen': ['whole-rest', 'half-rest', 'quarter-rest'],
+                'punktierte': ['dotted-half', 'dotted-quarter', 'dotted-eighth', 'dotted-half-rest', 'dotted-quarter-rest', 'dotted-eighth-rest'],
+                'triolen': ['triplet-group-eighth', 'triplet-group-quarter', 'triplet-group-half']
+            },
+
+            // Dynamische Gewichte basierend auf aktuellem Sub-Skill-Schwerpunkt (kn3/kn4)
+            getProgressionWeight(noteType) {
+                const baseWeight = this.noteWeights[noteType] || 1;
+
+                // Nur im Quiz-Modus für kn3 (counting-time) und kn4 (rhythm-syllable)
+                if (!quickStart.isActive ||
+                    (this.settings.taskType !== 'counting-time' && this.settings.taskType !== 'rhythm-syllable')) {
+                    return baseWeight;
+                }
+
+                // Aktueller Sub-Skill = letztes Element in currentOptions
+                const opts = quickStart.currentOptions || [];
+                const currentSubSkill = opts[opts.length - 1];
+                if (!currentSubSkill || currentSubSkill === 'basis' || currentSubSkill === 'hilfen_aus' || currentSubSkill === 'noaudio') {
+                    return baseWeight;
+                }
+
+                // Schwerpunkt-Notentypen für aktuellen Sub-Skill
+                const focusTypes = this.subSkillNoteTypes[currentSubSkill] || [];
+
+                if (focusTypes.length === 0) return baseWeight;
+
+                // Notentypen des aktuellen Sub-Skills: Gewicht × 2.5 (Schwerpunkt)
+                if (focusTypes.includes(noteType)) {
+                    return baseWeight * 2.5;
+                }
+
+                // Basis-Noten (whole, half, quarter) behalten normales Gewicht
+                if (['whole', 'half', 'quarter'].includes(noteType)) {
+                    return baseWeight;
+                }
+
+                // Notentypen ÄLTERER Sub-Skills: Gewicht × 0.5 (abgeschwächt)
+                const subSkillOrder = ['pausen', '8tel', '16tel', 'punktierte', 'triolen'];
+                const currentIdx = subSkillOrder.indexOf(currentSubSkill);
+                for (const [skill, types] of Object.entries(this.subSkillNoteTypes)) {
+                    const skillIdx = subSkillOrder.indexOf(skill);
+                    if (skillIdx >= 0 && skillIdx < currentIdx && types.includes(noteType)) {
+                        return baseWeight * 0.5;
+                    }
+                }
+
+                return baseWeight;
+            },
+
             weightedRandomChoice(options, lastNoteType = null) {
                 // Gruppenbildung: Tendenz zur Wiederholung bei kleinen Notenwerten
                 const groupingTypes = ['eighth', 'sixteenth', 'eighth-rest', 'sixteenth-rest'];
-                const groupingChance = 0.5; // 50% Chance auf Wiederholung
-                
-                if (lastNoteType && groupingTypes.includes(lastNoteType) && 
+                const groupingChance = 0.4; // 40% Chance auf Wiederholung (von 50% reduziert)
+
+                if (lastNoteType && groupingTypes.includes(lastNoteType) &&
                     options.includes(lastNoteType) && Math.random() < groupingChance) {
                     return lastNoteType;
                 }
-                
-                // Gewichtete Auswahl
+
+                // Gewichtete Auswahl mit Progressions-Gewichten (Schwerpunkt auf aktuellem Sub-Skill)
                 let totalWeight = 0;
                 const weightedOptions = options.map(opt => {
-                    const weight = this.noteWeights[opt] || 1;
+                    const weight = this.getProgressionWeight(opt);
                     totalWeight += weight;
                     return { type: opt, weight };
                 });
-                
+
                 let random = Math.random() * totalWeight;
                 for (const opt of weightedOptions) {
                     random -= opt.weight;
@@ -4129,7 +4178,7 @@ Gerät:
                         return opt.type;
                     }
                 }
-                
+
                 // Fallback
                 return options[0];
             },
@@ -4447,7 +4496,29 @@ Gerät:
                 feedback.className = 'ts-feedback ' + (isCorrect ? 'ts-feedback-correct' : 'ts-feedback-wrong');
             },
 
+            _generateRetryCount: 0,
+
             generateNewTask() {
+                // Rekursions-Schutz: Max 20 Versuche, dann Fallback
+                this._generateRetryCount++;
+                if (this._generateRetryCount > 20) {
+                    console.warn('[App] generateNewTask: Max Retries erreicht, nutze Fallback');
+                    this._generateRetryCount = 0;
+                    // Fallback wird unten bei markedIndex === -1 gehandelt
+                }
+
+                // Progressive Hilfen-Ausblendung: Ab Frage 4 Raster + Zählzeiten ausblenden (kn3/kn4)
+                if (quickStart.isActive && quickStart.questionsAnswered >= 3 &&
+                    (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable')) {
+                    if (this.settings.showGrid || this.settings.showCountingTimes) {
+                        this.settings.showGrid = false;
+                        this.settings.showCountingTimes = false;
+                        document.getElementById('showGrid').checked = false;
+                        document.getElementById('showCountingTimes').checked = false;
+                        console.log('[App] Ab Frage 4: Raster + Zählzeiten ausgeblendet');
+                    }
+                }
+
                 // Bei Addition-Aufgabe: Separater Generator
                 if (this.settings.taskType === 'note-addition') {
                     this.generateAdditionTask();
@@ -4561,7 +4632,19 @@ Gerät:
                 
                 // Teile Noten an Taktmitte wenn nötig
                 bar = this.splitNotesAtDivisions(bar);
-                
+
+                // Synkopen-Regel: In kn3/kn4 erst ab Frage 6 erlaubt
+                // Wenn Überbindungen entstanden und Frage < 6 → neu generieren (nur wenn Retries übrig)
+                if (this._generateRetryCount <= 20 &&
+                    (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') &&
+                    quickStart.isActive && quickStart.questionsAnswered < 5) {
+                    const hasTies = bar.notes.some(n => n.tiedTo !== null && n.tiedTo !== undefined);
+                    if (hasTies) {
+                        this.generateNewTask();
+                        return;
+                    }
+                }
+
                 // Fasse aufeinanderfolgende Pausen zusammen
                 bar = this.mergeConsecutiveRests(bar);
                 
@@ -4573,8 +4656,24 @@ Gerät:
                     return;
                 }
                 
+                // Kompetenz-Garantie: Der Notenwert des aktuellen Sub-Skills muss mindestens 1× vorkommen
+                if (this._generateRetryCount <= 20 &&
+                    (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') &&
+                    quickStart.isActive) {
+                    const qOpts = quickStart.currentOptions || [];
+                    const focusSub = qOpts[qOpts.length - 1];
+                    const focusTypes = this.subSkillNoteTypes[focusSub] || [];
+                    if (focusTypes.length > 0) {
+                        const hasFocusNote = bar.notes.some(n => focusTypes.includes(n.type));
+                        if (!hasFocusNote) {
+                            this.generateNewTask();
+                            return;
+                        }
+                    }
+                }
+
                 this.currentTask = bar;
-                
+
                 // Bei Zählzeit/Rhythmussilben: Mindestanzahl Noten prüfen
                 if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') {
                     // Prüfe ob Basisniveau (keine zusätzlichen Optionen) oder erweitert
@@ -4596,42 +4695,76 @@ Gerät:
                 
                 // Bei Zählzeit-Aufgabe: Markiere random Note (basierend auf originalIndex)
                 if (this.settings.taskType === 'counting-time' && bar.originalNoteCount > 0) {
-                    // Wähle zufälligen originalIndex - ABER: Erste Note (Zählzeit 1) nur mit 20% Wahrscheinlichkeit
+                    // ZZ1-Logik für Sub-Skill "basis" (3a):
+                    // - Erste 3 Fragen: ZZ1 mindestens 1× garantiert (forceZZ1 wenn noch nicht vorgekommen)
+                    // - Fragen 1-3 allgemein: ZZ1 mit 30% Wahrscheinlichkeit
+                    // - Ab Frage 4 und ab Sub-Skill 3b: ZZ1 komplett ausschließen
+                    const opts = quickStart.isActive ? (quickStart.currentOptions || []) : [];
+                    const currentSub = opts[opts.length - 1];
+                    const qAnswered = quickStart.isActive ? quickStart.questionsAnswered : 999;
+                    const isBasis = currentSub === 'basis';
+
+                    // Garantie: Wenn Frage 3 (Index 2) und ZZ1 noch nie vorkam → erzwingen
+                    const forceZZ1 = isBasis && qAnswered === 2 && quickStart.isActive && !quickStart.zz1Shown;
+                    const allowZZ1 = forceZZ1 || (isBasis && qAnswered < 3 && Math.random() < 0.3);
+
                     let randomOriginalIndex;
                     if (bar.originalNoteCount === 1) {
-                        randomOriginalIndex = 0; // Nur eine Note vorhanden
+                        randomOriginalIndex = 0; // Nur eine Note vorhanden — keine Alternative
+                    } else if (allowZZ1) {
+                        // Basis-Einführung: ZZ1 erlaubt
+                        randomOriginalIndex = forceZZ1 ? 0 : Math.floor(Math.random() * bar.originalNoteCount);
+                        if (randomOriginalIndex === 0 && quickStart.isActive) quickStart.zz1Shown = true;
                     } else {
-                        // Mehrere Noten: Erste Note hat 20% Wahrscheinlichkeit, Rest wird gleichverteilt
-                        if (Math.random() < 0.2) {
-                            randomOriginalIndex = 0; // 20% für erste Note (Zählzeit 1)
-                        } else {
-                            // 80% für alle anderen Noten gleichverteilt
-                            randomOriginalIndex = Math.floor(Math.random() * (bar.originalNoteCount - 1)) + 1;
-                        }
+                        // Ab 2 Noten: Nur aus Index 1..n wählen (ZZ1 wird übersprungen)
+                        randomOriginalIndex = Math.floor(Math.random() * (bar.originalNoteCount - 1)) + 1;
                     }
                     
                     // Finde den ersten Teil der Note mit diesem originalIndex
                     // (tiedFrom ist null oder undefined bei Noten die nicht der zweite Teil eines Haltebogens sind)
-                    const markedIndex = bar.notes.findIndex(n => 
+                    const markedIndex = bar.notes.findIndex(n =>
                         n.originalIndex === randomOriginalIndex && (n.tiedFrom === null || n.tiedFrom === undefined)
                     );
-                    
-                    // NEU: Fingerprint erstellen und auf Wiederholung prüfen
-                    const taskFingerprint = bar.notes.map(n => n.type).join(',') + ':' + markedIndex;
-                    if (taskFingerprint === this.lastTaskFingerprint) {
-                        console.log('[App] Gleiche Aufgabe wie zuvor (counting-time) - neu generieren');
+
+                    // Sicherheit: Wenn kein passender Index gefunden
+                    let finalMarkedIndex = markedIndex;
+                    if (markedIndex === -1) {
+                        if (this._generateRetryCount <= 20) {
+                            console.log('[App] markedIndex -1 (counting-time) - neu generieren');
+                            this.generateNewTask();
+                            return;
+                        }
+                        // Fallback: Erste nicht-gebundene Note nehmen
+                        finalMarkedIndex = bar.notes.findIndex(n => n.tiedFrom === null || n.tiedFrom === undefined);
+                        if (finalMarkedIndex === -1) finalMarkedIndex = 0;
+                        console.warn('[App] markedIndex Fallback auf', finalMarkedIndex);
+                    }
+
+                    // Fingerprint: Wiederholungs-Check
+                    const taskFingerprint = bar.notes.map(n => n.type).join(',') + ':' + finalMarkedIndex;
+                    if (taskFingerprint === this.lastTaskFingerprint && this._generateRetryCount <= 20) {
                         this.generateNewTask();
                         return;
                     }
                     this.lastTaskFingerprint = taskFingerprint;
-                    
-                    this.currentTask.markedNoteIndex = markedIndex;
+                    this._generateRetryCount = 0; // Erfolg → Counter zurücksetzen
+
+                    this.currentTask.markedNoteIndex = finalMarkedIndex;
                     this.currentTask.markedOriginalIndex = randomOriginalIndex;
-                    
+
                     // Berechne Start-Zählzeit der markierten Note
-                    this.currentTask.correctStartCounting = this.calculateStartCounting(markedIndex);
+                    this.currentTask.correctStartCounting = this.calculateStartCounting(finalMarkedIndex);
                     this.currentTask.correctRhythmSyllable = null;
-                    
+
+                    // Fragetext dynamisch anpassen: "Note" vs "Pause"
+                    const markedType = bar.notes[finalMarkedIndex]?.type || '';
+                    const isRest = this.noteValues[markedType]?.isRest || false;
+                    const label = isRest ? 'Pause' : 'Note';
+                    const badge = document.getElementById('taskFocusBadge');
+                    if (badge) badge.textContent = `🎯 Auf welcher Zählzeit ist diese ${label}?`;
+                    const inputLabel = document.getElementById('inputLabel');
+                    if (inputLabel) inputLabel.textContent = `Start-Zählzeit der markierten ${label}:`;
+
                     // Reset Input und Validierung
                     this.hasBeenChecked = false;
                     this.resetInputs();
@@ -4656,40 +4789,52 @@ Gerät:
                         return;
                     }
                     
-                    // Wähle zufälligen originalIndex - ABER: Erste Note (Zählzeit 1) nur mit 20% Wahrscheinlichkeit
+                    // ZZ1 ausschließen: Erste Note (Zählzeit 1) ist trivial → nie markieren (wenn >1 Note)
                     let randomOriginalIndex;
                     if (validIndices.length === 1) {
-                        randomOriginalIndex = validIndices[0]; // Nur eine Note vorhanden
-                    } else if (validIndices[0] === 0) {
-                        // Erste Note ist bei Index 0: 20% Wahrscheinlichkeit
-                        if (Math.random() < 0.2) {
-                            randomOriginalIndex = 0; // 20% für erste Note (Zählzeit 1)
-                        } else {
-                            // 80% für andere Noten - wähle aus validIndices[1...n]
-                            const otherIndices = validIndices.slice(1);
-                            randomOriginalIndex = otherIndices[Math.floor(Math.random() * otherIndices.length)];
-                        }
+                        randomOriginalIndex = validIndices[0]; // Nur eine Note vorhanden — keine Alternative
                     } else {
-                        // Erste Note ist nicht bei Index 0 (Pause am Anfang) - normale Auswahl
-                        randomOriginalIndex = validIndices[Math.floor(Math.random() * validIndices.length)];
+                        // Ab 2 Noten: ZZ1 (originalIndex 0) ausschließen
+                        const nonTrivialIndices = validIndices.filter(idx => idx !== 0);
+                        if (nonTrivialIndices.length > 0) {
+                            randomOriginalIndex = nonTrivialIndices[Math.floor(Math.random() * nonTrivialIndices.length)];
+                        } else {
+                            // Fallback: Alle Noten haben Index 0 (sollte nicht vorkommen)
+                            randomOriginalIndex = validIndices[Math.floor(Math.random() * validIndices.length)];
+                        }
                     }
                     
                     // Finde den ersten Teil der Note mit diesem originalIndex
                     // (tiedFrom ist null oder undefined bei Noten die nicht der zweite Teil eines Haltebogens sind)
-                    const markedIndex = bar.notes.findIndex(n => 
+                    const markedIndex = bar.notes.findIndex(n =>
                         n.originalIndex === randomOriginalIndex && (n.tiedFrom === null || n.tiedFrom === undefined)
                     );
-                    
-                    // NEU: Fingerprint erstellen und auf Wiederholung prüfen
-                    const taskFingerprint = bar.notes.map(n => n.type).join(',') + ':' + markedIndex;
-                    if (taskFingerprint === this.lastTaskFingerprint) {
-                        console.log('[App] Gleiche Aufgabe wie zuvor (rhythm-syllable) - neu generieren');
+
+                    // Sicherheit: Wenn kein passender Index gefunden
+                    let finalMarkedIndex2 = markedIndex;
+                    if (markedIndex === -1) {
+                        if (this._generateRetryCount <= 20) {
+                            console.log('[App] markedIndex -1 (rhythm-syllable) - neu generieren');
+                            this.generateNewTask();
+                            return;
+                        }
+                        // Fallback: Erste nicht-gebundene, nicht-Pause Note nehmen
+                        finalMarkedIndex2 = bar.notes.findIndex(n =>
+                            !this.noteValues[n.type]?.isRest && (n.tiedFrom === null || n.tiedFrom === undefined));
+                        if (finalMarkedIndex2 === -1) finalMarkedIndex2 = 0;
+                        console.warn('[App] markedIndex Fallback (rhythm-syllable) auf', finalMarkedIndex2);
+                    }
+
+                    // Fingerprint: Wiederholungs-Check
+                    const taskFingerprint = bar.notes.map(n => n.type).join(',') + ':' + finalMarkedIndex2;
+                    if (taskFingerprint === this.lastTaskFingerprint && this._generateRetryCount <= 20) {
                         this.generateNewTask();
                         return;
                     }
                     this.lastTaskFingerprint = taskFingerprint;
-                    
-                    this.currentTask.markedNoteIndex = markedIndex;
+                    this._generateRetryCount = 0; // Erfolg → Counter zurücksetzen
+
+                    this.currentTask.markedNoteIndex = finalMarkedIndex2;
                     this.currentTask.markedOriginalIndex = randomOriginalIndex;
                     
                     // Berechne Rhythmussilbe der markierten Note
@@ -5084,7 +5229,7 @@ Gerät:
                 const barHeight = 240; // Mehr Höhe für Zählzeiten oben
                 const barlineLeft = 40; // Linker Taktstrich
                 const barlineRight = 660; // Rechter Taktstrich
-                const gridStartX = 90; // RASTER beginnt NACH Taktstrich (+30px für optischen Abstand)
+                const gridStartX = 120; // RASTER beginnt NACH Taktart (Padding zur großen Taktartanzeige)
                 const gridEndX = 660; // Raster endet bei rechtem Taktstrich
                 const noteAreaWidth = gridEndX - gridStartX; // 600px für Noten
                 
@@ -5111,9 +5256,11 @@ Gerät:
                 if (!(quickStart.isActive && quickStart.currentLevel === 'taktarten')) {
                     const [tsNum, tsDen] = this.settings.timeSignature.split('/').map(Number);
                     const tsX = 58;
+                    const tsFontSize = 56; // 200% von original 28px
+                    // font-size als SVG-Attribut statt im style (Safari ignoriert font-size im style-String)
                     const tsFont = 'font-family: "Times New Roman", Georgia, serif; font-weight: bold; text-anchor: middle;';
-                    svg += `<text x="${tsX}" y="${staffY - 12}" style="${tsFont} font-size: 28px;" fill="#000">${tsNum}</text>`;
-                    svg += `<text x="${tsX}" y="${staffY + 28}" style="${tsFont} font-size: 28px;" fill="#000">${tsDen}</text>`;
+                    svg += `<text x="${tsX}" y="${staffY - 5}" style="${tsFont}" font-size="${tsFontSize}" fill="#000">${tsNum}</text>`;
+                    svg += `<text x="${tsX}" y="${staffY + 50}" style="${tsFont}" font-size="${tsFontSize}" fill="#000">${tsDen}</text>`;
                 }
 
                 // Calculate grid positions
