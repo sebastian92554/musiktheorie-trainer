@@ -1254,6 +1254,14 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #4338ca; }
+        .vz-sharp, .vz-flat {
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            top: -3px;
+            line-height: 0;
+        }
+        .vz-sharp svg, .vz-flat svg { display: block; }
     </style>
 </head>
 <body>
@@ -2622,7 +2630,7 @@
                                 {from:'F',to:'E',label:'♭',color:'#dc2626'}
                             ],
                             _customLabels: [
-                                {key:'E',text:'Fes',color:'#dc2626',position:'top'},
+                                {key:'E',text:'Fes',color:'#dc2626',position:'aboveLabel'},
                                 {key:'Fis',text:'Fis',color:'#16a34a',position:'blackLabel'}
                             ]
                         });
@@ -2733,6 +2741,14 @@
                 // ---- noten3: hilfslinien ----
                 // Kein separater Visualisierungsblock — Kombination beider Fähigkeiten
 
+                // Inline-SVG-Vorzeichen im Fließtext füllen
+                document.querySelectorAll('#lernkarteOverlay .vz-sharp').forEach(el => {
+                    el.innerHTML = this._inlineVz(this._sharpPathD, this._SHARP_REF, 19, 27);
+                });
+                document.querySelectorAll('#lernkarteOverlay .vz-flat').forEach(el => {
+                    el.innerHTML = this._inlineVz(this._flatPathD, this._FLAT_REF, 15, 27);
+                });
+
                 document.getElementById('lernkarteOverlay').classList.add('active');
                 return true;
             },
@@ -2761,11 +2777,11 @@
                 },
                 'vorzeichen': {
                     title: 'Mit Vorzeichen',
-                    body: `<p>Ein <strong>♯ (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst auf der Tastatur eine Taste nach <strong>rechts</strong>. Ein <strong>♭ (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>. <strong>Achtung:</strong> Das Ziel ist nicht immer eine schwarze Taste! Zum Beispiel ist F – 1 Halbton = <strong>Fes</strong>, und das ist die weiße Taste E.</p>
+                    body: `<p>Ein <strong><span class="vz-sharp"></span> (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst auf der Tastatur eine Taste nach <strong>rechts</strong>. Ein <strong><span class="vz-flat"></span> (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>. <strong>Achtung:</strong> Das Ziel ist nicht immer eine schwarze Taste! Zum Beispiel ist F – 1 Halbton = <strong>Fes</strong>, und das ist die weiße Taste E.</p>
                         <div class="lk-visual" id="lkVisualVorzeichen"></div>
-                        <div class="lk-rule"><strong>Benennung mit ♯:</strong> Stammton + „is" → Fis, Cis, Gis, Dis, Ais.<br><strong>Benennung mit ♭:</strong> Stammton + „es" → Des, Ges.<br><strong>Drei Ausnahmen:</strong> E + ♭ = <strong>Es</strong> (nicht Ees), A + ♭ = <strong>As</strong> (nicht Aes), H + ♭ = <strong>B</strong> (nicht Hes).</div>
+                        <div class="lk-rule"><strong>Benennung mit <span class="vz-sharp"></span>:</strong> Stammton + „is" → Fis, Cis, Gis, Dis, Ais.<br><strong>Benennung mit <span class="vz-flat"></span>:</strong> Stammton + „es" → Des, Ges.<br><strong>Drei Ausnahmen:</strong> E + <span class="vz-flat"></span> = <strong>Es</strong> (nicht Ees), A + <span class="vz-flat"></span> = <strong>As</strong> (nicht Aes), H + <span class="vz-flat"></span> = <strong>B</strong> (nicht Hes).</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Lies zuerst den Stammton, dann schau, ob ein Vorzeichen davor steht. Das Vorzeichen steht immer direkt vor der Note auf derselben Linie oder im selben Zwischenraum.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne den Ton mitsamt Vorzeichen.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme den Ton mitsamt Vorzeichen.</div>`
                 },
                 'hilfslinien': {
                     title: 'Mit Hilfslinien',
@@ -2796,11 +2812,11 @@
                 },
                 'noten2_vorzeichen': {
                     title: 'Vorzeichen im Bassschlüssel',
-                    body: `<p>Auch im Bassschlüssel kommen Vorzeichen (♯ und ♭) vor. Die Regeln sind identisch zum Violinschlüssel. Denke daran: Das Ziel kann auch eine schwarze Taste sein — hier ist As (= A♭) dieselbe Taste wie Gis.</p>
+                    body: `<p>Auch im Bassschlüssel kommen Vorzeichen (<span class="vz-sharp"></span> und <span class="vz-flat"></span>) vor. Die Regeln sind identisch zum Violinschlüssel. Denke daran: Das Ziel kann auch eine schwarze Taste sein — hier ist As (= A<span class="vz-flat"></span>) dieselbe Taste wie Gis.</p>
                         <div class="lk-visual" id="lkVisualNoten2Vorzeichen"></div>
-                        <div class="lk-rule"><strong>Zur Erinnerung:</strong> ♯ → Stammton + „is" (Fis, Cis, …). ♭ → Stammton + „es" (Des, Ges, …).<br><strong>Ausnahmen:</strong> E + ♭ = <strong>Es</strong>, A + ♭ = <strong>As</strong>, H + ♭ = <strong>B</strong>.</div>
+                        <div class="lk-rule"><strong>Zur Erinnerung:</strong> <span class="vz-sharp"></span> → Stammton + „is" (Fis, Cis, …). <span class="vz-flat"></span> → Stammton + „es" (Des, Ges, …).<br><strong>Ausnahmen:</strong> E + <span class="vz-flat"></span> = <strong>Es</strong>, A + <span class="vz-flat"></span> = <strong>As</strong>, H + <span class="vz-flat"></span> = <strong>B</strong>.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Der Bassschlüssel ändert nur die Position der Noten auf dem System — die Vorzeichen-Logik bleibt gleich.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Erkenne den Ton mitsamt Vorzeichen im Bassschlüssel.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme den Ton mitsamt Vorzeichen im Bassschlüssel.</div>`
                 },
                 'noten2_hilfslinien': {
                     title: 'Hilfslinien im Bassschlüssel',
@@ -3001,6 +3017,25 @@
                 return svg;
             },
 
+            // ---- SVG-Vorzeichen-Pfade (CC0, aus TT 4c) ----
+            _sharpPathD: "m 2121,2729 c 8,-11 18,-21 31,-27 l 549,-267 V 1259 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 V 2289 L 4018,1794 V 460 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 v 1188 l 409,-199 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -613,297 v 1483 l 439,-214 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -643,313 v 1193 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4314 l -1018,495 v 1351 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4955 l -315,153 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 8,-11 18,-21 31,-27 l 519,-252 V 2954 l -345,168 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 z m 879,79 V 4290 L 4018,3795 V 2313 Z",
+            _flatPathD: "m 2834,4387 12,1609 c 136,-127 138,-160 268,-274 131,-149 218,-224 368,-400 150,-176 263,-369 317,-551 54,-182 34,-244 2,-374 -32,-130 -98,-228 -191,-283 -94,-55 -212,-65 -342,-31 -124,43 -168,60 -300,175 -58,58 -67,69 -134,129 z M 2510,522 c 128,-5 187,5 315,-5 5,138 3,3533 0,3534 222,-152 199,-154 421,-238 221,-84 439,-117 632,-93 192,23 352,101 464,226 112,125 244,306 245,499 1,193 -98,437 -237,600 -190,222 -414,397 -673,577 -255,177 -493,359 -683,529 -184,150 -272,234 -479,416 -5,-168 -15,-355 -14,-487 z",
+            _SHARP_REF: { cx: 3545.5, cy: 3549, h: 5937 },
+            _FLAT_REF:  { cx: 3544.5, cy: 5192, h: 6053 },
+
+            _svgSharp(x, y, color, targetH = 11) {
+                const s = targetH / this._SHARP_REF.h;
+                return `<g transform="translate(${x},${y}) scale(${s}) translate(${-this._SHARP_REF.cx},${-this._SHARP_REF.cy})"><path d="${this._sharpPathD}" fill="${color}" stroke="none"/></g>`;
+            },
+            _svgFlat(x, y, color, targetH = 11) {
+                const s = targetH / this._FLAT_REF.h;
+                return `<g transform="translate(${x},${y}) scale(${s}) translate(${-this._FLAT_REF.cx},${-this._FLAT_REF.cy})"><path d="${this._flatPathD}" fill="${color}" stroke="none"/></g>`;
+            },
+            _inlineVz(pathD, ref, w, h) {
+                const s = h / ref.h;
+                return `<svg width="${w}" height="${h}" viewBox="0 0 ${Math.round(ref.cx*2*s)} ${Math.round(ref.h*s)}" style="vertical-align:middle"><g transform="scale(${s})"><path d="${pathD}" fill="currentColor" stroke="none"/></g></svg>`;
+            },
+
             // ---- Lernkarte-Tastatur: Mini-Keyboard (portiert aus IT) ----
             renderLernkarteTastatur(options = {}) {
                 const {
@@ -3074,14 +3109,15 @@
                         const fill = hl ? (hl.color || '#c7d2fe') : '#222';
                         svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
                         if (showBlackLabels) {
-                            const _cl = (options._customLabels || []);
-                            const hasCustomBL = _cl.some(c => c.key === bkId && c.position === 'blackLabel');
-                            if (!hasCustomBL) {
-                                const lblArr = blackLabels[blackMap[wk.name]];
-                                if (lblArr) {
-                                    svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
-                                    svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
-                                }
+                            const customBL = (options._customLabels || []).find(c => c.key === bkId && c.position === 'blackLabel');
+                            const lblArr = blackLabels[blackMap[wk.name]];
+                            if (customBL && lblArr) {
+                                // Zeile 1: custom Text + Farbe, Zeile 2: enharmonischer Name normal
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="${customBL.color}" font-weight="700">${customBL.text}</text>`;
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
+                            } else if (lblArr) {
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
+                                svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
                             }
                         }
                         if (hl && hl.label) {
@@ -3131,42 +3167,36 @@
                         const px = -uy * tipW, py = ux * tipW;
                         svg += `<line x1="${fromX}" y1="${startY}" x2="${endX - ux*tipLen}" y2="${endY - uy*tipLen}" stroke="${color}" stroke-width="2"/>`;
                         svg += `<polygon points="${endX},${endY} ${endX-ux*tipLen+px},${endY-uy*tipLen+py} ${endX-ux*tipLen-px},${endY-uy*tipLen-py}" fill="${color}"/>`;
-                        // Label neben dem Pfeil (Mitte des Pfeils, leicht versetzt)
+                        // SVG-Vorzeichen neben dem Pfeil
                         if (a.label) {
                             const mx = (fromX + endX) / 2;
                             const my = (startY + endY) / 2;
                             const goesRight = endX > fromX;
-                            const offsetX = goesRight ? 8 : -8;
-                            const labelSize = a.label === '♭' ? 10 : 10;
-                            const labelY = a.label === '♭' ? my + 8 : my;
-                            svg += `<text x="${mx + offsetX}" y="${labelY}" text-anchor="middle" font-size="${labelSize}" fill="${color}" font-weight="700">${a.label}</text>`;
+                            const offsetX = goesRight ? 10 : -10;
+                            if (a.label === '♯') {
+                                svg += this._svgSharp(mx + offsetX, my, color, 11);
+                            } else if (a.label === '♭') {
+                                svg += this._svgFlat(mx + offsetX + 5, my + 8 - 1, color, 11);
+                            } else {
+                                svg += `<text x="${mx + offsetX}" y="${my}" text-anchor="middle" font-size="12" fill="${color}" font-weight="700">${a.label}</text>`;
+                            }
                         }
                     });
                 }
 
-                // Custom Labels über/unter/auf Tasten (_customLabels)
+                // Custom Labels (_customLabels)
                 const _customLabels = options._customLabels || [];
                 if (_customLabels.length > 0) {
                     _customLabels.forEach(cl => {
                         const cx = keyPositions[cl.key];
                         if (cx === undefined) return;
                         const color = cl.color || '#4f46e5';
-                        if (cl.position === 'top') {
-                            // Innerhalb der Taste oben, gleiche Höhe wie schwarze Labels (pad+12)
-                            const ty = ky + pad + 12;
-                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="11" fill="${color}" font-weight="600">${cl.text}</text>`;
-                        } else if (cl.position === 'blackLabel') {
-                            // Auf schwarzer Taste, ersetzt das Standard-Label
-                            const ty = ky + pad + 12;
-                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="6" fill="${color}" font-weight="700">${cl.text}</text>`;
-                        } else if (cl.above) {
-                            // Legacy: über der Taste
-                            const ty = ky + pad + 12;
-                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="11" fill="${color}" font-weight="600">${cl.text}</text>`;
-                        } else {
-                            const ty = ky + pad + wh + 14;
-                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="11" fill="${color}" font-weight="600">${cl.text}</text>`;
+                        if (cl.position === 'aboveLabel') {
+                            // Über dem Stammton-Label der weißen Taste, dezent
+                            const ty = ky + pad + wh - 20;
+                            svg += `<text x="${cx}" y="${ty}" text-anchor="middle" font-size="6" fill="${color}" font-weight="600">${cl.text}</text>`;
                         }
+                        // blackLabel wird oben bei schwarzen Tasten gehandelt
                     });
                 }
 
