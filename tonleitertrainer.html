@@ -5123,19 +5123,14 @@
                         <div class="lk-visual" id="lkVisual1"></div>
                         <div class="lk-rule"><strong>Regel:</strong> Auf der Klaviatur gibt es nur 2 natürliche Halbtonschritte: <strong>E→F</strong> und <strong>H→C</strong>. Alle anderen benachbarten Stammtöne sind Ganztonschritte.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Merke dir die Ausnahmen: E–F und H–C. Dort fehlt die schwarze Taste dazwischen.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du hörst zwei benachbarte Töne. Entscheide: Ganzton oder Halbton?</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auf der Tastatur, ob zwei benachbarte Töne einen Ganzton- oder Halbtonschritt bilden.</div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
                         numOctaves: 2,
-                        highlightKeys: [{key:'C', color:'#a5f3fc'}, {key:'C2', color:'#a5f3fc'}],
-                        keyStepArrows: [
-                            { steps: ['C','D'], color: '#16a34a', label: 'GT' },
-                            { steps: ['D','E'], color: '#16a34a', label: 'GT' },
-                            { steps: ['E','F'], color: '#dc2626', label: 'HT' },
-                            { steps: ['F','G'], color: '#16a34a', label: 'GT' },
-                            { steps: ['G','A'], color: '#16a34a', label: 'GT' },
-                            { steps: ['A','H'], color: '#16a34a', label: 'GT' },
-                            { steps: ['H','C2'], color: '#dc2626', label: 'HT' }
+                        highlightKeys: [{key:'E', color:'#fecaca'}, {key:'F', color:'#fecaca'}, {key:'H', color:'#fecaca'}, {key:'C2', color:'#fecaca'}],
+                        topArrows: [
+                            { from: 'A', to: 'H', color: '#16a34a', label: 'GT' },
+                            { from: 'E', to: 'F', color: '#dc2626', label: 'HT' }
                         ]
                     });
                 }
@@ -5146,7 +5141,7 @@
                         <div class="lk-visual" id="lkVisual1"></div>
                         <div class="lk-rule"><strong>Achtung:</strong> <span class="vz-sharp"></span> = 1 HT nach rechts, <span class="vz-flat"></span> = 1 HT nach links. Fis→G ist ein <strong>GT</strong>, aber E→F ist ein <strong>HT</strong> (benachbarte Tasten!).</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Finde zuerst beide Stammtöne auf der Tastatur. Wende dann die Vorzeichen an. Zähle ob es 1 oder 2 Tasten Abstand sind.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du hörst zwei Töne (ggf. mit Vorzeichen). Entscheide: Ganzton oder Halbton?</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auf der Tastatur, ob der Abstand zwischen zwei Tönen ein GT oder HT ist.</div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
                         numOctaves: 1,
