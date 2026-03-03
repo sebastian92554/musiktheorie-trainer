@@ -2209,7 +2209,7 @@
                 console.log('[QuickStart] Konfiguriere App:', level, 'mit Optionen:', options);
                 
                 // Reset Fingerprint für neue Aufgaben-Serie
-                app.lastTaskFingerprint = null;
+                app._recentFingerprints = [];
                 
                 // PROGRESSIVE SCHWIERIGKEIT: Starte mit 2 Summanden
                 this.currentSummandCount = 2;
@@ -2703,7 +2703,7 @@
             taskCounter: 1,
             score: { correct: 0, total: 0 },
             hasBeenChecked: false,
-            lastTaskFingerprint: null,
+            _recentFingerprints: [],
             freeRetry: false,
 
             noteValues: {
@@ -3575,7 +3575,7 @@ Gerät:
                 this.settings.showLegend = document.getElementById('showLegend').checked;
                 
                 // Reset Fingerprint bei Settings-Änderung
-                this.lastTaskFingerprint = null;
+                this._recentFingerprints = [];
 
                 // Automatische Hilfestellungen je nach Aufgabentyp
                 const showCountingTimesCheckbox = document.getElementById('showCountingTimes');
@@ -4955,24 +4955,22 @@ Gerät:
                 const bar = this._generateBarWithRetries(params);
                 this.currentTask = bar;
 
-                // Phase 2: Markierung wählen (kn3/kn4)
+                // Phase 2: Markierung wählen (kn3/kn4) mit Duplikat-Vermeidung
                 if (params.needsMarker && bar.originalNoteCount > 0) {
-                    const markedIndex = this._selectMarkedNote(bar, params);
+                    let chosenBar = bar;
+                    let chosenMarker = this._selectMarkedNote(bar, params);
+                    let fp = bar.notes.map(n => n.type).join(',') + ':' + chosenMarker;
 
-                    // Fingerprint: Wiederholungs-Check (1 Versuch)
-                    const fingerprint = bar.notes.map(n => n.type).join(',') + ':' + markedIndex;
-                    if (fingerprint === this.lastTaskFingerprint) {
-                        // Einmal neu versuchen bei Wiederholung
-                        const bar2 = this._generateBarWithRetries(params);
-                        this.currentTask = bar2;
-                        const markedIndex2 = this._selectMarkedNote(bar2, params);
-                        const fp2 = bar2.notes.map(n => n.type).join(',') + ':' + markedIndex2;
-                        this.lastTaskFingerprint = fp2;
-                        this._applyMarker(bar2, markedIndex2, params);
-                    } else {
-                        this.lastTaskFingerprint = fingerprint;
-                        this._applyMarker(bar, markedIndex, params);
+                    // Bis zu 5 Versuche um Duplikat zu vermeiden (History: letzte 3)
+                    for (let dup = 0; dup < 5 && this._recentFingerprints.includes(fp); dup++) {
+                        chosenBar = this._generateBarWithRetries(params);
+                        chosenMarker = this._selectMarkedNote(chosenBar, params);
+                        fp = chosenBar.notes.map(n => n.type).join(',') + ':' + chosenMarker;
                     }
+                    this.currentTask = chosenBar;
+                    this._recentFingerprints.push(fp);
+                    if (this._recentFingerprints.length > 3) this._recentFingerprints.shift();
+                    this._applyMarker(chosenBar, chosenMarker, params);
                 } else {
                     this.currentTask.markedNoteIndex = null;
                     this.currentTask.correctStartCounting = null;
