@@ -1223,15 +1223,34 @@
         .qz-submit-btn:hover {
             background: #0e7490;
         }
+        .qz-next-btn {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.5rem 1.5rem;
+            background: #0891b2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .qz-next-btn:hover {
+            background: #0e7490;
+        }
         .qz-multi-options {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
             justify-content: center;
             margin-bottom: 0.75rem;
+            width: 100%;
         }
         .qz-multi-confirm {
             margin-top: 0.5rem;
+            text-align: center;
+            width: 100%;
         }
 
         /* Fallback hint */
@@ -1937,8 +1956,24 @@
             ⚠️ Markiere die Halbtonschritte dieser Tonleiter, um weiterzumachen!
         </div>
 
-        <!-- Task Description -->
-        <div id="taskDescription" style="text-align:center; padding:6px 10px; font-size:0.9rem; color:#6b7280; font-weight:500;"></div>
+        <!-- Task Description + Audio -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <div id="taskDescription" style="text-align:center; padding:6px 10px; font-size:0.9rem; color:#6b7280; font-weight:500;"></div>
+            <div id="audioControls" style="display: none;">
+                <button type="button" id="playScaleBtn" onclick="app.playScale()"
+                    title="Tonleiter anhören"
+                    style="background: none; border: none; cursor: pointer; padding: 2px;
+                           opacity: 0.5; transition: opacity 0.15s;"
+                    onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                         stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
 
         <!-- Responsive Wrapper for Landscape Grid -->
         <div class="main-content-wrapper">
@@ -2281,26 +2316,29 @@
         nodeSubSkills: {
             'ton1': [
                 { id: 'basis', label: 'Stammtöne (C, D, E, F, G, A, H)' },
-                { id: 'vorzeichen', label: 'Mit Vorzeichen' }
+                { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                { id: 'noaudio', label: 'Ohne Hörbeispiel' }
             ],
             'ton2': [
                 { id: 'basis', label: 'HS-Stufen wählen (Dur & Moll)' },
                 { id: 'stufenpaare', label: 'HS-Paare auswählen' },
-                { id: 'mehr_tonarten', label: 'Erweiterte Tonarten' }
+                { id: 'mehr_tonarten', label: 'Erweiterte Tonarten' },
+                { id: 'noaudio', label: 'Ohne Hörbeispiel' }
             ],
             'ton3': [
                 { id: 'muster_lernen', label: 'Tongeschlecht bestimmen (Dur / Moll / Andere)' },
                 { id: 'muster_erkennen', label: 'HS-Stufen finden + Tonleiter benennen' },
                 { id: 'alles', label: 'Alle Tonleitern benennen' },
-                { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe' }
+                { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe' },
+                { id: 'noaudio', label: 'Ohne Hörbeispiel' }
             ],
             'ton4': [
                 { id: 'aussenkr', label: 'Außenkreis + Merksätze' },
                 { id: 'innenkr', label: 'Innenkreis + Mollparallelen' },
-                { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung + Leitton' },
-                { id: 'symmetrien', label: 'Symmetrien (Tritonus, Dreiecke, Raute)' },
+                { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung' },
+                { id: 'enharmonisch', label: 'Enharmonische Verwechslung' },
                 { id: 'verwandte', label: 'Verwandte Tonarten' },
-                { id: 'enharmonisch', label: 'Enharmonische Verwechslung' }
+                { id: 'symmetrien', label: 'Symmetrien (Tritonus, Dreiecke, Raute)' }
             ]
         },
 
@@ -2547,11 +2585,24 @@
             if (!this.progress[this.currentLevel].scores) {
                 this.progress[this.currentLevel].scores = {};
             }
-            // Bestimme welche Teilkompetenz gerade gemeistert wurde
-            const subs = this.nodeSubSkills[Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel)];
-            const mastered = this.progress[this.currentLevel].mastered;
-            const nextUnmastered = subs.find(s => !mastered.includes(s.id));
-            const optId = nextUnmastered ? nextUnmastered.id : subs[subs.length - 1].id;
+            // Bestimme welche Teilkompetenz gerade gespielt wurde
+            // Bei Meister (keine Cascade): currentOptions enthält genau den gespielten Sub-Skill
+            let optId;
+            if (this.currentLevel === 'meister' && this.currentOptions.length === 1) {
+                optId = this.currentOptions[0];
+            } else {
+                // Für andere Level: höchste aktive Option = die gerade gemeisterte
+                const allOptions = this.getOptionsForLevel(this.currentLevel);
+                let highestIdx = -1;
+                for (const opt of this.currentOptions) {
+                    const idx = allOptions.indexOf(opt);
+                    if (idx > highestIdx) { highestIdx = idx; optId = opt; }
+                }
+                if (!optId) {
+                    const subs = this.nodeSubSkills[Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel)];
+                    optId = subs[subs.length - 1].id;
+                }
+            }
 
             // Nur besseren Score speichern
             const existing = this.progress[this.currentLevel].scores[optId] || 0;
@@ -2597,16 +2648,24 @@
             if (document.getElementById('settingBass')) document.getElementById('settingBass').checked = false;
 
             app.configureForStage('einsteiger', true);
+
+            // Audio im Freien Üben: verfügbar (Einsteiger = ton1)
+            app.noAudio = false;
+            const audioControls = document.getElementById('audioControls');
+            if (audioControls) audioControls.style.display = '';
+
             app.generateNewTask();
         },
 
         backToStart() {
+            const lastNode = this.selectedNode;
             this.selectedNode = null;
             this.selectedSub = null;
             this.hideQuizOverlay();
             document.getElementById('appTitle').textContent = 'Tonleitertrainer';
             this.updateAllProgress();
             this.showQuickStart();
+            if (lastNode) this.selectNode(lastNode);
         },
 
         // ---- Start from Skilltree ----
@@ -2713,6 +2772,14 @@
             }
             app.configureForStage(level, showKeyboard);
 
+            // Audio: ton1, ton2, ton3 haben Audio; ton4 nicht; noaudio-SubSkill deaktiviert
+            const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === level);
+            const hasAudio = (nodeId === 'ton1' || nodeId === 'ton2' || nodeId === 'ton3');
+            const isNoAudio = this.currentOptions.includes('noaudio');
+            app.noAudio = !hasAudio || isNoAudio;
+            const audioControls = document.getElementById('audioControls');
+            if (audioControls) audioControls.style.display = app.noAudio ? 'none' : '';
+
             // Show quiz overlay
             this.showQuizOverlay();
 
@@ -2747,6 +2814,9 @@
             const subLetter = String.fromCharCode(97 + Math.max(0, subIdx));
             const subLabel = `${nodeIdx}${subLetter}`;
 
+            // Sub-Skill-Label für Meister (z.B. "Außenkreis + Merksätze")
+            const meisterSubName = (this.currentLevel === 'meister' && subs && subIdx >= 0) ? subs[subIdx].label : '';
+
             const taskTexts = {
                 einsteiger: 'Ganzton oder Halbton?',
                 aufsteiger: 'Wähle die Halbtonschritt-Paare!',
@@ -2759,7 +2829,12 @@
             const task = document.getElementById('headerExerciseTask');
             const segContainer = document.getElementById('headerProgressSegments');
 
-            label.textContent = `${subLabel} ${nodeName} — ${this.questionsAnswered}/${this.totalQuestions}`;
+            // Meister: Sub-Skill-Name im Label (analog zu anderen Knoten)
+            if (this.currentLevel === 'meister' && meisterSubName) {
+                label.textContent = `${subLabel} ${meisterSubName} — ${this.questionsAnswered}/${this.totalQuestions}`;
+            } else {
+                label.textContent = `${subLabel} ${nodeName} — ${this.questionsAnswered}/${this.totalQuestions}`;
+            }
             task.textContent = this.fallbackActive ? 'Markiere die Halbtonschritte!' : (taskTexts[this.currentLevel] || '');
 
             // Dual-Bar: Hintergrund = Gesamtfortschritt (rot bei Fehlern), Vordergrund = nur richtige
@@ -2879,39 +2954,39 @@
         },
 
         markCurrentOptionAsMastered() {
-            // Determine which options were active in this session
             const activeOptions = [...this.currentOptions];
             const mastered = this.progress[this.currentLevel].mastered;
             const allOptions = this.getOptionsForLevel(this.currentLevel);
 
-            // If a higher option was active and passed,
-            // it implies all lower options are also mastered
-            // Einsteiger/Aufsteiger: basis < vorzeichen/mehr_tonarten < ...
-            // Profi: muster_lernen < muster_erkennen < alles
-            const higherOptions = ['vorzeichen', 'stufenpaare', 'mehr_tonarten', 'muster_erkennen', 'alles', 'ohne_hilfe',
-                'innenkr', 'vorz_ableitung', 'symmetrien', 'verwandte', 'enharmonisch'];
-            const hasHigherOption = activeOptions.some(opt => higherOptions.includes(opt));
-
-            if (hasHigherOption) {
-                // Find the highest active option's index in allOptions
-                let highestIdx = -1;
+            if (this.currentLevel === 'meister') {
+                // Meister (keine Cascade): genau den gespielten Sub-Skill markieren
                 for (const opt of activeOptions) {
-                    const idx = allOptions.indexOf(opt);
-                    if (idx > highestIdx) highestIdx = idx;
-                }
-                // Mark all options up to (but not including) the highest as mastered
-                for (let i = 0; i < highestIdx; i++) {
-                    if (!mastered.includes(allOptions[i])) {
-                        mastered.push(allOptions[i]);
+                    if (!mastered.includes(opt)) {
+                        mastered.push(opt);
                     }
                 }
-            }
+            } else {
+                // Einsteiger/Aufsteiger/Profi: Cascade-Logik
+                const higherOptions = ['vorzeichen', 'stufenpaare', 'mehr_tonarten', 'muster_erkennen', 'alles', 'ohne_hilfe'];
+                const hasHigherOption = activeOptions.some(opt => higherOptions.includes(opt));
 
-            // Now mark the next unmastered option
-            const nextUnmastered = allOptions.find(opt => !mastered.includes(opt));
+                if (hasHigherOption) {
+                    let highestIdx = -1;
+                    for (const opt of activeOptions) {
+                        const idx = allOptions.indexOf(opt);
+                        if (idx > highestIdx) highestIdx = idx;
+                    }
+                    for (let i = 0; i < highestIdx; i++) {
+                        if (!mastered.includes(allOptions[i])) {
+                            mastered.push(allOptions[i]);
+                        }
+                    }
+                }
 
-            if (nextUnmastered) {
-                mastered.push(nextUnmastered);
+                const nextUnmastered = allOptions.find(opt => !mastered.includes(opt));
+                if (nextUnmastered) {
+                    mastered.push(nextUnmastered);
+                }
             }
 
             this.saveProgress();
@@ -2920,7 +2995,7 @@
         getOptionsForLevel(level) {
             if (level === 'einsteiger') return ['basis', 'vorzeichen'];
             if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten'];
-            if (level === 'meister') return ['aussenkr', 'innenkr', 'vorz_ableitung', 'symmetrien', 'verwandte', 'enharmonisch'];
+            if (level === 'meister') return ['aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'verwandte', 'symmetrien'];
             return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe'];
         },
 
@@ -2951,7 +3026,7 @@
                 'ohne_hilfe': 'Nächste Teilkompetenz: Ohne Klaviatur-Hilfe',
                 'aussenkr': 'Nächste Teilkompetenz: Außenkreis + Merksätze',
                 'innenkr': 'Nächste Teilkompetenz: Innenkreis + Mollparallelen',
-                'vorz_ableitung': 'Nächste Teilkompetenz: Vorzeichen-Ableitung + Leitton',
+                'vorz_ableitung': 'Nächste Teilkompetenz: Vorzeichen-Ableitung',
                 'symmetrien': 'Nächste Teilkompetenz: Symmetrien',
                 'verwandte': 'Nächste Teilkompetenz: Verwandte Tonarten',
                 'enharmonisch': 'Nächste Teilkompetenz: Enharmonische Verwechslung'
@@ -3048,8 +3123,13 @@
         enharmonic: {
             'Fis': 'Ges', 'Ges': 'Fis',
             'H': 'Ces', 'Ces': 'H',
-            'Cis': 'Des', 'Des': 'Cis'
+            'Cis': 'Des', 'Des': 'Cis',
+            'Dis': 'Es', 'Es': 'Dis',
+            'Ais': 'B', 'B': 'Ais',
+            'Eis': 'F', 'F': 'Eis',
+            'Gis': 'As', 'As': 'Gis'
         },
+        _recentEnharm: [],
 
         // Tritonus-Paare (gegenüber im Quintenzirkel)
         tritonePairs: {
@@ -3080,11 +3160,18 @@
         mnemonicSharp: 'Geh Du Alter Esel Hole Fische',
         mnemonicFlat: 'Freche Buben Essen Aspirin Deshalb Gesund',
 
-        // Tracking: zuletzt gefragte Tonarten (Reset bei Quiz-Start)
+        // Tracking: zuletzt gefragte Tonarten/Formen (Reset bei Quiz-Start)
         _recentKeys: [],
+        _lastTritonus: null,
+        _lastTriangle: null,
+        _lastDiamond: null,
 
         resetRecent() {
             this._recentKeys = [];
+            this._recentEnharm = [];
+            this._lastTritonus = null;
+            this._lastTriangle = null;
+            this._lastDiamond = null;
         },
 
         // ---- Hilfsfunktionen ----
@@ -3111,15 +3198,18 @@
         generateQuestion(subSkillIds, questionNum) {
             // Wähle zufällig einen der aktiven Sub-Skills
             const subSkillId = this._randomItem(subSkillIds);
+            let q;
             switch (subSkillId) {
-                case 'aussenkr': return this._genAussenkr(questionNum);
-                case 'innenkr': return this._genInnenkr();
-                case 'vorz_ableitung': return this._genVorzAbleitung();
-                case 'symmetrien': return this._genSymmetrien();
-                case 'verwandte': return this._genVerwandte();
-                case 'enharmonisch': return this._genEnharmonisch();
-                default: return this._genAussenkr();
+                case 'aussenkr': q = this._genAussenkr(questionNum); break;
+                case 'innenkr': q = this._genInnenkr(questionNum); break;
+                case 'vorz_ableitung': q = this._genVorzAbleitung(); break;
+                case 'enharmonisch': q = this._genEnharmonisch(); break;
+                case 'symmetrien': q = this._genSymmetrien(questionNum); break;
+                case 'verwandte': q = this._genVerwandte(); break;
+                default: q = this._genAussenkr(); break;
             }
+            q.subSkillId = subSkillId;
+            return q;
         },
 
         // Hilfsfunktion: Vorzeichen-Text grammatisch korrekt
@@ -3187,7 +3277,8 @@
                     type: 'buttons',
                     question: `Wie viele Vorzeichen hat ${keyData.name}-Dur?`,
                     correct: correct,
-                    options: this._shuffle(options)
+                    options: this._shuffle(options),
+                    solutionKeys: [keyData.name]
                 };
             } else {
                 // Gegeben: Anzahl+Typ → Welche Tonart?
@@ -3208,18 +3299,47 @@
                     type: 'buttons',
                     question: `Welche Dur-Tonart hat ${typeWord}?`,
                     correct: correct,
-                    options: this._shuffle([correct, ...distractors])
+                    options: this._shuffle([correct, ...distractors]),
+                    solutionKeys: [keyData.name]
                 };
             }
         },
 
         // 4b: Innenkreis + Mollparallelen — bidirektional
-        _genInnenkr() {
-            const keys = Object.keys(this.parallelMinor);
+        _genInnenkr(questionNum) {
+            let keys = Object.keys(this.parallelMinor);
+            // Progression: Fragen 1-3 nur einfache Tonarten (bis 2 VZ), 4-6 bis 4 VZ, 7-10 alles
+            if (typeof questionNum === 'number') {
+                if (questionNum < 3) {
+                    keys = keys.filter(k => Math.abs(this.signatureCount[k]) <= 2);
+                } else if (questionNum < 6) {
+                    keys = keys.filter(k => Math.abs(this.signatureCount[k]) <= 4);
+                }
+            }
+            // Nie dieselbe Tonart direkt hintereinander
+            const lastKey = this._recentKeys.length > 0 ? this._recentKeys[this._recentKeys.length - 1] : null;
+            let available = keys.filter(k => k !== lastKey);
+            if (available.length === 0) available = keys;
+            // Erste 5 Fragen: keine bereits gestellte Tonart wiederholen
+            if (typeof questionNum === 'number' && questionNum < 5) {
+                const fresh = available.filter(k => !this._recentKeys.includes(k));
+                if (fresh.length > 0) available = fresh;
+            }
+            // Ab Frage 6: schwere Tonarten (4+ VZ) 3× häufiger
+            if (typeof questionNum === 'number' && questionNum >= 5) {
+                const weighted = [];
+                available.forEach(k => {
+                    weighted.push(k);
+                    if (Math.abs(this.signatureCount[k]) >= 4) { weighted.push(k); weighted.push(k); }
+                });
+                available = weighted;
+            }
+
             const direction = Math.random() < 0.5 ? 'dur_to_moll' : 'moll_to_dur';
 
             if (direction === 'dur_to_moll') {
-                const durKey = this._randomItem(keys);
+                const durKey = this._randomItem(available);
+                this._recentKeys.push(durKey);
                 const correct = this.parallelMinor[durKey] + '-Moll';
                 const pool = Object.values(this.parallelMinor).map(m => m + '-Moll').filter(m => m !== correct);
                 const distractors = this._shuffle(pool).slice(0, 3);
@@ -3227,43 +3347,72 @@
                     type: 'buttons',
                     question: `Wie heißt die Mollparallele von ${durKey}-Dur?`,
                     correct: correct,
-                    options: this._shuffle([correct, ...distractors])
+                    options: this._shuffle([correct, ...distractors]),
+                    solutionKeys: [durKey]
                 };
             } else {
-                const mollKeys = Object.keys(this.parallelMajor);
-                const mollKey = this._randomItem(mollKeys);
-                const correct = this.parallelMajor[mollKey] + '-Dur';
+                // Moll → Dur: passende Molltonart aus verfügbaren Dur-Keys ableiten
+                const durKey = this._randomItem(available);
+                this._recentKeys.push(durKey);
+                const mollKey = this.parallelMinor[durKey];
+                const correct = durKey + '-Dur';
                 const pool = Object.values(this.parallelMajor).map(d => d + '-Dur').filter(d => d !== correct);
                 const distractors = this._shuffle(pool).slice(0, 3);
                 return {
                     type: 'buttons',
                     question: `Wie heißt die Durparallele von ${mollKey}-Moll?`,
                     correct: correct,
-                    options: this._shuffle([correct, ...distractors])
+                    options: this._shuffle([correct, ...distractors]),
+                    solutionKeys: [durKey]
                 };
             }
         },
 
-        // 4c: Vorzeichen-Ableitung + Leitton
+        // 4c: Vorzeichen-Ableitung
         _genVorzAbleitung() {
-            const keys = Object.keys(this.leadingTones);
+            const keys = Object.keys(this.leadingTones).filter(k => k !== 'C'); // C hat keine Vorzeichen
             const key = this._randomItem(keys);
-            const correct = this.leadingTones[key];
+            const isSharp = this.sharpKeys.some(k => k.name === key);
+            const count = Math.abs(this.signatureCount[key]);
+            // Vorzeichen der Tonart für Staff-Anzeige
+            const accidentals = isSharp ? this.sharpOrder.slice(0, count) : this.flatOrder.slice(0, count);
+            // Das NEUE (letzte) Vorzeichen ist die richtige Antwort — nicht der Leitton!
+            // Bei ♯: letztes Kreuz = Leitton. Bei ♭: letztes ♭ ≠ Leitton.
+            const correct = accidentals[accidentals.length - 1];
+            const leadingTone = this.leadingTones[key];
             return {
                 type: 'text',
-                question: `Wie heißt der Leitton von ${key}-Dur?`,
+                question: `${key}-Dur hat ${this._vzText(count, isSharp)}. Welches Vorzeichen kommt neu dazu?`,
                 correct: correct,
-                hint: '(z.B. Fis, Cis, B, ...)'
+                hint: isSharp ? '(z.B. Fis, Cis, Gis, ...)' : '(z.B. B, Es, As, Des, ...)',
+                solutionKeys: [key],
+                staffInfo: { key: key, accidentals: accidentals, leadingTone: leadingTone, isSharp: isSharp }
             };
         },
 
-        // 4d: Symmetrien
-        _genSymmetrien() {
-            const qType = this._randomItem(['tritonus', 'dreieck', 'raute']);
+        // 4d: Symmetrien — Progression: 1-3 Tritonus, 4-5 Großterz, 6-10 vorwiegend Kleinterz
+        _genSymmetrien(questionNum) {
+            let qType;
+            if (typeof questionNum === 'number') {
+                if (questionNum < 3) {
+                    qType = 'tritonus';
+                } else if (questionNum < 5) {
+                    qType = 'dreieck';
+                } else {
+                    // Ab Frage 6: vorwiegend Raute (70%), Rest gemischt
+                    const r = Math.random();
+                    qType = r < 0.7 ? 'raute' : (r < 0.85 ? 'tritonus' : 'dreieck');
+                }
+            } else {
+                qType = this._randomItem(['tritonus', 'dreieck', 'raute']);
+            }
 
             if (qType === 'tritonus') {
                 const keys = Object.keys(this.tritonePairs).filter(k => this.allKeys.indexOf(k) < 6); // nur eine Richtung
-                const key = this._randomItem(keys);
+                let available = keys.filter(k => k !== this._lastTritonus);
+                if (available.length === 0) available = keys;
+                const key = this._randomItem(available);
+                this._lastTritonus = key;
                 const correct = this.tritonePairs[key] + '-Dur';
                 const pool = this.allKeys.filter(k => k !== key && k !== this.tritonePairs[key]).map(k => k + '-Dur');
                 const distractors = this._shuffle(pool).slice(0, 3);
@@ -3271,10 +3420,15 @@
                     type: 'buttons',
                     question: `Welche Tonart liegt ${key}-Dur im Quintenzirkel gegenüber (Tritonus)?`,
                     correct: correct,
-                    options: this._shuffle([correct, ...distractors])
+                    options: this._shuffle([correct, ...distractors]),
+                    solutionKeys: [key, this.tritonePairs[key]],
+                    solutionShape: 'line'
                 };
             } else if (qType === 'dreieck') {
-                const triangle = this._randomItem(this.majorThirdTriangles);
+                let triAvail = this.majorThirdTriangles.filter(t => t !== this._lastTriangle);
+                if (triAvail.length === 0) triAvail = this.majorThirdTriangles;
+                const triangle = this._randomItem(triAvail);
+                this._lastTriangle = triangle;
                 const givenIdx = Math.floor(Math.random() * 3);
                 const given = triangle[givenIdx];
                 const others = triangle.filter((_, i) => i !== givenIdx);
@@ -3288,10 +3442,15 @@
                     question: `${given}-Dur bildet ein Großterz-Dreieck. Welche zwei Tonarten gehören dazu?`,
                     correct: correctSet,
                     options: this._shuffle([...correctSet, ...distractors]),
-                    requiredCount: 2
+                    requiredCount: 2,
+                    solutionKeys: [...triangle],
+                    solutionShape: 'triangle'
                 };
             } else {
-                const diamond = this._randomItem(this.minorThirdDiamonds);
+                let diaAvail = this.minorThirdDiamonds.filter(d => d !== this._lastDiamond);
+                if (diaAvail.length === 0) diaAvail = this.minorThirdDiamonds;
+                const diamond = this._randomItem(diaAvail);
+                this._lastDiamond = diamond;
                 const givenIdx = Math.floor(Math.random() * 4);
                 const given = diamond[givenIdx];
                 const others = diamond.filter((_, i) => i !== givenIdx);
@@ -3305,7 +3464,9 @@
                     question: `${given}-Dur bildet eine Kleinterz-Raute. Welche drei Tonarten gehören dazu?`,
                     correct: correctArr,
                     options: this._shuffle([...correctArr, ...distractors]),
-                    requiredCount: 3
+                    requiredCount: 3,
+                    solutionKeys: [...diamond],
+                    solutionShape: 'diamond'
                 };
             }
         },
@@ -3326,21 +3487,31 @@
                 question: `Welche Dur-Tonarten sind die direkten Nachbarn von ${key}-Dur im Quintenzirkel?`,
                 correct: correctArr,
                 options: this._shuffle([...correctArr, ...distractors]),
-                requiredCount: 2
+                requiredCount: 2,
+                solutionKeys: [prev, key, next]
             };
         },
 
         // 4f: Enharmonische Verwechslung
         _genEnharmonisch() {
             const keys = Object.keys(this.enharmonic);
-            const key = this._randomItem(keys);
+            // Nie dieselbe Tonart direkt hintereinander
+            const lastEnh = this._recentEnharm.length > 0 ? this._recentEnharm[this._recentEnharm.length - 1] : null;
+            let available = keys.filter(k => k !== lastEnh);
+            if (available.length === 0) available = keys;
+            const key = this._randomItem(available);
+            this._recentEnharm.push(key);
             const correct = this.enharmonic[key];
+            // Beide Namen für Visualisierung
+            const solKeys = [key, correct].filter(k => this.allKeys.includes(k));
             return {
                 type: 'text',
                 question: `Wie heißt die enharmonische Verwechslung von ${key}-Dur?`,
                 correct: correct,
                 hint: '(z.B. Fis, Ges, Des, ...)',
-                acceptSuffix: true  // Akzeptiert auch "Ges-Dur" statt nur "Ges"
+                acceptSuffix: true,
+                solutionKeys: solKeys.length > 0 ? solKeys : undefined,
+                enharmonicPair: [key, correct]
             };
         },
 
@@ -3776,46 +3947,58 @@
         },
 
         // ---- Quintenzirkel-Visualisierung ----
-        _buildQzVisual() {
-            // Minimaler Quintenzirkel als Orientierungshilfe
-            // Kreis mit C oben, Pfeil rechts (♯) und links (♭), plus F und G als Ankerpunkte
-            const cx = 140, cy = 115, r = 90;
-            const smallR = r - 18; // Radius für Beschriftungen
+        // Gemeinsame Konstanten
+        _qzCx: 180, _qzCy: 155, _qzR: 130, _qzInnerR: 74,
 
-            // Positionen berechnen (12-Uhr = -90°, Uhrzeigersinn)
-            function pos(hour) {
+        _buildQzVisual(subSkillId) {
+            const cx = this._qzCx, cy = this._qzCy, r = this._qzR;
+            const smallR = r - 18;
+            const innerR = this._qzInnerR;
+
+            function posAt(hour, radius) {
                 const angle = (hour * 30 - 90) * Math.PI / 180;
-                return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
-            }
-            function posInner(hour) {
-                const angle = (hour * 30 - 90) * Math.PI / 180;
-                return { x: cx + smallR * Math.cos(angle), y: cy + smallR * Math.sin(angle) };
+                return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
             }
 
-            // Ankerpunkte: C (12 Uhr), G (1 Uhr), F (11 Uhr)
-            const pC = posInner(0);   // C = 12 Uhr
-            const pG = posInner(1);   // G = 1 Uhr
-            const pF = posInner(11);  // F = 11 Uhr
+            // Ankerpunkte Außenkreis: C (0), G (1), F (11)
+            const pC = posAt(0, smallR), pG = posAt(1, smallR), pF = posAt(11, smallR);
 
-            // Pfeilspitzen-Positionen für ♯ und ♭
+            // Pfeile
             const arrowR = r + 6;
-            const arrowSharpStart = { x: cx + arrowR * Math.cos((-60) * Math.PI / 180), y: cy + arrowR * Math.sin((-60) * Math.PI / 180) };
-            const arrowSharpEnd = { x: cx + arrowR * Math.cos((-20) * Math.PI / 180), y: cy + arrowR * Math.sin((-20) * Math.PI / 180) };
-            const arrowFlatStart = { x: cx + arrowR * Math.cos((-120) * Math.PI / 180), y: cy + arrowR * Math.sin((-120) * Math.PI / 180) };
-            const arrowFlatEnd = { x: cx + arrowR * Math.cos((-160) * Math.PI / 180), y: cy + arrowR * Math.sin((-160) * Math.PI / 180) };
+            const aSS = posAt(1, arrowR);
+            const aSE = { x: cx + arrowR * Math.cos(-20 * Math.PI / 180), y: cy + arrowR * Math.sin(-20 * Math.PI / 180) };
+            const aFS = posAt(11, arrowR);
+            const aFE = { x: cx + arrowR * Math.cos(-160 * Math.PI / 180), y: cy + arrowR * Math.sin(-160 * Math.PI / 180) };
 
-            // Tick-Marks für die 12 Positionen
+            // Tick-Marks
             let ticks = '';
             for (let h = 0; h < 12; h++) {
-                const outer = pos(h);
-                const angle = (h * 30 - 90) * Math.PI / 180;
-                const inner = { x: cx + (r - 8) * Math.cos(angle), y: cy + (r - 8) * Math.sin(angle) };
+                const outer = posAt(h, r);
+                const inner = posAt(h, r - 8);
                 const isAnchor = (h === 0 || h === 1 || h === 11);
                 ticks += `<line x1="${inner.x}" y1="${inner.y}" x2="${outer.x}" y2="${outer.y}" stroke="${isAnchor ? '#0891b2' : '#d1d5db'}" stroke-width="${isAnchor ? 2 : 1.2}"/>`;
             }
 
+            // Innenkreis mit 3 Moll-Ankern (bei 4b): a (0=C), e (1=G), d (11=F)
+            let innerContent = '';
+            if (subSkillId === 'innenkr') {
+                innerContent += `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="none" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4,3"/>`;
+                const mollAnchors = [{ h: 0, name: 'a' }, { h: 1, name: 'e' }, { h: 11, name: 'd' }];
+                mollAnchors.forEach(m => {
+                    const p = posAt(m.h, innerR - 8);
+                    innerContent += `<text x="${p.x}" y="${p.y + 4}" text-anchor="middle" font-size="13" font-weight="400" fill="#94a3b8">${m.name}</text>`;
+                });
+            }
+
+            // Mittelpunkte der Pfeilbögen (für ♯/♭-Positionierung)
+            const symR = arrowR + 12;
+            const sharpMidAngle = -40 * Math.PI / 180;  // Mitte von -60° (h1) und -20°
+            const flatMidAngle = 220 * Math.PI / 180;   // Mitte von 240° (h11) und 200°
+            const sharpMid = { x: cx + symR * Math.cos(sharpMidAngle), y: cy + symR * Math.sin(sharpMidAngle) };
+            const flatMid = { x: cx + symR * Math.cos(flatMidAngle), y: cy + symR * Math.sin(flatMidAngle) };
+
             return `<div class="qz-visual">
-                <svg width="280" height="230" viewBox="0 0 280 230">
+                <svg width="370" height="310" viewBox="0 0 370 310">
                     <defs>
                         <marker id="arrowSharp" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
                             <polygon points="0 0, 7 2.5, 0 5" fill="#0891b2"/>
@@ -3824,31 +4007,80 @@
                             <polygon points="0 0, 7 2.5, 0 5" fill="#0891b2"/>
                         </marker>
                     </defs>
-                    <!-- Kreis -->
                     <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="2"/>
-                    <!-- Tick-Marks -->
                     ${ticks}
-                    <!-- Ankerpunkte -->
-                    <text x="${pC.x}" y="${pC.y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="#0891b2">C</text>
-                    <text x="${pG.x + 2}" y="${pG.y + 5}" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">G</text>
-                    <text x="${pF.x - 2}" y="${pF.y + 5}" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">F</text>
-                    <!-- Pfeil rechts: ♯ -->
-                    <path d="M${arrowSharpStart.x},${arrowSharpStart.y} A${arrowR},${arrowR} 0 0,1 ${arrowSharpEnd.x},${arrowSharpEnd.y}"
-                        fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowSharp)"/>
-                    <text x="${cx + arrowR + 14}" y="${cy - 18}" text-anchor="start" font-size="16" font-weight="700" fill="#0891b2">♯</text>
-                    <!-- Pfeil links: ♭ -->
-                    <path d="M${arrowFlatStart.x},${arrowFlatStart.y} A${arrowR},${arrowR} 0 0,0 ${arrowFlatEnd.x},${arrowFlatEnd.y}"
-                        fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowFlat)"/>
-                    <text x="${cx - arrowR - 22}" y="${cy - 18}" text-anchor="end" font-size="16" font-weight="700" fill="#0891b2">♭</text>
+                    <text x="${pC.x}" y="${pC.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">C</text>
+                    <text x="${pG.x + 2}" y="${pG.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">G</text>
+                    <text x="${pF.x - 2}" y="${pF.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">F</text>
+                    ${innerContent}
+                    <path d="M${aSS.x},${aSS.y} A${arrowR},${arrowR} 0 0,1 ${aSE.x},${aSE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowSharp)"/>
+                    <text x="${sharpMid.x}" y="${sharpMid.y}" text-anchor="middle" font-size="18" font-weight="400" fill="#0891b2">♯</text>
+                    <path d="M${aFS.x},${aFS.y} A${arrowR},${arrowR} 0 0,0 ${aFE.x},${aFE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowFlat)"/>
+                    <text x="${flatMid.x}" y="${flatMid.y}" text-anchor="middle" font-size="18" font-weight="400" fill="#0891b2">♭</text>
                 </svg>
             </div>`;
+        },
+
+        // ---- Staff-Visualisierung für 4c (wird bei Lösung angezeigt) ----
+        // Skalierung: 20px Linienabstand + OpenClipart-Schlüssel (wie Hauptstaff)
+        _buildStaffVisual(staffInfo) {
+            // Gleiche Proportionen wie Hauptstaff (viewBox "20 130 600 200"):
+            // Linien bei y=180,200,220,240,260 — 20px Abstand, viewBox-Höhe 200
+            // Mini-Version: schmaler (w=300), gleiche y-Koordinaten
+            const w = 300, vbH = 200, vbY = 130;
+            const lineY = [180, 200, 220, 240, 260];
+
+            let lines = '';
+            lineY.forEach(y => {
+                lines += `<line x1="30" y1="${y}" x2="${w - 10}" y2="${y}" stroke="#94a3b8" stroke-width="1.5"/>`;
+            });
+
+            // Violinschlüssel — exakt gleicher Transform wie drawTrebleClefSVG()
+            const clef = `<g transform="translate(85, 158) scale(0.15)"><g transform="matrix(.21599 0 0 .21546 -250.44 -1202.6)"><path d="m2002 7851c-61 17-116 55-167 113-51 59-76 124-76 194 0 44 15 94 44 147 29 54 73 93 130 118 19 4 28 14 28 28 0 5-7 10-24 14-91-23-166-72-224-145-58-74-88-158-90-254 3-103 34-199 93-287 60-89 137-152 231-189l-69-355c-154 128-279 261-376 401-97 139-147 290-151 453 2 73 17 144 45 212 28 69 70 131 126 188 113 113 260 172 439 178 61-4 126-15 196-33l-155-783zm72-10l156 769c154-62 231-197 231-403-9-69-29-131-63-186-33-56-77-100-133-132s-119-48-191-48zm-205-1040c33-20 71-55 112-104 41-48 81-105 119-169 39-65 70-131 93-198 23-66 34-129 34-187 0-25-2-50-7-72-4-36-15-64-34-83-19-18-43-28-73-28-60 0-114 37-162 111-37 64-68 140-90 226-23 87-36 173-38 260 5 99 21 180 46 244zm-63 58c-45-162-70-327-75-495 1-108 12-209 33-303 20-94 49-175 87-245 37-70 80-123 128-159 43-32 74-49 91-49 13 0 24 5 34 14s23 24 39 44c119 169 179 373 179 611 0 113-15 223-45 333-29 109-72 213-129 310-58 98-126 183-205 256l81 394c44-5 74-9 91-9 76 0 144 16 207 48s117 75 161 130c44 54 78 116 102 186 23 70 36 143 36 219 0 118-31 226-93 323s-155 168-280 214c8 49 22 120 43 211 20 92 35 165 45 219s14 106 14 157c0 79-19 149-57 211-39 62-91 110-157 144-65 34-137 51-215 51-110 0-206-31-288-92-82-62-126-145-130-251 3-47 14-91 34-133s47-76 82-102c34-27 75-41 122-44 39 0 76 11 111 32 34 22 62 51 83 88 20 37 31 78 31 122 0 59-20 109-60 150s-91 62-152 62h-23c39 60 103 91 192 91 45 0 91-10 137-28 47-19 86-44 119-76s55-66 64-102c17-41 25-98 25-169 0-48-5-96-14-144-9-47-23-110-42-188-19-77-33-137-41-178-60 15-122 23-187 23-109 0-212-22-309-67s-182-107-256-187c-73-80-130-170-171-272-40-101-61-207-62-317 4-102 23-200 59-292 36-93 82-181 139-263s116-157 177-224c62-66 143-151 245-254z" fill="#334155" stroke="#334155" stroke-width="53"/></g></g>`;
+
+            // Vorzeichen-Positionen (gleiche y-Koordinaten wie Hauptstaff)
+            // F5=180, E5=190, D5=200, C5=210, B4=220, A4=230, G4=240, F4=250, E4=260, G5=170
+            const sharpY = [180, 210, 170, 200, 230, 190, 220];   // Fis Cis Gis Dis Ais Eis His
+            const flatY  = [220, 190, 230, 200, 240, 210, 250];   // B Es As Des Ges Ces Fes
+
+            // SVG-Pfade für Vorzeichen (CC0-lizenziert, publicdomainvectors.org / Jeramee Sikorski)
+            const sharpPathD = "m 2121,2729 c 8,-11 18,-21 31,-27 l 549,-267 V 1259 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 V 2289 L 4018,1794 V 460 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 v 1188 l 409,-199 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -613,297 v 1483 l 439,-214 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -643,313 v 1193 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4314 l -1018,495 v 1351 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4955 l -315,153 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 8,-11 18,-21 31,-27 l 519,-252 V 2954 l -345,168 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 z m 879,79 V 4290 L 4018,3795 V 2313 Z";
+            const flatPathD = "m 2834,4387 12,1609 c 136,-127 138,-160 268,-274 131,-149 218,-224 368,-400 150,-176 263,-369 317,-551 54,-182 34,-244 2,-374 -32,-130 -98,-228 -191,-283 -94,-55 -212,-65 -342,-31 -124,43 -168,60 -300,175 -58,58 -67,69 -134,129 z M 2510,522 c 128,-5 187,5 315,-5 5,138 3,3533 0,3534 222,-152 199,-154 421,-238 221,-84 439,-117 632,-93 192,23 352,101 464,226 112,125 244,306 245,499 1,193 -98,437 -237,600 -190,222 -414,397 -673,577 -255,177 -493,359 -683,529 -184,150 -272,234 -479,416 -5,-168 -15,-355 -14,-487 z";
+
+            // Bounding-Box und visueller Mittelpunkt (für Zentrierung auf Notenlinie)
+            // Sharp: Mitte zwischen den Querbalken ≈ y=3549
+            // Flat: Mitte der Rundung ≈ y=5192
+            const SHARP = { cx: 3545.5, cy: 3549, h: 5937 };
+            const FLAT  = { cx: 3544.5, cy: 5192, h: 6053 };
+
+            const isSharp = staffInfo.isSharp;
+            const accCount = staffInfo.accidentals.length;
+            const posY = isSharp ? sharpY : flatY;
+            const startX = 145; // nach dem Schlüssel
+            const ref = isSharp ? SHARP : FLAT;
+            const pathD = isSharp ? sharpPathD : flatPathD;
+            const targetH = 32; // gleiche Größe für alle Vorzeichen
+
+            let accidentalsSvg = '';
+            const s = targetH / ref.h;
+            for (let i = 0; i < accCount; i++) {
+                const x = startX + i * 20;
+                const y = posY[i];
+                const isLast = (i === accCount - 1);
+                const fill = isLast ? '#ea580c' : '#334155';
+                accidentalsSvg += `<g transform="translate(${x},${y}) scale(${s}) translate(${-ref.cx},${-ref.cy})"><path d="${pathD}" fill="${fill}" stroke="none"/></g>`;
+            }
+
+            return `<div style="margin-top:-0.1rem;"><svg width="${w}" height="${Math.round(vbH * 0.6)}" viewBox="20 ${vbY} ${w} ${vbH}">
+                    ${lines}${clef}${accidentalsSvg}
+                </svg></div>`;
         },
 
         // ---- Quintenzirkel-Aufgaben ----
         generateQuintenzirkelTask() {
             // Aktive Sub-Skills bestimmen (Cascade: alle bis zum höchsten)
             const activeSubSkills = quickStart.currentOptions.filter(
-                opt => QUINTENZIRKEL.allKeys && ['aussenkr', 'innenkr', 'vorz_ableitung', 'symmetrien', 'verwandte', 'enharmonisch'].includes(opt)
+                opt => QUINTENZIRKEL.allKeys && ['aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'symmetrien', 'verwandte'].includes(opt)
             );
             const questionNum = quickStart.questionsAnswered || 0;
             const question = QUINTENZIRKEL.generateQuestion(activeSubSkills.length > 0 ? activeSubSkills : ['aussenkr'], questionNum);
@@ -3859,8 +4091,12 @@
             const fbEl = document.getElementById('qzFeedback');
             fbEl.style.display = 'none';
             fbEl.className = 'feedback';
+            // Weiter-Button aus vorheriger Aufgabe entfernen
+            const oldNextBtn = document.querySelector('.qz-next-btn');
+            if (oldNextBtn) oldNextBtn.remove();
+            this.inputLocked = false;
 
-            qEl.innerHTML = this._buildQzVisual() + '<div class="qz-question-text">' +
+            qEl.innerHTML = this._buildQzVisual(question.subSkillId) + '<div class="qz-question-text">' +
                 question.question.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
 
             if (question.type === 'buttons') {
@@ -3924,11 +4160,19 @@
 
             if (isCorrect) {
                 input.classList.add('input-correct');
+                input.disabled = true;
+                this._handleQzAnswer(true);
             } else {
+                // Kurzes Aufflackern, dann Feld leeren und nochmal tippen lassen
                 input.classList.add('input-incorrect');
+                this._showQzMerksatzHint(question);
+                this._handleQzAnswer(false, null, true);
+                setTimeout(() => {
+                    input.classList.remove('input-incorrect');
+                    input.value = '';
+                    input.focus();
+                }, 800);
             }
-
-            this._handleQzAnswer(isCorrect, !isCorrect ? question.correct : null);
         },
 
         toggleQzMulti(btnEl, value) {
@@ -4010,7 +4254,8 @@
             } else if (highestOpt === 'verwandte') {
                 merksatz = 'Direkte Nachbarn im Quintenzirkel = ±1 Vorzeichen Unterschied';
             } else if (highestOpt === 'enharmonisch') {
-                merksatz = 'Am Boden des Zirkels: <b>Fis</b>=<b>Ges</b>, <b>H</b>=<b>Ces</b>, <b>Cis</b>=<b>Des</b>';
+                // Hinweis: Halbtonschritte zählen hilft
+                merksatz = 'Zähle die <b>Halbtonschritte</b> von C aus — derselbe Ton hat zwei Namen';
             }
 
             if (merksatz) {
@@ -4020,6 +4265,119 @@
             }
             fbEl.className = 'feedback incorrect';
             fbEl.style.display = 'block';
+        },
+
+        // Lösung im Quintenzirkel-SVG visualisieren
+        _showQzSolution(question) {
+            const svgEl = document.querySelector('#qzQuestion svg');
+            if (!svgEl) return;
+
+            const cx = this._qzCx, cy = this._qzCy, r = this._qzR, innerR = this._qzInnerR;
+            const smallR = r - 18; // = 72 — gleicher Radius wie die Anker C, G, F
+            const allKeys = QUINTENZIRKEL.allKeys;
+            const anchors = ['C', 'G', 'F'];
+            const mollAnchors = ['a', 'e', 'd'];
+            const color = '#0891b2';
+            const highlight = '#ea580c';
+
+            function posAt(hour, radius) {
+                const angle = (hour * 30 - 90) * Math.PI / 180;
+                return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+            }
+
+            // 4c: Staff bei Lösung unter dem QZ anzeigen
+            if (question.staffInfo) {
+                const staffHtml = this._buildStaffVisual(question.staffInfo);
+                const vizDiv = document.querySelector('#qzQuestion .qz-visual');
+                if (vizDiv) vizDiv.insertAdjacentHTML('beforeend', staffHtml);
+            }
+
+            if (!question.solutionKeys || question.solutionKeys.length === 0) return;
+
+            let overlay = '';
+
+            // X-Offsets der Dur-Anker (passend zu _buildQzVisual)
+            const anchorDx = { 'C': 0, 'G': 2, 'F': -2 };
+
+            // Dur-Label an der korrekten Position zeichnen (Anker=fett überlagern, neue=hinzufügen)
+            function durLabel(name, idx) {
+                const p = posAt(idx, smallR);
+                const isAnch = anchors.includes(name);
+                const dx = isAnch ? (anchorDx[name] || 0) : 0;
+                return `<text x="${p.x + dx}" y="${p.y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="${highlight}">${name}</text>`;
+            }
+
+            // Positionen auf dem Anker-Kreis (smallR) berechnen
+            const positions = question.solutionKeys.map(k => {
+                const idx = allKeys.indexOf(k);
+                return idx !== -1 ? { name: k, idx: idx, pos: posAt(idx, smallR) } : null;
+            }).filter(Boolean);
+
+            // Verbindungslinien bei Formen (Symmetrien) — etwas innerhalb, damit kein Text überlappt
+            if (question.solutionShape && positions.length >= 2) {
+                const lineR = smallR - 12;
+                const linePts = question.solutionKeys.map(k => {
+                    const idx = allKeys.indexOf(k);
+                    return idx !== -1 ? posAt(idx, lineR) : null;
+                }).filter(Boolean);
+                let pathD = `M${linePts[0].x},${linePts[0].y}`;
+                for (let i = 1; i < linePts.length; i++) pathD += ` L${linePts[i].x},${linePts[i].y}`;
+                if (linePts.length > 2) pathD += ' Z';
+                overlay += `<path d="${pathD}" fill="${linePts.length > 2 ? highlight : 'none'}" fill-opacity="0.08" stroke="${highlight}" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+            }
+
+            // Enharmonisch: beide Namen an gleicher Anker-Kreis-Position
+            if (question.enharmonicPair) {
+                const pair = question.enharmonicPair;
+                const posKey = pair.find(k => allKeys.includes(k));
+                if (posKey) {
+                    const idx = allKeys.indexOf(posKey);
+                    const p = posAt(idx, smallR);
+                    const isAnch = anchors.includes(posKey);
+                    const dx = isAnch ? (anchorDx[posKey] || 0) : 0;
+                    const otherKey = pair[0] === posKey ? pair[1] : pair[0];
+
+                    if (isAnch) {
+                        // Anker (F/C/G): wie in 4a — fett überlagern, Enharmonik darunter
+                        overlay += `<text x="${p.x + dx}" y="${p.y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="${highlight}">${posKey}</text>`;
+                        overlay += `<text x="${p.x + dx}" y="${p.y + 18}" text-anchor="middle" font-size="12" font-weight="700" fill="${highlight}">= ${otherKey}</text>`;
+                    } else {
+                        // Nicht-Anker: beide Namen übereinander
+                        overlay += `<text x="${p.x}" y="${p.y + 1}" text-anchor="middle" font-size="15" font-weight="700" fill="${highlight}">${pair[0]}</text>`;
+                        overlay += `<text x="${p.x}" y="${p.y + 14}" text-anchor="middle" font-size="15" font-weight="700" fill="${highlight}">= ${pair[1]}</text>`;
+                    }
+                }
+                svgEl.insertAdjacentHTML('beforeend', overlay);
+                return;
+            }
+
+            // 4b: Dur+Moll-Paar anzeigen
+            if (question.subSkillId === 'innenkr') {
+                // Innenkreis-Linie falls nicht vorhanden
+                if (!svgEl.querySelector('circle[r="' + innerR + '"]')) {
+                    overlay += `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="none" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4,3"/>`;
+                }
+                positions.forEach(p => {
+                    const durName = p.name;
+                    const mollName = QUINTENZIRKEL.parallelMinor[durName];
+                    // Dur-Label: Anker fett überlagern, neue hinzufügen
+                    overlay += durLabel(durName, p.idx);
+                    // Moll am Moll-Anker-Kreis (innerR - 8): Anker fett überlagern, neue hinzufügen
+                    if (mollName) {
+                        const mollP = posAt(p.idx, innerR - 8);
+                        overlay += `<text x="${mollP.x}" y="${mollP.y + 4}" text-anchor="middle" font-size="13" font-weight="700" fill="${highlight}">${mollName}</text>`;
+                    }
+                });
+                svgEl.insertAdjacentHTML('beforeend', overlay);
+                return;
+            }
+
+            // Standard: Alle Lösungs-Tonarten am Anker-Kreis — Anker fett überlagern, neue hinzufügen
+            positions.forEach(p => {
+                overlay += durLabel(p.name, p.idx);
+            });
+
+            svgEl.insertAdjacentHTML('beforeend', overlay);
         },
 
         _handleQzAnswer(isCorrect, correctAnswer, waitForCorrect) {
@@ -4044,6 +4402,8 @@
                 fbEl.textContent = '✓ Richtig!';
                 fbEl.className = 'feedback correct';
                 fbEl.style.display = 'block';
+                // Lösung im Quintenzirkel visualisieren
+                this._showQzSolution(this.currentQzQuestion);
             } else {
                 const hint = correctAnswer ? ` — Richtige Antwort: ${correctAnswer}` : '';
                 fbEl.textContent = '✗ Leider falsch.' + hint;
@@ -4069,19 +4429,26 @@
                 this.updateScoreDisplay();
             }
 
-            // Nächste Aufgabe nach Verzögerung
-            const delay = isCorrect ? 1000 : 2500;
-            setTimeout(() => {
-                if (isCorrect || !quickStart.isActive) {
-                    if (!isCorrect && !quickStart.isActive) {
+            if (isCorrect) {
+                // Weiter-Button anzeigen — User kann Lösung in Ruhe nachvollziehen
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'qz-next-btn';
+                nextBtn.textContent = 'Weiter →';
+                nextBtn.onclick = () => {
+                    this.inputLocked = false;
+                    this.generateNewTask();
+                };
+                fbEl.insertAdjacentElement('afterend', nextBtn);
+            } else {
+                // Bei falscher Antwort: Auto-Advance nach Verzögerung
+                setTimeout(() => {
+                    if (!quickStart.isActive) {
                         this.generateQuintenzirkelTask();
-                    } else if (isCorrect) {
-                        this.generateNewTask();
+                    } else {
+                        this.generateQuintenzirkelTask();
                     }
-                } else {
-                    this.generateQuintenzirkelTask();
-                }
-            }, delay);
+                }, 2500);
+            }
         },
 
         getAvailableScales() {
@@ -4141,6 +4508,67 @@
             durMollScales._isDurMoll = true;
             kirchenScales._isKirchen = true;
             return { durMoll: durMollScales, kirchen: kirchenScales };
+        },
+
+        // ---- Audio: Tonleiter / Notenpaar abspielen ----
+        _audioCtx: null,
+        noAudio: false,
+
+        _getAudioCtx() {
+            if (!this._audioCtx || this._audioCtx.state === 'closed') {
+                this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
+            return this._audioCtx;
+        },
+
+        _playNote(ctx, freq, time) {
+            const harmonics = [1, 2, 3, 4, 5, 6];
+            const amplitudes = [0.35, 0.15, 0.08, 0.04, 0.02, 0.01];
+            harmonics.forEach((h, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq * h;
+                gain.gain.setValueAtTime(0, time);
+                gain.gain.linearRampToValueAtTime(amplitudes[i], time + 0.01);
+                gain.gain.exponentialRampToValueAtTime(amplitudes[i] * 0.3, time + 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.7);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(time);
+                osc.stop(time + 0.7);
+            });
+        },
+
+        playScale() {
+            if (this.noAudio || !this.currentScale) return;
+            try {
+                const ctx = this._getAudioCtx();
+                const now = ctx.currentTime + 0.05;
+                const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
+
+                if (this.currentStage === 'einsteiger') {
+                    // Nur das Notenpaar (2 Noten, 0.5s Abstand)
+                    const i = this.currentPairIndex;
+                    const midi1 = noteToMidi(this.currentScale.notes[i], this.currentScale.octaves[i]);
+                    const midi2 = noteToMidi(this.currentScale.notes[i + 1], this.currentScale.octaves[i + 1]);
+                    this._playNote(ctx, midiToFreq(midi1), now);
+                    this._playNote(ctx, midiToFreq(midi2), now + 0.5);
+                } else {
+                    // Ganze Tonleiter (8 Noten, 0.4s Abstand → ~3.2s)
+                    this.currentScale.notes.forEach((note, idx) => {
+                        const midi = noteToMidi(note, this.currentScale.octaves[idx]);
+                        this._playNote(ctx, midiToFreq(midi), now + idx * 0.4);
+                    });
+                }
+
+                // Button-Flash
+                const btn = document.getElementById('playScaleBtn');
+                if (btn) { btn.style.opacity = '1'; setTimeout(() => btn.style.opacity = '', 500); }
+            } catch (e) {
+                console.error('[TT Audio] Fehler:', e);
+            }
         },
 
         // ---- SVG Staff Drawing ----
@@ -5293,6 +5721,13 @@
             }
 
             this.configureForStage(stage, stage === 'meister' ? false : showKb);
+
+            // Audio im Freien Üben: ton1-ton3 (einsteiger/aufsteiger/profi) haben Audio, meister nicht
+            const hasAudioTask = (stage !== 'meister');
+            this.noAudio = !hasAudioTask;
+            const audioControls = document.getElementById('audioControls');
+            if (audioControls) audioControls.style.display = this.noAudio ? 'none' : '';
+
             this.generateNewTask();
         },
 
@@ -5361,7 +5796,7 @@
                             <p>Jede Dur-Tonart hat eine <strong>parallele Molltonart</strong>, die dieselben Vorzeichen teilt. Die Mollparallele liegt eine <strong>kleine Terz tiefer</strong> (3 Halbtöne).</p>
                             <p><strong>Beispiele:</strong> C-Dur → a-Moll, G-Dur → e-Moll, F-Dur → d-Moll</p>
                             <p>Im Quintenzirkel stehen die Molltonarten im Innenkreis, direkt neben ihrer Dur-Parallele.</p>`,
-                        'vorz_ableitung': `<p><strong>Vorzeichen-Ableitung + Leitton</strong></p>
+                        'vorz_ableitung': `<p><strong>Vorzeichen-Ableitung</strong></p>
                             <p>Die Vorzeichen einer Tonart lassen sich direkt aus dem Quintenzirkel ablesen:</p>
                             <p><strong>Kreuz-Tonarten:</strong> Gehe 2 Stellen im Uhrzeigersinn vor – das ergibt das nächste Kreuz-Vorzeichen. G-Dur → Fis, D-Dur → Fis + Cis, usw.</p>
                             <p><strong>b-Tonarten:</strong> Gehe 1 Stelle gegen den Uhrzeigersinn zurück – das ergibt das nächste b-Vorzeichen. F-Dur → B, B-Dur → B + Es, usw.</p>
