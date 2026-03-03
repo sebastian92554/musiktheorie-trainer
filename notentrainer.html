@@ -2617,7 +2617,7 @@
                             highlightKeys: [{key:'F',color:'#c7d2fe'}],
                             onKeyArrows: [
                                 {from:'F',to:'Fis',labelKey:'G',label:'♯ → Fis',color:'#16a34a'},
-                                {from:'F',to:'E',labelKey:'E',label:'♭ → ?',color:'#dc2626'}
+                                {from:'F',to:'E',labelKey:'E',label:'♭ → Fes',color:'#dc2626'}
                             ]
                         });
                     }
@@ -3076,6 +3076,14 @@
                 });
 
                 // Pfeile auf der Tastatur (onKeyArrows)
+                // Berechnet Richtung zum tatsächlichen Ziel (schwarze UND weiße Tasten)
+                const _blackKeySet = new Set();
+                whiteKeys.forEach(wk => {
+                    if (blackMap[wk.name]) {
+                        const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+                        _blackKeySet.add(blackMap[wk.name] + suffix);
+                    }
+                });
                 if (onKeyArrows.length > 0) {
                     onKeyArrows.forEach(a => {
                         const fromX = keyPositions[a.from];
@@ -3083,11 +3091,24 @@
                         if (fromX === undefined) return;
                         const color = a.color || '#4f46e5';
                         const startY = ky + pad + wh - 22;
-                        const goesRight = a.to && keyPositions[a.to] !== undefined && keyPositions[a.to] > fromX;
-                        const angle = goesRight ? (-60 * Math.PI / 180) : (-120 * Math.PI / 180);
-                        const arrowLen = bh * 0.7;
-                        const endX = fromX + Math.cos(angle) * arrowLen;
-                        const endY = startY + Math.sin(angle) * arrowLen;
+                        // Tatsächliche Zielposition berechnen
+                        const toX = keyPositions[a.to];
+                        let endX, endY;
+                        if (toX !== undefined) {
+                            const toIsBlack = _blackKeySet.has(a.to);
+                            const targetY = toIsBlack ? ky + pad + bh * 0.45 : ky + pad + wh * 0.42;
+                            const dx = toX - fromX, dy = targetY - startY;
+                            const dist = Math.sqrt(dx*dx + dy*dy);
+                            const shrink = 10; // Vor dem Ziel stoppen
+                            endX = fromX + dx * (1 - shrink/dist);
+                            endY = startY + dy * (1 - shrink/dist);
+                        } else {
+                            const goesRight = a.to && toX !== undefined && toX > fromX;
+                            const angle = goesRight ? (-60 * Math.PI / 180) : (-120 * Math.PI / 180);
+                            const arrowLen = bh * 0.7;
+                            endX = fromX + Math.cos(angle) * arrowLen;
+                            endY = startY + Math.sin(angle) * arrowLen;
+                        }
                         const dx = endX - fromX, dy = endY - startY;
                         const len = Math.sqrt(dx*dx + dy*dy);
                         const ux = dx/len, uy = dy/len;
