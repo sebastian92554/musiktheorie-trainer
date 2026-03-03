@@ -195,7 +195,7 @@
             border-radius: 0.75rem;
             font-weight: 700;
             font-size: 1.05rem;
-            z-index: 100;
+            z-index: 200;
             opacity: 0;
             transition: opacity 0.3s, transform 0.3s;
             box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
@@ -348,7 +348,6 @@
         }
 
         .bar-display {
-            position: relative; /* Anker für Taktartwechsel-Toast */
             border: 3px solid #8b5cf6;
             border-radius: 0.5rem;
             padding: 1.5rem 1rem;
@@ -2522,16 +2521,16 @@
 
             // Toast-Hinweis: Taktart wechselt ab Frage 7
             _showTaktartHint() {
-                const barDisplay = document.getElementById('barDisplay');
-                if (!barDisplay) return;
+                const wrapper = document.getElementById('staffWrapper');
+                if (!wrapper) return;
                 // Alten Toast entfernen falls vorhanden
-                const old = barDisplay.querySelector('.taktart-hint-toast');
+                const old = wrapper.querySelector('.taktart-hint-toast');
                 if (old) old.remove();
 
                 const toast = document.createElement('div');
                 toast.className = 'taktart-hint-toast';
                 toast.textContent = '⚡ Taktart wechselt!';
-                barDisplay.appendChild(toast);
+                wrapper.appendChild(toast);
                 // Einblenden
                 requestAnimationFrame(() => toast.classList.add('visible'));
                 // Ausblenden nach 2.5s
