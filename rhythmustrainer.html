@@ -183,22 +183,22 @@
             background: #fee2e2;
         }
 
-        /* Taktart-Wechsel Toast — relativ zum Staff */
+        /* Taktart-Wechsel Toast — über dem Staff zentriert */
         .taktart-hint-toast {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(139, 92, 246, 0.92);
+            background: rgba(139, 92, 246, 0.95);
             color: white;
-            padding: 0.5rem 1.25rem;
+            padding: 0.6rem 1.5rem;
             border-radius: 0.75rem;
-            font-weight: 600;
-            font-size: 0.95rem;
-            z-index: 10;
+            font-weight: 700;
+            font-size: 1.05rem;
+            z-index: 100;
             opacity: 0;
             transition: opacity 0.3s, transform 0.3s;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
             pointer-events: none;
         }
         .taktart-hint-toast.visible {
