@@ -4790,12 +4790,12 @@
                 }
             }
 
-            // Accidental (offsets match Dreiklangstrainer)
+            // Accidental (SVG-Glyph, proportional zu IT: gap=12, targetH=35)
             const acc = getAccidental(noteName);
             if (acc === 'sharp') {
-                svg += `<text x="${x - 35}" y="${y + 13}" font-size="42" font-family="serif">♯</text>`;
+                svg += this._svgSharp(x - 12.5 - 12, y, '#000', 35);
             } else if (acc === 'flat') {
-                svg += `<text x="${x - 43}" y="${y + 10}" font-size="38" font-family="serif">♭</text>`;
+                svg += this._svgFlat(x - 12.5 - 12, y, '#000', 35);
             }
 
             // Note head
@@ -4885,10 +4885,83 @@
             }
         },
 
+        // Lernkarten-Staff (Notensystem, 1:1 Algorithmus aus NT)
+        renderLernkarteStaff(notes, options = {}) {
+            const { hideLabels = false } = options;
+            const pad = 6;
+            const spacing = notes.length <= 4 ? 64 : notes.length <= 6 ? 50 : 44;
+            const clefSpace = 50;
+            const totalW = pad + clefSpace + notes.length * spacing + 6;
+            const baseY = 100;
+            const lineSpacing = 12;
+            const staffLines = [100, 88, 76, 64, 52];
+
+            const computed = notes.map((n, i) => {
+                const y = baseY - (n.pos * lineSpacing / 2);
+                const cx = pad + clefSpace + i * spacing + spacing / 2;
+                return { y, cx, label: n.label, accidental: n.accidental };
+            });
+
+            const allYs = computed.map(c => c.y);
+            const minY = Math.min(...allYs, 52);
+            const maxY = Math.max(...allYs, 100);
+            const svgTop = minY - 14;
+            const labelH = hideLabels ? 0 : 22;
+            const svgBottom = maxY + (hideLabels ? 16 : 12) + labelH;
+            const minSvgH = hideLabels ? 0 : 108;
+            const svgH = Math.max(svgBottom - svgTop, minSvgH);
+
+            let svg = `<svg width="100%" viewBox="0 ${svgTop} ${totalW} ${svgH}" preserveAspectRatio="xMidYMid meet">`;
+
+            // Notenlinien
+            staffLines.forEach(ly => {
+                svg += `<line x1="${pad}" y1="${ly}" x2="${totalW - 4}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+            });
+
+            // Violinschlüssel (skaliert für Lernkarte)
+            svg += `<g transform="translate(${pad - 45}, -56) scale(0.6)">${this.drawTrebleClefSVG()}</g>`;
+
+            // Noten rendern
+            const rx = 7.5, ry = 5.7;
+            const hlW = 12;
+            computed.forEach(c => {
+                // Hilfslinien
+                if (c.y > 100) for (let ly = 100 + lineSpacing; ly <= c.y; ly += lineSpacing)
+                    svg += `<line x1="${c.cx-hlW}" y1="${ly}" x2="${c.cx+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                if (c.y < 52) for (let ly = 52 - lineSpacing; ly >= c.y; ly -= lineSpacing)
+                    svg += `<line x1="${c.cx-hlW}" y1="${ly}" x2="${c.cx+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+
+                // Vorzeichen
+                if (c.accidental === 'sharp') svg += this._svgSharp(c.cx - rx - 7, c.y, '#1f2937', 21);
+                if (c.accidental === 'flat') svg += this._svgFlat(c.cx - rx - 7, c.y, '#1f2937', 21);
+
+                // Notenkopf
+                svg += `<ellipse cx="${c.cx}" cy="${c.y}" rx="${rx}" ry="${ry}" fill="#1f2937" transform="rotate(-20 ${c.cx} ${c.y})"/>`;
+
+                // Label
+                if (!hideLabels) {
+                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 4}" text-anchor="middle" font-size="12.5" fill="#0891b2" font-weight="600">${c.label}</text>`;
+                }
+            });
+
+            svg += '</svg>';
+
+            // Breite begrenzen bei wenigen Noten
+            const refW = pad + clefSpace + 8 * 44 + 6;
+            if (totalW < refW) {
+                const pct = Math.round(totalW / refW * 100);
+                return `<div style="max-width:${pct}%;margin:0 auto">${svg}</div>`;
+            }
+            return svg;
+        },
+
         // Lernkarten-Tastatur (1:1 aus NT, mit keyStepArrows aus IT)
         renderLernkarteTastatur(options = {}) {
             const {
                 numOctaves = 1,
+                keyRange = null,
+                stepBrackets = null,
+                leftPad = 0,
                 highlightKeys = [], arrows = [], topArrows = [], onKeyArrows = [],
                 keyStepArrows = [],
                 showBlackLabels = false, showHalftoneArrows = false, title = ''
@@ -4898,10 +4971,13 @@
             const blackMap = { 'C': 'Cis', 'D': 'Dis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais' };
             const blackLabels = { 'Cis': ['Cis','Des'], 'Dis': ['Dis','Es'], 'Fis': ['Fis','Ges'], 'Gis': ['Gis','As'], 'Ais': ['Ais','B'] };
 
-            const whiteKeys = [];
+            let whiteKeys = [];
             for (let oct = 1; oct <= numOctaves; oct++) {
                 const suffix = oct === 1 ? '' : String(oct);
                 allWhite.forEach(k => whiteKeys.push({ name: k, id: k + suffix, label: k }));
+            }
+            if (keyRange) {
+                whiteKeys = whiteKeys.slice(keyRange[0], keyRange[1] + 1);
             }
             const numWhite = whiteKeys.length;
 
@@ -4910,21 +4986,22 @@
             const bw = numOctaves > 1 ? 15 : 20;
             const bh = numOctaves > 1 ? 40 : 50;
             const pad = 6;
-            const totalW = numWhite * ww + pad * 2;
+            const totalW = leftPad + numWhite * ww + pad * 2;
             const hasLabels = highlightKeys.some(h => h.label);
             const labelSpace = hasLabels ? 16 : 0;
             const arrowSpace = arrows.length > 0 ? 30 : 0;
             const titleSpace = title ? 18 : 0;
             const htSpace = showHalftoneArrows ? 22 : 0;
             const topArrowSpace = topArrows.length > 0 ? 32 : 0;
-            const totalH = htSpace + topArrowSpace + wh + pad * 2 + labelSpace + arrowSpace + titleSpace;
+            const bracketSpace = stepBrackets ? 30 : 0;
+            const totalH = htSpace + topArrowSpace + wh + pad * 2 + labelSpace + arrowSpace + titleSpace + bracketSpace;
 
             const keyPositions = {};
             whiteKeys.forEach((wk, i) => {
-                keyPositions[wk.id] = pad + i * ww + ww / 2;
+                keyPositions[wk.id] = leftPad + pad + i * ww + ww / 2;
                 if (blackMap[wk.name] && i < numWhite - 1) {
                     const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
-                    keyPositions[blackMap[wk.name] + suffix] = pad + i * ww + ww;
+                    keyPositions[blackMap[wk.name] + suffix] = leftPad + pad + i * ww + ww;
                 }
             });
 
@@ -4937,7 +5014,7 @@
 
             // Weiße Tasten
             whiteKeys.forEach((wk, i) => {
-                const x = pad + i * ww;
+                const x = leftPad + pad + i * ww;
                 const hl = highlightKeys.find(h => h.key === wk.id);
                 const fill = hl ? (hl.color || '#a5f3fc') : '#fff';
                 svg += `<rect x="${x}" y="${ky + pad}" width="${ww - 1}" height="${wh}" rx="3" fill="${fill}" stroke="#333" stroke-width="1.5"/>`;
@@ -4951,7 +5028,7 @@
             // Schwarze Tasten
             whiteKeys.forEach((wk, i) => {
                 if (blackMap[wk.name] && i < numWhite - 1) {
-                    const bx = pad + i * ww + ww - bw / 2;
+                    const bx = leftPad + pad + i * ww + ww - bw / 2;
                     const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
                     const bkId = blackMap[wk.name] + suffix;
                     const hl = highlightKeys.find(h => h.key === bkId);
@@ -5112,6 +5189,39 @@
                 });
             }
 
+            // Stufennummern + Step-Brackets (GT = U-Bracket arms up, HT = V-Bracket)
+            if (stepBrackets && stepBrackets.length > 0) {
+                const armH = 6;
+                const vDepth = 8;
+                const gap = 2;
+                // Stufennummern über jeder Taste (zwischen Taste und Brackets)
+                const stufenY = ky + pad + wh + labelSpace + 10;
+                whiteKeys.forEach((wk, i) => {
+                    const cx = keyPositions[wk.id];
+                    svg += `<text x="${cx}" y="${stufenY}" text-anchor="middle" font-size="8" fill="#6b7280" font-weight="600">${i + 1}</text>`;
+                });
+                // Brackets starten unterhalb der Stufennummern
+                const armTopY = stufenY + 3;
+                const bracketBaseY = armTopY + armH;
+                stepBrackets.forEach((step, i) => {
+                    if (i >= whiteKeys.length - 1) return;
+                    const x1 = keyPositions[whiteKeys[i].id] + gap / 2;
+                    const x2 = keyPositions[whiteKeys[i + 1].id] - gap / 2;
+                    const midX = (x1 + x2) / 2;
+                    const color = step === 'HT' ? '#dc2626' : '#16a34a';
+
+                    if (step === 'GT') {
+                        svg += `<line x1="${x1}" y1="${bracketBaseY}" x2="${x2}" y2="${bracketBaseY}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${x1}" y1="${bracketBaseY}" x2="${x1}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${x2}" y1="${bracketBaseY}" x2="${x2}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
+                    } else {
+                        svg += `<line x1="${x1}" y1="${armTopY}" x2="${midX}" y2="${armTopY + vDepth}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${midX}" y1="${armTopY + vDepth}" x2="${x2}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
+                    }
+                    svg += `<text x="${midX}" y="${bracketBaseY + vDepth + 4}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${step}</text>`;
+                });
+            }
+
             svg += '</svg>';
             return svg;
         },
@@ -5125,38 +5235,83 @@
                         <div class="lk-visual" id="lkVisual1"></div>
                         <div class="lk-rule"><strong>Regel:</strong> Auf der Klaviatur gibt es nur 2 natürliche Halbtonschritte: <strong>E→F</strong> und <strong>H→C</strong>. Alle anderen benachbarten Stammtöne sind Ganztonschritte.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Merke dir die Ausnahmen: E–F und H–C. Dort fehlt die schwarze Taste dazwischen.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auf der Tastatur, ob zwei benachbarte Töne einen Ganzton- oder Halbtonschritt bilden.</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme mit Hilfe der Tastatur, ob zwei benachbarte Töne einen Ganzton- oder Halbtonschritt bilden.</div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
-                        numOctaves: 1,
-                        highlightKeys: [{key:'C', color:'#a5f3fc'}, {key:'C2', color:'#a5f3fc'}],
-                        keyStepArrows: [
-                            { steps: ['C','D'], color: '#16a34a', label: 'GT' },
-                            { steps: ['D','E'], color: '#16a34a', label: 'GT' },
-                            { steps: ['E','F'], color: '#dc2626', label: 'HT' },
-                            { steps: ['F','G'], color: '#16a34a', label: 'GT' },
-                            { steps: ['G','A'], color: '#16a34a', label: 'GT' },
-                            { steps: ['A','H'], color: '#16a34a', label: 'GT' },
-                            { steps: ['H','C2'], color: '#dc2626', label: 'HT' }
-                        ]
+                        numOctaves: 2,
+                        highlightKeys: [{key:'E', color:'#a5f3fc'}, {key:'F', color:'#a5f3fc'}, {key:'H', color:'#a5f3fc'}, {key:'C2', color:'#a5f3fc'}, {key:'E2', color:'#a5f3fc'}, {key:'F2', color:'#a5f3fc'}]
                     });
+                    // Custom Pfeile: GT-Halbkreis (G→A, D2→E2) + HT-Gerade (H→C2)
+                    const svgEl = document.querySelector('#lkVisual1 svg');
+                    if (!svgEl) return;
+                    const ww = 24, pad = 6, wh = 64;
+                    const ky = 0;
+                    const arrowY = ky + pad + wh * 0.55;
+                    const gX = pad + 4 * ww + ww / 2;
+                    const aX = pad + 5 * ww + ww / 2;
+                    const hX = pad + 6 * ww + ww / 2;
+                    const c2X = pad + 7 * ww + ww / 2;
+
+                    let g = '';
+                    // Roter Pfeil: H → C2
+                    const tipLen = 5, tipW = 3;
+                    g += `<line x1="${hX}" y1="${arrowY}" x2="${c2X - tipLen}" y2="${arrowY}" stroke="#dc2626" stroke-width="1.5"/>`;
+                    g += `<polygon points="${c2X},${arrowY} ${c2X - tipLen},${arrowY - tipW} ${c2X - tipLen},${arrowY + tipW}" fill="#dc2626"/>`;
+                    const labelY = ky + pad + wh + 17;
+                    g += `<text x="${(hX + c2X) / 2}" y="${labelY}" text-anchor="middle" font-size="9" fill="#dc2626" font-weight="700">HT</text>`;
+
+                    // Grüner Halbkreis: G → A
+                    const midX = (gX + aX) / 2;
+                    const radius = (aX - gX) / 2;
+                    g += `<path d="M${gX},${arrowY} A${radius},${radius} 0 0,1 ${aX},${arrowY}" fill="none" stroke="#16a34a" stroke-width="1.5"/>`;
+                    const tipSize = 5;
+                    const ax1 = aX - tipSize * Math.cos(Math.PI/6);
+                    const ay1 = arrowY - tipSize * Math.sin(Math.PI/6);
+                    const ax2 = aX + tipSize * Math.cos(Math.PI/3);
+                    const ay2 = arrowY - tipSize * Math.sin(Math.PI/3);
+                    g += `<polygon points="${aX},${arrowY} ${ax1},${ay1} ${ax2},${ay2}" fill="#16a34a"/>`;
+                    g += `<text x="${midX}" y="${labelY}" text-anchor="middle" font-size="9" fill="#16a34a" font-weight="700">GT</text>`;
+
+                    // Grüner Halbkreis: D2 → E2
+                    const d2X = pad + 8 * ww + ww / 2;
+                    const e2X = pad + 9 * ww + ww / 2;
+                    const midX2 = (d2X + e2X) / 2;
+                    const radius2 = (e2X - d2X) / 2;
+                    g += `<path d="M${d2X},${arrowY} A${radius2},${radius2} 0 0,1 ${e2X},${arrowY}" fill="none" stroke="#16a34a" stroke-width="1.5"/>`;
+                    const bx1 = e2X - tipSize * Math.cos(Math.PI/6);
+                    const by1 = arrowY - tipSize * Math.sin(Math.PI/6);
+                    const bx2 = e2X + tipSize * Math.cos(Math.PI/3);
+                    const by2 = arrowY - tipSize * Math.sin(Math.PI/3);
+                    g += `<polygon points="${e2X},${arrowY} ${bx1},${by1} ${bx2},${by2}" fill="#16a34a"/>`;
+                    g += `<text x="${midX2}" y="${labelY}" text-anchor="middle" font-size="9" fill="#16a34a" font-weight="700">GT</text>`;
+
+                    // ViewBox vergrößern
+                    const vb = svgEl.getAttribute('viewBox').split(' ');
+                    vb[3] = String(labelY + 6);
+                    svgEl.setAttribute('viewBox', vb.join(' '));
+                    svgEl.insertAdjacentHTML('beforeend', g);
                 }
             },
             vorzeichen: {
                 title: 'Mit Vorzeichen',
-                body: `<p>Ein <strong><span class="vz-sharp"></span> (Kreuz)</strong> erhöht den Ton um einen Halbton — eine Taste nach <strong>rechts</strong>. Ein <strong><span class="vz-flat"></span> (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
+                body: `<p>Ein <strong><span class="vz-sharp"></span> (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst auf der Tastatur eine Taste nach <strong>rechts</strong>. Ein <strong><span class="vz-flat"></span> (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
                         <div class="lk-visual" id="lkVisual1"></div>
-                        <div class="lk-rule"><strong>Achtung:</strong> <span class="vz-sharp"></span> = 1 HT nach rechts, <span class="vz-flat"></span> = 1 HT nach links. Fis→G ist ein <strong>GT</strong>, aber E→F ist ein <strong>HT</strong> (benachbarte Tasten!).</div>
+                        <div class="lk-rule"><strong>Regel:</strong> Vorzeichen verschieben den Ton auf der Tastatur um genau eine Taste. Dadurch kann sich der Abstand zwischen zwei Tönen ändern: z.B. ist F→G ein GT, aber F→Fis nur ein HT.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Finde zuerst beide Stammtöne auf der Tastatur. Wende dann die Vorzeichen an. Zähle ob es 1 oder 2 Tasten Abstand sind.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auf der Tastatur, ob der Abstand zwischen zwei Tönen ein GT oder HT ist.</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme mit Hilfe der Tastatur, ob der Abstand zwischen zwei Tönen mit Vorzeichen ein GT oder HT ist.</div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
                         numOctaves: 1,
-                        highlightKeys: [{key:'F', color:'#fecaca'}, {key:'Fis', color:'#bbf7d0'}],
+                        highlightKeys: [{key:'F', color:'#a5f3fc'}],
                         onKeyArrows: [
-                            { from: 'F', to: 'Fis', color: '#16a34a', label: '♯ = 1 HT →' }
+                            {from:'F', to:'Fis', label:'\u266F', color:'#16a34a'},
+                            {from:'F', to:'E', label:'\u266D', color:'#dc2626'}
                         ],
-                        showBlackLabels: true
+                        showBlackLabels: true,
+                        _customLabels: [
+                            {key:'E', text:'Fes', color:'#dc2626', position:'aboveLabel'},
+                            {key:'Fis', text:'Fis', color:'#16a34a', position:'blackLabel'}
+                        ]
                     });
                 }
             },
@@ -5169,72 +5324,23 @@
 
             // ===== ton2: Halbtonschritte finden (Aufsteiger) =====
             ton2_basis: {
-                title: 'Dur- und Moll-Tonleitern',
-                body: `<p>Jede Tonleiter hat ein festes Muster aus Ganzton- und Halbtonschritten.</p>
-                        <div class="lk-contrast" id="lkContrast1"></div>
-                        <div class="lk-rule"><strong>Dur</strong> = GT GT <span style="color:#dc2626;font-weight:700">HT</span> GT GT GT <span style="color:#dc2626;font-weight:700">HT</span><br><strong>Natürliches Moll</strong> = GT <span style="color:#dc2626;font-weight:700">HT</span> GT GT <span style="color:#dc2626;font-weight:700">HT</span> GT GT</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Dur hat die Halbtonschritte an Position 3→4 und 7→8. Bei Moll liegen sie an 2→3 und 5→6.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter. Wähle für jede Stufe: GT oder HT.</div>`,
-                render() {
-                    const left = this.renderLernkarteTastatur({
-                        numOctaves: 1, title: 'C-Dur',
-                        highlightKeys: [{key:'C',color:'#a5f3fc'},{key:'D',color:'#a5f3fc'},{key:'E',color:'#a5f3fc'},{key:'F',color:'#a5f3fc'},{key:'G',color:'#a5f3fc'},{key:'A',color:'#a5f3fc'},{key:'H',color:'#a5f3fc'},{key:'C2',color:'#a5f3fc'}],
-                        keyStepArrows: [
-                            {steps:['C','D'],color:'#16a34a',label:'GT'},{steps:['D','E'],color:'#16a34a',label:'GT'},
-                            {steps:['E','F'],color:'#dc2626',label:'HT'},{steps:['F','G'],color:'#16a34a',label:'GT'},
-                            {steps:['G','A'],color:'#16a34a',label:'GT'},{steps:['A','H'],color:'#16a34a',label:'GT'},
-                            {steps:['H','C2'],color:'#dc2626',label:'HT'}
-                        ]
-                    });
-                    const right = this.renderLernkarteTastatur({
-                        numOctaves: 1, title: 'a-Moll',
-                        highlightKeys: [{key:'A',color:'#a5f3fc'},{key:'H',color:'#a5f3fc'},{key:'C2',color:'#a5f3fc'},{key:'D2',color:'#a5f3fc'},{key:'E2',color:'#a5f3fc'},{key:'F2',color:'#a5f3fc'},{key:'G2',color:'#a5f3fc'},{key:'A2',color:'#a5f3fc'}],
-                        numOctaves: 2,
-                        keyStepArrows: [
-                            {steps:['A','H'],color:'#16a34a',label:'GT'},{steps:['H','C2'],color:'#dc2626',label:'HT'},
-                            {steps:['C2','D2'],color:'#16a34a',label:'GT'},{steps:['D2','E2'],color:'#16a34a',label:'GT'},
-                            {steps:['E2','F2'],color:'#dc2626',label:'HT'},{steps:['F2','G2'],color:'#16a34a',label:'GT'},
-                            {steps:['G2','A2'],color:'#16a34a',label:'GT'}
-                        ]
-                    });
-                    document.getElementById('lkContrast1').innerHTML =
-                        '<div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">' +
-                        '<div style="flex:1;min-width:200px">' + left + '</div>' +
-                        '<div style="flex:1;min-width:200px">' + right + '</div></div>';
-                }
+                title: 'Halbtonschritte finden',
+                body: `<p>Jede Tonleiter besteht aus <strong>8 Tönen</strong> und <strong>7 Schritten</strong>. Genau <strong>2 davon</strong> sind Halbtonschritte — die anderen 5 sind Ganztonschritte.</p>
+                        <div class="lk-tip"><strong>Tipp:</strong> Finde jeden Ton der Tonleiter auf der Tastatur und zähle den Abstand zum nächsten — 2 Tasten = GT, 1 Taste = HT.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter im Notensystem. Klicke auf der Tastatur die Tasten an, zwischen denen ein Halbtonschritt liegt.</div>`
             },
             ton2_stufenpaare: {
                 title: 'Stufenpaare auswählen',
-                body: `<p>Statt einzelne GT/HT-Schritte zu bestimmen, wählst du direkt die <strong>Stufenpaare</strong>, zwischen denen ein Halbtonschritt liegt.</p>
-                        <div class="lk-visual" style="text-align:center;font-family:monospace;font-size:1.1em;line-height:2">
-                            <div>1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 7 &nbsp; 8</div>
-                            <div style="color:#64748b">C &nbsp; D &nbsp; E &nbsp; F &nbsp; G &nbsp; A &nbsp; H &nbsp; C</div>
-                            <div>GT GT <span style="color:#dc2626;font-weight:700">HT</span> GT GT GT <span style="color:#dc2626;font-weight:700">HT</span></div>
-                            <div style="margin-top:0.3rem;font-size:0.85em;color:#0891b2">↑ Stufe 3–4 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↑ Stufe 7–8</div>
-                        </div>
-                        <div class="lk-rule"><strong>Dur:</strong> HT zwischen Stufe 3–4 und 7–8.<br><strong>Moll:</strong> HT zwischen Stufe 2–3 und 5–6.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Stufenpaare, zwischen denen ein Halbtonschritt liegt.</div>`
+                body: `<p>Du kannst jetzt GT und HT auf der Tastatur bestimmen. Jetzt lernst du, die <strong>Position der Halbtonschritte als Stufenpaare</strong> auszudrücken — ohne einzelne Tasten anzuklicken.</p>
+                        <p>Jeder Ton einer Tonleiter hat eine <strong>Stufennummer</strong> (1–8). Ein Halbtonschritt zwischen dem 3. und 4. Ton heißt „Stufe 3–4".</p>
+                        <div class="lk-tip"><strong>Tipp:</strong> Nutze weiterhin die Tastatur als Hilfe — zähle die Schritte ab und achte darauf, zwischen welchen Stufen der HT liegt.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter im Notensystem. Wähle die beiden Stufenpaare, zwischen denen ein Halbtonschritt liegt.</div>`
             },
             ton2_mehr_tonarten: {
                 title: 'Erweiterte Tonarten',
-                body: `<p>Jetzt kommen auch Tonleitern mit <strong>Vorzeichen</strong>. Das GT/HT-Muster bleibt gleich — nur die Starttöne und Vorzeichen ändern sich.</p>
-                        <div class="lk-visual" id="lkVisual1"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> Der Grundton bestimmt die Tonleiter. Dur hat <strong>immer</strong> GT-GT-HT-GT-GT-GT-HT, egal von welchem Ton aus.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Nutze die Klaviatur als Hilfe: Zähle von Ton zu Ton — 2 Tasten Abstand = GT, 1 Taste = HT.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme GT/HT-Schritte auch bei Tonleitern mit Vorzeichen.</div>`,
-                render() {
-                    document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
-                        numOctaves: 2, title: 'G-Dur',
-                        highlightKeys: [{key:'G',color:'#a5f3fc'},{key:'A',color:'#a5f3fc'},{key:'H',color:'#a5f3fc'},{key:'C2',color:'#a5f3fc'},{key:'D2',color:'#a5f3fc'},{key:'E2',color:'#a5f3fc'},{key:'Fis2',color:'#a5f3fc'},{key:'G2',color:'#a5f3fc'}],
-                        showBlackLabels: true,
-                        keyStepArrows: [
-                            {steps:['G','A'],color:'#16a34a',label:'GT'},{steps:['A','H'],color:'#16a34a',label:'GT'},
-                            {steps:['H','C2'],color:'#dc2626',label:'HT'},{steps:['C2','D2'],color:'#16a34a',label:'GT'},
-                            {steps:['D2','E2'],color:'#16a34a',label:'GT'},{steps:['E2','Fis2'],color:'#16a34a',label:'GT'},
-                            {steps:['Fis2','G2'],color:'#dc2626',label:'HT'}
-                        ]
-                    });
-                }
+                body: `<p>Jetzt kommen Tonleitern mit <strong>mehreren Vorzeichen</strong> dazu. Das macht es schwieriger, die Halbtonschritte zu finden, weil mehr Töne auf schwarzen Tasten liegen.</p>
+                        <div class="lk-tip"><strong>Tipp:</strong> Nutze die Klaviatur als Hilfe: Finde jeden Ton auf der Tastatur und zähle den Abstand — 2 Tasten = GT, 1 Taste = HT.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter im Notensystem. Wähle die beiden Stufenpaare, zwischen denen ein Halbtonschritt liegt.</div>`
             },
             ton2_noaudio: {
                 title: 'Ohne Hörbeispiel',
@@ -5245,32 +5351,57 @@
             // ===== ton3: Tonleiter benennen (Profi) =====
             ton3_muster_lernen: {
                 title: 'Tongeschlecht bestimmen',
-                body: `<p>Du siehst eine Tonleiter und entscheidest: <strong>Dur</strong>, <strong>Moll</strong> oder <strong>Andere</strong>?</p>
-                        <div class="lk-visual" style="text-align:center;font-family:monospace;line-height:1.8">
-                            <div><strong>Dur:</strong> GT GT <span style="color:#dc2626;font-weight:700">HT</span> GT GT GT <span style="color:#dc2626;font-weight:700">HT</span> &nbsp;→ HT an <strong>3–4</strong> und <strong>7–8</strong></div>
-                            <div><strong>Moll:</strong> GT <span style="color:#dc2626;font-weight:700">HT</span> GT GT <span style="color:#dc2626;font-weight:700">HT</span> GT GT &nbsp;→ HT an <strong>2–3</strong> und <strong>5–6</strong></div>
-                        </div>
-                        <div class="lk-rule"><strong>Regel:</strong> Konzentriere dich auf die <strong>HT-Positionen</strong> — sie sind das Erkennungsmerkmal. Alles, was weder Dur noch Moll ist, wählst du „Andere".</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht: Dur, Moll oder Andere.</div>`
+                body: `<p>Du weißt jetzt, wo die Halbtonschritte liegen. Jetzt lernst du, das <strong>Tongeschlecht</strong> zu erkennen — die Position der HT verrät, ob eine Tonleiter Dur, Moll oder etwas anderes ist.</p>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">C-Dur</div>
+                        <div class="lk-visual" id="lkVisualCDur3"></div>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-top:12px;margin-bottom:4px">a-Moll</div>
+                        <div class="lk-visual" id="lkVisualAMoll3"></div>
+                        <div class="lk-rule"><strong>Regel:</strong> In <strong>Dur</strong> liegen die HT zwischen <strong>3./4.</strong> und <strong>7./8. Stufe</strong>. In <strong>Moll</strong> zwischen <strong>2./3.</strong> und <strong>5./6. Stufe</strong>.</div>
+                        <div class="lk-rule"><strong>Andere Tongeschlechter:</strong> Neben Dur und Moll gibt es weitere Tonleitern mit 2 HT an anderen Positionen — die sogenannten <strong>Kirchentonarten</strong> (z.B. Dorisch, Phrygisch, Lydisch, Mixolydisch). Im Quiz kommen auch diese vor — sonst könntest du ohne Analyse zwischen Dur und Moll raten. Wähle in diesen Fällen <strong>„Andere"</strong>.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Die Halbtonschritte sind im Notensystem farbig markiert — achte auf ihre Position, sie ist das Erkennungsmerkmal.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht: Dur, Moll oder Andere.</div>`,
+                render() {
+                    document.querySelector('#lernkarteOverlay .lernkarte').style.maxWidth = '414px';
+                    // C-Dur: Staff + Tastatur
+                    document.getElementById('lkVisualCDur3').innerHTML =
+                        this.renderLernkarteStaff([
+                            {label:'C', pos:-2}, {label:'D', pos:-1}, {label:'E', pos:0}, {label:'F', pos:1},
+                            {label:'G', pos:2}, {label:'A', pos:3}, {label:'H', pos:4}, {label:'C', pos:5}
+                        ], { hideLabels: true }) +
+                        this.renderLernkarteTastatur({
+                            numOctaves: 2, keyRange: [0, 7], leftPad: 40,
+                            stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
+                        });
+                    // a-Moll: Staff + Tastatur
+                    document.getElementById('lkVisualAMoll3').innerHTML =
+                        this.renderLernkarteStaff([
+                            {label:'A', pos:3}, {label:'H', pos:4}, {label:'C', pos:5}, {label:'D', pos:6},
+                            {label:'E', pos:7}, {label:'F', pos:8}, {label:'G', pos:9}, {label:'A', pos:10}
+                        ], { hideLabels: true }) +
+                        this.renderLernkarteTastatur({
+                            numOctaves: 2, keyRange: [5, 12], leftPad: 40,
+                            stepBrackets: ['GT','HT','GT','GT','HT','GT','GT']
+                        });
+                }
             },
             ton3_muster_erkennen: {
                 title: 'Tonleiter benennen',
                 body: `<p>Jetzt bestimmst du zusätzlich den <strong>Namen</strong> der Tonleiter.</p>
-                        <div class="lk-visual" id="lkVisual1"></div>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">D-Dur</div>
+                        <div class="lk-visual" id="lkVisualDDur3b"></div>
                         <div class="lk-rule"><strong>Schritt 1:</strong> HT-Positionen finden → Tongeschlecht bestimmen.<br><strong>Schritt 2:</strong> Grundton ablesen → Name = Grundton + Tongeschlecht (z.B. „D-Dur").</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die HT-Stufen UND benenne die Tonleiter.</div>`,
                 render() {
-                    document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
-                        numOctaves: 2, title: 'Beispiel: D-Dur',
-                        highlightKeys: [{key:'D',color:'#a5f3fc'},{key:'E',color:'#a5f3fc'},{key:'Fis',color:'#a5f3fc'},{key:'G',color:'#a5f3fc'},{key:'A',color:'#a5f3fc'},{key:'H',color:'#a5f3fc'},{key:'Cis2',color:'#a5f3fc'},{key:'D2',color:'#a5f3fc'}],
-                        showBlackLabels: true,
-                        keyStepArrows: [
-                            {steps:['D','E'],color:'#16a34a',label:'GT'},{steps:['E','Fis'],color:'#16a34a',label:'GT'},
-                            {steps:['Fis','G'],color:'#dc2626',label:'HT'},{steps:['G','A'],color:'#16a34a',label:'GT'},
-                            {steps:['A','H'],color:'#16a34a',label:'GT'},{steps:['H','Cis2'],color:'#16a34a',label:'GT'},
-                            {steps:['Cis2','D2'],color:'#dc2626',label:'HT'}
-                        ]
-                    });
+                    document.querySelector('#lernkarteOverlay .lernkarte').style.maxWidth = '414px';
+                    document.getElementById('lkVisualDDur3b').innerHTML =
+                        this.renderLernkarteStaff([
+                            {label:'D', pos:-1}, {label:'E', pos:0}, {label:'Fis', pos:1, accidental:'sharp'}, {label:'G', pos:2},
+                            {label:'A', pos:3}, {label:'H', pos:4}, {label:'Cis', pos:5, accidental:'sharp'}, {label:'D', pos:6}
+                        ], { hideLabels: true }) +
+                        this.renderLernkarteTastatur({
+                            numOctaves: 2, keyRange: [1, 8], leftPad: 40,
+                            stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
+                        });
                 }
             },
             ton3_alles: {
