@@ -2627,6 +2627,7 @@
             },
             currentChord: null,
             previousTask: null,
+            recentRootNotes: [],
             selectedKeys: [],
             score: { correct: 0, total: 0 },
             keyboardSizes: null,
@@ -2990,6 +2991,17 @@
                 }
             },
 
+            // Dynamische History-Größe für Grundton-Anti-Repeat (Pool - 2, min 2 freie Roots)
+            getMaxRootHistory() {
+                if (this.settings.simpleRootsOnly) return 4;   // Pool 6, 4 vermeiden, 2 frei
+                if (this.settings.complexKeys) return 10;       // Pool 21, 10 vermeiden, 11 frei
+                // Ab Sub-Skill c (augmented): Pool ist von Anfang an ~21 (kein simpleKeys-Filter)
+                // Ab Frage 6 im Quiz (Sub-Skill b): Pool wächst von ~10 auf ~21
+                if (this.quickStartMode && quickStart.isActive &&
+                    (this.settings.requireQuality || quickStart.questionsAnswered >= 5)) return 10;
+                return 8;                                       // Pool 10, 8 vermeiden, 2 frei
+            },
+
             generateChord() {
                 const dbg = this._debugKeyboard || new URLSearchParams(window.location.search).get('debug') === 'keyboard';
                 if (dbg) console.log('🎲 generateChord() START | quickStartMode:', this.quickStartMode, '| originalApp visible:', document.getElementById('originalApp')?.classList.contains('active'));
@@ -3106,11 +3118,18 @@
                     
                     const { terzton, quintton, hasDoubleAccidental } = result;
 
-                    // Schritt 5a2: 1a = keine Vorzeichen in ALLEN Tönen (Grundton, Terz, Quint)
+                    // Schritt 5a2: Vorzeichen-Logik
+                    const stammtoene = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
                     if (this.settings.simpleRootsOnly) {
-                        const stammtoene = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                        // Basis: keine Vorzeichen in ALLEN Tönen (Grundton, Terz, Quint)
                         if (!stammtoene.includes(terzton) || !stammtoene.includes(quintton)) {
                             continue; // Terz/Quint hat Vorzeichen → neu würfeln
+                        }
+                    } else {
+                        // Vorzeichen-Pflicht: Mindestens ein Ton muss ein Vorzeichen haben
+                        const hasAccidental = !stammtoene.includes(rootNote) || !stammtoene.includes(terzton) || !stammtoene.includes(quintton);
+                        if (!hasAccidental) {
+                            continue; // Dreiklang ohne Vorzeichen → neu würfeln
                         }
                     }
 
@@ -3120,17 +3139,21 @@
                     }
                     
                     // Schritt 5c: Prüfe Tonarten-Vorzeichen (max 3)
-                    if (!this.settings.complexKeys) {
+                    // Ab Sub-Skill c (augmented): Filter von Anfang an weg (Vorzeichen-Kompetenz bereits bewiesen)
+                    // Ab Frage 6 im Quiz (Sub-Skill b): Filter lockern → alle Grundtöne erlaubt
+                    const isExpandedPool = this.quickStartMode && quickStart.isActive &&
+                        (this.settings.requireQuality || quickStart.questionsAnswered >= 5);
+                    if (!this.settings.complexKeys && !isExpandedPool) {
                         // Nur Tonarten bis 3 Vorzeichen erlaubt
                         const simpleKeysDur = ['C', 'G', 'D', 'A', 'F', 'B', 'Es'];
                         const simpleKeysMoll = ['a', 'e', 'h', 'fis', 'd', 'g', 'c'];
-                        
+
                         // Normalisiere Grundton für Vergleich
                         let rootForCheck = rootNote;
                         if (chordType === 'moll') {
                             rootForCheck = rootNote.toLowerCase();
                         }
-                        
+
                         // Prüfe ob Grundton in einfachen Tonarten
                         const isSimpleKey = simpleKeysDur.includes(rootForCheck) || simpleKeysMoll.includes(rootForCheck);
                         if (!isSimpleKey) {
@@ -3259,12 +3282,9 @@
                         continue; // Quintton zu hoch → neu würfeln
                     }
                     
-                    // ANTI-REPETITION: Prüfe ob gleicher Dreiklang wie vorher
-                    if (this.previousTask && 
-                        this.previousTask.rootNote === rootNote && 
-                        this.previousTask.type === chordType) {
-                        continue; // Gleicher Dreiklang (z.B. C-Dur → C-Dur) → neu würfeln
-                        // ABER: C-Dur → C-Moll ist erlaubt!
+                    // ANTI-REPETITION: Grundton darf nicht kürzlich vorgekommen sein
+                    if (this.recentRootNotes.includes(rootNote)) {
+                        continue; // Grundton war kürzlich dran → neu würfeln
                     }
                     
                     // ===== UMKEHRUNG (im MEISTER-Modus) =====
@@ -3381,6 +3401,13 @@
                         finalNotes: finalNotes,
                         finalOctaves: finalOctaves
                     };
+
+                    // History-Buffer aktualisieren
+                    this.recentRootNotes.push(rootNote);
+                    const maxHistory = this.getMaxRootHistory();
+                    if (this.recentRootNotes.length > maxHistory) {
+                        this.recentRootNotes = this.recentRootNotes.slice(-maxHistory);
+                    }
                 }
                 
                 if (!validChord) {
@@ -5303,6 +5330,7 @@
             resetScore() {
                 this.score = { correct: 0, total: 0 };
                 this.previousTask = null;
+                this.recentRootNotes = [];
                 this.updateScore();
 
                 // Falls Quiz aktiv: Zähler auf 0 und Overlay komplett neu erstellen
@@ -5339,6 +5367,7 @@
 
                 if (!onlyKeyboardChanged) {
                     this.previousTask = null;
+                    this.recentRootNotes = [];
                 }
 
                 this.updateUI();
