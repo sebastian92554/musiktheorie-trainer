@@ -5393,8 +5393,11 @@
                 const userInput = intervalInput ? intervalInput.value.trim().toLowerCase() : '';
                 const semitonesValue = semitonesInput ? semitonesInput.value.trim() : '';
                 
-                // WICHTIG: hasBeenChecked wird SPÄTER gesetzt, wenn alle Validierungen durchlaufen
-                // Nicht hier, weil im HS-Modus die Funktion frühzeitig mit return endet
+                // === ANSWER-HANDLING-PATTERN (IT) ===
+                // Score-Counting: nur beim ERSTEN Versuch (isFirstCheck guard)
+                // Quiz-Flow (handleAnswer): IMMER — auch bei Retry-Erfolg (steht außerhalb isFirstCheck)
+                // So wird bei Retry korrekt zur nächsten Aufgabe gewechselt, ohne Score doppelt zu zählen.
+                // WICHTIG: hasBeenChecked wird SPÄTER gesetzt, weil im HS-Modus die Funktion frühzeitig returnt.
                 const isFirstCheck = !this.validationState.hasBeenChecked;
                 
                 const correctSize = this.currentInterval.size;

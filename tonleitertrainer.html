@@ -4504,7 +4504,11 @@
         },
 
         _handleQzAnswer(isCorrect, correctAnswer, waitForCorrect) {
-            // waitForCorrect = true → User muss noch die richtige Antwort klicken (Buttons)
+            // === ANSWER-HANDLING-PATTERN (TT) ===
+            // inputLocked verhindert Doppelklicks während Feedback-Animation.
+            // handleAnswer wird bei JEDEM Versuch aufgerufen (kein first-check guard).
+            // Bei waitForCorrect: handleAnswer(false) sofort, User klickt dann richtige Antwort.
+            // Score-Counting im Freien Üben: freeRetry-Flag verhindert Doppelzählung.
             if (waitForCorrect) {
                 // Nicht locken! Fehler zählen, aber auf korrekte Antwort warten
                 if (quickStart.isActive) {

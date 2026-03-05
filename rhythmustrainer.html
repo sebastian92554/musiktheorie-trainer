@@ -2436,7 +2436,10 @@
                 
                 console.log('[QuickStart] onAnswerChecked:', isCorrect, 'Answered:', this.questionsAnswered, '/', this.totalQuestions);
                 
-                // Nur beim ERSTEN Versuch pro Aufgabe zählen!
+                // === ANSWER-HANDLING-PATTERN (RT) ===
+                // Score-Counting: nur beim ERSTEN Versuch (hasBeenCheckedForTask guard)
+                // Quiz-Flow (nächste Aufgabe bei Erfolg): IMMER — auch bei Retry-Korrektur
+                // So wird bei Retry korrekt zur nächsten Aufgabe gewechselt, ohne Score doppelt zu zählen.
                 const isFirstAttempt = !this.hasBeenCheckedForTask;
                 if (isFirstAttempt) {
                     this.hasBeenCheckedForTask = true;

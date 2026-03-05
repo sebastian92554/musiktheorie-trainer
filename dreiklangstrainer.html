@@ -5250,7 +5250,10 @@
                 return forms[quality] || quality;
             },
 
-            // Zentrale Methode: Score + QuickStart-Counter synchron aktualisieren
+            // === ANSWER-HANDLING-PATTERN (DT) ===
+            // Score-Counting: nur beim ERSTEN Versuch (isFirstAttempt guard)
+            // Quiz-Flow (handleAnswer): IMMER — auch bei Retry-Korrektur
+            // So wird bei Retry korrekt zur nächsten Aufgabe gewechselt, ohne Score doppelt zu zählen.
             recordAnswer(isCorrect) {
                 const isFirstAttempt = !this.validationState.hasBeenChecked;
                 this.validationState.hasBeenChecked = true;

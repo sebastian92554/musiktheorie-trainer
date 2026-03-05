@@ -3854,10 +3854,13 @@
                     return;
                 }
                 
-                // Determine if this is the FIRST check of this task
+                // === ANSWER-HANDLING-PATTERN (NT) ===
+                // Score + handleAnswer: nur beim ERSTEN Versuch (isFirstCheck guard)
+                // Quiz-Flow (generateNote): IMMER — auch nach Retry-Korrektur
+                // Falsche Antwort beim ersten Versuch → handleAnswer(false) zählt sofort als Fehler.
+                // Retry-Korrektur → Note generiert neu, aber kein erneuter handleAnswer-Aufruf nötig.
                 const isFirstCheck = !this.validationState.hasBeenChecked;
-                
-                // Mark as checked (for score counting)
+
                 if (isFirstCheck) {
                     this.validationState.hasBeenChecked = true;
                 }
