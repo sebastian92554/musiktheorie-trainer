@@ -3024,6 +3024,34 @@
                     });
                 }
 
+                // QuickStart-Mode: Eingabefelder zurücksetzen + re-enablen
+                if (this.quickStartMode) {
+                    const mode = this.quickStartMode;
+                    if (mode === 'einsteiger') {
+                        this.selectedKeys = [];
+                    } else if (mode === 'aufsteiger') {
+                        const s1 = document.getElementById('hsSelect1');
+                        const s2 = document.getElementById('hsSelect2');
+                        if (s1) { s1.value = ''; s1.disabled = false; }
+                        if (s2) { s2.value = ''; s2.disabled = false; }
+                    } else if (mode === 'profi') {
+                        const ri = document.getElementById('rootNoteInput');
+                        const ts = document.getElementById('chordTypeSelect');
+                        if (ri) { ri.value = ''; ri.disabled = false; ri.focus(); }
+                        if (ts) { ts.value = ''; ts.disabled = false; }
+                    } else if (mode === 'meister') {
+                        const inv = document.getElementById('inversionSelect');
+                        const ri = document.getElementById('rootNoteInput');
+                        const ts = document.getElementById('chordTypeSelect');
+                        if (inv) { inv.value = ''; inv.disabled = false; }
+                        if (ri) { ri.value = ''; ri.disabled = false; ri.focus(); }
+                        if (ts) { ts.value = ''; ts.disabled = false; }
+                    }
+                    // Feedback ausblenden
+                    const fb = document.getElementById('feedback');
+                    if (fb) fb.classList.add('hidden');
+                }
+
                 // Generator-Logik folgt...
                 // Würfel-Algorithmus für gültige Dreiklänge
                 
@@ -5224,15 +5252,18 @@
 
             // Zentrale Methode: Score + QuickStart-Counter synchron aktualisieren
             recordAnswer(isCorrect) {
-                if (this.validationState.hasBeenChecked) return; // Nur beim ersten Versuch
+                const isFirstAttempt = !this.validationState.hasBeenChecked;
                 this.validationState.hasBeenChecked = true;
 
-                // Nur wenn nicht im kostenlosen Retry-Modus
-                if (!this.freeRetry) {
+                // Score + Tracking nur beim ersten Versuch zählen
+                if (isFirstAttempt && !this.freeRetry) {
                     this.score.total++;
                     if (isCorrect) this.score.correct++;
-
                     tracking.trackQuestion(isCorrect);
+                }
+
+                // Quiz-Flow IMMER aktualisieren (auch bei Retry-Korrektur)
+                if (!this.freeRetry) {
                     quickStart.handleAnswer(isCorrect);
                 }
 
