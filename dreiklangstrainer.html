@@ -1438,7 +1438,7 @@
                         <div class="st-node available" onclick="quickStart.selectNode('drei1')">
                             <div class="st-node-icon">1</div>
                             <div class="st-node-content">
-                                <div class="st-node-name">Basis (Dur/Moll)</div>
+                                <div class="st-node-name">Tastaturorientierung</div>
                                 <div class="st-node-desc">Töne auf der Tastatur finden</div>
                             </div>
                             <div class="st-node-action">&#9662;</div>
@@ -1452,7 +1452,7 @@
                         <div class="st-node available" onclick="quickStart.selectNode('drei2')">
                             <div class="st-node-icon">2</div>
                             <div class="st-node-content">
-                                <div class="st-node-name">Erweitert (übermäßig/vermindert)</div>
+                                <div class="st-node-name">Terzen bestimmen</div>
                                 <div class="st-node-desc">Halbtonschritte bestimmen</div>
                             </div>
                             <div class="st-node-action">&#9662;</div>
@@ -1466,7 +1466,7 @@
                         <div class="st-node available" onclick="quickStart.selectNode('drei3')">
                             <div class="st-node-icon">3</div>
                             <div class="st-node-content">
-                                <div class="st-node-name">Doppelvorzeichen</div>
+                                <div class="st-node-name">Dreiklänge benennen</div>
                                 <div class="st-node-desc">Alle Dreiklangstypen benennen</div>
                             </div>
                             <div class="st-node-action">&#9662;</div>
@@ -1885,6 +1885,7 @@
             questionsCorrect: 0,
             totalQuestions: 10,
             isRetry: false,
+            isSkipping: false,
             selectedNode: null,
             selectedSub: null,
 
@@ -1904,22 +1905,27 @@
                     { id: 'range', label: 'Großer Tonumfang' }
                 ],
                 'drei2': [
-                    { id: 'basis', label: 'Mit Übermäßig/Vermindert' },
+                    { id: 'basis', label: 'Basis (Dur & Moll)' },
                     { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                    { id: 'augmented', label: 'Übermäßig & vermindert' },
                     { id: 'range', label: 'Großer Tonumfang' },
                     { id: 'noaudio', label: 'Ohne Hörbeispiel' }
                 ],
                 'drei3': [
-                    { id: 'basis', label: 'Mit Doppelvorzeichen' },
-                    { id: 'augmented', label: 'Auch übermäßig & vermindert' },
+                    { id: 'basis', label: 'Basis (Dur & Moll)' },
+                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                    { id: 'augmented', label: 'Übermäßig & vermindert' },
                     { id: 'range', label: 'Großer Tonumfang' },
-                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+                    { id: 'noaudio', label: 'Ohne Hörbeispiel' },
+                    { id: 'doubleAccidentals', label: 'Mit Doppelvorzeichen' }
                 ],
                 'drei4': [
-                    { id: 'basis', label: 'Grundstellung durch Oktavierung' },
-                    { id: 'doubleAccidentals', label: 'Mit Doppelvorzeichen' },
+                    { id: 'basis', label: 'Basis (Dur & Moll)' },
+                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                    { id: 'augmented', label: 'Übermäßig & vermindert' },
                     { id: 'range', label: 'Großer Tonumfang' },
-                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+                    { id: 'noaudio', label: 'Ohne Hörbeispiel' },
+                    { id: 'doubleAccidentals', label: 'Mit Doppelvorzeichen' }
                 ]
             },
 
@@ -2108,12 +2114,16 @@
 
                 if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
                     const targetSub = subs[this.selectedSub.index];
+                    const isMastered = mastered.includes(targetSub.id);
+                    const recommendedIdx = nextUnmastered ? subs.findIndex(s => s.id === nextUnmastered.id) : subs.length;
+                    const wouldSkip = !isMastered && this.selectedSub.index > recommendedIdx;
                     btn.textContent = `${targetSub.label} üben`;
                     btn.disabled = false;
-                    // Hint: "Empfohlene Übung" wenn gewählte Sub-Skill = empfohlene
                     if (hint) {
                         if (nextUnmastered && targetSub.id === nextUnmastered.id) {
                             hint.textContent = 'Empfohlene Übung';
+                        } else if (wouldSkip) {
+                            hint.textContent = '⚡ Überspringen — 90% zum Bestehen nötig';
                         } else {
                             hint.textContent = 'Klick "Start" um zu beginnen!';
                         }
@@ -2186,6 +2196,7 @@
             },
 
             showFreeMode() {
+                this.isSkipping = false;
                 const dbg = app._debugKeyboard || new URLSearchParams(window.location.search).get('debug') === 'keyboard';
                 if (dbg) console.log('📌 showFreeMode() START');
 
@@ -2264,24 +2275,32 @@
                 const subs = this.nodeSubSkills[nodeId];
                 const mastered = this.progress[level].mastered || [];
 
+                // Nächster unmastered Sub-Skill (= empfohlener)
+                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+                const recommendedIdx = nextUnmastered ? subs.findIndex(s => s.id === nextUnmastered.id) : subs.length;
+
                 let activeOptions = ['basis'];
+                let targetIdx = recommendedIdx;
 
                 if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
-                    const targetSub = subs[this.selectedSub.index];
-                    for (let i = 1; i <= this.selectedSub.index; i++) {
+                    targetIdx = this.selectedSub.index;
+                    for (let i = 1; i <= targetIdx; i++) {
                         activeOptions.push(subs[i].id);
                     }
                 } else {
-                    const nextUnmastered = subs.find(s => !mastered.includes(s.id));
                     if (nextUnmastered) {
-                        const targetIdx = subs.findIndex(s => s.id === nextUnmastered.id);
-                        for (let i = 1; i <= targetIdx; i++) {
+                        for (let i = 1; i <= recommendedIdx; i++) {
                             activeOptions.push(subs[i].id);
                         }
                     } else {
                         activeOptions = subs.map(s => s.id);
                     }
                 }
+
+                // Skip-Erkennung: Gewählter Sub-Skill liegt über dem empfohlenen UND ist nicht bereits gemeistert
+                const targetSub = subs[targetIdx];
+                const targetIsMastered = targetSub && mastered.includes(targetSub.id);
+                this.isSkipping = !targetIsMastered && targetIdx > recommendedIdx;
 
                 this.start(level, activeOptions);
             },
@@ -2329,10 +2348,10 @@
                 // 1a: nur Stammtöne (kein Vorzeichen-Option aktiv)
                 // 1b: mit Vorzeichen (aber max 3 Vorzeichen = complexKeys false)
                 // 1c: voller Tonumfang (range aktiv → beginnerFriendlyRange false)
-                app.settings.simpleRootsOnly = !options.includes('vorzeichen') && (level === 'einsteiger');
-                app.settings.complexKeys = (level === 'profi' || level === 'meister');
-                app.settings.requireQuality = options.includes('augmented') || level === 'aufsteiger' || level === 'profi' || level === 'meister';
-                app.settings.allowDoubleAccidentals = options.includes('doubleAccidentals') || level === 'profi' || level === 'meister';
+                app.settings.simpleRootsOnly = !options.includes('vorzeichen');
+                app.settings.complexKeys = options.includes('doubleAccidentals');
+                app.settings.requireQuality = options.includes('augmented');
+                app.settings.allowDoubleAccidentals = options.includes('doubleAccidentals');
                 app.settings.includeInversions = level === 'meister';
                 app.settings.beginnerFriendlyRange = !options.includes('range');
                 app.settings.noAudio = options.includes('noaudio');
@@ -2374,7 +2393,7 @@
             updateQuizOverlay() {
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
                 const nodeIdx = ['drei1', 'drei2', 'drei3', 'drei4'].indexOf(nodeId) + 1;
-                const nodeNames = { 'drei1': 'Basis (Dur/Moll)', 'drei2': 'Erweitert (übermäßig/vermindert)', 'drei3': 'Doppelvorzeichen', 'drei4': 'Umkehrungen' };
+                const nodeNames = { 'drei1': 'Tastaturorientierung', 'drei2': 'Terzen bestimmen', 'drei3': 'Dreiklänge benennen', 'drei4': 'Umkehrungen' };
                 const nodeName = nodeNames[nodeId] || '';
 
                 const subs = this.nodeSubSkills[nodeId];
@@ -2393,7 +2412,8 @@
                 const label = document.getElementById('headerExerciseLabel');
                 const task = document.getElementById('headerExerciseTask');
                 const subSkillLabel = subs[Math.max(0, subIdx)] ? subs[Math.max(0, subIdx)].label : '';
-                label.textContent = `${subLabel} ${nodeName} – ${subSkillLabel} — ${this.questionsAnswered}/${this.totalQuestions}`;
+                const skipHint = this.isSkipping ? ' ⚡ 90%' : '';
+                label.textContent = `${subLabel} ${nodeName} – ${subSkillLabel}${skipHint} — ${this.questionsAnswered}/${this.totalQuestions}`;
                 task.textContent = taskTexts[this.currentLevel] || '';
 
                 const totalPct = this.totalQuestions > 0 ? (this.questionsAnswered / this.totalQuestions) * 100 : 0;
@@ -2452,15 +2472,18 @@
                 this.hideQuizOverlay();
 
                 const percentage = Math.round((this.questionsCorrect / this.questionsAnswered) * 100);
+                const passThreshold = this.isSkipping ? 90 : 80;
                 const scoreText = `${this.questionsCorrect} von ${this.questionsAnswered} richtig (${percentage}%)`;
 
                 let emoji, title, stars;
                 if (percentage === 100) {
                     emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
                 } else if (percentage >= 90) {
-                    emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+                    emoji = '★★'; title = this.isSkipping ? 'ÜBERSPRUNGEN!' : 'GESCHAFFT!'; stars = '⭐⭐';
                 } else if (percentage >= 80) {
-                    emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
+                    emoji = this.isSkipping ? '' : '★';
+                    title = this.isSkipping ? 'KNAPP VERFEHLT!' : 'BESTANDEN!';
+                    stars = this.isSkipping ? '' : '⭐';
                 } else {
                     emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
                 }
@@ -2470,7 +2493,7 @@
                 document.getElementById('successStars').textContent = stars;
                 document.getElementById('successScore').textContent = scoreText;
 
-                const passed = percentage >= 80;
+                const passed = percentage >= passThreshold;
 
                 if (passed) {
                     const starCount = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
@@ -2479,6 +2502,9 @@
                     this.markCurrentOptionAsMastered();
                     const nextStep = this.getNextStepText();
                     document.getElementById('successMessage').innerHTML = `<p><strong>💡 Nächster Schritt:</strong></p><p>${nextStep}</p>`;
+                } else if (this.isSkipping && percentage >= 80) {
+                    // 80-89% beim Überspringen: bestanden für den empfohlenen Sub-Skill, aber nicht für den übersprungenen
+                    document.getElementById('successMessage').innerHTML = '<p><strong>💡 Tipp:</strong></p><p>Zum Überspringen brauchst du 90% (9 von 10). Versuche es nochmal oder übe die empfohlene Stufe!</p>';
                 } else {
                     document.getElementById('successMessage').innerHTML = '<p><strong>💡 Tipp:</strong></p><p>Probiere es noch einmal!</p>';
                 }
@@ -2512,10 +2538,11 @@
             },
 
             getOptionsForLevel(level) {
-                if (level === 'einsteiger') return ['basis', 'vorzeichen', 'range'];
-                if (level === 'aufsteiger') return ['basis', 'vorzeichen', 'range', 'noaudio'];
-                if (level === 'profi') return ['basis', 'augmented', 'range', 'noaudio'];
-                return ['basis', 'doubleAccidentals', 'range', 'noaudio'];
+                const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === level);
+                if (nodeId && this.nodeSubSkills[nodeId]) {
+                    return this.nodeSubSkills[nodeId].map(s => s.id);
+                }
+                return ['basis'];
             },
 
             getNextStepText() {
@@ -2552,6 +2579,7 @@
                 const lastNode = this.selectedNode;
                 this.selectedNode = null;
                 this.selectedSub = null;
+                this.isSkipping = false;
                 this.hideQuizOverlay();
                 document.getElementById('appTitle').textContent = 'Dreiklangstrainer';
                 this.isActive = false;
@@ -2567,6 +2595,7 @@
                     this.saveProgress();
                     this.selectedNode = null;
                     this.selectedSub = null;
+                    this.isSkipping = false;
 
                     if (this.isActive) {
                         this.questionsAnswered = 0;
@@ -5319,7 +5348,7 @@
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
                     const subs = quickStart.nodeSubSkills[nodeId];
-                    const nodeNames = { 'drei1': 'Basis (Dur/Moll)', 'drei2': 'Erweitert (übermäßig/vermindert)', 'drei3': 'Doppelvorzeichen', 'drei4': 'Umkehrungen' };
+                    const nodeNames = { 'drei1': 'Tastaturorientierung', 'drei2': 'Terzen bestimmen', 'drei3': 'Dreiklänge benennen', 'drei4': 'Umkehrungen' };
                     const nodeName = nodeNames[nodeId] || '';
 
                     titleEl.textContent = `Hilfe: ${nodeName}`;
@@ -5341,60 +5370,71 @@
                                 <p><strong>Tipp:</strong> Konzentriere dich auf die Notennamen, nicht auf ihre Position im System!</p>`
                         },
                         'aufsteiger': {
-                            'basis': `<p><strong>Übermäßig & Vermindert</strong></p>
-                                <p>Zusätzlich zu Dur und Moll gibt es noch zwei weitere Dreiklangtypen:</p>
+                            'basis': `<p><strong>Terzen bestimmen: Basis</strong></p>
+                                <p>Zähle die Halbtonschritte (HS) zwischen den Tönen des Dreiklangs auf der Tastatur.</p>
+                                <p><strong>Dur-Dreiklang:</strong> Große Terz (4 HS) + kleine Terz (3 HS) = 7 HS</p>
+                                <p><strong>Moll-Dreiklang:</strong> Kleine Terz (3 HS) + große Terz (4 HS) = 7 HS</p>
+                                <p><strong>Tipp:</strong> Zähle die Halbtonschritte auf der Tastatur – schwarze Tasten mitzählen!</p>`,
+                            'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
+                                <p>Die Dreiklänge enthalten jetzt Vorzeichen (♯, ♭). Die Halbtonschritte verraten weiterhin den Typ!</p>
+                                <p><strong>Tipp:</strong> Achte auf die Vorzeichen vor den Noten – sie verschieben die Töne auf der Tastatur.</p>`,
+                            'augmented': `<p><strong>+ Übermäßig & Vermindert</strong></p>
+                                <p>Zusätzlich zu Dur und Moll gibt es zwei weitere Dreiklangtypen:</p>
                                 <p><strong>Übermäßiger Dreiklang:</strong> Große Terz (4 HS) + große Terz (4 HS) = 8 HS</p>
                                 <p><strong>Verminderter Dreiklang:</strong> Kleine Terz (3 HS) + kleine Terz (3 HS) = 6 HS</p>
-                                <p><strong>Klangcharakter:</strong> Dur klingt hell und fröhlich, Moll klingt dunkel und weich, Übermäßig klingt schwebend und spannungsvoll, Vermindert klingt angespannt und drängend. Spiele das Hörbeispiel ab, um die Unterschiede zu hören!</p>`,
-                            'vorzeichen': `<p><strong>Alle 4 Typen mit Vorzeichen</strong></p>
-                                <p>Jetzt kombinierst du Vorzeichen mit allen vier Dreiklangtypen: Dur, Moll, Übermäßig und Vermindert.</p>
-                                <p><strong>Beispiele:</strong> C♯-Dur, A♭-Moll, F♯-übermäßig, B-vermindert</p>
-                                <p><strong>Tipp:</strong> Die Halbtonschritte verraten immer den Typ – egal welche Vorzeichen!</p>`,
-                            'range': `<p><strong>Großer Tonumfang mit allen Typen</strong></p>
-                                <p>Die Töne können jetzt in verschiedenen Oktaven vorkommen und es gibt alle vier Dreiklangtypen.</p>
+                                <p><strong>Klangcharakter:</strong> Übermäßig klingt schwebend und spannungsvoll, Vermindert klingt angespannt und drängend.</p>`,
+                            'range': `<p><strong>Großer Tonumfang</strong></p>
+                                <p>Die Töne können jetzt in verschiedenen Oktaven vorkommen.</p>
                                 <p><strong>Tipp:</strong> Zähle die Halbtonschritte zwischen den Tönen – das funktioniert immer!</p>`,
                             'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
                                 <p>Du erkennst die Dreiklänge jetzt rein visuell – ohne Hörbeispiel als Hilfe.</p>
-                                <p><strong>Methode:</strong> Halbtonschritte zählen und die Struktur erkennen: 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</p>`
+                                <p><strong>Methode:</strong> Halbtonschritte zählen: 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</p>`
                         },
                         'profi': {
-                            'basis': `<p><strong>Doppelvorzeichen: Benennungskonventionen</strong></p>
-                                <p>Bei Doppelvorzeichen werden Notennamen durch Anhängen gebildet:</p>
-                                <p><strong>Doppelkreuz (𝄪):</strong> An den Notennamen wird <em>-isis</em> angehängt:<br>
-                                C → Cisis, F → Fisis, G → Gisis</p>
-                                <p><strong>Doppel-B (𝄫):</strong> An den Notennamen wird <em>-eses</em> angehängt:<br>
-                                D → Deses, G → Geses, A → Asas (Ausnahme!)</p>
-                                <p><strong>Was bedeutet das für HS?</strong><br>
-                                Doppelkreuz erhöht um 2 Halbtonschritte (statt 1 bei einfachem ♯).<br>
-                                Doppel-B erniedrigt um 2 Halbtonschritte (statt 1 bei einfachem ♭).</p>
-                                <p><strong>Enharmonik:</strong> Cisis klingt wie D, Deses klingt wie C – gleicher Ton, andere Schreibweise! Zähle immer die HS zwischen den Tönen.</p>`,
-                            'augmented': `<p><strong>Alle Dreiklang-Typen mit Doppelvorzeichen</strong></p>
-                                <p>Du siehst alle vier Dreiklangtypen mit einfachen und doppelten Vorzeichen.</p>
-                                <p><strong>Methode:</strong> Zähle die Halbtonschritte zwischen den Tönen – unabhängig von der Schreibweise verraten sie dir immer den Typ!</p>`,
-                            'range': `<p><strong>Maximale Komplexität</strong></p>
-                                <p>Große Tonumfänge, Doppelvorzeichen, alle Dreiklangtypen durcheinander.</p>
-                                <p><strong>Methode:</strong> Halbtonschritte zählen bleibt der Schlüssel – egal wie komplex die Notation aussieht!</p>`,
+                            'basis': `<p><strong>Dreiklänge benennen: Basis</strong></p>
+                                <p>Bestimme den Namen des Dreiklangs — Grundton + Typ (z.B. „C-Dur", „A-Moll").</p>
+                                <p><strong>Methode:</strong> Lies den tiefsten Ton ab (= Grundton), bestimme den Typ über die Halbtonschritte.</p>`,
+                            'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
+                                <p>Die Dreiklänge enthalten jetzt Vorzeichen (♯, ♭).</p>
+                                <p><strong>Beispiele:</strong> F♯-Dur, A♭-Moll, D♯-Moll</p>
+                                <p><strong>Tipp:</strong> Achte auf die Vorzeichen – sie bestimmen den Grundtonnamen!</p>`,
+                            'augmented': `<p><strong>+ Übermäßig & Vermindert</strong></p>
+                                <p>Alle vier Dreiklangtypen können jetzt vorkommen.</p>
+                                <p><strong>Zur Erinnerung:</strong> 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</p>`,
+                            'range': `<p><strong>Großer Tonumfang</strong></p>
+                                <p>Die Töne können jetzt in verschiedenen Oktaven vorkommen.</p>
+                                <p><strong>Methode:</strong> Grundton und Typ bestimmen – die Oktavlage ändert nichts am Namen!</p>`,
+                            'doubleAccidentals': `<p><strong>Mit Doppelvorzeichen</strong></p>
+                                <p>Doppelkreuz (𝄪): Notennamen mit <em>-isis</em> (C → Cisis, F → Fisis)</p>
+                                <p>Doppel-B (𝄫): Notennamen mit <em>-eses</em> (D → Deses, A → Asas)</p>
+                                <p><strong>Enharmonik:</strong> Cisis klingt wie D, Deses klingt wie C – gleicher Ton, andere Schreibweise!</p>`,
                             'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
-                                <p>Du erkennst die Dreiklänge mit Doppelvorzeichen jetzt rein visuell – ohne Hörbeispiel.</p>
-                                <p><strong>Methode:</strong> Wie immer: Halbtonschritte zählen. Auch Cisis und Deses verraten durch HS ihren Typ!</p>`
+                                <p>Dreiklänge rein visuell benennen – ohne Hörbeispiel als Hilfe.</p>
+                                <p><strong>Methode:</strong> Grundton ablesen, Halbtonschritte zählen, Typ bestimmen!</p>`
                         },
                         'meister': {
-                            'basis': `<p><strong>Grundstellung durch Oktavierung</strong></p>
+                            'basis': `<p><strong>Umkehrungen: Basis</strong></p>
                                 <p>Ein Dreiklang kann in verschiedenen Stellungen auftreten. Der tiefste Ton bestimmt die Stellung:</p>
                                 <p><strong>Grundstellung:</strong> Grundton unten (C-E-G)<br>
                                 <strong>1. Umkehrung:</strong> Terz unten (E-G-C)<br>
                                 <strong>2. Umkehrung:</strong> Quinte unten (G-C-E)</p>
-                                <p><strong>Methode:</strong> Finde den tiefsten Ton und oktaviere ihn nach oben, bis die Töne in Terzschichtung (Grundstellung) stehen. Der unterste Ton der Grundstellung ist der Grundton!</p>`,
-                            'doubleAccidentals': `<p><strong>Umkehrungen mit Doppelvorzeichen</strong></p>
-                                <p>Umkehrungen mit Doppelkreuz (𝄪) und Doppel-B (𝄫).</p>
-                                <p><strong>Beispiele:</strong> Cisis-Dur (1. Umkehrung), Ases-Moll (2. Umkehrung)</p>
-                                <p><strong>Methode:</strong> Wie bei 4a: Oktaviere den tiefsten Ton nach oben. Die Halbtonschritte der Grundstellung verraten den Typ!</p>`,
-                            'range': `<p><strong>Umkehrungen in großem Tonumfang</strong></p>
-                                <p>Alle Umkehrungen, alle Vorzeichen, große Tonumfänge.</p>
+                                <p><strong>Methode:</strong> Oktaviere den tiefsten Ton nach oben, bis die Töne in Terzschichtung stehen. Der unterste Ton der Grundstellung ist der Grundton!</p>`,
+                            'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
+                                <p>Umkehrungen mit Vorzeichen (♯, ♭). Die Methode bleibt gleich!</p>
+                                <p><strong>Tipp:</strong> Oktaviere den tiefsten Ton → Grundstellung → Halbtonschritte zählen.</p>`,
+                            'augmented': `<p><strong>+ Übermäßig & Vermindert</strong></p>
+                                <p>Alle vier Dreiklangtypen in allen Umkehrungen.</p>
+                                <p><strong>Zur Erinnerung:</strong> 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</p>`,
+                            'range': `<p><strong>Großer Tonumfang</strong></p>
+                                <p>Alle Umkehrungen, alle Typen, große Tonumfänge.</p>
                                 <p><strong>Methode:</strong> Immer gleich: Tiefsten Ton oktavieren → Grundstellung → Halbtonschritte zählen!</p>`,
                             'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
                                 <p>Umkehrungen rein visuell erkennen – ohne Hörbeispiel als Hilfe.</p>
-                                <p><strong>Methode:</strong> Tiefsten Ton oktavieren → Grundstellung → Halbtonschritte zählen. Alles rein aus der Notation!</p>`
+                                <p><strong>Methode:</strong> Tiefsten Ton oktavieren → Grundstellung → Halbtonschritte zählen. Alles rein aus der Notation!</p>`,
+                            'doubleAccidentals': `<p><strong>Mit Doppelvorzeichen</strong></p>
+                                <p>Umkehrungen mit Doppelkreuz (𝄪) und Doppel-B (𝄫).</p>
+                                <p><strong>Beispiele:</strong> Cisis-Dur (1. Umkehrung), Ases-Moll (2. Umkehrung)</p>
+                                <p><strong>Methode:</strong> Wie immer: Oktaviere den tiefsten Ton nach oben. Die Halbtonschritte verraten den Typ!</p>`
                         }
                     };
 
@@ -5409,7 +5449,7 @@
                         }
                     }
                     if (!html) {
-                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Teilkompetenz als bestanden.</p>';
+                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% (8 von 10) gilt die Teilkompetenz als bestanden. Beim Überspringen: 90% (9 von 10).</p>';
                     }
                     contentEl.innerHTML = html;
 
@@ -5434,7 +5474,7 @@
                         <p>Willkommen im <strong>Dreiklangstrainer</strong>! Hier lernst du Schritt für Schritt, Dreiklänge zu erkennen und zu benennen.</p>
                         <p><strong>So funktioniert's:</strong></p>
                         <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
-                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10) gilt eine Teilkompetenz als bestanden. Beim Überspringen von Stufen brauchst du 90% (9 von 10). Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
                         <p><strong>Dreiklang-Arten:</strong> Dur (hell), Moll (dunkel), Übermäßig (spannungsvoll), Vermindert (angespannt).</p>
                     `;
                 }

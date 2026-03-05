@@ -1798,9 +1798,7 @@
                     { id: 'noaudio', label: 'Ohne Hörbeispiel' }
                 ],
                 'rhy4': [
-                    { id: 'basis', label: 'Basis (Ganze, Halbe, Viertel)' },
-                    { id: 'pausen', label: 'Mit Pausen' },
-                    { id: '8tel', label: 'Mit Achtelnoten' },
+                    { id: 'basis', label: 'Basis (Mit Achtelnoten)' },
                     { id: '16tel', label: 'Mit Sechzehntelnoten' },
                     { id: 'punktierte', label: 'Mit punktierten Noten' },
                     { id: 'triolen', label: 'Mit Triolen' },
@@ -2219,7 +2217,8 @@
                 let noteTypes = ['whole', 'half', 'quarter'];
                 
                 // Optionen direkt aktivieren (User hat sie gewählt!)
-                app.settings.includeEighths = options.includes('8tel');
+                // Rhythmussprache (profi): Achtelnoten sind immer in der Basis enthalten
+                app.settings.includeEighths = options.includes('8tel') || level === 'profi';
                 app.settings.includeSixteenths = options.includes('16tel');
                 app.settings.includeDotted = options.includes('punktierte');
                 app.settings.includeRests = options.includes('pausen');
@@ -3059,8 +3058,7 @@
                         'profi': {
                             'basis': `<p><strong>Rhythmussilben sprechen: Basis</strong></p>
                                 <p>Gib die richtige Rhythmussilbe für die markierte Note an.</p>
-                                <p><strong>Silben:</strong> <strong>du</strong> = auf dem Schlag, <strong>dei</strong> = auf dem „und".</p>`,
-                            '8tel': `<p><strong>+ Achtelnoten</strong></p>
+                                <p><strong>Silben:</strong> <strong>du</strong> = auf dem Schlag, <strong>dei</strong> = auf dem „und".</p>
                                 <p>Achtel auf dem Schlag = „du", auf dem „und" = „dei".</p>`,
                             '16tel': `<p><strong>+ Sechzehntelnoten</strong></p>
                                 <p>4 Sechzehntel auf einem Schlag: <strong>du te dei te</strong>.</p>
@@ -3071,8 +3069,6 @@
                                     <span style="text-align:center">${sym('dotted-quarter',40,35)}<br><small>1,5 Schläge</small></span>
                                     <span style="text-align:center">${sym('dotted-eighth',40,35)}<br><small>0,75 Schläge</small></span>
                                 </div>`,
-                            'pausen': `<p><strong>+ Pausen</strong></p>
-                                <p>Bei Pausen: Silbe im Kopf denken, aber nicht aussprechen.</p>`,
                             'triolen': `<p><strong>+ Triolen</strong></p>
                                 <p>Triolen = „du-da-di" für drei gleiche Noten auf einem Schlag.</p>`
                         },
