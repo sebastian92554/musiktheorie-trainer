@@ -253,8 +253,12 @@
         .skilltree {
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 0.25rem;
         }
+
+        /* Alle Knoten auf halbe Breite (konsistent mit Fork-Ästen) */
+        .st-node-wrapper { width: 100%; max-width: 230px; }
 
         /* Verbindungslinien */
         .st-connector {
@@ -275,10 +279,10 @@
         /* Skill-Knoten */
         .st-node {
             border-radius: 0.65rem;
-            padding: 0.75rem 0.85rem;
+            padding: 0.6rem 0.7rem;
             display: flex;
             align-items: center;
-            gap: 0.65rem;
+            gap: 0.5rem;
             cursor: pointer;
             transition: all 0.15s ease;
             position: relative;
@@ -288,15 +292,15 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
-        /* Knoten-Icon (Platzhalter) */
+        /* Knoten-Icon */
         .st-node-icon {
-            width: 36px;
-            height: 36px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             font-weight: 700;
             flex-shrink: 0;
         }
@@ -306,17 +310,17 @@
             min-width: 0;
         }
         .st-node-name {
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             font-weight: 600;
             line-height: 1.2;
         }
         .st-node-desc {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             margin-top: 2px;
             line-height: 1.3;
         }
         .st-node-action {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             flex-shrink: 0;
         }
 
@@ -382,9 +386,64 @@
         .st-node.locked .st-node-desc { color: #cbd5e1; }
         .st-node.locked .st-node-action { color: #cbd5e1; }
 
+        /* ===== Fork (Gabelung nach ton2) ===== */
+        .st-fork-stem { display: flex; justify-content: center; height: 14px; }
+        .st-fork-stem::before { content: ''; width: 2px; height: 100%; background: #d1d5db; }
+        .st-fork-stem.mastered::before { background: #0891b2; }
+
+        .st-fork-bracket {
+            width: calc(50% + 0.375rem);
+            margin: 0 auto;
+            height: 22px;
+            border: 2px solid #d1d5db;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+        .st-fork-bracket.mastered { border-color: #0891b2; }
+
+        .st-fork-branches {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .st-fork-branches .st-node-wrapper { max-width: 100%; }
+
+        .st-branch-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            color: #475569;
+            background: #f1f5f9;
+        }
+
+        .st-branch-inner-connector { display: flex; justify-content: center; height: 16px; }
+        .st-branch-inner-connector::before { content: ''; width: 2px; height: 100%; background: #d1d5db; }
+        .st-branch-inner-connector.mastered::before { background: #0891b2; }
+
+        /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
+        /* Ghost-Note übernimmt Preview → Cursor ausblenden wenn Ghost sichtbar */
+        #staffSvg.staff-interactive { cursor: none; }
+        /* Radierer: eigener Cursor (keine Ghost-Note) */
+        #staffSvg.staff-interactive.tool-eraser { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21'/%3E%3Cpath d='M22 21H7'/%3E%3Cpath d='m5 11 9 9'/%3E%3C/svg%3E") 4 20, pointer; }
+
+        .building-tools { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 0.5rem; }
+        .building-tool-btn { padding: 6px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+        .building-tool-btn.active { border-color: #0891b2; background: #ecfeff; color: #0891b2; font-weight: 600; }
+        .building-tool-btn:hover { border-color: #94a3b8; }
+        .building-tool-btn.eraser { color: #ef4444; }
+        .building-tool-btn.eraser.active { border-color: #ef4444; background: #fef2f2; }
+
         /* Cross-App Abhängigkeit */
         .st-cross-app {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.25rem;
+            width: 100%;
+            max-width: 230px;
         }
         .st-cross-label {
             font-size: 0.6rem;
@@ -425,9 +484,9 @@
         .st-sub-skill {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.35rem 0.4rem;
-            font-size: 0.75rem;
+            gap: 0.4rem;
+            padding: 0.3rem 0.35rem;
+            font-size: 0.7rem;
             color: #475569;
             cursor: pointer;
             border-radius: 0.35rem;
@@ -441,8 +500,8 @@
             font-weight: 600;
         }
         .st-sub-dot {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             border: 2px solid #d1d5db;
             display: flex;
@@ -1788,34 +1847,56 @@
                         <div class="st-sub-skills" id="stSubs-ton2"></div>
                     </div>
 
-                    <div class="st-connector" id="stConn-ton2-ton3"></div>
+                    <!-- ===== GABELUNG nach ton2 ===== -->
+                    <div class="st-fork-stem" id="stForkStem"></div>
+                    <div class="st-fork-bracket" id="stForkBracket"></div>
 
-                    <!-- Knoten 3: Tonleiter benennen -->
-                    <div class="st-node-wrapper" id="stNode-ton3">
-                        <div class="st-node available" onclick="quickStart.selectNode('ton3')">
-                            <div class="st-node-icon">3</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Tonleiter benennen</div>
-                                <div class="st-node-desc">Tonleitern anhand ihres Musters erkennen und benennen</div>
+                    <div class="st-fork-branches">
+                        <!-- Linker Ast: Erkennen (ton3 → ton5 Quintenzirkel) -->
+                        <div>
+                            <div class="st-branch-label">Erkennen</div>
+                            <div class="st-node-wrapper" id="stNode-ton3">
+                                <div class="st-node available" onclick="quickStart.selectNode('ton3')">
+                                    <div class="st-node-icon">3</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Tonleiter benennen</div>
+                                        <div class="st-node-desc">Muster erkennen und benennen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-ton3"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-ton3"></div>
-                    </div>
 
-                    <div class="st-connector" id="stConn-ton3-ton4"></div>
+                            <div class="st-branch-inner-connector" id="stConn-ton3-ton5"></div>
 
-                    <!-- Knoten 4: Quintenzirkel -->
-                    <div class="st-node-wrapper" id="stNode-ton4">
-                        <div class="st-node available" onclick="quickStart.selectNode('ton4')">
-                            <div class="st-node-icon">4</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Quintenzirkel</div>
-                                <div class="st-node-desc">Tonarten-Beziehungen und Vorzeichen verstehen</div>
+                            <div class="st-node-wrapper" id="stNode-ton5">
+                                <div class="st-node available" onclick="quickStart.selectNode('ton5')">
+                                    <div class="st-node-icon">5</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Quintenzirkel</div>
+                                        <div class="st-node-desc">Tonarten-Beziehungen verstehen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-ton5"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
                         </div>
-                        <div class="st-sub-skills" id="stSubs-ton4"></div>
+
+                        <!-- Rechter Ast: Bilden (ton4) -->
+                        <div>
+                            <div class="st-branch-label">Bilden</div>
+                            <div class="st-node-wrapper" id="stNode-ton4">
+                                <div class="st-node available" onclick="quickStart.selectNode('ton4')">
+                                    <div class="st-node-icon">4</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Tonleiter bilden</div>
+                                        <div class="st-node-desc">Tonleitern auf Tastatur und im Notensystem konstruieren</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-ton4"></div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -2353,13 +2434,13 @@
     // Note name → staff position within octave (C=0, D=1, E=2, F=3, G=4, A=5, H/B=6)
     function getStaffPosition(noteName) {
         const baseMap = {
-            'C': 0, 'Cis': 0, 'Des': 1,
+            'C': 0, 'Cis': 0, 'Ces': 0, 'Des': 1,
             'D': 1, 'Dis': 1,
-            'E': 2, 'Es': 2,
-            'F': 3, 'Fis': 3,
+            'E': 2, 'Es': 2, 'Eis': 2,
+            'F': 3, 'Fis': 3, 'Fes': 3,
             'G': 4, 'Gis': 4, 'Ges': 4,
             'A': 5, 'As': 5, 'Ais': 5,
-            'H': 6, 'B': 6
+            'H': 6, 'His': 6, 'B': 6
         };
         return baseMap[noteName] !== undefined ? baseMap[noteName] : 0;
     }
@@ -2376,13 +2457,13 @@
     // Note name → MIDI semitone offset from C
     function noteToSemitone(noteName) {
         const map = {
-            'C': 0, 'Cis': 1, 'Des': 1,
+            'C': 0, 'Cis': 1, 'Ces': 11, 'Des': 1,
             'D': 2, 'Dis': 3,
-            'E': 4, 'Es': 3,
-            'F': 5, 'Fis': 6,
+            'E': 4, 'Es': 3, 'Eis': 5,
+            'F': 5, 'Fis': 6, 'Fes': 4,
             'G': 7, 'Gis': 8, 'Ges': 6,
             'A': 9, 'As': 8, 'Ais': 10,
-            'H': 11, 'B': 10
+            'H': 11, 'His': 0, 'B': 10
         };
         return map[noteName] !== undefined ? map[noteName] : 0;
     }
@@ -2418,7 +2499,7 @@
         progress: null,
 
         // ---- Skilltree State ----
-        selectedNode: null,  // 'ton1', 'ton2', 'ton3', 'ton4'
+        selectedNode: null,  // 'ton1', 'ton2', 'ton3', 'ton5'
         selectedSub: null,   // { nodeId, index }
 
         // Knoten → Level Mapping
@@ -2426,7 +2507,8 @@
             'ton1': 'einsteiger',
             'ton2': 'aufsteiger',
             'ton3': 'profi',
-            'ton4': 'meister'
+            'ton4': 'bilden',
+            'ton5': 'meister'
         },
 
         // Sub-Skills pro Knoten (bilden auf bestehende option-IDs ab)
@@ -2450,6 +2532,13 @@
                 { id: 'noaudio', label: 'Ohne Hörbeispiel' }
             ],
             'ton4': [
+                { id: 'tastatur_einfach', label: 'Tastatur (einfach)' },
+                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)' },
+                { id: 'schreiben_einfach', label: 'Schreiben (einfach)' },
+                { id: 'schreiben_schwer', label: 'Schreiben (viele Vorzeichen)' },
+                { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+            ],
+            'ton5': [
                 { id: 'aussenkr', label: 'Außenkreis + Merksätze' },
                 { id: 'innenkr', label: 'Innenkreis + Mollparallelen' },
                 { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung' },
@@ -2485,6 +2574,11 @@
                         this.progress.meister = { mastered: [], attempts: {}, scores: {} };
                         this.saveProgress();
                     }
+                    // Migration: bilden-Level für bestehende User ergänzen
+                    if (!this.progress.bilden) {
+                        this.progress.bilden = { mastered: [], attempts: {}, scores: {} };
+                        this.saveProgress();
+                    }
                 }
             }
         },
@@ -2500,18 +2594,30 @@
                 einsteiger: { mastered: [], attempts: {}, scores: {} },
                 aufsteiger: { mastered: [], attempts: {}, scores: {} },
                 profi: { mastered: [], attempts: {}, scores: {} },
+                bilden: { mastered: [], attempts: {}, scores: {} },
                 meister: { mastered: [], attempts: {}, scores: {} }
             };
         },
 
         // ---- Progress UI (Skilltree) ----
         updateAllProgress() {
-            const nodes = ['ton1', 'ton2', 'ton3', 'ton4'];
+            const allNodes = ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'];
+            // Knoten-Icons (für nicht-gemeisterte)
+            const nodeIcons = { 'ton1': '1', 'ton2': '2', 'ton3': '3', 'ton4': '4', 'ton5': '5' };
+            // Voraussetzungen: welcher Knoten muss gemeistert sein, damit dieser freigeschaltet wird?
+            const prerequisites = {
+                'ton1': null,       // immer verfügbar
+                'ton2': 'ton1',     // nach ton1
+                'ton3': 'ton2',     // nach ton2 (linker Ast)
+                'ton4': 'ton2',    // nach ton2 (rechter Ast, parallel zu ton3)
+                'ton5': 'ton3'      // nach ton3 (nicht ton4!)
+            };
+
             let totalSubs = 0;
             let totalMastered = 0;
             let firstAvailableNode = null;
 
-            nodes.forEach(nodeId => {
+            allNodes.forEach(nodeId => {
                 const level = this.nodeToLevel[nodeId];
                 const subs = this.nodeSubSkills[nodeId];
                 const mastered = this.progress[level].mastered || [];
@@ -2521,7 +2627,7 @@
                 totalSubs += subs.length;
                 totalMastered += subs.filter(s => mastered.includes(s.id)).length;
 
-                // Knoten-Zustand bestimmen
+                // Knoten-Zustand bestimmen (kein Locking — kommt mit Guiding-Feedback-System)
                 const wrapper = document.getElementById('stNode-' + nodeId);
                 const node = wrapper ? wrapper.querySelector('.st-node') : null;
                 if (!node) return;
@@ -2532,20 +2638,8 @@
                     node.querySelector('.st-node-icon').textContent = '✓';
                 } else {
                     node.classList.add('available');
-                    node.querySelector('.st-node-icon').textContent = nodes.indexOf(nodeId) + 1;
+                    node.querySelector('.st-node-icon').textContent = nodeIcons[nodeId];
                     if (!firstAvailableNode) firstAvailableNode = nodeId;
-                }
-
-                // Connector-Zustand
-                const prevConn = nodeId === 'ton2' ? document.getElementById('stConn-ton1-ton2') :
-                                 nodeId === 'ton3' ? document.getElementById('stConn-ton2-ton3') :
-                                 nodeId === 'ton4' ? document.getElementById('stConn-ton3-ton4') : null;
-                if (prevConn) {
-                    const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
-                    const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
-                    const prevMastered = this.progress[prevLevel].mastered || [];
-                    const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
-                    prevConn.classList.toggle('mastered', prevAllDone);
                 }
 
                 // Sub-Skills rendern
@@ -2557,7 +2651,6 @@
                         const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
                         const dotClass = isDone ? 'st-sub-dot done' : (isCurrent ? 'st-sub-dot current' : 'st-sub-dot');
                         const dotContent = isDone ? '✓' : '';
-                        // Sterne-Anzeige für gemeisterte Teilkompetenzen
                         const starCount = scores[sub.id] || 0;
                         const starsHtml = isDone && starCount > 0
                             ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
@@ -2570,6 +2663,27 @@
                     }).join('');
                 }
             });
+
+            // Connector-Zustände (linear: ton1→ton2)
+            const conn12 = document.getElementById('stConn-ton1-ton2');
+            if (conn12) {
+                const ton1Done = this.nodeSubSkills['ton1'].every(s => (this.progress.einsteiger.mastered || []).includes(s.id));
+                conn12.classList.toggle('mastered', ton1Done);
+            }
+
+            // Fork-Connectoren: Stem + Bracket nach ton2
+            const ton2Done = this.nodeSubSkills['ton2'].every(s => (this.progress.aufsteiger.mastered || []).includes(s.id));
+            const forkStem = document.getElementById('stForkStem');
+            const forkBracket = document.getElementById('stForkBracket');
+            if (forkStem) forkStem.classList.toggle('mastered', ton2Done);
+            if (forkBracket) forkBracket.classList.toggle('mastered', ton2Done);
+
+            // Inner-Connector ton3→ton5
+            const conn34 = document.getElementById('stConn-ton3-ton5');
+            if (conn34) {
+                const ton3Done = this.nodeSubSkills['ton3'].every(s => (this.progress.profi.mastered || []).includes(s.id));
+                conn34.classList.toggle('mastered', ton3Done);
+            }
 
             // Gesamt-Fortschritt
             const percentage = Math.round((totalMastered / totalSubs) * 100);
@@ -2585,7 +2699,6 @@
             if (!this.selectedNode && firstAvailableNode) {
                 this.selectNode(firstAvailableNode);
             } else if (this.selectedNode) {
-                // Button-Text aktualisieren
                 this._updateStartButton();
             }
         },
@@ -2803,7 +2916,8 @@
                 if (level === 'meister') {
                     // Quintenzirkel: nur den gewählten Sub-Skill (keine Cascade)
                     activeOptions = [targetSub.id];
-                } else if (level === 'profi') {
+                } else if (level === 'profi' || level === 'bilden') {
+                    // Profi + Bilden: Cascade ab Index 0
                     activeOptions = [];
                     for (let i = 0; i <= this.selectedSub.index; i++) {
                         activeOptions.push(subs[i].id);
@@ -2819,9 +2933,8 @@
                 if (nextUnmastered) {
                     const targetIdx = subs.findIndex(s => s.id === nextUnmastered.id);
                     if (level === 'meister') {
-                        // Quintenzirkel: nur den nächsten Sub-Skill (keine Cascade)
                         activeOptions = [subs[targetIdx].id];
-                    } else if (level === 'profi') {
+                    } else if (level === 'profi' || level === 'bilden') {
                         activeOptions = [];
                         for (let i = 0; i <= targetIdx; i++) {
                             activeOptions.push(subs[i].id);
@@ -2832,7 +2945,6 @@
                         }
                     }
                 } else {
-                    // Alle gemeistert → alle Optionen aktivieren zum Wiederholen
                     activeOptions = subs.map(s => s.id);
                 }
             }
@@ -2850,6 +2962,8 @@
             this.fallbackActive = false;
             this.fallbackScale = null;
             this.isActive = true;
+            app.buildingTaskCounter = 0;
+            app._buildingTypeHistory = [];
 
             // Collect options — aus Skilltree-State oder Fallback
             if (optionsFromSkilltree) {
@@ -2889,9 +3003,9 @@
             }
             app.configureForStage(level, showKeyboard);
 
-            // Audio: ton1, ton2, ton3 haben Audio; ton4 nicht; noaudio-SubSkill deaktiviert
+            // Audio: ton1, ton2, ton3, ton4 haben Audio; ton5 nicht; noaudio-SubSkill deaktiviert
             const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === level);
-            const hasAudio = (nodeId === 'ton1' || nodeId === 'ton2' || nodeId === 'ton3');
+            const hasAudio = (nodeId === 'ton1' || nodeId === 'ton2' || nodeId === 'ton3' || nodeId === 'ton4');
             const isNoAudio = this.currentOptions.includes('noaudio');
             app.noAudio = !hasAudio || isNoAudio;
             const audioControls = document.getElementById('audioControls');
@@ -2924,8 +3038,8 @@
         updateQuizOverlay() {
             // Kompetenz-basierte Bezeichnungen
             const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-            const nodeIdx = ['ton1', 'ton2', 'ton3', 'ton4'].indexOf(nodeId) + 1;
-            const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Quintenzirkel' };
+            const nodeIdx = ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'].indexOf(nodeId) + 1;
+            const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Tonleiter bilden', 'ton5': 'Quintenzirkel' };
             const nodeName = nodeNames[nodeId] || '';
 
             // Teilkompetenz-Kürzel (z.B. "1a", "2b")
@@ -2943,6 +3057,7 @@
                 aufsteiger: 'Wähle die Halbtonschritt-Paare!',
                 profi: this.profiMode === 'muster_erkennen' ? 'Wähle HS-Stufen & benenne die Tonleiter!' :
                        this.profiMode === 'alles' ? 'Benenne die Tonleiter!' : 'Welche Tonart?',
+                bilden: 'Bilde die Tonleiter!',
                 meister: 'Quintenzirkel-Aufgabe'
             };
 
@@ -2950,12 +3065,9 @@
             const task = document.getElementById('headerExerciseTask');
             const segContainer = document.getElementById('headerProgressSegments');
 
-            // Meister: Sub-Skill-Name im Label (analog zu anderen Knoten)
-            if (this.currentLevel === 'meister' && meisterSubName) {
-                label.textContent = `${subLabel} ${meisterSubName} — ${this.questionsAnswered}/${this.totalQuestions}`;
-            } else {
-                label.textContent = `${subLabel} ${nodeName} — ${this.questionsAnswered}/${this.totalQuestions}`;
-            }
+            // Sub-Skill-Name im Label anzeigen (konsistent mit Skilltree)
+            const subName = (subs && subIdx >= 0) ? subs[subIdx].label : '';
+            label.textContent = `${subLabel} ${subName || nodeName} — ${this.questionsAnswered}/${this.totalQuestions}`;
             task.textContent = this.fallbackActive ? 'Markiere die Halbtonschritte!' : (taskTexts[this.currentLevel] || '');
 
             // Dual-Bar: Hintergrund = Gesamtfortschritt (rot bei Fehlern), Vordergrund = nur richtige
@@ -3087,8 +3199,8 @@
                     }
                 }
             } else {
-                // Einsteiger/Aufsteiger/Profi: Cascade-Logik
-                const higherOptions = ['vorzeichen', 'stufenpaare', 'mehr_tonarten', 'muster_erkennen', 'alles', 'ohne_hilfe'];
+                // Einsteiger/Aufsteiger/Profi/Bilden: Cascade-Logik
+                const higherOptions = ['vorzeichen', 'stufenpaare', 'mehr_tonarten', 'muster_erkennen', 'alles', 'ohne_hilfe', 'tastatur_schwer', 'schreiben_einfach', 'schreiben_schwer'];
                 const hasHigherOption = activeOptions.some(opt => higherOptions.includes(opt));
 
                 if (hasHigherOption) {
@@ -3116,8 +3228,9 @@
         getOptionsForLevel(level) {
             if (level === 'einsteiger') return ['basis', 'vorzeichen'];
             if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten'];
+            if (level === 'bilden') return ['tastatur_einfach', 'tastatur_schwer', 'schreiben_einfach', 'schreiben_schwer', 'noaudio'];
             if (level === 'meister') return ['aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'verwandte', 'symmetrien'];
-            return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe'];
+            return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe'];  // profi
         },
 
         getNextStepText() {
@@ -3127,8 +3240,8 @@
 
             if (!nextUnmastered) {
                 // Alle in diesem Knoten gemeistert → nächsten Knoten empfehlen
-                const nodes = ['ton1', 'ton2', 'ton3', 'ton4'];
-                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Quintenzirkel' };
+                const nodes = ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'];
+                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Tonleiter bilden', 'ton5': 'Quintenzirkel' };
                 const currentNode = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
                 const currentIdx = nodes.indexOf(currentNode);
                 if (currentIdx < nodes.length - 1) {
@@ -3150,7 +3263,11 @@
                 'vorz_ableitung': 'Nächste Teilkompetenz: Vorzeichen-Ableitung',
                 'symmetrien': 'Nächste Teilkompetenz: Symmetrien',
                 'verwandte': 'Nächste Teilkompetenz: Verwandte Tonarten',
-                'enharmonisch': 'Nächste Teilkompetenz: Enharmonische Verwechslung'
+                'enharmonisch': 'Nächste Teilkompetenz: Enharmonische Verwechslung',
+                'tastatur_einfach': 'Nächste Teilkompetenz: Tastatur (einfach)',
+                'tastatur_schwer': 'Nächste Teilkompetenz: Tastatur (viele Vorzeichen)',
+                'schreiben_einfach': 'Nächste Teilkompetenz: Schreiben (einfach)',
+                'schreiben_schwer': 'Nächste Teilkompetenz: Schreiben (viele Vorzeichen)'
             };
             return labels[nextUnmastered] || 'Weiter so!';
         },
@@ -3691,9 +3808,492 @@
         inputLocked: false,             // Prevent double-clicks during feedback
         freeRetry: false,               // true wenn im freien Modus eine Aufgabe wiederholt wird
 
+        // Building-Modus State
+        buildingGivenIndices: [],       // Welche Noten-Indices vorgegeben sind
+        buildingUserSelections: [],     // MIDI-Nummern der vom User gewählten Tasten (Keyboard)
+        buildingStaffNotes: [],         // [{noteName, octave, x}] platzierte Noten (Staff)
+        buildingActiveTool: null,       // 'eraser', 'sharp', 'flat', oder null
+        buildingGhostNote: null,        // {noteName, octave, x} Hover-Preview
+        buildingTaskCounter: 0,         // Zählt Aufgaben für Lücken-Progression
+
         // ---- Init / Configure ----
         init() {
             tracking.init();
+        },
+
+        // =============================================
+        // BUILDING-MODUS (ton4)
+        // =============================================
+
+        generateBuildingTask() {
+            this.buildingUserSelections = [];
+            this.buildingStaffNotes = [];
+            this.buildingActiveTool = null;
+            this.buildingGhostNote = null;
+            this.buildingTaskCounter++;
+
+            // Vorzeichen-Filter basierend auf höchstem aktiven Sub-Skill
+            const highestOption = quickStart.isActive ? quickStart.currentOptions[quickStart.currentOptions.length - 1] : 'tastatur_einfach';
+            const isSchwer = (highestOption === 'tastatur_schwer' || highestOption === 'schreiben_schwer');
+            const isNoAudio = (highestOption === 'noaudio');
+            let minVZ = 0, maxVZ = 4;
+            if (isSchwer || isNoAudio) {
+                // Schwere oder Ohne-HB Sub-Skills → nur 4+ VZ
+                minVZ = 4;
+            } else {
+                // Einfache Sub-Skills: progressive VZ-Steigerung über 10 Aufgaben
+                const t = this.buildingTaskCounter;
+                if (t <= 1) maxVZ = 0;         // Aufgabe 1: nur C-Dur, a-Moll
+                else if (t <= 4) maxVZ = 1;    // 2–4: bis 1 VZ
+                else if (t <= 7) maxVZ = 2;    // 5–7: bis 2 VZ
+                else maxVZ = 3;                // 8–10: bis 3 VZ
+            }
+
+            // Tonleiter wählen (Dur + Moll), Wiederholung vermeiden
+            const allScales = [...SCALES.dur, ...SCALES.moll].filter(s => s.vorzeichen >= minVZ && s.vorzeichen <= maxVZ);
+            let pool = allScales;
+            // Gleiche Tonleiter nicht direkt wiederholen
+            if (pool.length > 1 && this.currentScale) {
+                const lastKey = this.currentScale.root + '-' + this.currentScale.type;
+                pool = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
+                if (pool.length === 0) pool = allScales;
+            }
+            // Nach 2× gleichem Typ (Dur/Moll) wechseln
+            if (!this._buildingTypeHistory) this._buildingTypeHistory = [];
+            const lastTypes = this._buildingTypeHistory.slice(-2);
+            if (pool.length > 1 && lastTypes.length === 2 && lastTypes[0] === lastTypes[1]) {
+                const diffType = pool.filter(s => s.type !== lastTypes[0]);
+                if (diffType.length > 0) pool = diffType;
+            }
+            const scale = pool[Math.floor(Math.random() * pool.length)];
+            this._buildingTypeHistory.push(scale.type);
+            if (this._buildingTypeHistory.length > 5) this._buildingTypeHistory.shift();
+
+            this.currentScale = {
+                root: scale.root,
+                type: scale.type,
+                notes: scale.notes,
+                octaves: scale.octaves,
+                displayName: scale.root + '-' + scale.type,
+                vorzeichen: scale.vorzeichen,
+                halfSteps: HALF_STEPS[scale.type]
+            };
+
+            // Bestimme Modus anhand des höchsten aktiven Sub-Skills (highestOption bereits oben deklariert)
+            const isKeyboard = (highestOption === 'tastatur_einfach' || highestOption === 'tastatur_schwer');
+            if (isKeyboard) {
+                if (this.buildingTaskCounter <= 3) {
+                    // Viel Hilfe: Grundton + Oktave + 3 zufällige
+                    const middle = [1,2,3,4,5,6].sort(() => Math.random() - 0.5);
+                    this.buildingGivenIndices = [0, 7, ...middle.slice(0, 3)].sort((a, b) => a - b);
+                } else if (this.buildingTaskCounter <= 6) {
+                    // Mittel: Grundton + Oktave + 1 zufällige
+                    const middle = [1,2,3,4,5,6].sort(() => Math.random() - 0.5);
+                    this.buildingGivenIndices = [0, 7, middle[0]].sort((a, b) => a - b);
+                } else {
+                    // Wenig: nur Grundton
+                    this.buildingGivenIndices = [0];
+                }
+            } else {
+                // Notensystem: keine vorgegebenen Noten
+                this.buildingGivenIndices = [];
+            }
+
+            // Task description
+            this.updateTaskDescription();
+
+            // Staff rendern
+            this.drawStaff();
+
+            // Keyboard rendern (nur im Tastatur-Modus)
+            if (isKeyboard) {
+                const kbCard = document.getElementById('keyboardCard');
+                kbCard.classList.add('keyboard-input');
+                const hint = document.getElementById('keyboardHint');
+                if (hint) hint.textContent = 'Klicke die fehlenden Töne an';
+                // Keyboard zurück vor Input (ursprüngliche DOM-Reihenfolge)
+                const inputCard = document.getElementById('inputCard');
+                kbCard.parentNode.insertBefore(kbCard, inputCard);
+                this.renderBuildingKeyboard();
+                this._disableStaffBuilding();
+            } else {
+                // Staff-Building: Tastatur als Ansichtshilfe (nicht interaktiv), SVG interaktiv
+                const kbCard = document.getElementById('keyboardCard');
+                kbCard.classList.add('active');
+                kbCard.classList.remove('keyboard-input');
+                const hint = document.getElementById('keyboardHint');
+                if (hint) hint.textContent = 'Tastaturhilfe';
+                // Tastatur unter den Input-Bereich verschieben (nach Tools + Prüfen-Button)
+                const inputCard = document.getElementById('inputCard');
+                inputCard.parentNode.insertBefore(inputCard, kbCard);
+                // Standard-Tastatur rendern (wie in den anderen Knoten)
+                this.renderKeyboard();
+                this._enableStaffBuilding();
+            }
+
+            // Input setup
+            this.setupInput();
+
+        },
+
+        renderBuildingKeyboard() {
+            const container = document.getElementById('keyboardContainer');
+            if (!this.currentScale) return;
+
+            const scaleMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
+            const minMidi = Math.min(...scaleMidis);
+            const maxMidi = Math.max(...scaleMidis);
+
+            // Tight range: snap to white keys
+            let startMidi = minMidi;
+            let endMidi = maxMidi;
+            while ([1,3,6,8,10].includes(startMidi % 12)) startMidi--;
+            while ([1,3,6,8,10].includes(endMidi % 12)) endMidi++;
+
+            const ALL_NOTES_MAP = [
+                { name: 'C', midi: 0, white: true }, { name: 'Cis', midi: 1, white: false },
+                { name: 'D', midi: 2, white: true }, { name: 'Dis', midi: 3, white: false },
+                { name: 'E', midi: 4, white: true },
+                { name: 'F', midi: 5, white: true }, { name: 'Fis', midi: 6, white: false },
+                { name: 'G', midi: 7, white: true }, { name: 'Gis', midi: 8, white: false },
+                { name: 'A', midi: 9, white: true }, { name: 'B', midi: 10, white: false },
+                { name: 'H', midi: 11, white: true }
+            ];
+
+            const keys = [];
+            for (let midi = startMidi; midi <= endMidi; midi++) {
+                const noteInfo = ALL_NOTES_MAP[midi % 12];
+                if (!noteInfo) continue;
+                keys.push({ ...noteInfo, midi, octave: Math.floor(midi / 12) - 1 });
+            }
+
+            const whiteKeys = keys.filter(k => k.white);
+            const ww = 48, wh = 150, bw = 30, bh = 95, gap = 2;
+            const totalW = whiteKeys.length * (ww + gap);
+
+            container.style.position = 'relative';
+            container.style.width = totalW + 'px';
+            container.style.height = wh + 'px';
+            container.style.margin = '0 auto';
+            container.innerHTML = '';
+
+            // White keys
+            whiteKeys.forEach((k, i) => {
+                const div = document.createElement('div');
+                div.className = 'white-key';
+                div.style.cssText = `position:absolute; left:${i*(ww+gap)}px; top:0; width:${ww}px; height:${wh}px; background:white; border:2px solid #d1d5db; border-radius:0 0 6px 6px; cursor:pointer; transition:all 0.15s;`;
+                div.dataset.midi = k.midi;
+
+                // C-Label
+                if (k.name === 'C') {
+                    const label = document.createElement('div');
+                    label.style.cssText = 'position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:0.65rem; color:#94a3b8; pointer-events:none;';
+                    const octLabels = { 3: 'c', 4: "c'", 5: "c''" };
+                    label.textContent = octLabels[k.octave] || 'C' + k.octave;
+                    div.appendChild(label);
+                }
+
+                const scaleIdx = scaleMidis.indexOf(k.midi);
+                if (scaleIdx !== -1 && this.buildingGivenIndices.includes(scaleIdx)) {
+                    div.style.background = '#dbeafe';
+                    div.style.borderColor = '#3b82f6';
+                    div.style.cursor = 'default';
+                    // Blue dot
+                    const dot = document.createElement('div');
+                    dot.style.cssText = 'position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#3b82f6;';
+                    div.appendChild(dot);
+                } else {
+                    div.onclick = () => this.toggleBuildingKey(k.midi);
+                }
+
+                if (this.buildingUserSelections.includes(k.midi)) {
+                    div.style.background = '#ccfbf1';
+                    div.style.borderColor = '#0891b2';
+                    const dot = document.createElement('div');
+                    dot.style.cssText = 'position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#0891b2;';
+                    div.appendChild(dot);
+                }
+
+                container.appendChild(div);
+            });
+
+            // Black keys
+            keys.filter(k => !k.white).forEach(k => {
+                const prevWhiteIdx = whiteKeys.findIndex(w => w.midi === k.midi - 1);
+                if (prevWhiteIdx === -1) return;
+                const xPos = prevWhiteIdx * (ww + gap) + ww - bw / 2 + gap / 2;
+
+                const div = document.createElement('div');
+                div.style.cssText = `position:absolute; left:${xPos}px; top:0; width:${bw}px; height:${bh}px; background:#1e293b; border:2px solid #0f172a; border-radius:0 0 4px 4px; cursor:pointer; z-index:2; transition:all 0.15s;`;
+                div.dataset.midi = k.midi;
+
+                const scaleIdx = scaleMidis.indexOf(k.midi);
+                if (scaleIdx !== -1 && this.buildingGivenIndices.includes(scaleIdx)) {
+                    div.style.background = '#1e40af';
+                    div.style.borderColor = '#1e3a8a';
+                    div.style.cursor = 'default';
+                    const dot = document.createElement('div');
+                    dot.style.cssText = 'position:absolute; bottom:12px; left:50%; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:#93c5fd;';
+                    div.appendChild(dot);
+                } else {
+                    div.onclick = () => this.toggleBuildingKey(k.midi);
+                }
+
+                if (this.buildingUserSelections.includes(k.midi)) {
+                    div.style.background = '#0891b2';
+                    div.style.borderColor = '#0e7490';
+                    const dot = document.createElement('div');
+                    dot.style.cssText = 'position:absolute; bottom:12px; left:50%; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:white;';
+                    div.appendChild(dot);
+                }
+
+                container.appendChild(div);
+            });
+        },
+
+        toggleBuildingKey(midi) {
+            if (this.inputLocked) return;
+            const idx = this.buildingUserSelections.indexOf(midi);
+            if (idx !== -1) this.buildingUserSelections.splice(idx, 1);
+            else this.buildingUserSelections.push(midi);
+            this.renderBuildingKeyboard();
+            this.drawStaff(); // Update staff to show user notes
+        },
+
+        checkBuildingKeyboard() {
+            if (this.inputLocked) return;
+            this.inputLocked = true;
+
+            const scaleMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
+            const expectedMissing = scaleMidis.filter((m, i) => !this.buildingGivenIndices.includes(i)).sort((a, b) => a - b);
+            const userSorted = [...this.buildingUserSelections].sort((a, b) => a - b);
+            const correct = expectedMissing.length === userSorted.length && expectedMissing.every((m, i) => m === userSorted[i]);
+
+            // Score (nur beim ersten Versuch)
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (correct) this.score.correct++;
+                this.updateScoreDisplay();
+            }
+
+            if (correct) {
+                this.setFreeRetry(false);
+                // Visual feedback: selected → correct (green)
+                document.querySelectorAll('#keyboardContainer > div').forEach(k => {
+                    if (this.buildingUserSelections.includes(parseInt(k.dataset.midi))) {
+                        k.style.background = '#d1fae5';
+                        k.style.borderColor = '#10b981';
+                    }
+                });
+                this.showFeedback(true, `✓ Richtig! ${this.currentScale.displayName}`);
+            } else {
+                this.setFreeRetry(true);
+                const expectedSet = new Set(expectedMissing);
+                document.querySelectorAll('#keyboardContainer > div').forEach(k => {
+                    const midi = parseInt(k.dataset.midi);
+                    if (this.buildingUserSelections.includes(midi) && !expectedSet.has(midi)) {
+                        k.style.background = '#fee2e2';
+                        k.style.borderColor = '#ef4444';
+                    }
+                });
+                this.showFeedback(false, '⚠️ <strong>Prüfe nochmal</strong> — nicht alle Töne stimmen.');
+            }
+
+            if (quickStart.isActive) {
+                quickStart.handleAnswer(correct);
+            }
+
+            // Nur weiter generieren, wenn Quiz noch nicht fertig
+            const quizDone = quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions;
+
+            const delay = correct ? 1000 : 3000;
+            setTimeout(() => {
+                if (correct) {
+                    if (!quizDone) this.generateNewTask();
+                } else {
+                    this.inputLocked = false;
+                    this.hideFeedback();
+                }
+            }, delay);
+        },
+
+        // ---- Staff-Building: Vorzeichen-Tools ----
+        toggleBuildingTool(tool) {
+            this.buildingActiveTool = (this.buildingActiveTool === tool) ? null : tool;
+            document.getElementById('buildToolEraser').classList.toggle('active', this.buildingActiveTool === 'eraser');
+            document.getElementById('buildToolSharp').classList.toggle('active', this.buildingActiveTool === 'sharp');
+            document.getElementById('buildToolFlat').classList.toggle('active', this.buildingActiveTool === 'flat');
+            // Update cursor class on SVG
+            const svg = document.getElementById('staffSvg');
+            svg.classList.remove('tool-eraser', 'tool-sharp', 'tool-flat');
+            if (this.buildingActiveTool === 'eraser') svg.classList.add('tool-eraser');
+            else if (this.buildingActiveTool === 'sharp') svg.classList.add('tool-sharp');
+            else if (this.buildingActiveTool === 'flat') svg.classList.add('tool-flat');
+        },
+
+        // ---- Staff-Building: SVG-Koordinaten ----
+        _staffSvgCoords(e) {
+            const svg = document.getElementById('staffSvg');
+            const rect = svg.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) / rect.width * 600,
+                y: (clientY - rect.top) / rect.height * 320
+            };
+        },
+
+        _staffNearestSlot(svgX) {
+            const startX = 185, spacing = 52;
+            let nearest = 0, minDist = Infinity;
+            for (let i = 0; i < 8; i++) {
+                const d = Math.abs(svgX - (startX + i * spacing));
+                if (d < minDist) { minDist = d; nearest = i; }
+            }
+            return minDist <= 35 ? nearest : -1;
+        },
+
+        _staffYToNoteInfo(svgY) {
+            const baseY = 260;
+            const fullPos = Math.round((baseY - svgY) / 10);
+            const octave = Math.floor((fullPos + 2) / 7) + 4;
+            const staffPos = ((fullPos + 2) % 7 + 7) % 7;
+            const posToNote = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+            let noteName = posToNote[staffPos];
+
+            if (this.buildingActiveTool === 'sharp') {
+                const sharpMap = { 'C': 'Cis', 'D': 'Dis', 'E': 'Eis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais', 'H': 'His' };
+                if (sharpMap[noteName]) noteName = sharpMap[noteName];
+            } else if (this.buildingActiveTool === 'flat') {
+                const flatMap = { 'C': 'Ces', 'D': 'Des', 'E': 'Es', 'F': 'Fes', 'G': 'Ges', 'A': 'As', 'H': 'B' };
+                if (flatMap[noteName]) noteName = flatMap[noteName];
+            }
+
+            return { noteName, octave };
+        },
+
+        // ---- Staff-Building: Event-Handler ----
+        _staffBuildingHover(e) {
+            if (this.inputLocked || this.buildingActiveTool === 'eraser') {
+                this.buildingGhostNote = null;
+                return;
+            }
+            const coords = this._staffSvgCoords(e);
+            const slot = this._staffNearestSlot(coords.x);
+            if (slot === -1) { this.buildingGhostNote = null; this.drawStaff(); return; }
+
+            const startX = 185, spacing = 52;
+            const slotX = startX + slot * spacing;
+            // Don't ghost over existing notes
+            if (this.buildingStaffNotes.find(n => Math.abs(n.x - slotX) < 10)) {
+                this.buildingGhostNote = null; this.drawStaff(); return;
+            }
+
+            const info = this._staffYToNoteInfo(coords.y);
+            this.buildingGhostNote = { ...info, x: slotX };
+            this.drawStaff();
+        },
+
+        _staffBuildingPlace(e) {
+            if (this.inputLocked) return;
+            const svg = document.getElementById('staffSvg');
+            const startX = 185, spacing = 52;
+
+            // Touch-End: use last ghost position
+            if (e.type === 'touchend' && this.buildingGhostNote) {
+                if (this.buildingActiveTool === 'eraser') {
+                    this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - this.buildingGhostNote.x) > 10);
+                } else {
+                    this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - this.buildingGhostNote.x) > 10);
+                    this.buildingStaffNotes.push({ noteName: this.buildingGhostNote.noteName, octave: this.buildingGhostNote.octave, x: this.buildingGhostNote.x });
+                }
+                this.buildingGhostNote = null;
+                this.drawStaff();
+                return;
+            }
+
+            const coords = this._staffSvgCoords(e);
+            const slot = this._staffNearestSlot(coords.x);
+            if (slot === -1) return;
+            const slotX = startX + slot * spacing;
+
+            if (this.buildingActiveTool === 'eraser') {
+                this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - slotX) > 10);
+                this.drawStaff();
+                return;
+            }
+
+            const info = this._staffYToNoteInfo(coords.y);
+            this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - slotX) > 10);
+            this.buildingStaffNotes.push({ noteName: info.noteName, octave: info.octave, x: slotX });
+            this.drawStaff();
+        },
+
+        // ---- Staff-Building: Interaktivität aktivieren/deaktivieren ----
+        _enableStaffBuilding() {
+            const svg = document.getElementById('staffSvg');
+            svg.classList.add('staff-interactive');
+            svg.onmousedown = (e) => this._staffBuildingPlace(e);
+            svg.onmousemove = (e) => this._staffBuildingHover(e);
+            svg.onmouseleave = () => { this.buildingGhostNote = null; this.drawStaff(); };
+            svg.ontouchstart = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
+            svg.ontouchmove = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
+            svg.ontouchend = (e) => { e.preventDefault(); this._staffBuildingPlace(e); this.buildingGhostNote = null; };
+        },
+
+        _disableStaffBuilding() {
+            const svg = document.getElementById('staffSvg');
+            svg.classList.remove('staff-interactive', 'tool-eraser', 'tool-sharp', 'tool-flat');
+            svg.onmousedown = null;
+            svg.onmousemove = null;
+            svg.onmouseleave = null;
+            svg.ontouchstart = null;
+            svg.ontouchmove = null;
+            svg.ontouchend = null;
+        },
+
+        // ---- Staff-Building: Validierung ----
+        checkBuildingStaff() {
+            if (this.inputLocked) return;
+            this.inputLocked = true;
+
+            const sortedPlaced = [...this.buildingStaffNotes].sort((a, b) => a.x - b.x);
+            let correct = false;
+            if (sortedPlaced.length === 8) {
+                correct = sortedPlaced.every((n, i) =>
+                    n.noteName === this.currentScale.notes[i] && n.octave === this.currentScale.octaves[i]
+                );
+            }
+
+            if (!this.freeRetry) {
+                this.score.total++;
+                if (correct) this.score.correct++;
+                this.updateScoreDisplay();
+            }
+
+            if (correct) {
+                this.setFreeRetry(false);
+                this.showFeedback(true, `✓ Richtig! ${this.currentScale.displayName}`);
+            } else {
+                this.setFreeRetry(true);
+                this.showFeedback(false, '⚠️ <strong>Prüfe nochmal</strong> — nicht alle Töne stimmen.');
+            }
+
+            if (quickStart.isActive) {
+                quickStart.handleAnswer(correct);
+            }
+
+            const quizDone = quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions;
+
+            const delay = correct ? 1000 : 3000;
+            setTimeout(() => {
+                if (correct) {
+                    if (!quizDone) this.generateNewTask();
+                } else {
+                    this.inputLocked = false;
+                    this.hideFeedback();
+                }
+            }, delay);
         },
 
         configureForStage(stage, showKeyboard) {
@@ -3750,6 +4350,31 @@
 
         setupInput() {
             const inputCard = document.getElementById('inputCard');
+
+            if (this.currentStage === 'bilden') {
+                const highestOpt = quickStart.isActive ? quickStart.currentOptions[quickStart.currentOptions.length - 1] : 'tastatur_einfach';
+                const isKeyboard = (highestOpt === 'tastatur_einfach' || highestOpt === 'tastatur_schwer');
+                if (isKeyboard) {
+                    inputCard.innerHTML = `
+                        <div class="input-buttons">
+                            <button type="button" onclick="app.checkBuildingKeyboard()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                } else {
+                    // Staff-Building: Vorzeichen-Tools + Prüfen-Button
+                    inputCard.innerHTML = `
+                        <div class="building-tools">
+                            <button type="button" class="building-tool-btn eraser" id="buildToolEraser" onclick="app.toggleBuildingTool('eraser')">🧹 Radierer</button>
+                            <button type="button" class="building-tool-btn" id="buildToolSharp" onclick="app.toggleBuildingTool('sharp')">♯ Kreuz</button>
+                            <button type="button" class="building-tool-btn" id="buildToolFlat" onclick="app.toggleBuildingTool('flat')">♭ Be</button>
+                        </div>
+                        <div class="input-buttons" style="margin-top:8px;">
+                            <button type="button" onclick="app.checkBuildingStaff()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                }
+                return;
+            }
 
             if (this.currentStage === 'einsteiger') {
                 inputCard.innerHTML = `
@@ -3879,6 +4504,12 @@
             // Quintenzirkel-Modus: eigene Aufgaben-Generierung
             if (this.currentStage === 'meister') {
                 this.generateQuintenzirkelTask();
+                return;
+            }
+
+            // Building-Modus: eigene Aufgaben-Generierung
+            if (this.currentStage === 'bilden') {
+                this.generateBuildingTask();
                 return;
             }
 
@@ -4063,6 +4694,15 @@
                     el.textContent = '🎯 Markiere die Halbtonschritte und benenne die Tonleiter!';
                 } else {
                     el.textContent = '🎯 Benenne die Tonleiter! (Dur, Moll oder Kein Dur/Moll)';
+                }
+            } else if (this.currentStage === 'bilden') {
+                const given = this.buildingGivenIndices.length;
+                if (given > 1) {
+                    el.textContent = `🎹 Ergänze die fehlenden Töne der ${this.currentScale.displayName}-Tonleiter!`;
+                } else if (given === 1) {
+                    el.textContent = `🎹 Bilde die ${this.currentScale.displayName}-Tonleiter auf!`;
+                } else {
+                    el.textContent = `✏️ Schreibe die ${this.currentScale.displayName}-Tonleiter ins Notensystem!`;
                 }
             } else if (this.currentStage === 'meister') {
                 el.textContent = '';
@@ -4675,7 +5315,33 @@
                 const now = ctx.currentTime + 0.05;
                 const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
-                if (this.currentStage === 'einsteiger') {
+                if (this.currentStage === 'bilden') {
+                    // Building: aktive Töne spielen (Keyboard oder Staff)
+                    const activeMidis = [];
+
+                    if (this.buildingStaffNotes.length > 0) {
+                        // Staff-Modus: platzierte Noten abspielen
+                        const sorted = [...this.buildingStaffNotes].sort((a, b) => a.x - b.x);
+                        sorted.forEach(n => activeMidis.push(noteToMidi(n.noteName, n.octave)));
+                    } else {
+                        // Keyboard-Modus: gegebene + User-Auswahl
+                        const scaleMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
+                        const sortedSelections = [...this.buildingUserSelections].sort((a, b) => a - b);
+                        let selIdx = 0;
+                        for (let i = 0; i < 8; i++) {
+                            if (this.buildingGivenIndices.includes(i)) {
+                                activeMidis.push(scaleMidis[i]);
+                            } else if (selIdx < sortedSelections.length) {
+                                activeMidis.push(sortedSelections[selIdx]);
+                                selIdx++;
+                            }
+                        }
+                    }
+
+                    activeMidis.forEach((midi, idx) => {
+                        this._playNote(ctx, midiToFreq(midi), now + idx * 0.4);
+                    });
+                } else if (this.currentStage === 'einsteiger') {
                     // Nur das Notenpaar (2 Noten, 0.5s Abstand)
                     const i = this.currentPairIndex;
                     const midi1 = noteToMidi(this.currentScale.notes[i], this.currentScale.octaves[i]);
@@ -4717,6 +5383,65 @@
                 svgContent += this.drawBassClefSVG(88, 198);
             } else {
                 svgContent += this.drawTrebleClefSVG(100, 260);
+            }
+
+            if (this.currentStage === 'bilden') {
+                const startX = 185;
+                const spacing = 52;
+                const scaleMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
+                const highestOpt = quickStart.isActive ? quickStart.currentOptions[quickStart.currentOptions.length - 1] : 'tastatur_einfach';
+                const isKeyboard = (highestOpt === 'tastatur_einfach' || highestOpt === 'tastatur_schwer');
+
+                if (isKeyboard) {
+                    // KEYBOARD-Modus: gegebene Noten (blau) + MIDI-basierte User-Noten (cyan)
+                    for (let i = 0; i < 8; i++) {
+                        if (this.buildingGivenIndices.includes(i)) {
+                            svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], startX + i * spacing, baseY, '#3b82f6');
+                        }
+                    }
+                    const sortedSelections = [...this.buildingUserSelections].sort((a, b) => a - b);
+                    let slotIdx = 0;
+                    for (let i = 0; i < 8; i++) {
+                        if (this.buildingGivenIndices.includes(i)) continue;
+                        if (slotIdx < sortedSelections.length) {
+                            const userMidi = sortedSelections[slotIdx];
+                            const expectedMidi = scaleMidis[i];
+                            if (userMidi === expectedMidi) {
+                                svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], startX + i * spacing, baseY, '#0891b2');
+                            } else {
+                                const usesFlats = this.currentScale.notes.some(n => n === 'B' || n === 'Es' || n === 'As' || n === 'Des' || n === 'Ges');
+                                const semitone = userMidi % 12;
+                                const octave = Math.floor(userMidi / 12) - 1;
+                                const sharpNames = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','B','H'];
+                                const flatNames  = ['C','Des','D','Es','E','F','Ges','G','As','A','B','H'];
+                                const noteName = usesFlats ? flatNames[semitone] : sharpNames[semitone];
+                                svgContent += this.drawNoteAt(noteName, octave, startX + i * spacing, baseY, '#0891b2');
+                            }
+                            slotIdx++;
+                        }
+                    }
+                } else {
+                    // STAFF-Modus: platzierte Noten + Ghost-Note + Slot-Markers
+                    this.buildingStaffNotes.forEach(n => {
+                        svgContent += this.drawNoteAt(n.noteName, n.octave, n.x, baseY, '#0891b2');
+                    });
+
+                    // Slot-Markers für leere Positionen
+                    for (let i = 0; i < 8; i++) {
+                        const x = startX + i * spacing;
+                        if (!this.buildingStaffNotes.find(n => Math.abs(n.x - x) < 10)) {
+                            svgContent += `<circle cx="${x}" cy="${baseY + 30}" r="4" fill="#d1d5db"/>`;
+                        }
+                    }
+
+                    // Ghost-Note (Hover-Preview, halbtransparent)
+                    if (this.buildingGhostNote && this.buildingActiveTool !== 'eraser') {
+                        svgContent += this.drawNoteAt(this.buildingGhostNote.noteName, this.buildingGhostNote.octave, this.buildingGhostNote.x, baseY, 'rgba(8,145,178,0.45)');
+                    }
+                }
+
+                svg.innerHTML = svgContent;
+                return;
             }
 
             if (this.currentStage === 'einsteiger') {
@@ -4766,7 +5491,8 @@
             svg.innerHTML = svgContent;
         },
 
-        drawNoteAt(noteName, octave, x, baseY) {
+        drawNoteAt(noteName, octave, x, baseY, color) {
+            color = color || '#000';
             let svg = '';
             const staffPos = getStaffPosition(noteName);
             const useBass = this.useBassClef;
@@ -4797,13 +5523,13 @@
             // Accidental (SVG-Glyph, proportional zu IT: gap=12, targetH=35)
             const acc = getAccidental(noteName);
             if (acc === 'sharp') {
-                svg += this._svgSharp(x - 12.5 - 12, y, '#000', 35);
+                svg += this._svgSharp(x - 12.5 - 12, y, color, 35);
             } else if (acc === 'flat') {
-                svg += this._svgFlat(x - 12.5 - 12, y, '#000', 35);
+                svg += this._svgFlat(x - 12.5 - 12, y, color, 35);
             }
 
             // Note head
-            svg += `<ellipse cx="${x}" cy="${y}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${x} ${y})"/>`;
+            svg += `<ellipse cx="${x}" cy="${y}" rx="12.5" ry="9.5" fill="${color}" transform="rotate(-20 ${x} ${y})"/>`;
 
             return svg;
         },
@@ -4846,7 +5572,7 @@
         getLernkarteKey(subSkillId) {
             const level = quickStart.currentLevel;
             if (level === 'einsteiger') return subSkillId;
-            const prefixMap = { 'aufsteiger': 'ton2_', 'profi': 'ton3_', 'meister': 'ton4_' };
+            const prefixMap = { 'aufsteiger': 'ton2_', 'profi': 'ton3_', 'meister': 'ton5_' };
             const prefix = prefixMap[level];
             if (prefix) return prefix + subSkillId;
             return subSkillId;
@@ -5426,8 +6152,8 @@
                         <div class="lk-rule"><strong>Regel:</strong> Bestimme die Tonleiter rein visuell anhand des Notenbilds.</div>`
             },
 
-            // ===== ton4: Quintenzirkel (Meister) =====
-            ton4_aussenkr: {
+            // ===== ton5: Quintenzirkel (Meister) =====
+            ton5_aussenkr: {
                 title: 'Der Quintenzirkel — Außenkreis',
                 body: `<p>Der Quintenzirkel ordnet alle Dur-Tonarten nach ihrer Verwandtschaft. Im Uhrzeigersinn steigt die Anzahl der <span class="vz-sharp"></span>, gegen den Uhrzeigersinn die der <span class="vz-flat"></span>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
@@ -5438,7 +6164,7 @@
                     document.getElementById('lkVisual1').innerHTML = this._buildQzVisual('aussenkr');
                 }
             },
-            ton4_innenkr: {
+            ton5_innenkr: {
                 title: 'Innenkreis — Mollparallelen',
                 body: `<p>Jede Dur-Tonart hat eine <strong>parallele Molltonart</strong> mit den gleichen Vorzeichen. Sie liegt immer eine kleine Terz (3 HT) tiefer.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
@@ -5470,7 +6196,7 @@
                     svgEl.insertAdjacentHTML('beforeend', extra);
                 }
             },
-            ton4_vorz_ableitung: {
+            ton5_vorz_ableitung: {
                 title: 'Vorzeichen-Ableitung',
                 body: `<p>Die Vorzeichen erscheinen in einer <strong>festen Reihenfolge</strong>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
@@ -5482,7 +6208,7 @@
                     document.getElementById('lkVisual1').innerHTML = this._buildStaffVisual({ isSharp: true, accidentals: ['Fis','Cis','Gis'] });
                 }
             },
-            ton4_enharmonisch: {
+            ton5_enharmonisch: {
                 title: 'Enharmonische Verwechslung',
                 body: `<p>Einige Tonarten klingen <strong>identisch</strong>, haben aber unterschiedliche Namen und Vorzeichen.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
@@ -5517,7 +6243,7 @@
                         '<div style="flex:1;min-width:140px;text-align:center"><div style="font-weight:600;margin-bottom:0.3rem;color:#155e75">Ges-Dur (6♭)</div>' + right + '</div></div>';
                 }
             },
-            ton4_verwandte: {
+            ton5_verwandte: {
                 title: 'Verwandte Tonarten',
                 body: `<p>Verwandte Tonarten liegen im Quintenzirkel <strong>direkt nebeneinander</strong> — sie unterscheiden sich um nur 1 Vorzeichen.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
@@ -5549,7 +6275,7 @@
                     }
                 }
             },
-            ton4_symmetrien: {
+            ton5_symmetrien: {
                 title: 'Symmetrien im Quintenzirkel',
                 body: `<p>Der Quintenzirkel hat geometrische Symmetrien, die musikalisch bedeutsam sind.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
@@ -6646,7 +7372,7 @@
                 const opts = quickStart.currentOptions;
                 const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
                 const subs = quickStart.nodeSubSkills[nodeId];
-                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Quintenzirkel' };
+                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Tonleiter bilden', 'ton5': 'Quintenzirkel' };
                 const nodeName = nodeNames[nodeId] || '';
 
                 titleEl.textContent = `Hilfe: ${nodeName}`;
