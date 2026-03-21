@@ -397,6 +397,54 @@
         .st-cross-app .st-node.mastered .st-node-desc { color: #4338ca; }
         .st-cross-app .st-node.mastered .st-node-action { color: #4f46e5; }
 
+        /* ===== Fork (Gabelung Erkennen/Bilden) ===== */
+        .st-fork-branches {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .st-fork-branches .st-node-wrapper { max-width: 100%; }
+
+        .st-branch-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            color: #475569;
+            background: #f1f5f9;
+        }
+
+        .st-branch-inner-connector { display: flex; justify-content: center; height: 16px; }
+        .st-branch-inner-connector::before { content: ''; width: 2px; height: 100%; background: #d1d5db; }
+        .st-branch-inner-connector.mastered::before { background: #0891b2; }
+
+        /* ===== Success-Screen (1:1 aus TT) ===== */
+        .success-container { max-width: 600px; margin: 0 auto; text-align: center; padding: 60px 20px; }
+        .success-container h2 { font-size: 2rem; color: #164e63; margin-bottom: 10px; }
+        .level-stars { font-size: 3rem; margin: 20px 0; }
+        .success-stats { background: #f0fdfa; border: 2px solid #99f6e4; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-stats p { font-size: 1.1rem; color: #374151; margin: 5px 0; }
+        .success-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+        .success-buttons button { padding: 12px 24px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+        .success-buttons .btn-retry { background: #e5e7eb; color: #374151; }
+        .success-buttons .btn-retry:hover { background: #d1d5db; }
+        .success-buttons .btn-next { background: #0891b2; color: white; }
+        .success-buttons .btn-next:hover { background: #0e7490; }
+
+        /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
+        /* Ghost-Note IST der Cursor — System-Cursor ausblenden */
+        #staffSvg.staff-interactive { cursor: none; }
+
+        .building-tools { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 0.5rem; }
+        .building-tool-btn { padding: 6px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+        .building-tool-btn.active { border-color: #0891b2; background: #ecfeff; color: #0891b2; font-weight: 600; }
+        .building-tool-btn:hover { border-color: #94a3b8; }
+
         /* Sub-Skills */
         .st-sub-skills {
             display: none;
@@ -1284,47 +1332,89 @@
                     </a>
                 </div>
                 <div class="skilltree" id="skilltreeView">
-                    <!-- Node 1 -->
-                    <div class="st-node-wrapper" id="stNode-noten1">
-                        <div class="st-node available" onclick="quickStart.selectNode('noten1')">
-                            <div class="st-node-icon">1</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Noten lesen (Violinschlüssel)</div>
-                                <div class="st-node-desc">Noten im Violinschlüssel benennen</div>
+                    <div class="st-fork-branches">
+                        <!-- Linker Ast: Erkennen -->
+                        <div>
+                            <div class="st-branch-label">Erkennen</div>
+                            <div class="st-node-wrapper" id="stNode-noten1">
+                                <div class="st-node available" onclick="quickStart.selectNode('noten1')">
+                                    <div class="st-node-icon">1</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Violinschlüssel</div>
+                                        <div class="st-node-desc">Noten lesen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-noten1"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-noten1"></div>
-                    </div>
-                    <div class="st-connector" id="stConn-noten1-noten2"></div>
-                    <!-- Node 2 -->
-                    <div class="st-node-wrapper" id="stNode-noten2">
-                        <div class="st-node available" onclick="quickStart.selectNode('noten2')">
-                            <div class="st-node-icon">2</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Noten lesen (Bassschlüssel)</div>
-                                <div class="st-node-desc">Noten im Bassschlüssel benennen</div>
+                            <div class="st-branch-inner-connector" id="stConn-noten1-noten2"></div>
+                            <div class="st-node-wrapper" id="stNode-noten2">
+                                <div class="st-node available" onclick="quickStart.selectNode('noten2')">
+                                    <div class="st-node-icon">2</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Bassschlüssel</div>
+                                        <div class="st-node-desc">Noten lesen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-noten2"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-noten2"></div>
-                    </div>
-                    <div class="st-connector" id="stConn-noten2-noten3"></div>
-                    <!-- Node 3 -->
-                    <div class="st-node-wrapper" id="stNode-noten3">
-                        <div class="st-node available" onclick="quickStart.selectNode('noten3')">
-                            <div class="st-node-icon">3</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Noten auf der Tastatur</div>
-                                <div class="st-node-desc">Noten auf der Klaviatur finden (beide Schlüssel)</div>
+                            <div class="st-branch-inner-connector" id="stConn-noten2-noten3"></div>
+                            <div class="st-node-wrapper" id="stNode-noten3">
+                                <div class="st-node available" onclick="quickStart.selectNode('noten3')">
+                                    <div class="st-node-icon">3</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Beide Schlüssel</div>
+                                        <div class="st-node-desc">Noten lesen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-noten3"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
                         </div>
-                        <div class="st-sub-skills" id="stSubs-noten3"></div>
+                        <!-- Rechter Ast: Bilden -->
+                        <div>
+                            <div class="st-branch-label">Bilden</div>
+                            <div class="st-node-wrapper" id="stNode-noten4">
+                                <div class="st-node available" onclick="quickStart.selectNode('noten4')">
+                                    <div class="st-node-icon">4</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Violinschlüssel</div>
+                                        <div class="st-node-desc">Noten schreiben</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-noten4"></div>
+                            </div>
+                            <div class="st-branch-inner-connector" id="stConn-noten4-noten5"></div>
+                            <div class="st-node-wrapper" id="stNode-noten5">
+                                <div class="st-node available" onclick="quickStart.selectNode('noten5')">
+                                    <div class="st-node-icon">5</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Bassschlüssel</div>
+                                        <div class="st-node-desc">Noten schreiben</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-noten5"></div>
+                            </div>
+                            <div class="st-branch-inner-connector" id="stConn-noten5-noten6"></div>
+                            <div class="st-node-wrapper" id="stNode-noten6">
+                                <div class="st-node available" onclick="quickStart.selectNode('noten6')">
+                                    <div class="st-node-icon">6</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Beide Schlüssel</div>
+                                        <div class="st-node-desc">Noten schreiben</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-noten6"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="st-progress-info" id="stProgressInfo">
-                    0 von 11 Teilkompetenzen gemeistert
+                    0 von 22 Teilkompetenzen gemeistert
                     <div class="st-progress-bar-bg">
                         <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
                     </div>
@@ -1349,13 +1439,16 @@
     
     <!-- Success Screen (nach 10 Fragen) -->
     <div id="successScreen" class="level-screen">
-        <div class="success-container" id="successContainer">
+        <div class="success-container">
             <div style="font-size: 4rem; margin-bottom: 20px;" id="successEmoji">🎉</div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
-            <p id="successScore">8 von 10 richtig (80%)</p>
-            <div class="success-stats" id="successMessage"></div>
-            <div id="successButtons"></div>
+            <p id="successScore" style="font-size: 1.5rem; color: #4b5563; margin: 20px 0;">8 von 10 richtig (80%)</p>
+            <div class="success-stats" id="successMessage">
+                <p><strong>💡 Nächster Schritt:</strong></p>
+                <p id="successNextStep">Probiere die nächste Option!</p>
+            </div>
+            <div class="success-buttons" id="successButtons"></div>
         </div>
     </div>
     
@@ -1559,6 +1652,7 @@
                         </svg>
                     </button>
                 </div>
+                <div id="buildingTaskDescription" style="display:none; text-align:center; padding:6px 10px; font-size:0.9rem; color:#6b7280; font-weight:500;"></div>
                 <div id="staffContainer"></div>
             </div>
 
@@ -1728,26 +1822,48 @@
             nodeToLevel: {
                 'noten1': 'einsteiger',
                 'noten2': 'aufsteiger',
-                'noten3': 'profi'
+                'noten3': 'profi',
+                'noten4': 'bild_violin',
+                'noten5': 'bild_bass',
+                'noten6': 'bild_beide'
             },
 
-            // Sub-Skills pro Knoten
+            // Sub-Skills pro Knoten (Progression: basis → vorzeichen → lagen → hilfslinien)
             nodeSubSkills: {
                 'noten1': [
                     { id: 'basis', label: 'Stammtöne' },
                     { id: 'vorzeichen', label: 'Mit Vorzeichen' },
-                    { id: 'hilfslinien', label: 'Mit Hilfslinien' },
-                    { id: 'lagen', label: 'Lagen bestimmen' }
+                    { id: 'lagen', label: 'Mit Lagen' },
+                    { id: 'hilfslinien', label: 'Mit Hilfslinien' }
                 ],
                 'noten2': [
                     { id: 'basis', label: 'Stammtöne' },
                     { id: 'vorzeichen', label: 'Mit Vorzeichen' },
-                    { id: 'hilfslinien', label: 'Mit Hilfslinien' },
-                    { id: 'lagen', label: 'Lagen bestimmen' }
+                    { id: 'lagen', label: 'Mit Lagen' },
+                    { id: 'hilfslinien', label: 'Mit Hilfslinien' }
                 ],
                 'noten3': [
                     { id: 'basis', label: 'Stammtöne' },
                     { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                    { id: 'lagen', label: 'Mit Lagen' },
+                    { id: 'hilfslinien', label: 'Mit Hilfslinien' }
+                ],
+                'noten4': [
+                    { id: 'basis', label: 'Stammtöne' },
+                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                    { id: 'lagen', label: 'Mit Lagen' },
+                    { id: 'hilfslinien', label: 'Mit Hilfslinien' }
+                ],
+                'noten5': [
+                    { id: 'basis', label: 'Stammtöne' },
+                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                    { id: 'lagen', label: 'Mit Lagen' },
+                    { id: 'hilfslinien', label: 'Mit Hilfslinien' }
+                ],
+                'noten6': [
+                    { id: 'basis', label: 'Stammtöne' },
+                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
+                    { id: 'lagen', label: 'Mit Lagen' },
                     { id: 'hilfslinien', label: 'Mit Hilfslinien' }
                 ]
             },
@@ -1773,6 +1889,10 @@
                         this.saveProgress();
                     } else {
                         this.progress = parsed;
+                        // Migration: neue Bilden-Level ergänzen falls fehlend
+                        ['bild_violin', 'bild_bass', 'bild_beide'].forEach(lv => {
+                            if (!this.progress[lv]) this.progress[lv] = { mastered: [], attempts: {}, scores: {} };
+                        });
                     }
                 }
             },
@@ -1787,13 +1907,16 @@
                     timestamp: Date.now(),
                     einsteiger: { mastered: [], attempts: {}, scores: {} },
                     aufsteiger: { mastered: [], attempts: {}, scores: {} },
-                    profi: { mastered: [], attempts: {}, scores: {} }
+                    profi: { mastered: [], attempts: {}, scores: {} },
+                    bild_violin: { mastered: [], attempts: {}, scores: {} },
+                    bild_bass: { mastered: [], attempts: {}, scores: {} },
+                    bild_beide: { mastered: [], attempts: {}, scores: {} }
                 };
             },
 
             // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
-                const nodes = ['noten1', 'noten2', 'noten3'];
+                const nodes = ['noten1', 'noten2', 'noten3', 'noten4', 'noten5', 'noten6'];
                 let totalSubs = 0;
                 let totalMastered = 0;
                 let firstAvailableNode = null;
@@ -1823,12 +1946,20 @@
                         if (!firstAvailableNode) firstAvailableNode = nodeId;
                     }
 
-                    // Connector-Zustand
-                    const prevConn = nodeId === 'noten2' ? document.getElementById('stConn-noten1-noten2') :
-                                     nodeId === 'noten3' ? document.getElementById('stConn-noten2-noten3') : null;
-                    if (prevConn) {
-                        const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
-                        const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
+                    // Connector-Zustand (beide Äste)
+                    const connectorMap = {
+                        'noten2': 'stConn-noten1-noten2', 'noten3': 'stConn-noten2-noten3',
+                        'noten5': 'stConn-noten4-noten5', 'noten6': 'stConn-noten5-noten6'
+                    };
+                    const prevNodeMap = {
+                        'noten2': 'noten1', 'noten3': 'noten2',
+                        'noten5': 'noten4', 'noten6': 'noten5'
+                    };
+                    const prevConn = connectorMap[nodeId] ? document.getElementById(connectorMap[nodeId]) : null;
+                    if (prevConn && prevNodeMap[nodeId]) {
+                        const prevId = prevNodeMap[nodeId];
+                        const prevLevel = this.nodeToLevel[prevId];
+                        const prevSubs = this.nodeSubSkills[prevId];
                         const prevMastered = this.progress[prevLevel].mastered || [];
                         const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
                         prevConn.classList.toggle('mastered', prevAllDone);
@@ -2104,6 +2235,7 @@
             // ---- App für Level konfigurieren ----
             configureAppForLevel(level, options) {
                 app.quickStartMode = level;
+                app.buildingMode = false;
 
                 app.settings.useAccidentals = options.includes('vorzeichen');
                 app.settings.extendedRange = options.includes('hilfslinien');
@@ -2133,6 +2265,26 @@
                     app.settings.requireOctave = false;
                     app.settings.showCMarker = true;
                     if (keyboardHint) keyboardHint.textContent = 'Klicke an';
+
+                } else if (level === 'bild_violin') {
+                    app.settings.clef = 'treble';
+                    app.settings.requireKeyboard = false;
+                    app.settings.showCMarker = true;
+                    app.buildingMode = true;
+                    app.useBassClef = false;
+
+                } else if (level === 'bild_bass') {
+                    app.settings.clef = 'bass';
+                    app.settings.requireKeyboard = false;
+                    app.settings.showCMarker = true;
+                    app.buildingMode = true;
+                    app.useBassClef = true;
+
+                } else if (level === 'bild_beide') {
+                    app.settings.clef = 'both';
+                    app.settings.requireKeyboard = false;
+                    app.settings.showCMarker = true;
+                    app.buildingMode = true;
                 }
 
                 document.getElementById('clefSelect').value = app.settings.clef;
@@ -2191,13 +2343,20 @@
 
             updateQuizOverlay() {
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                const nodeIdx = ['noten1', 'noten2', 'noten3'].indexOf(nodeId) + 1;
-                const nodeNames = { 'noten1': 'Violinschlüssel', 'noten2': 'Bassschlüssel', 'noten3': 'Tastatur' };
+                const allNodes = ['noten1', 'noten2', 'noten3', 'noten4', 'noten5', 'noten6'];
+                const nodeIdx = allNodes.indexOf(nodeId) + 1;
+                const nodeNames = {
+                    'noten1': 'Violinschlüssel', 'noten2': 'Bassschlüssel', 'noten3': 'Beide Schlüssel',
+                    'noten4': 'Violin (Bilden)', 'noten5': 'Bass (Bilden)', 'noten6': 'Beide (Bilden)'
+                };
                 const nodeName = nodeNames[nodeId] || '';
                 const taskTexts = {
                     einsteiger: 'Wie heißt diese Note?',
                     aufsteiger: 'Wie heißt diese Note?',
-                    profi: 'Finde die Note auf der Tastatur!'
+                    profi: 'Finde die Note auf der Tastatur!',
+                    bild_violin: 'Platziere die Note im Notensystem',
+                    bild_bass: 'Platziere die Note im Notensystem',
+                    bild_beide: 'Platziere die Note im Notensystem'
                 };
 
                 // Teilkompetenz-Kürzel (z.B. "1a", "2b")
@@ -2222,9 +2381,11 @@
 
             // ---- Handle Answer ----
             handleAnswer(isCorrect) {
-                if (!this.isActive) return;
+                console.log('[handleAnswer] isCorrect:', isCorrect, 'isActive:', this.isActive, 'isRetry:', this.isRetry, 'answered:', this.questionsAnswered, '/', this.totalQuestions);
+                if (!this.isActive) { console.log('[handleAnswer] SKIP: not active'); return; }
 
                 if (this.isRetry) {
+                    console.log('[handleAnswer] RETRY path, isCorrect:', isCorrect);
                     if (isCorrect) {
                         this.isRetry = false;
                         document.getElementById('headerRetryHint').classList.remove('active');
@@ -2234,6 +2395,7 @@
                 }
 
                 this.questionsAnswered++;
+                console.log('[handleAnswer] questionsAnswered NOW:', this.questionsAnswered);
                 if (isCorrect) {
                     this.questionsCorrect++;
                 } else {
@@ -2242,6 +2404,7 @@
                 }
 
                 if (this.questionsAnswered >= this.totalQuestions) {
+                    console.log('[handleAnswer] QUIZ DONE → showSuccess in 1500ms');
                     this.isRetry = false;
                     document.getElementById('headerRetryHint').classList.remove('active');
                     this.updateQuizOverlay();
@@ -2329,9 +2492,10 @@
             },
 
             getOptionsForLevel(level) {
-                if (level === 'einsteiger') return ['basis', 'vorzeichen', 'hilfslinien', 'lagen'];
-                if (level === 'aufsteiger') return ['basis', 'vorzeichen', 'hilfslinien', 'lagen'];
-                return ['basis', 'vorzeichen', 'hilfslinien'];
+                // Neue Progression: basis → vorzeichen → lagen → hilfslinien
+                if (level === 'einsteiger' || level === 'aufsteiger') return ['basis', 'vorzeichen', 'lagen', 'hilfslinien'];
+                if (level === 'bild_violin' || level === 'bild_bass' || level === 'bild_beide') return ['basis', 'vorzeichen', 'lagen', 'hilfslinien'];
+                return ['basis', 'vorzeichen', 'lagen', 'hilfslinien'];
             },
 
             getNextStepText() {
@@ -2340,12 +2504,17 @@
                 const nextUnmastered = options.find(opt => !mastered.includes(opt));
 
                 if (!nextUnmastered) {
-                    const nodes = ['noten1', 'noten2', 'noten3'];
-                    const nodeNames = { 'noten1': 'Violinschlüssel', 'noten2': 'Bassschlüssel', 'noten3': 'Tastatur' };
+                    const erkNodes = ['noten1', 'noten2', 'noten3'];
+                    const bildNodes = ['noten4', 'noten5', 'noten6'];
+                    const nodeNames = {
+                        'noten1': 'Violinschlüssel (lesen)', 'noten2': 'Bassschlüssel (lesen)', 'noten3': 'Beide Schlüssel (lesen)',
+                        'noten4': 'Violinschlüssel (schreiben)', 'noten5': 'Bassschlüssel (schreiben)', 'noten6': 'Beide Schlüssel (schreiben)'
+                    };
                     const currentNode = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                    const currentIdx = nodes.indexOf(currentNode);
-                    if (currentIdx < nodes.length - 1) {
-                        return 'Weiter mit: ' + nodeNames[nodes[currentIdx + 1]];
+                    const branch = erkNodes.includes(currentNode) ? erkNodes : bildNodes;
+                    const currentIdx = branch.indexOf(currentNode);
+                    if (currentIdx < branch.length - 1) {
+                        return 'Weiter mit: ' + nodeNames[branch[currentIdx + 1]];
                     }
                     return 'Alle Kompetenzen gemeistert!';
                 }
@@ -2385,6 +2554,13 @@
         // ===================================
         const app = {
             quickStartMode: null, // Quick-Start Modus
+            buildingMode: false,
+            buildingStaffNote: null,    // {noteName, octave, x} — platzierte Note
+            buildingActiveTool: null,   // 'sharp', 'flat', null
+            buildingGhostNote: null,    // {noteName, octave, x}
+            buildingTaskCounter: 0,
+            currentBuildingNote: null,   // {name, oct} — die zu platzierende Note
+            _buildingLastNoteName: null, // Wiederholung vermeiden
             settings: {
                 useAccidentals: false,
                 requireOctave: false,
@@ -2492,6 +2668,25 @@
             setupInput() {
                 const inputCard = document.getElementById('inputCard');
                 if (!inputCard) return;
+
+                // ---- Building-Modus: eigenes Input-Rendering ----
+                if (this.buildingMode) {
+                    const activeOptions = quickStart.currentOptions || ['basis'];
+                    const needsVZ = activeOptions.includes('vorzeichen');
+
+                    let html = '';
+                    if (needsVZ) {
+                        html += `<div class="building-tools">
+                            <button type="button" class="building-tool-btn${this.buildingActiveTool === 'sharp' ? ' active' : ''}" id="buildToolSharp" onclick="app.toggleBuildingTool('sharp')">♯ Kreuz</button>
+                            <button type="button" class="building-tool-btn${this.buildingActiveTool === 'flat' ? ' active' : ''}" id="buildToolFlat" onclick="app.toggleBuildingTool('flat')">♭ Be</button>
+                        </div>`;
+                    }
+                    html += `<div class="input-buttons" style="margin-top:8px;">
+                        <button type="button" onclick="app.checkBuildingStaff()" class="btn-primary" style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                    </div>`;
+                    inputCard.innerHTML = html;
+                    return;
+                }
 
                 const btnHTML = `<div class="input-buttons">
                     <button type="button" onclick="app.checkAnswer()" class="btn-primary"
@@ -3325,11 +3520,24 @@
             },
 
             generateNote() {
+                // Building-Modus: eigene Aufgaben-Generierung
+                if (this.buildingMode) {
+                    this.generateBuildingNote();
+                    return;
+                }
+
                 let attempts = 0;
                 let newNote = null;
                 
                 do {
-                    const noteList = this.settings.useAccidentals ? this.noteNames.withAccidentals : this.noteNames.basic;
+                    let noteList = this.settings.useAccidentals ? this.noteNames.withAccidentals : this.noteNames.basic;
+                    // Sub-Skill "vorzeichen" als höchster: NUR VZ-Noten abfragen
+                    if (quickStart.isActive && quickStart.currentOptions) {
+                        const highest = quickStart.currentOptions[quickStart.currentOptions.length - 1];
+                        if (highest === 'vorzeichen') {
+                            noteList = noteList.filter(n => n.includes('is') || n === 'Es' || n === 'As' || n === 'B' || n === 'Ges' || n === 'Des');
+                        }
+                    }
                     const noteName = noteList[Math.floor(Math.random() * noteList.length)];
                     
                     let clef = this.settings.clef === 'both' 
@@ -3448,6 +3656,12 @@
             },
 
             drawStaff() {
+                // ---- Building-Modus: eigenes Rendering ----
+                if (this.buildingMode) {
+                    this._drawBuildingStaff();
+                    return;
+                }
+
                 let baseName = this.currentNote.name;
                 
                 if (baseName === 'As') baseName = 'A';
@@ -3502,16 +3716,13 @@
                     svg += `<line x1="185" y1="${lineY}" x2="235" y2="${lineY}" stroke="#000" stroke-width="2"/>`;
                 });
 
-                // Vorzeichen-Abstand (weiter bei Hilfslinien)
-                const hasLedgerLines = ledgerLines.length > 0;
-                const sharpX = hasLedgerLines ? 165 : 180;
-                const flatX = hasLedgerLines ? 160 : 170;
-
+                // Vorzeichen (SVG-Pfade, 1:1 aus TT)
+                const noteX = 210;
                 if (hasSharp) {
-                    svg += `<text x="${sharpX}" y="${y + 13}" font-size="42" font-family="serif">♯</text>`;
+                    svg += this._svgSharp(noteX - 12.5 - 12, y, '#000', 35);
                 }
                 if (hasFlat) {
-                    svg += `<text x="${flatX}" y="${y + 10}" font-size="38" font-family="serif">♭</text>`;
+                    svg += this._svgFlat(noteX - 12.5 - 12, y, '#000', 35);
                 }
 
                 svg += `<ellipse cx="210" cy="${y}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 210 ${y})"/>`;
@@ -3987,8 +4198,7 @@
                     // Mark as completed
                     this.validationState.allCorrect = true;
 
-                    // Feedback-Ton: Spiele die korrekte Note kurz ab
-                    this.playFeedbackTone();
+                    // Kein automatischer Feedback-Ton (nur auf Klick)
                     
                     // Count score only on first successful completion
                     if (isFirstCheck) {
@@ -4020,10 +4230,14 @@
                     }
                     
                     this.renderKeyboard();
-                    
-                    setTimeout(() => {
-                        this.generateNote();
-                    }, 1500);
+
+                    // Nur nächste Aufgabe wenn Quiz nicht fertig
+                    const quizNotDone = !quickStart.isActive || quickStart.questionsAnswered < quickStart.totalQuestions;
+                    if (quizNotDone) {
+                        setTimeout(() => {
+                            this.generateNote();
+                        }, 1500);
+                    }
                     
                 } else {
                     // Something is wrong
@@ -4163,8 +4377,7 @@
                 }
                 
                 if (isCorrect) {
-                    // Feedback-Ton
-                    this.playFeedbackTone();
+                    // Kein automatischer Feedback-Ton (nur auf Klick)
 
                     // Tracking und Quick-Start
                     if (isFirstCheck) {
@@ -4190,10 +4403,13 @@
                     this.validationState.keyboard = true;
                     this.renderKeyboard();
 
-                    // Nächste Aufgabe
-                    setTimeout(() => {
-                        this.generateNote();
-                    }, 1500);
+                    // Nur nächste Aufgabe wenn Quiz nicht fertig
+                    const quizNotDone = !quickStart.isActive || quickStart.questionsAnswered < quickStart.totalQuestions;
+                    if (quizNotDone) {
+                        setTimeout(() => {
+                            this.generateNote();
+                        }, 1500);
+                    }
                 } else {
                     // Tracking und Quick-Start
                     if (isFirstCheck) {
@@ -4608,6 +4824,455 @@ Gerät:
                 app.renderKeyboard();
             });
         });
+    // ========================================
+    // BUILDING-MODUS: Notenpools + Helmholtz + Interaktion
+    // ========================================
+
+    // ---- Notenpools (Violin) ----
+    const NOTE_POOLS = {
+        // Violin System: Linien E4-F5
+        basis: [
+            {name:'E',oct:4}, {name:'F',oct:4}, {name:'G',oct:4}, {name:'A',oct:4},
+            {name:'H',oct:4}, {name:'C',oct:5}, {name:'D',oct:5}, {name:'E',oct:5}, {name:'F',oct:5}
+        ],
+        vorzeichen: [
+            {name:'E',oct:4}, {name:'Es',oct:4}, {name:'F',oct:4}, {name:'Fis',oct:4},
+            {name:'G',oct:4}, {name:'Ges',oct:4}, {name:'Gis',oct:4},
+            {name:'A',oct:4}, {name:'As',oct:4}, {name:'B',oct:4}, {name:'H',oct:4},
+            {name:'C',oct:5}, {name:'Cis',oct:5}, {name:'D',oct:5}, {name:'Des',oct:5},
+            {name:'Dis',oct:5}, {name:'E',oct:5}, {name:'Es',oct:5}, {name:'F',oct:5}, {name:'Fis',oct:5}
+        ],
+        hilfslinien: [
+            // Unten (3 HL): F3-D4
+            {name:'F',oct:3}, {name:'G',oct:3}, {name:'A',oct:3}, {name:'H',oct:3},
+            {name:'C',oct:4}, {name:'D',oct:4},
+            // System: E4-F5
+            {name:'E',oct:4}, {name:'F',oct:4}, {name:'G',oct:4}, {name:'A',oct:4},
+            {name:'H',oct:4}, {name:'C',oct:5}, {name:'D',oct:5}, {name:'E',oct:5}, {name:'F',oct:5},
+            // Oben (3 HL): G5-E6
+            {name:'G',oct:5}, {name:'A',oct:5}, {name:'H',oct:5},
+            {name:'C',oct:6}, {name:'D',oct:6}, {name:'E',oct:6}
+        ],
+        hilfslinien_vz: [
+            {name:'F',oct:3}, {name:'Fis',oct:3}, {name:'G',oct:3}, {name:'Gis',oct:3},
+            {name:'A',oct:3}, {name:'As',oct:3}, {name:'B',oct:3}, {name:'H',oct:3},
+            {name:'C',oct:4}, {name:'Cis',oct:4}, {name:'D',oct:4}, {name:'Des',oct:4}, {name:'Dis',oct:4},
+            {name:'E',oct:4}, {name:'Es',oct:4}, {name:'F',oct:4}, {name:'Fis',oct:4},
+            {name:'G',oct:4}, {name:'Ges',oct:4}, {name:'Gis',oct:4},
+            {name:'A',oct:4}, {name:'As',oct:4}, {name:'B',oct:4}, {name:'H',oct:4},
+            {name:'C',oct:5}, {name:'Cis',oct:5}, {name:'D',oct:5}, {name:'Des',oct:5},
+            {name:'Dis',oct:5}, {name:'E',oct:5}, {name:'Es',oct:5}, {name:'F',oct:5}, {name:'Fis',oct:5},
+            {name:'G',oct:5}, {name:'Gis',oct:5}, {name:'A',oct:5}, {name:'As',oct:5},
+            {name:'B',oct:5}, {name:'H',oct:5},
+            {name:'C',oct:6}, {name:'Cis',oct:6}, {name:'D',oct:6}, {name:'Des',oct:6},
+            {name:'Dis',oct:6}, {name:'E',oct:6}, {name:'Es',oct:6}
+        ]
+    };
+
+    // ---- Notenpools (Bass) ----
+    const NOTE_POOLS_BASS = {
+        basis: [
+            {name:'G',oct:2}, {name:'A',oct:2}, {name:'H',oct:2},
+            {name:'C',oct:3}, {name:'D',oct:3}, {name:'E',oct:3}, {name:'F',oct:3},
+            {name:'G',oct:3}, {name:'A',oct:3}
+        ],
+        vorzeichen: [
+            {name:'G',oct:2}, {name:'Gis',oct:2}, {name:'A',oct:2}, {name:'As',oct:2}, {name:'B',oct:2}, {name:'H',oct:2},
+            {name:'C',oct:3}, {name:'Cis',oct:3}, {name:'D',oct:3}, {name:'Des',oct:3},
+            {name:'Dis',oct:3}, {name:'E',oct:3}, {name:'Es',oct:3}, {name:'F',oct:3},
+            {name:'Fis',oct:3}, {name:'G',oct:3}, {name:'Ges',oct:3}, {name:'Gis',oct:3},
+            {name:'A',oct:3}, {name:'As',oct:3}
+        ],
+        hilfslinien: [
+            {name:'A',oct:1}, {name:'H',oct:1},
+            {name:'C',oct:2}, {name:'D',oct:2}, {name:'E',oct:2}, {name:'F',oct:2},
+            {name:'G',oct:2}, {name:'A',oct:2}, {name:'H',oct:2},
+            {name:'C',oct:3}, {name:'D',oct:3}, {name:'E',oct:3}, {name:'F',oct:3},
+            {name:'G',oct:3}, {name:'A',oct:3},
+            {name:'H',oct:3}, {name:'C',oct:4}, {name:'D',oct:4},
+            {name:'E',oct:4}, {name:'F',oct:4}, {name:'G',oct:4}
+        ],
+        hilfslinien_vz: [
+            {name:'A',oct:1}, {name:'Ais',oct:1}, {name:'B',oct:1}, {name:'H',oct:1},
+            {name:'C',oct:2}, {name:'Cis',oct:2}, {name:'D',oct:2}, {name:'Des',oct:2},
+            {name:'Dis',oct:2}, {name:'E',oct:2}, {name:'Es',oct:2}, {name:'F',oct:2}, {name:'Fis',oct:2},
+            {name:'G',oct:2}, {name:'Gis',oct:2}, {name:'A',oct:2}, {name:'As',oct:2}, {name:'B',oct:2}, {name:'H',oct:2},
+            {name:'C',oct:3}, {name:'Cis',oct:3}, {name:'D',oct:3}, {name:'Des',oct:3},
+            {name:'Dis',oct:3}, {name:'E',oct:3}, {name:'Es',oct:3}, {name:'F',oct:3},
+            {name:'Fis',oct:3}, {name:'G',oct:3}, {name:'Ges',oct:3}, {name:'Gis',oct:3},
+            {name:'A',oct:3}, {name:'As',oct:3},
+            {name:'B',oct:3}, {name:'H',oct:3},
+            {name:'C',oct:4}, {name:'Cis',oct:4}, {name:'D',oct:4}, {name:'Des',oct:4},
+            {name:'Dis',oct:4}, {name:'E',oct:4}, {name:'Es',oct:4}, {name:'F',oct:4},
+            {name:'Fis',oct:4}, {name:'G',oct:4}, {name:'Ges',oct:4}
+        ]
+    };
+
+    // ---- Helmholtz-Notation ----
+    function noteToHelmholtz(name, oct) {
+        const baseName = name.length > 1 ? name[0] + name.slice(1) : name;
+        if (oct <= 1) return baseName.toUpperCase() + ','.repeat(2 - oct);
+        if (oct === 2) return baseName.toUpperCase();
+        const lower = baseName[0].toLowerCase() + baseName.slice(1);
+        if (oct === 3) return lower;
+        return lower + "'".repeat(oct - 3);
+    }
+
+    // ---- Building: Aufgabe generieren ----
+    app.generateBuildingNote = function() {
+        this.buildingStaffNote = null;
+        this.buildingActiveTool = null;
+        this.buildingGhostNote = null;
+        this.inputLocked = false;
+        this.buildingTaskCounter++;
+        if (this.buildingTaskCounter === 1) this._buildingRecentNotes = [];
+
+        const activeOptions = quickStart.currentOptions || ['basis'];
+        const hasVZ = activeOptions.includes('vorzeichen');
+        const hasHL = activeOptions.includes('hilfslinien');
+        const requireOctave = activeOptions.includes('lagen');
+
+        // Bei "Beide Schlüssel": Schlüssel pro Aufgabe wechseln
+        if (this.settings.clef === 'both') {
+            this.useBassClef = Math.random() < 0.5;
+        }
+
+        // Pool wählen
+        const pools = this.useBassClef ? NOTE_POOLS_BASS : NOTE_POOLS;
+        let pool;
+        if (hasHL && hasVZ) pool = pools.hilfslinien_vz;
+        else if (hasHL) pool = pools.hilfslinien;
+        else if (hasVZ) pool = pools.vorzeichen;
+        else pool = pools.basis;
+
+        // Sub-Skill "vorzeichen": NUR Vorzeichen-Noten (keine Stammtöne)
+        const highestOpt = activeOptions[activeOptions.length - 1];
+        if (highestOpt === 'vorzeichen') {
+            pool = pool.filter(n => n.name.includes('is') || n.name === 'Es' || n.name === 'As' || n.name === 'B' || n.name === 'Ges' || n.name === 'Des');
+        }
+
+        // Zufallsnote, letzte 3 vermeiden (wie im Erkennen-Modus)
+        if (!this._buildingRecentNotes) this._buildingRecentNotes = [];
+        let note, attempts = 0;
+        do {
+            note = pool[Math.floor(Math.random() * pool.length)];
+            attempts++;
+        } while (
+            attempts < 50 &&
+            this._buildingRecentNotes.includes(note.name) &&
+            pool.length > 3
+        );
+        this._buildingRecentNotes.push(note.name);
+        if (this._buildingRecentNotes.length > Math.min(4, pool.length - 1)) this._buildingRecentNotes.shift();
+        this.currentBuildingNote = { name: note.name, oct: note.oct };
+
+        // Aufgabenstellung über dem Staff anzeigen (wie im TT)
+        const promptText = requireOctave
+            ? noteToHelmholtz(note.name, note.oct)
+            : note.name;
+        const taskEl = document.getElementById('buildingTaskDescription');
+        if (taskEl) {
+            taskEl.style.display = '';
+            taskEl.innerHTML = '✏️ Schreibe <strong>' + promptText + '</strong> ins Notensystem!';
+        }
+
+        this.drawStaff();
+        this.setupInput();
+    };
+
+    // ---- Building: Staff-Koordinaten ----
+    app._staffSvgCoords = function(e) {
+        const svg = document.getElementById('staffSvg');
+        if (!svg) return { x: 0, y: 0 };
+        const rect = svg.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: (clientX - rect.left) / rect.width * 600,
+            y: (clientY - rect.top) / rect.height * 320
+        };
+    };
+
+    // ---- Building: Y→Note ----
+    app._staffYToNoteInfo = function(svgY) {
+        const baseY = 260;
+        const fullPos = Math.round((baseY - svgY) / 10);
+        const useBass = this.useBassClef;
+        const octave = useBass
+            ? Math.floor((fullPos + 4) / 7) + 2
+            : Math.floor((fullPos + 2) / 7) + 4;
+        const offset = useBass ? 4 : 2;
+        const staffPos = ((fullPos + offset) % 7 + 7) % 7;
+        const posToNote = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+        let noteName = posToNote[staffPos];
+
+        if (this.buildingActiveTool === 'sharp') {
+            const sharpMap = { 'C': 'Cis', 'D': 'Dis', 'E': 'Eis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais', 'H': 'His' };
+            if (sharpMap[noteName]) noteName = sharpMap[noteName];
+        } else if (this.buildingActiveTool === 'flat') {
+            const flatMap = { 'C': 'Ces', 'D': 'Des', 'E': 'Es', 'F': 'Fes', 'G': 'Ges', 'A': 'As', 'H': 'B' };
+            if (flatMap[noteName]) noteName = flatMap[noteName];
+        }
+
+        return { noteName, octave };
+    };
+
+    // ---- Building: Ghost-Note Hover ----
+    app._staffBuildingHover = function(e) {
+        if (this.inputLocked) { this.buildingGhostNote = null; this.drawStaff(); return; }
+        const coords = this._staffSvgCoords(e);
+        const slotX = 300;
+        const info = this._staffYToNoteInfo(coords.y);
+        this.buildingGhostNote = { ...info, x: slotX };
+        this.drawStaff();
+    };
+
+    // ---- Building: Note platzieren ----
+    app._staffBuildingPlace = function(e) {
+        if (this.inputLocked) return;
+        const slotX = 300;
+
+        if (e.type === 'touchend' && this.buildingGhostNote) {
+            this.buildingStaffNote = { noteName: this.buildingGhostNote.noteName, octave: this.buildingGhostNote.octave, x: slotX };
+            this.buildingGhostNote = null;
+            this.drawStaff();
+            return;
+        }
+
+        const coords = this._staffSvgCoords(e);
+        if (!coords || (coords.x === 0 && coords.y === 0)) return;
+        const info = this._staffYToNoteInfo(coords.y);
+        this.buildingStaffNote = { noteName: info.noteName, octave: info.octave, x: slotX };
+        this.buildingGhostNote = null;
+        this.drawStaff();
+    };
+
+    // ---- Building: Staff-Interaktion aktivieren/deaktivieren ----
+    app._enableStaffBuilding = function() {
+        const svg = document.getElementById('staffSvg');
+        if (!svg) return;
+        svg.classList.add('staff-interactive');
+        if (this.buildingActiveTool === 'sharp') svg.classList.add('tool-sharp');
+        else if (this.buildingActiveTool === 'flat') svg.classList.add('tool-flat');
+        svg.onmousedown = (e) => this._staffBuildingPlace(e);
+        svg.onmousemove = (e) => this._staffBuildingHover(e);
+        svg.onmouseenter = (e) => this._staffBuildingHover(e);
+        svg.onmouseleave = () => { this.buildingGhostNote = null; this.drawStaff(); };
+        svg.ontouchstart = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
+        svg.ontouchmove = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
+        svg.ontouchend = (e) => { e.preventDefault(); this._staffBuildingPlace(e); this.buildingGhostNote = null; };
+    };
+
+    app._disableStaffBuilding = function() {
+        const svg = document.getElementById('staffSvg');
+        if (!svg) return;
+        svg.classList.remove('staff-interactive', 'tool-sharp', 'tool-flat');
+        svg.onmousedown = null;
+        svg.onmousemove = null;
+        svg.onmouseenter = null;
+        svg.onmouseleave = null;
+        svg.ontouchstart = null;
+        svg.ontouchmove = null;
+        svg.ontouchend = null;
+    };
+
+    // ---- Building: Tool wechseln ----
+    app.toggleBuildingTool = function(tool) {
+        this.buildingActiveTool = (this.buildingActiveTool === tool) ? null : tool;
+        const btnSharp = document.getElementById('buildToolSharp');
+        const btnFlat = document.getElementById('buildToolFlat');
+        if (btnSharp) btnSharp.classList.toggle('active', this.buildingActiveTool === 'sharp');
+        if (btnFlat) btnFlat.classList.toggle('active', this.buildingActiveTool === 'flat');
+        // Update cursor
+        const svg = document.getElementById('staffSvg');
+        if (svg) {
+            svg.classList.remove('tool-sharp', 'tool-flat');
+            if (this.buildingActiveTool === 'sharp') svg.classList.add('tool-sharp');
+            else if (this.buildingActiveTool === 'flat') svg.classList.add('tool-flat');
+        }
+    };
+
+    // ---- Building: Hilfsfunktion — Note-Position berechnen + SVG rendern ----
+    app._buildingNotePosition = function(noteName, octave) {
+        // Stammton extrahieren (Cis→C, Es→E, B→H)
+        let base = noteName;
+        if (base === 'Es') base = 'E';
+        else if (base === 'As') base = 'A';
+        else if (base === 'B') base = 'H';
+        else if (base.endsWith('is')) base = base.slice(0, -2);
+        else if (base.endsWith('es') && base.length > 2) base = base.slice(0, -2);
+
+        // Direkte Berechnung statt notePositions-Lookup
+        const noteToStep = { 'C': 0, 'D': 1, 'E': 2, 'F': 3, 'G': 4, 'A': 5, 'H': 6 };
+        const step = noteToStep[base];
+        if (step === undefined) return undefined;
+
+        if (this.useBassClef) {
+            // Bass: G2 = Position 0 (unterste Linie)
+            return (octave - 2) * 7 + step - 4;
+        } else {
+            // Violin: E4 = Position 0 (unterste Linie)
+            return (octave - 4) * 7 + step - 2;
+        }
+    };
+
+    app.drawNoteAt = function(noteName, octave, x, baseY, color) {
+        const position = this._buildingNotePosition(noteName, octave);
+        if (position === undefined) return '';
+
+        const y = baseY - (position * 10);
+        let svg = '';
+
+        // Hilfslinien
+        if (y > 260) {
+            for (let ly = 280; ly <= y; ly += 20) {
+                svg += `<line x1="${x - 20}" y1="${ly}" x2="${x + 20}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+            }
+        } else if (y < 180) {
+            for (let ly = 160; ly >= y; ly -= 20) {
+                svg += `<line x1="${x - 20}" y1="${ly}" x2="${x + 20}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+            }
+        }
+
+        // Vorzeichen (SVG-Pfade 1:1 aus TT)
+        const hasFlat = noteName === 'Es' || noteName === 'As' || noteName === 'B' || noteName === 'Ges' || noteName === 'Des' || noteName === 'Fes' || noteName === 'Ces';
+        const hasSharp = !hasFlat && noteName.includes('is');
+        if (hasSharp) {
+            svg += app._svgSharp(x - 12.5 - 12, y, color, 35);
+        }
+        if (hasFlat) {
+            svg += app._svgFlat(x - 12.5 - 12, y, color, 35);
+        }
+
+        // Notenkopf (ausgefüllte Ellipse, wie im TT)
+        svg += `<ellipse cx="${x}" cy="${y}" rx="12.5" ry="9.5" fill="${color}" transform="rotate(-20 ${x} ${y})"/>`;
+        return svg;
+    };
+
+    // SVG-Pfade für Vorzeichen (1:1 aus TT)
+    app._sharpPathD = "m 2121,2729 c 8,-11 18,-21 31,-27 l 549,-267 V 1259 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 V 2289 L 4018,1794 V 460 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 v 1188 l 409,-199 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -613,297 v 1483 l 439,-214 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -643,313 v 1193 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4314 l -1018,495 v 1351 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4955 l -315,153 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 8,-11 18,-21 31,-27 l 519,-252 V 2954 l -345,168 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 z m 879,79 V 4290 L 4018,3795 V 2313 Z";
+    app._flatPathD = "m 2834,4387 12,1609 c 136,-127 138,-160 268,-274 131,-149 218,-224 368,-400 150,-176 263,-369 317,-551 54,-182 34,-244 2,-374 -32,-130 -98,-228 -191,-283 -94,-55 -212,-65 -342,-31 -124,43 -168,60 -300,175 -58,58 -67,69 -134,129 z M 2510,522 c 128,-5 187,5 315,-5 5,138 3,3533 0,3534 222,-152 199,-154 421,-238 221,-84 439,-117 632,-93 192,23 352,101 464,226 112,125 244,306 245,499 1,193 -98,437 -237,600 -190,222 -414,397 -673,577 -255,177 -493,359 -683,529 -184,150 -272,234 -479,416 -5,-168 -15,-355 -14,-487 z";
+    app._SHARP_REF = { cx: 3545.5, cy: 3549, h: 5937 };
+    app._FLAT_REF = { cx: 3544.5, cy: 5192, h: 6053 };
+    app._svgSharp = function(x, y, color, targetH) {
+        targetH = targetH || 11;
+        const s = targetH / this._SHARP_REF.h;
+        return `<g transform="translate(${x},${y}) scale(${s}) translate(${-this._SHARP_REF.cx},${-this._SHARP_REF.cy})"><path d="${this._sharpPathD}" fill="${color}" stroke="none"/></g>`;
+    };
+    app._svgFlat = function(x, y, color, targetH) {
+        targetH = targetH || 11;
+        const s = targetH / this._FLAT_REF.h;
+        return `<g transform="translate(${x},${y}) scale(${s}) translate(${-this._FLAT_REF.cx},${-this._FLAT_REF.cy})"><path d="${this._flatPathD}" fill="${color}" stroke="none"/></g>`;
+    };
+
+    // ---- Building: Staff rendern (1:1 aus Mock) ----
+    app._drawBuildingStaff = function() {
+        const baseY = 260;
+        const staffLines = [260, 240, 220, 200, 180];
+        const slotX = 300;
+        const container = document.getElementById('staffContainer');
+
+        // SVG-Element einmalig anlegen (nicht bei jedem Render zerstören!)
+        let svg = document.getElementById('staffSvg');
+        if (!svg) {
+            container.innerHTML = '<svg id="staffSvg" viewBox="0 0 600 320" width="600" height="320" style="max-width:100%;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg"></svg>';
+            svg = document.getElementById('staffSvg');
+        }
+
+        let svgContent = '';
+        staffLines.forEach(ly => {
+            svgContent += `<line x1="80" y1="${ly}" x2="590" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+        });
+
+        // Schlüssel
+        if (this.useBassClef) {
+            svgContent += this.drawBassClefSVG(90, 198);
+        } else {
+            svgContent += this.drawTrebleClefSVG(103, 260);
+        }
+
+        // Platzierte Note (max 1)
+        if (this.buildingStaffNote) {
+            svgContent += this.drawNoteAt(this.buildingStaffNote.noteName, this.buildingStaffNote.octave, this.buildingStaffNote.x, baseY, '#0891b2');
+        }
+
+        // Slot-Marker wenn leer
+        if (!this.buildingStaffNote) {
+            svgContent += `<circle cx="${slotX}" cy="${baseY + 30}" r="4" fill="#d1d5db"/>`;
+        }
+
+        // Ghost-Note
+        if (this.buildingGhostNote) {
+            svgContent += this.drawNoteAt(this.buildingGhostNote.noteName, this.buildingGhostNote.octave, this.buildingGhostNote.x, baseY, 'rgba(8,145,178,0.45)');
+        }
+
+        // Nur den SVG-Inhalt updaten (Element bleibt, Handler bleiben!)
+        svg.innerHTML = svgContent;
+
+        // Interaktion aktivieren
+        this._enableStaffBuilding();
+    };
+
+    // ---- Building: Antwort prüfen ----
+    app.checkBuildingStaff = function() {
+        if (this.inputLocked) return;
+        if (!this.buildingStaffNote) return;
+
+        this.inputLocked = true;
+        const placed = this.buildingStaffNote;
+        const activeOptions = quickStart.currentOptions || ['basis'];
+        const requireOctave = activeOptions.includes('lagen');
+        let correct = false;
+
+        if (requireOctave) {
+            correct = (placed.noteName === this.currentBuildingNote.name && placed.octave === this.currentBuildingNote.oct);
+        } else {
+            correct = (placed.noteName === this.currentBuildingNote.name);
+        }
+
+        const displayName = requireOctave
+            ? noteToHelmholtz(this.currentBuildingNote.name, this.currentBuildingNote.oct)
+            : this.currentBuildingNote.name;
+
+        const feedbackEl = document.getElementById('feedback');
+
+        if (correct) {
+            if (feedbackEl) {
+                feedbackEl.className = 'feedback correct';
+                feedbackEl.textContent = '✓ Richtig! ' + displayName;
+                feedbackEl.classList.remove('hidden');
+            }
+        } else {
+            if (feedbackEl) {
+                feedbackEl.className = 'feedback incorrect';
+                feedbackEl.innerHTML = requireOctave
+                    ? '⚠️ Prüfe nochmal — Note oder Lage stimmt nicht.'
+                    : '⚠️ Prüfe nochmal — versuch es nochmal.';
+                feedbackEl.classList.remove('hidden');
+            }
+        }
+
+        // handleAnswer IMMER aufrufen (1:1 wie im TT) — Retry-Logik lebt in handleAnswer
+        console.log('[checkBuildingStaff] correct:', correct, 'quickStart.isActive:', quickStart.isActive);
+        if (quickStart.isActive) {
+            quickStart.handleAnswer(correct);
+        }
+
+        const quizDone = quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions;
+        console.log('[checkBuildingStaff] quizDone:', quizDone, 'answered:', quickStart.questionsAnswered, '/', quickStart.totalQuestions);
+        const delay = correct ? 1000 : 1500;
+        setTimeout(() => {
+            if (feedbackEl) feedbackEl.classList.add('hidden');
+            if (correct) {
+                if (!quizDone) this.generateNote();
+            } else {
+                this.inputLocked = false;
+                this.buildingStaffNote = null;
+                this.drawStaff();
+            }
+        }, delay);
+    };
+
     </script>
     <footer class="site-footer" style="text-align:center; padding:1.5rem 1rem; color:#94a3b8; font-size:0.75rem; line-height:1.6;">
         <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
