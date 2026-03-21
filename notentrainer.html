@@ -186,7 +186,7 @@
 
         /* ===== SKILLTREE STYLES (Indigo) ===== */
         .skilltree-container {
-            max-width: 480px;
+            max-width: 560px;
             margin: 0 auto;
         }
 
@@ -5189,7 +5189,8 @@ Gerät:
     // ---- Building: Y→Note ----
     app._staffYToNoteInfo = function(svgY) {
         const baseY = 260;
-        const fullPos = Math.round((baseY - svgY) / 10);
+        // Max 3 Hilfslinien: Position -7 (y=330) bis +15 (y=110)
+        const fullPos = Math.max(-7, Math.min(15, Math.round((baseY - svgY) / 10)));
         const useBass = this.useBassClef;
         const octave = useBass
             ? Math.floor((fullPos + 4) / 7) + 2
@@ -5368,7 +5369,7 @@ Gerät:
         // SVG-Element einmalig anlegen (nicht bei jedem Render zerstören!)
         let svg = document.getElementById('staffSvg');
         if (!svg) {
-            container.innerHTML = '<svg id="staffSvg" viewBox="0 0 600 320" width="600" height="320" style="max-width:100%;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg"></svg>';
+            container.innerHTML = '<svg id="staffSvg" viewBox="20 100 600 250" width="620" height="250" style="max-width:100%;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg"></svg>';
             svg = document.getElementById('staffSvg');
         }
 
@@ -5386,7 +5387,7 @@ Gerät:
 
         // Platzierte Note (max 1)
         if (this.buildingStaffNote) {
-            svgContent += this.drawNoteAt(this.buildingStaffNote.noteName, this.buildingStaffNote.octave, this.buildingStaffNote.x, baseY, '#0891b2');
+            svgContent += this.drawNoteAt(this.buildingStaffNote.noteName, this.buildingStaffNote.octave, this.buildingStaffNote.x, baseY, '#000');
         }
 
         // Slot-Marker wenn leer

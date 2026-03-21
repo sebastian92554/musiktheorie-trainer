@@ -713,6 +713,7 @@
             padding: 0.5rem;
             overflow-x: auto;
             max-width: 100%;
+            text-align: center;
         }
 
         .keyboard-card.active {
@@ -5423,7 +5424,7 @@
                 } else {
                     // STAFF-Modus: platzierte Noten + Ghost-Note + Slot-Markers
                     this.buildingStaffNotes.forEach(n => {
-                        svgContent += this.drawNoteAt(n.noteName, n.octave, n.x, baseY, '#0891b2');
+                        svgContent += this.drawNoteAt(n.noteName, n.octave, n.x, baseY, '#000');
                     });
 
                     // Slot-Markers für leere Positionen
