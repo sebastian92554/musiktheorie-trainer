@@ -2779,8 +2779,11 @@
                 const level = quickStart.currentLevel;
                 // noten1 Sub-Skills (basis, vorzeichen, hilfslinien, lagen) sind direkt
                 if (level === 'einsteiger') return subSkillId;
-                // noten2/noten3: prefixed keys
-                const prefixMap = { 'aufsteiger': 'noten2_', 'profi': 'noten3_' };
+                // noten2-6: prefixed keys
+                const prefixMap = {
+                    'aufsteiger': 'noten2_', 'profi': 'noten3_',
+                    'bild_violin': 'noten4_', 'bild_bass': 'noten5_', 'bild_beide': 'noten6_'
+                };
                 const prefix = prefixMap[level];
                 if (prefix) return prefix + subSkillId;
                 return subSkillId;
@@ -2944,6 +2947,105 @@
                 // ---- noten3: hilfslinien ----
                 // Kein separater Visualisierungsblock — Kombination beider Fähigkeiten
 
+                // ===== BILDEN: noten4 (Violin) =====
+                if (key === 'noten4_basis') {
+                    const el = document.getElementById('lkVisualNT_noten4_basis');
+                    if (el) el.innerHTML = this.renderLernkarteNotensystem('treble', [
+                        {name:'E',octave:'eingestrichen',label:'E'},{name:'F',octave:'eingestrichen',label:'F'},
+                        {name:'G',octave:'eingestrichen',label:'G'},{name:'A',octave:'eingestrichen',label:'A'},
+                        {name:'H',octave:'eingestrichen',label:'H'},{name:'C',octave:'zweigestrichen',label:'C'},
+                        {name:'D',octave:'zweigestrichen',label:'D'},{name:'E',octave:'zweigestrichen',label:'E'},
+                        {name:'F',octave:'zweigestrichen',label:'F'}
+                    ]);
+                }
+                if (key === 'noten4_vorzeichen') {
+                    const el = document.getElementById('lkVisualNT_noten4_vorzeichen');
+                    if (el) el.innerHTML = this.renderLernkarteTastatur({
+                        showBlackLabels: true,
+                        highlightKeys: [{key:'F',color:'#c7d2fe'}],
+                        onKeyArrows: [
+                            {from:'F',to:'Fis',label:'\u266F',color:'#16a34a'},
+                            {from:'F',to:'E',label:'\u266D',color:'#dc2626'}
+                        ],
+                        _customLabels: [
+                            {key:'E',text:'Fes',color:'#dc2626',position:'aboveLabel'},
+                            {key:'Fis',text:'Fis',color:'#16a34a',position:'blackLabel'}
+                        ]
+                    });
+                }
+                if (key === 'noten4_lagen') {
+                    const el = document.getElementById('lkVisualNT_noten4_lagen');
+                    if (el) el.innerHTML = this.renderLernkarteNotensystem('treble', [
+                        {name:'C',octave:'eingestrichen',label:"c'"},{name:'C',octave:'zweigestrichen',label:"c''"},{name:'C',octave:'dreigestrichen',label:"c'''"}
+                    ]);
+                }
+                if (key === 'noten4_hilfslinien') {
+                    const el = document.getElementById('lkVisualNT_noten4_hilfslinien');
+                    if (el) el.innerHTML = this.renderLernkarteNotensystem('treble', [
+                        {name:'F',octave:'klein',label:'f'},{name:'G',octave:'klein',label:'g'},
+                        {name:'A',octave:'zweigestrichen',label:"a''"},{name:'H',octave:'zweigestrichen',label:"h''"}
+                    ]);
+                }
+
+                // ===== BILDEN: noten5 (Bass) =====
+                if (key === 'noten5_basis') {
+                    const el = document.getElementById('lkVisualNT_noten5_basis');
+                    if (el) el.innerHTML = this.renderLernkarteNotensystem('bass', [
+                        {name:'G',octave:'gross',label:'G'},{name:'A',octave:'gross',label:'A'},
+                        {name:'H',octave:'gross',label:'H'},{name:'C',octave:'klein',label:'C'},
+                        {name:'D',octave:'klein',label:'D'},{name:'E',octave:'klein',label:'E'},
+                        {name:'F',octave:'klein',label:'F'},{name:'G',octave:'klein',label:'G'},
+                        {name:'A',octave:'klein',label:'A'}
+                    ]);
+                }
+                if (key === 'noten5_vorzeichen') {
+                    const el = document.getElementById('lkVisualNT_noten5_vorzeichen');
+                    if (el) el.innerHTML = this.renderLernkarteTastatur({
+                        showBlackLabels: true,
+                        highlightKeys: [{key:'A',color:'#c7d2fe'}],
+                        onKeyArrows: [
+                            {from:'A',to:'Ais',label:'\u266F',color:'#16a34a'},
+                            {from:'A',to:'Gis',label:'\u266D',color:'#dc2626'}
+                        ],
+                        _customLabels: [
+                            {key:'Gis',text:'Gis',color:'#fff',position:'blackLabel'},
+                            {key:'Gis',text:'As',color:'#dc2626',position:'blackLabelBottom'},
+                            {key:'Ais',text:'Ais',color:'#16a34a',position:'blackLabel'}
+                        ]
+                    });
+                }
+                if (key === 'noten5_lagen') {
+                    const el = document.getElementById('lkVisualNT_noten5_lagen');
+                    if (el) el.innerHTML = this.renderLernkarteNotensystem('bass', [
+                        {name:'C',octave:'gross',label:'C (groß)'},{name:'C',octave:'klein',label:'c (klein)'},{name:'C',octave:'eingestrichen',label:"c'"}
+                    ]);
+                }
+                if (key === 'noten5_hilfslinien') {
+                    const el = document.getElementById('lkVisualNT_noten5_hilfslinien');
+                    if (el) el.innerHTML = this.renderLernkarteNotensystem('bass', [
+                        {name:'C',octave:'gross',label:'C'},{name:'D',octave:'gross',label:'D'},
+                        {name:'C',octave:'eingestrichen',label:"c'"},{name:'D',octave:'eingestrichen',label:"d'"}
+                    ]);
+                }
+
+                // ===== BILDEN: noten6 (Beide) =====
+                if (key === 'noten6_vorzeichen') {
+                    const el = document.getElementById('lkVisualNT_noten6_vorzeichen');
+                    if (el) el.innerHTML = this.renderLernkarteTastatur({
+                        showBlackLabels: true,
+                        highlightKeys: [{key:'D',color:'#c7d2fe'}],
+                        onKeyArrows: [
+                            {from:'D',to:'Dis',label:'\u266F',color:'#16a34a'},
+                            {from:'D',to:'Cis',label:'\u266D',color:'#dc2626'}
+                        ],
+                        _customLabels: [
+                            {key:'Cis',text:'Cis',color:'#fff',position:'blackLabel'},
+                            {key:'Cis',text:'Des',color:'#dc2626',position:'blackLabelBottom'},
+                            {key:'Dis',text:'Dis',color:'#16a34a',position:'blackLabel'}
+                        ]
+                    });
+                }
+
                 // Inline-SVG-Vorzeichen im Fließtext füllen
                 document.querySelectorAll('#lernkarteOverlay .vz-sharp').forEach(el => {
                     el.innerHTML = this._inlineVz(this._sharpPathD, this._SHARP_REF, 19, 27);
@@ -3060,6 +3162,97 @@
                         <div class="lk-rule"><strong>Methode:</strong> 1. Schlüssel erkennen. 2. Note auf Hilfslinien lesen (von der nächsten bekannten Note abzählen). 3. Taste auf der Klaviatur finden (C und F als Anker).</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Bei Hilfslinien-Noten hilft es, zuerst den Tonnamen sicher zu bestimmen — und dann erst die Taste zu suchen. Nicht raten!</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note (auch auf Hilfslinien) und klicke die richtige Taste.</div>`
+                },
+
+                // ===== NOTEN4: Bilden Violinschlüssel =====
+                'noten4_basis': {
+                    title: 'Stammtöne schreiben (Violinschlüssel)',
+                    body: `<p>Jetzt drehst du die Richtung um: Du siehst einen <strong>Notennamen</strong> und platzierst die Note an der richtigen Stelle im Notensystem.</p>
+                        <div class="lk-visual" id="lkVisualNT_noten4_basis"></div>
+                        <div class="lk-rule"><strong>Ankerpunkt:</strong> Der Violinschlüssel umschließt die G-Linie (2. von unten). Von dort abzählen.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Klicke auf die Position im Notensystem — auf eine Linie oder in einen Zwischenraum. Die Note wird automatisch platziert. Ein weiterer Klick verschiebt sie.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere den angezeigten Stammton an der richtigen Position.</div>`
+                },
+                'noten4_vorzeichen': {
+                    title: 'Mit Vorzeichen schreiben',
+                    body: `<p>Platziere Töne mit Vorzeichen. Nutze die <strong><span class="vz-sharp"></span>- und <span class="vz-flat"></span>-Werkzeuge</strong>, um das Vorzeichen zu aktivieren, bevor du klickst.</p>
+                        <div class="lk-visual" id="lkVisualNT_noten4_vorzeichen"></div>
+                        <div class="lk-rule"><strong>Workflow:</strong> 1. Notenname lesen (z.B. „Fis"). 2. <span class="vz-sharp"></span>-Tool aktivieren. 3. Auf die F-Position klicken → das Vorzeichen wird automatisch gesetzt.</div>
+                        <div class="lk-rule"><strong>Benennung mit <span class="vz-sharp"></span>:</strong> Stammton + „is" → Fis, Cis, Gis, Dis, Ais.<br><strong>Benennung mit <span class="vz-flat"></span>:</strong> Stammton + „es" → Des, Ges.<br><strong>Drei Ausnahmen:</strong> E + <span class="vz-flat"></span> = <strong>Es</strong>, A + <span class="vz-flat"></span> = <strong>As</strong>, H + <span class="vz-flat"></span> = <strong>B</strong>.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Du kannst das Tool jederzeit wechseln oder deaktivieren (nochmal klicken). Beim nächsten Klick ins System wird die aktuelle Tool-Auswahl angewendet.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere den Ton mit dem richtigen Vorzeichen.</div>`
+                },
+                'noten4_lagen': {
+                    title: 'Mit Lagen schreiben',
+                    body: `<p>Ab jetzt wird auch die <strong>Oktavlage</strong> angezeigt — z.B. <strong>g'</strong> (eingestrichen) oder <strong>c''</strong> (zweigestrichen). Du musst die Note an der exakten Stelle platzieren.</p>
+                        <div class="lk-visual" id="lkVisualNT_noten4_lagen"></div>
+                        <div class="lk-rule"><strong>Helmholtz-Notation:</strong> Großbuchstabe = große Oktave (C, D). Kleinbuchstabe = kleine Oktave (c, d). Mit Strichen: c' = eingestrichen, c'' = zweigestrichen.</div>
+                        <div class="lk-tip"><strong>Der Lagenwechsel</strong> passiert immer beim C: c' liegt auf der 1. Hilfslinie unter dem Violinschlüssel-System.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note in der angegebenen Oktavlage.</div>`
+                },
+                'noten4_hilfslinien': {
+                    title: 'Mit Hilfslinien schreiben',
+                    body: `<p>Platziere Noten auch <strong>außerhalb der fünf Linien</strong> — auf Hilfslinien oben und unten.</p>
+                        <div class="lk-visual" id="lkVisualNT_noten4_hilfslinien"></div>
+                        <div class="lk-rule"><strong>Orientierung:</strong> Unter dem System zählst du von c' abwärts, über dem System von f'' aufwärts. Bis zu 3 Hilfslinien werden abgefragt.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Die Lage wird immer mit angezeigt — achte genau auf die Helmholtz-Schreibweise.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note an der exakten Position — auch auf Hilfslinien.</div>`
+                },
+
+                // ===== NOTEN5: Bilden Bassschlüssel =====
+                'noten5_basis': {
+                    title: 'Stammtöne schreiben (Bassschlüssel)',
+                    body: `<p>Platziere Stammtöne im <strong>Bassschlüssel</strong>. Die Positionen unterscheiden sich vom Violinschlüssel!</p>
+                        <div class="lk-visual" id="lkVisualNT_noten5_basis"></div>
+                        <div class="lk-rule"><strong>Ankerpunkt:</strong> Der Bassschlüssel markiert die F-Linie (4. von unten). Von dort abzählen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere den Stammton an der richtigen Position im Bassschlüssel.</div>`
+                },
+                'noten5_vorzeichen': {
+                    title: 'Mit Vorzeichen schreiben (Bass)',
+                    body: `<p>Platziere Töne mit Vorzeichen im Bassschlüssel. Die Vorzeichen-Logik ist identisch zum Violinschlüssel.</p>
+                        <div class="lk-visual" id="lkVisualNT_noten5_vorzeichen"></div>
+                        <div class="lk-rule"><strong>Workflow:</strong> 1. Notenname lesen. 2. Passendes Tool (<span class="vz-sharp"></span> oder <span class="vz-flat"></span>) aktivieren. 3. Auf die Stammton-Position klicken.</div>
+                        <div class="lk-rule"><strong>Zur Erinnerung:</strong> <span class="vz-sharp"></span> → Stammton + „is" (Fis, Cis, …). <span class="vz-flat"></span> → Stammton + „es" (Des, Ges, …).<br><strong>Ausnahmen:</strong> Es, As, B.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere den Ton mit Vorzeichen im Bassschlüssel.</div>`
+                },
+                'noten5_lagen': {
+                    title: 'Mit Lagen schreiben (Bass)',
+                    body: `<p>Im Bassschlüssel kommen <strong>tiefere Lagen</strong> vor: große Oktave (C, D, …), kleine Oktave (c, d, …).</p>
+                        <div class="lk-visual" id="lkVisualNT_noten5_lagen"></div>
+                        <div class="lk-rule"><strong>Lagen im Bassschlüssel:</strong> C (groß) liegt auf der 2. Hilfslinie unter dem System. c (klein) liegt im 3. Zwischenraum.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note in der angegebenen Oktavlage im Bassschlüssel.</div>`
+                },
+                'noten5_hilfslinien': {
+                    title: 'Mit Hilfslinien schreiben (Bass)',
+                    body: `<p>Platziere Noten auf Hilfslinien im Bassschlüssel — bis zu 3 Hilfslinien oben und unten.</p>
+                        <div class="lk-visual" id="lkVisualNT_noten5_hilfslinien"></div>
+                        <div class="lk-rule"><strong>Orientierung:</strong> Unten: vom G (1. Linie) abwärts. Oben: vom a (5. Linie) aufwärts bis g' (3. Hilfslinie).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note exakt — auch auf Hilfslinien im Bassschlüssel.</div>`
+                },
+
+                // ===== NOTEN6: Bilden Beide Schlüssel =====
+                'noten6_basis': {
+                    title: 'Stammtöne schreiben (beide Schlüssel)',
+                    body: `<p>Der Schlüssel wechselt zufällig — achte genau darauf, ob du im <strong>Violin-</strong> oder <strong>Bassschlüssel</strong> bist!</p>
+                        <div class="lk-rule"><strong>Methode:</strong> Immer zuerst den Schlüssel checken, dann den Ankerpunkt finden (G-Linie im Violin, F-Linie im Bass), dann abzählen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere den Stammton im angezeigten Schlüssel.</div>`
+                },
+                'noten6_vorzeichen': {
+                    title: 'Mit Vorzeichen schreiben (beide)',
+                    body: `<p>Vorzeichen + Schlüsselwechsel — aktiviere das passende Tool und achte auf den Schlüssel.</p>
+                        <div class="lk-visual" id="lkVisualNT_noten6_vorzeichen"></div>
+                        <div class="lk-rule"><strong>Zur Erinnerung:</strong> <span class="vz-sharp"></span> → Stammton + „is". <span class="vz-flat"></span> → Stammton + „es".<br><strong>Ausnahmen:</strong> Es, As, B.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere den Ton mit Vorzeichen im angezeigten Schlüssel.</div>`
+                },
+                'noten6_lagen': {
+                    title: 'Mit Lagen schreiben (beide)',
+                    body: `<p>Jetzt wird auch die Oktavlage angezeigt. Im Violinschlüssel bist du meist in der eingestrichenen/zweigestrichenen Oktave, im Bassschlüssel in der großen/kleinen.</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note in der richtigen Lage im angezeigten Schlüssel.</div>`
+                },
+                'noten6_hilfslinien': {
+                    title: 'Mit Hilfslinien schreiben (beide)',
+                    body: `<p>Die Königsdisziplin: Hilfslinien + Lagen + Vorzeichen + wechselnder Schlüssel.</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note exakt — egal welcher Schlüssel, egal ob Hilfslinie.</div>`
                 }
             },
 
