@@ -5125,10 +5125,12 @@ Gerät:
 
     // ---- Helmholtz-Notation ----
     function noteToHelmholtz(name, oct) {
-        const baseName = name.length > 1 ? name[0] + name.slice(1) : name;
-        if (oct <= 1) return baseName.toUpperCase() + ','.repeat(2 - oct);
-        if (oct === 2) return baseName.toUpperCase();
-        const lower = baseName[0].toLowerCase() + baseName.slice(1);
+        // Erster Buchstabe groß, Rest klein = große Oktave (Dis, Es, Gis)
+        const capitalized = name[0].toUpperCase() + name.slice(1).toLowerCase();
+        if (oct <= 1) return capitalized + ','.repeat(2 - oct);
+        if (oct === 2) return capitalized;
+        // Alles klein = kleine Oktave und höher (dis, es, gis)
+        const lower = name[0].toLowerCase() + name.slice(1).toLowerCase();
         if (oct === 3) return lower;
         return lower + "'".repeat(oct - 3);
     }
@@ -5182,11 +5184,10 @@ Gerät:
         this.currentBuildingNote = { name: note.name, oct: note.oct };
 
         // Aufgabenstellung über dem Staff anzeigen (wie im TT)
-        // Immer Helmholtz-Schreibweise für Anzeige (DIS statt Dis bei großer Oktave)
-        // Ohne Lagen: nur Name ohne Oktavmarkierung, aber korrekte Groß/Kleinschreibung
+        // Ohne Lagen: Dis/Es (große Okt.) bzw. dis/es (kleine Okt.)
         const promptText = requireOctave
             ? noteToHelmholtz(note.name, note.oct)
-            : (note.oct <= 2 ? note.name.toUpperCase() : note.name.toLowerCase());
+            : noteToHelmholtz(note.name, note.oct).replace(/'+|,+/g, '');
         const taskEl = document.getElementById('buildingTaskDescription');
         if (taskEl) {
             taskEl.style.display = '';
@@ -5450,7 +5451,7 @@ Gerät:
 
         const displayName = requireOctave
             ? noteToHelmholtz(this.currentBuildingNote.name, this.currentBuildingNote.oct)
-            : (this.currentBuildingNote.oct <= 2 ? this.currentBuildingNote.name.toUpperCase() : this.currentBuildingNote.name.toLowerCase());
+            : noteToHelmholtz(this.currentBuildingNote.name, this.currentBuildingNote.oct).replace(/'+|,+/g, '');
 
         const feedbackEl = document.getElementById('feedback');
 
