@@ -2712,7 +2712,62 @@
             // VARIANZ: Letzte generierte Intervalle speichern
             recentIntervals: [],
             lastClef: null,  // Für Schlüssel-Wechsel
-            
+
+            // BUILDING-MODUS State
+            buildingMode: false,
+            buildingIsKeyboard: true,       // true=Tastatur(int6), false=Staff(int7)
+            buildingStaffNote: null,        // {noteName, octave, x}
+            buildingGhostNote: null,        // {noteName, octave, x}
+            buildingActiveTool: null,       // 'sharp'|'flat'|null
+            buildingSelectedKey: null,      // {name, oct}
+            buildingCurrentTask: null,      // {startNote, interval, targetNote}
+            buildingTaskCounter: 0,
+            buildingLastTaskKey: null,
+            recentStartNotes: [],           // letzte 10 Startnoten (Varianz)
+            vzStartNotes: ['Cis','Des','Dis','Es','Fis','Ges','Gis','As','B'],
+            buildingSubIdx: 0,              // aktiver Sub-Skill Index (0=rein..3=erweitert)
+            inputLocked: false,
+
+            // Building Intervall-Pools (Cascade-System)
+            BUILDING_POOLS: [
+                // Pool 0: Reine Intervalle
+                [
+                    { name: 'reine Quarte', semitones: 5, steps: 4 },
+                    { name: 'reine Quinte', semitones: 7, steps: 5 },
+                    { name: 'reine Oktave', semitones: 12, steps: 8 }
+                ],
+                // Pool 1: Große & kleine
+                [
+                    { name: 'kleine Sekunde', semitones: 1, steps: 2 },
+                    { name: 'große Sekunde', semitones: 2, steps: 2 },
+                    { name: 'kleine Terz', semitones: 3, steps: 3 },
+                    { name: 'große Terz', semitones: 4, steps: 3 },
+                    { name: 'kleine Sexte', semitones: 8, steps: 6 },
+                    { name: 'große Sexte', semitones: 9, steps: 6 },
+                    { name: 'kleine Septime', semitones: 10, steps: 7 },
+                    { name: 'große Septime', semitones: 11, steps: 7 }
+                ],
+                // Pool 2: Übermäßig & vermindert
+                [
+                    { name: 'übermäßige Prime', semitones: 1, steps: 1 },
+                    { name: 'übermäßige Quarte', semitones: 6, steps: 4 },
+                    { name: 'verminderte Quinte', semitones: 6, steps: 5 },
+                    { name: 'übermäßige Quinte', semitones: 8, steps: 5 },
+                    { name: 'verminderte Septime', semitones: 9, steps: 7 }
+                ],
+                // Pool 3: Erweiterte (None–Tredezime)
+                [
+                    { name: 'kleine None', semitones: 13, steps: 9 },
+                    { name: 'große None', semitones: 14, steps: 9 },
+                    { name: 'kleine Dezime', semitones: 15, steps: 10 },
+                    { name: 'große Dezime', semitones: 16, steps: 10 },
+                    { name: 'reine Undezime', semitones: 17, steps: 11 },
+                    { name: 'reine Duodezime', semitones: 19, steps: 12 },
+                    { name: 'kleine Tredezime', semitones: 20, steps: 13 },
+                    { name: 'große Tredezime', semitones: 21, steps: 13 }
+                ]
+            ],
+
             // QUICK-START MODUS
             quickStartMode: null,  // null, 'einsteiger', 'aufsteiger', 'profi', 'meister'
             
@@ -2726,7 +2781,61 @@
                 const noteIndex = this.noteNames.indexOf(baseNote);
                 return octaveOffsets[octave] + noteIndex;
             },
-            
+
+            // Building: Staffposition eines Notennamens (0-6)
+            _getStaffPos(noteName) {
+                const m = {'C':0,'Cis':0,'Ces':0,'Des':1,'D':1,'Dis':1,'E':2,'Es':2,'Eis':2,
+                           'F':3,'Fis':3,'Fes':3,'G':4,'Gis':4,'Ges':4,'A':5,'As':5,'Ais':5,
+                           'H':6,'His':6,'B':6};
+                return m[noteName] !== undefined ? m[noteName] : 0;
+            },
+
+            // Building: Zielton berechnen — Einzelfall-Validierung gegen Doppelvorzeichen
+            // Gibt {name, oct, valid} zurück. valid=false bei Doppelvorzeichen.
+            _calculateTarget(startName, startOct, intervalSteps, intervalSemitones) {
+                const startPos = this._getStaffPos(startName);
+                const targetPosRaw = startPos + intervalSteps - 1;
+                const targetLetterIdx = targetPosRaw % 7;
+                const octaveAdd = Math.floor(targetPosRaw / 7);
+                const targetLetter = this.noteNames[targetLetterIdx];
+                const targetOct = startOct + octaveAdd;
+
+                const startMidi = this._noteToMidi({name: startName, octave: this._octNumToName(startOct)});
+                const wantedMidi = startMidi + intervalSemitones;
+                const naturalMidi = this._noteToMidi({name: targetLetter, octave: this._octNumToName(targetOct)});
+                const diff = wantedMidi - naturalMidi;
+
+                const SHARP = {'C':'Cis','D':'Dis','E':'Eis','F':'Fis','G':'Gis','A':'Ais','H':'His'};
+                const FLAT  = {'C':'Ces','D':'Des','E':'Es','F':'Fes','G':'Ges','A':'As','H':'B'};
+
+                if (diff === 0) return { name: targetLetter, oct: targetOct, valid: true };
+                if (diff === 1) return { name: SHARP[targetLetter], oct: targetOct, valid: true };
+                if (diff === -1) return { name: FLAT[targetLetter], oct: targetOct, valid: true };
+                return { name: targetLetter, oct: targetOct, valid: false }; // Doppelvorzeichen
+            },
+
+            // Oktave: IT nutzt deutsche Namen, Building nutzt MIDI-Konvention (C4=eingestrichen)
+            // MIDI-Oktave 2=gross, 3=klein, 4=eingestrichen, 5=zweigestrichen
+            _octNumToName(n) {
+                return {0:'subkontra',1:'kontra',2:'gross',3:'klein',4:'eingestrichen',5:'zweigestrichen',6:'dreigestrichen'}[n] || 'eingestrichen';
+            },
+            _octNameToNum(name) {
+                return {'subkontra':0,'kontra':1,'gross':2,'klein':3,'eingestrichen':4,'zweigestrichen':5,'dreigestrichen':6}[name] || 4;
+            },
+
+            // Building: Cascade-Pool mit Gewichtung
+            _getBuildingPool(subIdx) {
+                const maxIdx = Math.min(subIdx, 3);
+                let pool = [];
+                for (let i = 0; i <= maxIdx; i++) {
+                    const weight = (i === maxIdx) ? 3 : 1;
+                    for (let w = 0; w < weight; w++) {
+                        pool = pool.concat(this.BUILDING_POOLS[i]);
+                    }
+                }
+                return pool;
+            },
+
             notePositions: {
                 'C-eingestrichen-treble': -2, 'D-eingestrichen-treble': -1, 'E-eingestrichen-treble': 0,
                 'F-eingestrichen-treble': 1, 'G-eingestrichen-treble': 2, 'A-eingestrichen-treble': 3,
@@ -3281,44 +3390,20 @@
                         }
                     }
                     
-                    // Vorzeichen auf Basiston (int5d): ~40% Chance, beide Töne ±1 HT verschieben
+                    // VZ-Startnoten (int5d): 40% Chance, Startnote aus VZ-Pool
+                    // Einzelfall-Validierung: _calculateTarget prüft auf Doppelvorzeichen
                     let finalBaseName = baseName;
                     if (this.settings.allowBaseAccidental && Math.random() < 0.4) {
-                        const dir = Math.random() < 0.5 ? 1 : -1; // +1 = sharp, -1 = flat
-                        const note2HasSharp = finalTargetName.includes('is');
-                        const note2HasFlat = finalTargetName === 'Es' || finalTargetName === 'As' || finalTargetName === 'B' || finalTargetName.includes('es');
-                        // Keine Doppelvorzeichen: skip wenn note2 schon Vorzeichen in gleicher Richtung hat
-                        if (!(dir === 1 && note2HasSharp) && !(dir === -1 && note2HasFlat)) {
-                            // Basiston verschieben (immer Stammton → einfaches Vorzeichen)
-                            if (dir === 1) {
-                                finalBaseName = baseName + 'is';
-                            } else {
-                                if (baseName === 'A') finalBaseName = 'As';
-                                else if (baseName === 'E') finalBaseName = 'Es';
-                                else if (baseName === 'H') finalBaseName = 'B';
-                                else finalBaseName = baseName + 'es';
-                            }
-                            // Zweiten Ton verschieben
-                            if (dir === 1) {
-                                if (note2HasFlat) {
-                                    // Flat + sharp = zurück zum Stammton
-                                    const bn = finalTargetName.replace(/es$/, '').replace('As', 'A').replace('Es', 'E').replace('B', 'H');
-                                    finalTargetName = bn;
-                                } else {
-                                    finalTargetName = finalTargetName + 'is';
-                                }
-                            } else {
-                                if (note2HasSharp) {
-                                    // Sharp + flat = zurück zum Stammton
-                                    finalTargetName = finalTargetName.replace(/is$/, '');
-                                } else {
-                                    if (finalTargetName === 'A') finalTargetName = 'As';
-                                    else if (finalTargetName === 'E') finalTargetName = 'Es';
-                                    else if (finalTargetName === 'H') finalTargetName = 'B';
-                                    else finalTargetName = finalTargetName + 'es';
-                                }
-                            }
+                        const vzNote = this.vzStartNotes[Math.floor(Math.random() * this.vzStartNotes.length)];
+                        const vzOctNum = this._octNameToNum(baseOctave);
+                        const result = this._calculateTarget(vzNote, vzOctNum, intervalSize, targetSemitones);
+                        if (result.valid) {
+                            // Beide Noten haben max. 1 VZ — VZ-Startnote verwenden
+                            finalBaseName = vzNote;
+                            finalTargetName = result.name;
+                            targetOctave = this._octNumToName(result.oct);
                         }
+                        // Bei valid=false: Stammton-Version beibehalten (kein Doppelvorzeichen)
                     }
 
                     newInterval = {
@@ -3365,7 +3450,13 @@
                             continue;
                         }
                     }
-                    
+
+                    // VARIANZ: Startnoten-Diversität
+                    if (this.recentStartNotes.slice(-5).includes(finalBaseName) && Math.random() < 0.6) {
+                        attempts++;
+                        continue;
+                    }
+
                     if (taskId !== this.previousTask) {
                         this.previousTask = taskId;
                         break;
@@ -3384,6 +3475,12 @@
                 
                 // VARIANZ: Letzten Schlüssel speichern (für Wechsel-Tendenz)
                 this.lastClef = newInterval.note1.clef;
+
+                // VARIANZ: Startnote zum History-Array hinzufügen (max. 10)
+                this.recentStartNotes.push(newInterval.note1.name);
+                if (this.recentStartNotes.length > 10) {
+                    this.recentStartNotes.shift();
+                }
                 
                 const _ii = document.getElementById('intervalInput');
                 const _si = document.getElementById('semitonesInput');

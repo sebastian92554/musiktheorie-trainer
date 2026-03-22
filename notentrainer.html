@@ -1643,12 +1643,12 @@
             <div class="card staff-card">
                 <div class="text-center" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
-                    <button type="button" id="muteToggle" onclick="app.toggleMute()" title="Ton ein/aus"
+                    <button type="button" id="audioPlayBtn" onclick="app.playFeedbackTone()" title="Ton abspielen"
                         style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 50%; opacity: 0.6; transition: opacity 0.2s;"
                         onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.6'">
-                        <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                            <path id="muteIconWaves" d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
                         </svg>
                     </button>
                 </div>
@@ -3936,39 +3936,17 @@
                 return `<g transform="translate(60, 144) scale(0.13)"><path d="m190.85 451.25c11.661 14.719 32.323 24.491 55.844 24.491 36.401 0 65.889-23.372 65.889-52.214s-29.488-52.214-65.889-52.214c-20.314 4.1522-28.593 9.0007-33.143-2.9091 17.976-54.327 46.918-66.709 96.546-66.709 65.914 0 96.969 59.897 96.969 142.97-18.225 190.63-205.95 286.75-246.57 316.19 5.6938 13.103 5.3954 12.631 5.3954 12.009 189.78-86.203 330.69-204.43 330.69-320.74 0-92.419-58.579-175.59-187.72-172.8-77.575 0-170.32 86.203-118 171.93z" fill="#000" stroke="#000" stroke-width="1"/><circle cx="551.27" cy="361.37" r="32.323" fill="#000"/><circle cx="551.27" cy="498.12" r="32.323" fill="#000"/></g>`;
             },
 
-            // ---- Audio: Feedback-Ton bei richtiger Antwort ----
+            // ---- Audio: Ton auf Klick abspielen ----
             _audioCtx: null,
-            audioMuted: false,
-
-            toggleMute() {
-                this.audioMuted = !this.audioMuted;
-                const waves = document.getElementById('muteIconWaves');
-                const icon = document.getElementById('muteIcon');
-                if (this.audioMuted) {
-                    waves.style.display = 'none';
-                    // Durchgestrichene Linie anzeigen
-                    let slash = document.getElementById('muteSlash');
-                    if (!slash) {
-                        slash = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        slash.id = 'muteSlash';
-                        slash.setAttribute('x1', '2');
-                        slash.setAttribute('y1', '2');
-                        slash.setAttribute('x2', '22');
-                        slash.setAttribute('y2', '22');
-                        slash.setAttribute('stroke', '#4f46e5');
-                        slash.setAttribute('stroke-width', '2');
-                        slash.setAttribute('stroke-linecap', 'round');
-                        icon.appendChild(slash);
-                    }
-                } else {
-                    waves.style.display = '';
-                    const slash = document.getElementById('muteSlash');
-                    if (slash) slash.remove();
-                }
-            },
 
             playFeedbackTone() {
-                if (!this.currentNote || this.audioMuted) return;
+                // Building-Modus: currentBuildingNote verwenden
+                if (this.buildingMode) {
+                    if (!this.currentBuildingNote) return;
+                    this._playNoteByNameAndOct(this.currentBuildingNote.name, this.currentBuildingNote.oct);
+                    return;
+                }
+                if (!this.currentNote) return;
                 try {
                     if (!this._audioCtx || this._audioCtx.state === 'closed') {
                         this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3989,19 +3967,63 @@
                     const freq = 440 * Math.pow(2, (pitch + 24 - 69) / 12);
                     const now = ctx.currentTime;
 
+                    this._playFreq(ctx, freq, now);
+                } catch (e) {
+                    console.error('[NT Audio] Fehler:', e);
+                }
+            },
+
+            // Ton abspielen per Name + numerische Oktave (für Building-Modus)
+            _playNoteByNameAndOct(name, oct) {
+                try {
+                    if (!this._audioCtx || this._audioCtx.state === 'closed') {
+                        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
+                    const ctx = this._audioCtx;
+                    const semitoneMap = { 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'H': 11 };
+                    const baseName = name.replace(/is|es/g, '').replace('As', 'A').replace('Es', 'E').replace('B', 'H');
+                    let midi = (oct + 1) * 12 + semitoneMap[baseName];
+                    if (name.includes('is')) midi++;
+                    if (name.includes('es') || name === 'As' || name === 'Es' || name === 'B') midi--;
+                    const freq = 440 * Math.pow(2, (midi - 69) / 12);
+                    this._playFreq(ctx, freq, ctx.currentTime);
+                } catch (e) {
+                    console.error('[NT Audio] Fehler:', e);
+                }
+            },
+
+            // Zentrale Audio-Engine: 6 Sine-Harmonics + ISO-226-basierte Lautstärkekompensation
+            _playFreq(ctx, freq, now) {
+                // ISO 226 Equal-Loudness-Kompensation (vereinfacht, Referenz: 1000 Hz)
+                // Unter 500 Hz: Boost (Ohr weniger empfindlich)
+                // 500-1500 Hz: neutral
+                // Über 1500 Hz: Dämpfung (Ohr empfindlicher bei 2-4 kHz)
+                let compensation;
+                if (freq <= 100) compensation = 2.0 + (100 - freq) / 100 * 1.5;  // 55Hz→3.3, 100Hz→2.0
+                else if (freq <= 250) compensation = 1.3 + (250 - freq) / 150 * 0.7; // 250Hz→1.3, 100Hz→2.0
+                else if (freq <= 500) compensation = 1.0 + (500 - freq) / 250 * 0.3; // 500Hz→1.0, 250Hz→1.3
+                else if (freq <= 1500) compensation = 1.0;                             // neutral
+                else compensation = 1.0 / (1 + (freq - 1500) / 2000);                 // sanfte Dämpfung
+
+                // 6 Sine-Harmonics (1:1 IT-Struktur + Kompensation)
+                const harmonics = [1, 2, 3, 4, 5, 6];
+                const baseAmps = [0.35, 0.15, 0.08, 0.04, 0.02, 0.01];
+                harmonics.forEach((h, i) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.value = freq;
-                    gain.gain.setValueAtTime(0.25, now);
+                    osc.frequency.value = freq * h;
+                    const amp = baseAmps[i] * compensation;
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(amp, now + 0.04);
+                    gain.gain.exponentialRampToValueAtTime(amp * 0.3, now + 0.2);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
                     osc.connect(gain);
                     gain.connect(ctx.destination);
                     osc.start(now);
                     osc.stop(now + 0.8);
-                } catch (e) {
-                    console.error('[NT Audio] Fehler:', e);
-                }
+                });
             },
 
             renderKeyboard() {
@@ -5160,9 +5182,11 @@ Gerät:
         this.currentBuildingNote = { name: note.name, oct: note.oct };
 
         // Aufgabenstellung über dem Staff anzeigen (wie im TT)
+        // Immer Helmholtz-Schreibweise für Anzeige (DIS statt Dis bei großer Oktave)
+        // Ohne Lagen: nur Name ohne Oktavmarkierung, aber korrekte Groß/Kleinschreibung
         const promptText = requireOctave
             ? noteToHelmholtz(note.name, note.oct)
-            : note.name;
+            : (note.oct <= 2 ? note.name.toUpperCase() : note.name.toLowerCase());
         const taskEl = document.getElementById('buildingTaskDescription');
         if (taskEl) {
             taskEl.style.display = '';
@@ -5426,7 +5450,7 @@ Gerät:
 
         const displayName = requireOctave
             ? noteToHelmholtz(this.currentBuildingNote.name, this.currentBuildingNote.oct)
-            : this.currentBuildingNote.name;
+            : (this.currentBuildingNote.oct <= 2 ? this.currentBuildingNote.name.toUpperCase() : this.currentBuildingNote.name.toLowerCase());
 
         const feedbackEl = document.getElementById('feedback');
 
