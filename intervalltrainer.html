@@ -1210,6 +1210,50 @@
             flex-shrink: 0;
         }
 
+        /* Building-Keyboard Styles (scoped via .building-kb) */
+        .building-kb .white-key.given { background: #dbeafe !important; border-color: #3b82f6 !important; cursor: default; }
+        .building-kb .white-key.given::after { content: ''; position: absolute; top: 55%; left: 50%; transform: translate(-50%,-50%); width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; }
+        .building-kb .white-key.selected { background: #ccfbf1 !important; border-color: #0891b2 !important; }
+        .building-kb .white-key.selected::after { content: ''; position: absolute; top: 55%; left: 50%; transform: translate(-50%,-50%); width: 14px; height: 14px; border-radius: 50%; background: #0891b2; }
+        .building-kb .black-key.given { background: #1e40af !important; border-color: #1e3a8a !important; cursor: default; }
+        .building-kb .black-key.given::after { content: ''; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; border-radius: 50%; background: #93c5fd; }
+        .building-kb .black-key.selected { background: #0891b2 !important; border-color: #0e7490 !important; }
+        .building-kb .black-key.selected::after { content: ''; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; border-radius: 50%; background: white; }
+        .building-kb .key-label { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 0.65rem; color: #94a3b8; pointer-events: none; }
+
+        /* Fork-Branches (Erkennen / Bilden) */
+        .st-fork-branches {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .st-fork-branches .st-node-wrapper { max-width: 100%; }
+        .st-branch-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            color: #475569;
+            background: #f1f5f9;
+        }
+        .st-branch-inner-connector {
+            display: flex;
+            justify-content: center;
+            height: 16px;
+        }
+        .st-branch-inner-connector::before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background: #d1d5db;
+        }
+        .st-branch-inner-connector.mastered::before { background: #ea580c; }
+
         /* Start-Button */
         .st-start-btn {
             display: block;
@@ -1472,40 +1516,70 @@
                         <div class="st-sub-skills" id="stSubs-int3"></div>
                     </div>
 
-                    <div class="st-connector" id="stConn-int3-int4"></div>
+                    <div class="st-connector" id="stConn-int3-fork"></div>
 
-                    <!-- Node 4: Meister (NEU — Feinbestimmung lernen) -->
-                    <div class="st-node-wrapper" id="stNode-int4">
-                        <div class="st-node available" onclick="quickStart.selectNode('int4')">
-                            <div class="st-node-icon">4</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Feinbestimmung lernen</div>
-                                <div class="st-node-desc">Rein, groß, klein, übermäßig, vermindert — Schritt für Schritt</div>
+                    <!-- Fork: Erkennen / Bilden -->
+                    <div class="st-fork-branches">
+                        <!-- Linker Ast: Erkennen -->
+                        <div>
+                            <div class="st-branch-label">Erkennen</div>
+                            <div class="st-node-wrapper" id="stNode-int4">
+                                <div class="st-node available" onclick="quickStart.selectNode('int4')">
+                                    <div class="st-node-icon">4</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Feinbestimmung lernen</div>
+                                        <div class="st-node-desc">Rein, groß, klein, übermäßig, vermindert</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-int4"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-int4"></div>
-                    </div>
-
-                    <div class="st-connector" id="stConn-int4-int5"></div>
-
-                    <!-- Node 5: Experte (ehemals int4 — Alles kombiniert) -->
-                    <div class="st-node-wrapper" id="stNode-int5">
-                        <div class="st-node available" onclick="quickStart.selectNode('int5')">
-                            <div class="st-node-icon">5</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Intervalle präzise bestimmen</div>
-                                <div class="st-node-desc">Feinbestimmung am Notenbild — alles kombiniert</div>
+                            <div class="st-branch-inner-connector" id="stConn-int4-int5"></div>
+                            <div class="st-node-wrapper" id="stNode-int5">
+                                <div class="st-node available" onclick="quickStart.selectNode('int5')">
+                                    <div class="st-node-icon">5</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Intervalle präzise bestimmen</div>
+                                        <div class="st-node-desc">Feinbestimmung am Notenbild</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-int5"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
                         </div>
-                        <div class="st-sub-skills" id="stSubs-int5"></div>
+                        <!-- Rechter Ast: Bilden -->
+                        <div>
+                            <div class="st-branch-label">Bilden</div>
+                            <div class="st-node-wrapper" id="stNode-int6">
+                                <div class="st-node available" onclick="quickStart.selectNode('int6')">
+                                    <div class="st-node-icon">6</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Tastatur bilden</div>
+                                        <div class="st-node-desc">Intervalle auf der Tastatur</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-int6"></div>
+                            </div>
+                            <div class="st-branch-inner-connector" id="stConn-int6-int7"></div>
+                            <div class="st-node-wrapper" id="stNode-int7">
+                                <div class="st-node available" onclick="quickStart.selectNode('int7')">
+                                    <div class="st-node-icon">7</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Notensystem schreiben</div>
+                                        <div class="st-node-desc">Intervalle im Notensystem</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-int7"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Fortschritt -->
                 <div class="st-progress-info" id="stProgressInfo">
-                    0 von 14 Teilkompetenzen gemeistert
+                    0 von 23 Teilkompetenzen gemeistert
                     <div class="st-progress-bar-bg">
                         <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
                     </div>
@@ -1931,7 +2005,9 @@
                 'int2': 'aufsteiger',
                 'int3': 'profi',
                 'int4': 'meister',
-                'int5': 'experte'
+                'int5': 'experte',
+                'int6': 'bilden_tastatur',
+                'int7': 'bilden_staff'
             },
 
             // Sub-Skills pro Knoten
@@ -1964,6 +2040,19 @@
                     { id: 'augdim', label: 'Mit übermäßig/vermindert' },
                     { id: 'extended', label: 'Erweiterte Intervalle' },
                     { id: 'bothclefs', label: 'Beide Schlüssel' },
+                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+                ],
+                'int6': [
+                    { id: 'rein', label: 'Reine Intervalle' },
+                    { id: 'grossklein', label: 'Große & kleine' },
+                    { id: 'augdim', label: 'Übermäßig & vermindert' },
+                    { id: 'erweitert', label: 'Erweiterte (None–Tredezime)' }
+                ],
+                'int7': [
+                    { id: 'rein', label: 'Reine Intervalle' },
+                    { id: 'grossklein', label: 'Große & kleine' },
+                    { id: 'augdim', label: 'Übermäßig & vermindert' },
+                    { id: 'erweitert', label: 'Erweiterte (None–Tredezime)' },
                     { id: 'noaudio', label: 'Ohne Hörbeispiel' }
                 ]
             },
@@ -2030,13 +2119,15 @@
                     aufsteiger: { mastered: [], scores: {} },
                     profi: { mastered: [], scores: {} },
                     meister: { mastered: [], scores: {} },
-                    experte: { mastered: [], scores: {} }
+                    experte: { mastered: [], scores: {} },
+                    bilden_tastatur: { mastered: [], scores: {} },
+                    bilden_staff: { mastered: [], scores: {} }
                 };
             },
 
             // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
-                const nodes = ['int1', 'int2', 'int3', 'int4', 'int5'];
+                const nodes = ['int1', 'int2', 'int3', 'int4', 'int5', 'int6', 'int7'];
                 let totalSubs = 0;
                 let totalMastered = 0;
                 let firstAvailableNode = null;
@@ -2044,6 +2135,10 @@
                 nodes.forEach(nodeId => {
                     const level = this.nodeToLevel[nodeId];
                     const subs = this.nodeSubSkills[nodeId];
+                    // Migration: fehlende Level-Einträge ergänzen (alte Progress-Daten)
+                    if (!this.progress[level]) {
+                        this.progress[level] = { mastered: [], scores: {} };
+                    }
                     const mastered = this.progress[level].mastered || [];
                     const allMastered = subs.every(s => mastered.includes(s.id));
                     const nextUnmastered = subs.find(s => !mastered.includes(s.id));
@@ -2062,24 +2157,30 @@
                         node.querySelector('.st-node-icon').textContent = '✓';
                     } else {
                         node.classList.add('available');
-                        node.querySelector('.st-node-icon').textContent = nodes.indexOf(nodeId) + 1;
+                        node.querySelector('.st-node-icon').textContent = parseInt(nodeId.replace('int', ''));
                         if (!firstAvailableNode) firstAvailableNode = nodeId;
                     }
 
                     // Connector-Zustand
                     const connectorId = nodeId === 'int2' ? 'stConn-int1-int2' :
                                        nodeId === 'int3' ? 'stConn-int2-int3' :
-                                       nodeId === 'int4' ? 'stConn-int3-int4' :
-                                       nodeId === 'int5' ? 'stConn-int4-int5' : null;
+                                       nodeId === 'int4' ? 'stConn-int3-fork' :
+                                       nodeId === 'int5' ? 'stConn-int4-int5' :
+                                       nodeId === 'int6' ? 'stConn-int3-fork' :
+                                       nodeId === 'int7' ? 'stConn-int6-int7' : null;
                     if (connectorId) {
                         const prevConn = document.getElementById(connectorId);
                         if (prevConn) {
-                            const prevIdx = nodes.indexOf(nodeId) - 1;
-                            const prevLevel = this.nodeToLevel[nodes[prevIdx]];
-                            const prevSubs = this.nodeSubSkills[nodes[prevIdx]];
-                            const prevMastered = this.progress[prevLevel].mastered || [];
-                            const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
-                            prevConn.classList.toggle('mastered', prevAllDone);
+                            // Vorgänger-Mapping (Fork-fähig)
+                            const predecessors = {'int2':'int1','int3':'int2','int4':'int3','int5':'int4','int6':'int3','int7':'int6'};
+                            const prevNodeId = predecessors[nodeId];
+                            if (prevNodeId) {
+                                const prevLevel = this.nodeToLevel[prevNodeId];
+                                const prevSubs = this.nodeSubSkills[prevNodeId];
+                                const prevMastered = this.progress[prevLevel].mastered || [];
+                                const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
+                                prevConn.classList.toggle('mastered', prevAllDone);
+                            }
                         }
                     }
 
@@ -2378,7 +2479,28 @@
                 app.settings.clef = 'treble';
                 app.settings.displayMode = 'melodic';
                 app.settings.noAudio = false;
+                app.settings.vzStartChance = 0;
                 app.audioMode = 'melodic';
+
+                // Building-Modus Reset
+                app.buildingMode = false;
+                app.buildingIsKeyboard = true;
+                app.buildingCurrentTask = null;
+                app.buildingSelectedKey = null;
+                app.buildingStaffNote = null;
+                app.buildingGhostNote = null;
+                app.buildingActiveTool = null;
+                app.buildingSubIdx = 0;
+                app.inputLocked = false;
+                app.buildingLastTaskKey = null;
+
+                // Varianz-History für neuen Level resetten
+                app.recentIntervals = [];
+                app.recentStartNotes = [];
+
+                // Keyboard-Card sichtbar machen (falls zuvor versteckt)
+                const kbCard = document.getElementById('keyboardCard');
+                if (kbCard) kbCard.style.display = '';
 
                 // Audio-Steuerung: noaudio-Sub-Skill, int4 generell ohne Audio
                 const isNoAudio = options.includes('noaudio');
@@ -2404,14 +2526,20 @@
                     case 'aufsteiger':
                         app.settings.requireKeyboard = true;
                         app.settings.stammtöneOnly = !options.includes('augdim');
-                        if (options.includes('augdim')) app.settings.onlyAugDim = true;
+                        if (options.includes('augdim')) {
+                            app.settings.onlyAugDim = true;
+                            app.settings.vzStartChance = 0.15;  // 15% VZ-Startnoten
+                        }
                         if (options.includes('bothclefs')) app.settings.clef = 'both';
                         break;
 
                     case 'profi':
                         app.settings.showSemitones = true;
                         app.settings.requireKeyboard = false;
-                        if (options.includes('augdim')) app.settings.onlyAugDim = true;
+                        if (options.includes('augdim')) {
+                            app.settings.onlyAugDim = true;
+                            app.settings.vzStartChance = 0.25;  // 25% VZ-Startnoten
+                        }
                         if (options.includes('bothclefs')) app.settings.clef = 'both';
                         if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
                         break;
@@ -2429,11 +2557,34 @@
                         app.settings.requireKeyboard = false;
                         if (options.includes('augdim')) app.settings.onlyAugDim = true;
                         if (options.includes('extended')) app.settings.showLargeIntervals = true;
-                        if (options.includes('bothclefs')) {
-                            app.settings.clef = 'both';
-                            app.settings.allowBaseAccidental = true;
-                        }
+                        if (options.includes('bothclefs')) app.settings.clef = 'both';
+                        app.settings.vzStartChance = options.includes('basis') ? 0.2 : 0.4;
                         if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
+                        break;
+
+                    case 'bilden_tastatur':
+                        app.buildingMode = true;
+                        app.buildingIsKeyboard = true;
+                        app.buildingSubIdx = ['rein','grossklein','augdim','erweitert'].indexOf(
+                            options[options.length - 1] || 'rein');
+                        if (app.buildingSubIdx < 0) app.buildingSubIdx = 0;
+                        app.settings.vzStartChance = app.buildingSubIdx >= 1 ? 0.4 : 0;
+                        app.settings.noAudio = false;
+                        break;
+
+                    case 'bilden_staff':
+                        app.buildingMode = true;
+                        app.buildingIsKeyboard = false;
+                        app.buildingSubIdx = ['rein','grossklein','augdim','erweitert','noaudio'].indexOf(
+                            options[options.length - 1] || 'rein');
+                        if (app.buildingSubIdx < 0) app.buildingSubIdx = 0;
+                        app.settings.vzStartChance = app.buildingSubIdx >= 1 ? 0.4 : 0;
+                        app.settings.noAudio = options.includes('noaudio');
+                        // Keyboard-Card verstecken im Staff-Modus
+                        {
+                            const kbCard = document.getElementById('keyboardCard');
+                            if (kbCard) kbCard.style.display = 'none';
+                        }
                         break;
                 }
 
@@ -2459,8 +2610,8 @@
 
             updateQuizOverlay() {
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                const nodeIdx = ['int1', 'int2', 'int3', 'int4', 'int5'].indexOf(nodeId) + 1;
-                const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert' };
+                const nodeIdx = parseInt(nodeId.replace('int', ''));
+                const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert', 'int6': 'Tastatur bilden', 'int7': 'Notensystem schreiben' };
                 const nodeName = nodeNames[nodeId] || '';
 
                 const subs = this.nodeSubSkills[nodeId];
@@ -2672,7 +2823,8 @@
                 showCMarker: true,
                 clef: 'treble',
                 displayMode: 'melodic',
-                noAudio: false
+                noAudio: false,
+                vzStartChance: 0        // 0=nie, 0.15=15%, 0.25=25%, 0.4=40%
             },
             audioMode: 'melodic', // 'melodic' oder 'harmonic' (Toggle nur in int5)
 
@@ -2948,6 +3100,35 @@
                 const inputCard = document.getElementById('inputCard');
                 if (!inputCard) return;
 
+                // Building-Modus: eigenes Input-Layout
+                if (this.buildingMode) {
+                    const task = this.buildingCurrentTask;
+                    let toolsHTML = '';
+                    if (!this.buildingIsKeyboard) {
+                        toolsHTML = `<div class="building-tools" style="display:flex;gap:8px;justify-content:center;margin-bottom:0.5rem;">
+                            <button type="button" class="building-tool-btn" id="buildToolSharp"
+                                onclick="app.toggleBuildingTool('sharp')"
+                                style="padding:6px 14px;border:2px solid #d1d5db;border-radius:8px;background:white;cursor:pointer;font-size:0.85rem;transition:all 0.15s;">♯ Kreuz</button>
+                            <button type="button" class="building-tool-btn" id="buildToolFlat"
+                                onclick="app.toggleBuildingTool('flat')"
+                                style="padding:6px 14px;border:2px solid #d1d5db;border-radius:8px;background:white;cursor:pointer;font-size:0.85rem;transition:all 0.15s;">♭ Be</button>
+                        </div>`;
+                    }
+                    inputCard.innerHTML = `
+                        <div class="int4-task-area" style="margin-bottom:12px;">
+                            <div class="int4-ht">Bilde: ${task ? task.interval.name : ''}</div>
+                            <div class="int4-rahmen">aufwärts von <strong>${task ? task.startNote.name : ''}</strong></div>
+                        </div>
+                        ${toolsHTML}
+                        <div class="input-buttons">
+                            <button type="button" onclick="app.checkAnswer()" class="btn-primary"
+                                style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                        </div>
+                        <div class="feedback hidden" id="feedback"></div>`;
+                    document.getElementById('feedback').classList.add('hidden');
+                    return;
+                }
+
                 const btnHTML = `<div class="input-buttons">
                     <button type="button" onclick="app.checkAnswer()" class="btn-primary"
                         style="padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
@@ -3176,6 +3357,11 @@
             },
 
             generateInterval() {
+                // Building-Modus: eigene Aufgabengenerierung
+                if (this.buildingMode) {
+                    this.generateBuildingTask();
+                    return;
+                }
                 // RESET VALIDATION STATE
                 this.validationState = {
                     hasBeenChecked: false,
@@ -3390,10 +3576,10 @@
                         }
                     }
                     
-                    // VZ-Startnoten (int5d): 40% Chance, Startnote aus VZ-Pool
+                    // VZ-Startnoten: vzStartChance pro Level (0=nie, 0.15–0.4)
                     // Einzelfall-Validierung: _calculateTarget prüft auf Doppelvorzeichen
                     let finalBaseName = baseName;
-                    if (this.settings.allowBaseAccidental && Math.random() < 0.4) {
+                    if (this.settings.vzStartChance > 0 && Math.random() < this.settings.vzStartChance) {
                         const vzNote = this.vzStartNotes[Math.floor(Math.random() * this.vzStartNotes.length)];
                         const vzOctNum = this._octNameToNum(baseOctave);
                         const result = this._calculateTarget(vzNote, vzOctNum, intervalSize, targetSemitones);
@@ -3517,6 +3703,106 @@
                 const pitch2 = octaveValues[octave2] + semitoneMap[note2];
                 
                 return Math.abs(pitch2 - pitch1);
+            },
+
+            // ---- Building-Modus: Aufgabengenerierung ----
+            generateBuildingTask() {
+                const pool = this._getBuildingPool(this.buildingSubIdx);
+                const startOct = 4; // eingestrichen
+                const vzChance = this.settings.vzStartChance;
+
+                this.inputLocked = false;
+                this.buildingStaffNote = null;
+                this.buildingGhostNote = null;
+                this.buildingSelectedKey = null;
+                this.buildingActiveTool = null;
+                this.buildingTaskCounter++;
+
+                let attempts = 0;
+                while (attempts++ < 300) {
+                    const interval = pool[Math.floor(Math.random() * pool.length)];
+
+                    // Startnote: Stammton oder VZ
+                    let startName;
+                    if (vzChance > 0 && Math.random() < vzChance) {
+                        startName = this.vzStartNotes[Math.floor(Math.random() * this.vzStartNotes.length)];
+                    } else {
+                        startName = this.noteNames[Math.floor(Math.random() * this.noteNames.length)];
+                    }
+
+                    // ü1 nur mit Stammton-Start (VZ-Start bräuchte Auflösungszeichen)
+                    if (interval.steps === 1 && !this.noteNames.includes(startName)) continue;
+
+                    const target = this._calculateTarget(startName, startOct, interval.steps, interval.semitones);
+                    if (!target.valid) continue;
+
+                    // Range: Ziel innerhalb C3–C6
+                    const targetMidi = this._noteToMidi({name: target.name, octave: this._octNumToName(target.oct)});
+                    if (targetMidi < 48 || targetMidi > 84) continue; // C3=48, C6=84
+
+                    const taskKey = startName + '|' + interval.name;
+                    if (taskKey === this.buildingLastTaskKey) continue;
+
+                    // Varianz: Gleiches Intervall wie zuletzt → IMMER re-rollen (wenn Pool > 1)
+                    const lastInterval = this.recentIntervals.length > 0 ? this.recentIntervals[this.recentIntervals.length - 1] : null;
+                    if (interval.name === lastInterval && pool.length > 1) continue;
+
+                    // Varianz: Gleiches Intervall in letzten 3 → 70% re-roll
+                    if (this.recentIntervals.slice(-3).includes(interval.name) && Math.random() < 0.7) continue;
+
+                    // Varianz: Startnote wie zuletzt → IMMER re-rollen (wenn genug Noten)
+                    const lastStart = this.recentStartNotes.length > 0 ? this.recentStartNotes[this.recentStartNotes.length - 1] : null;
+                    if (startName === lastStart && this.noteNames.length > 2) continue;
+
+                    // Varianz: Startnote in letzten 5 → 60% re-roll
+                    if (this.recentStartNotes.slice(-5).includes(startName) && Math.random() < 0.6) continue;
+
+                    // Oktave rein: 75% re-roll (zu trivial)
+                    if (interval.name === 'reine Oktave' && Math.random() < 0.75) continue;
+
+                    // Akzeptiert
+                    this.buildingLastTaskKey = taskKey;
+                    this.recentIntervals.push(interval.name);
+                    if (this.recentIntervals.length > 15) this.recentIntervals.shift();
+                    this.recentStartNotes.push(startName);
+                    if (this.recentStartNotes.length > 10) this.recentStartNotes.shift();
+
+                    this.buildingCurrentTask = {
+                        startNote: { name: startName, oct: startOct },
+                        interval: interval,
+                        targetNote: { name: target.name, oct: target.oct }
+                    };
+
+                    // currentInterval für Audio-Playback setzen
+                    this.currentInterval = {
+                        note1: { name: startName, octave: this._octNumToName(startOct), clef: 'treble' },
+                        note2: { name: target.name, octave: this._octNumToName(target.oct), clef: 'treble' },
+                        size: interval.steps,
+                        semitones: interval.semitones,
+                        displayMode: 'melodic'
+                    };
+
+                    break;
+                }
+
+                // Fallback
+                if (!this.buildingCurrentTask) {
+                    this.buildingCurrentTask = {
+                        startNote: { name: 'C', oct: 4 },
+                        interval: this.BUILDING_POOLS[0][1],
+                        targetNote: { name: 'G', oct: 4 }
+                    };
+                    this.currentInterval = {
+                        note1: { name: 'C', octave: 'eingestrichen', clef: 'treble' },
+                        note2: { name: 'G', octave: 'eingestrichen', clef: 'treble' },
+                        size: 5, semitones: 7, displayMode: 'melodic'
+                    };
+                }
+
+                // UI aktualisieren
+                this.setupInput();
+                this.drawStaff();
+                this.renderKeyboard();
             },
 
             // ---- Lernkarten-System ----
@@ -4796,6 +5082,12 @@
             },
 
             drawStaff() {
+                // Building-Modus: eigenes Staff-Rendering
+                if (this.buildingMode && this.buildingCurrentTask) {
+                    this._drawBuildingStaff();
+                    return;
+                }
+                if (!this.currentInterval) return;
                 const note1 = this.currentInterval.note1;
                 const note2 = this.currentInterval.note2;
                 const displayMode = this.currentInterval.displayMode;
@@ -4998,7 +5290,91 @@
                 document.getElementById('staffContainer').innerHTML = svg;
             },
 
+            // Building: Note auf Staff zeichnen (Hilfsfunktion)
+            _drawBuildingNoteAt(noteName, octave, x, color, ghost) {
+                const baseName = noteName.replace(/is$/, '').replace('As','A').replace('Es','E').replace('B','H').replace('Ces','C').replace('Fes','F').replace('Ges','G').replace('Des','D');
+                const noteKey = `${baseName}-${this._octNumToName(octave)}-treble`;
+                const pos = this.notePositions[noteKey];
+                if (pos === undefined) return '';
+
+                const baseY = 260;
+                const y = baseY - (pos * 10);
+                let svg = '';
+                const opacity = ghost ? 0.3 : 1;
+
+                // Hilfslinien
+                if (y >= 280) {
+                    for (let ly = 280; ly <= y; ly += 20)
+                        svg += `<line x1="${x-19}" y1="${ly}" x2="${x+19}" y2="${ly}" stroke="${ghost?'#ccc':'#000'}" stroke-width="2"/>`;
+                }
+                if (y <= 160) {
+                    for (let ly = 160; ly >= y; ly -= 20)
+                        svg += `<line x1="${x-19}" y1="${ly}" x2="${x+19}" y2="${ly}" stroke="${ghost?'#ccc':'#000'}" stroke-width="2"/>`;
+                }
+
+                // Vorzeichen
+                const hasSharp = noteName.endsWith('is') || noteName === 'His' || noteName === 'Eis';
+                const hasFlat = noteName === 'Es'||noteName === 'As'||noteName === 'B'||noteName === 'Ces'||noteName === 'Fes'||noteName === 'Ges'||noteName === 'Des'||(noteName.length>2&&noteName.endsWith('es'));
+                if (hasSharp) svg += this._svgSharp(x - 24, y, color, 35);
+                if (hasFlat) svg += this._svgFlat(x - 24, y, color, 35);
+
+                svg += `<ellipse cx="${x}" cy="${y}" rx="12.5" ry="9.5" fill="${color}" opacity="${opacity}" transform="rotate(-20 ${x} ${y})"/>`;
+                return svg;
+            },
+
+            _drawBuildingStaff() {
+                const task = this.buildingCurrentTask;
+                const staffLines = [260, 240, 220, 200, 180];
+                const baseY = 260;
+
+                let svg = '<svg width="320" height="220" viewBox="0 120 320 220" style="margin:0 auto;display:block;max-width:100%;">';
+
+                // Notenlinien
+                staffLines.forEach(ly => {
+                    svg += `<line x1="80" y1="${ly}" x2="290" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+                });
+
+                // Violinschlüssel (1:1 aus drawStaff)
+                svg += `<g transform="translate(85, 158) scale(0.15)"><g transform="matrix(.21599 0 0 .21546 -250.44 -1202.6)"><path d="m2002 7851c-61 17-116 55-167 113-51 59-76 124-76 194 0 44 15 94 44 147 29 54 73 93 130 118 19 4 28 14 28 28 0 5-7 10-24 14-91-23-166-72-224-145-58-74-88-158-90-254 3-103 34-199 93-287 60-89 137-152 231-189l-69-355c-154 128-279 261-376 401-97 139-147 290-151 453 2 73 17 144 45 212 28 69 70 131 126 188 113 113 260 172 439 178 61-4 126-15 196-33l-155-783zm72-10l156 769c154-62 231-197 231-403-9-69-29-131-63-186-33-56-77-100-133-132s-119-48-191-48zm-205-1040c33-20 71-55 112-104 41-48 81-105 119-169 39-65 70-131 93-198 23-66 34-129 34-187 0-25-2-50-7-72-4-36-15-64-34-83-19-18-43-28-73-28-60 0-114 37-162 111-37 64-68 140-90 226-23 87-36 173-38 260 5 99 21 180 46 244zm-63 58c-45-162-70-327-75-495 1-108 12-209 33-303 20-94 49-175 87-245 37-70 80-123 128-159 43-32 74-49 91-49 13 0 24 5 34 14s23 24 39 44c119 169 179 373 179 611 0 113-15 223-45 333-29 109-72 213-129 310-58 98-126 183-205 256l81 394c44-5 74-9 91-9 76 0 144 16 207 48s117 75 161 130c44 54 78 116 102 186 23 70 36 143 36 219 0 118-31 226-93 323s-155 168-280 214c8 49 22 120 43 211 20 92 35 165 45 219s14 106 14 157c0 79-19 149-57 211-39 62-91 110-157 144-65 34-137 51-215 51-110 0-206-31-288-92-82-62-126-145-130-251 3-47 14-91 34-133s47-76 82-102c34-27 75-41 122-44 39 0 76 11 111 32 34 22 62 51 83 88 20 37 31 78 31 122 0 59-20 109-60 150s-91 62-152 62h-23c39 60 103 91 192 91 45 0 91-10 137-28 47-19 86-44 119-76s55-66 64-102c17-41 25-98 25-169 0-48-5-96-14-144-9-47-23-110-42-188-19-77-33-137-41-178-60 15-122 23-187 23-109 0-212-22-309-67s-182-107-256-187c-73-80-130-170-171-272-40-101-61-207-62-317 4-102 23-200 59-292 36-93 82-181 139-263s116-157 177-224c62-66 143-151 245-254z" fill="#000" stroke="#000" stroke-width="53"/></g></g>`;
+
+                // Startnote (blau)
+                svg += this._drawBuildingNoteAt(task.startNote.name, task.startNote.oct, 170, '#3b82f6', false);
+
+                // Keyboard-Modus: selektierte Note auf Staff zeigen
+                if (this.buildingIsKeyboard && this.buildingSelectedKey) {
+                    svg += this._drawBuildingNoteAt(this.buildingSelectedKey.name, this.buildingSelectedKey.oct, 245, '#0891b2', false);
+                }
+
+                // Staff-Modus: platzierte Note + Ghost
+                if (!this.buildingIsKeyboard) {
+                    if (this.buildingStaffNote) {
+                        svg += this._drawBuildingNoteAt(this.buildingStaffNote.noteName, this.buildingStaffNote.octave, 245, '#0891b2', false);
+                    } else {
+                        // Placeholder dot
+                        svg += `<circle cx="245" cy="${baseY + 30}" r="4" fill="#d1d5db"/>`;
+                    }
+                    if (this.buildingGhostNote) {
+                        svg += this._drawBuildingNoteAt(this.buildingGhostNote.noteName, this.buildingGhostNote.octave, 245, '#0891b2', true);
+                    }
+                }
+
+                svg += '</svg>';
+
+                const container = document.getElementById('staffContainer');
+                container.innerHTML = svg;
+
+                // Staff-Interaktion für int7 (Notensystem schreiben)
+                if (!this.buildingIsKeyboard) {
+                    this._enableBuildingStaffInteraction(container.querySelector('svg'));
+                }
+            },
+
             renderKeyboard() {
+                // Building-Modus: eigene Keyboard-Logik
+                if (this.buildingMode && this.buildingIsKeyboard) {
+                    this._renderBuildingKeyboard();
+                    return;
+                }
                 // Keyboard immer rendern (auch als Orientierung bei requireKeyboard=false)
                 if (!this.currentInterval) return;
 
@@ -5169,16 +5545,15 @@
                 });
                 
                 html += '</div>';
-                document.getElementById('keyboardContainer').innerHTML = html;
+                const kbContainer = document.getElementById('keyboardContainer');
+                kbContainer.innerHTML = html;
+                kbContainer.style.cssText = ''; // Building-Inline-Styles zurücksetzen
             },
 
             selectKey(pitch) {
                 if (!this.settings.requireKeyboard) return;
 
-                // Keyboard-Click-Sound (Aufsteiger: Ton beim Klicken)
-                if (!this.settings.noAudio) {
-                    this.playKeyboardNote(pitch + 24); // pitch → MIDI (0=kontra C → MIDI 24)
-                }
+                // Audio nur über Play-Button, nicht bei Tastatur-Klick (Ansatz B)
 
                 const index = this.selectedKeys.indexOf(pitch);
                 if (index > -1) {
@@ -5452,7 +5827,274 @@
                 }
             },
 
+            // ========================================
+            // BUILDING-MODUS: Keyboard + Staff + Validation
+            // ========================================
+
+            _renderBuildingKeyboard() {
+                const container = document.getElementById('keyboardContainer');
+                if (!container || !this.buildingCurrentTask) return;
+
+                const task = this.buildingCurrentTask;
+                const startPos = this._getStaffPos(task.startNote.name);
+                const startWhiteIdx = task.startNote.oct * 7 + startPos;
+                const maxSteps = Math.max(...this._getBuildingPool(this.buildingSubIdx).map(i => i.steps));
+
+                const lowIdx = startWhiteIdx - 3;
+                const highIdx = startWhiteIdx + maxSteps + 2;
+
+                // Dynamische Tastengrößen (1:1 aus Recognition-KB)
+                const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                let containerHeight;
+                if (window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches) {
+                    containerHeight = 9 * rem;
+                } else if (window.matchMedia('(orientation: landscape) and (max-height: 1100px)').matches) {
+                    containerHeight = 10 * rem;
+                } else if (window.matchMedia('(min-width: 769px) and (max-height: 900px)').matches) {
+                    containerHeight = 9 * rem;
+                } else {
+                    containerHeight = 14 * rem;
+                }
+                const keyW = Math.round(containerHeight * 0.268);
+                const keyH = Math.round(containerHeight);
+                const blackW = Math.round(containerHeight * 0.161);
+                const blackH = Math.round(containerHeight * 0.6);
+                const whiteKeys = [], blackKeys = [];
+
+                for (let idx = lowIdx; idx <= highIdx; idx++) {
+                    const oct = Math.floor(idx / 7);
+                    const pos = ((idx % 7) + 7) % 7;
+                    const name = this.noteNames[pos];
+                    whiteKeys.push({ name, oct, relIdx: idx - lowIdx });
+                    if (pos !== 2 && pos !== 6) {
+                        const bName = {'C':'Cis','D':'Dis','F':'Fis','G':'Gis','A':'Ais'}[name];
+                        if (bName) blackKeys.push({ name: bName, oct, afterRelIdx: idx - lowIdx });
+                    }
+                }
+
+                const totalW = whiteKeys.length * keyW;
+                const givenMidi = this._noteToMidi({name: task.startNote.name, octave: this._octNumToName(task.startNote.oct)});
+                const selMidi = this.buildingSelectedKey ?
+                    this._noteToMidi({name: this.buildingSelectedKey.name, octave: this._octNumToName(this.buildingSelectedKey.oct)}) : -1;
+
+                // Building-KB in eigenem Wrapper mit .building-kb Scope (CSS-Isolation)
+                const gap = 2;
+                const totalWGap = whiteKeys.length * (keyW + gap) - gap;
+                const isMobilePortrait = window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
+                const isMobileLandscape = window.matchMedia('(max-width: 768px) and (orientation: landscape)').matches;
+
+                let html = `<div class="keyboard-container building-kb" style="width:${totalWGap}px;">`;
+                // White keys (Flex-Layout wie Recognition-KB)
+                html += '<div class="white-keys">';
+                whiteKeys.forEach(n => {
+                    const midi = this._noteToMidi({name: n.name, octave: this._octNumToName(n.oct)});
+                    const isGiven = midi === givenMidi;
+                    const isSel = midi === selMidi;
+                    const cls = isGiven ? 'given' : isSel ? 'selected' : '';
+                    html += `<button class="white-key ${cls}" style="width:${keyW}px"
+                        ${isGiven?'disabled':`onclick="app.selectBuildingKey('${n.name}',${n.oct})"`}></button>`;
+                });
+                html += '</div>';
+                // Black keys (absolute, wie Recognition-KB)
+                html += '<div class="black-keys">';
+                blackKeys.forEach(n => {
+                    const leftPos = (n.afterRelIdx + 1) * (keyW + gap) - blackW / 2 - gap / 2;
+                    const midi = this._noteToMidi({name: n.name, octave: this._octNumToName(n.oct)});
+                    const isGiven = midi === givenMidi;
+                    const isSel = midi === selMidi;
+                    const cls = isGiven ? 'given' : isSel ? 'selected' : '';
+                    html += `<button class="black-key ${cls}" style="left:${leftPos}px;width:${blackW}px"
+                        ${isGiven?'disabled':`onclick="app.selectBuildingKey('${n.name}',${n.oct})"`}></button>`;
+                });
+                html += '</div>';
+                // C-Marker (Helmholtz-Notation, 1:1 aus Recognition-KB)
+                const cFontSize = isMobilePortrait ? '0.65rem' : (isMobileLandscape ? '0.8rem' : '0.95rem');
+                whiteKeys.forEach((n, idx) => {
+                    if (n.name === 'C') {
+                        const markerX = idx * (keyW + gap) + keyW / 2;
+                        const octLabels = {2:'C',3:'c',4:"c'",5:"c''",6:"c'''"};
+                        const cLabel = octLabels[n.oct] || 'C';
+                        html += `<div style="position:absolute;bottom:8%;left:${markerX}px;transform:translateX(-50%);font-size:${cFontSize};color:#ea580c;font-weight:bold;background:rgba(255,255,255,0.9);padding:2px 4px;border-radius:4px;pointer-events:none;">${cLabel}</div>`;
+                    }
+                });
+                html += '</div>';
+
+                container.innerHTML = html;
+                container.style.cssText = ''; // Inline-Styles zurücksetzen
+
+                // Keyboard-Hint + Card-Styling (wie Recognition)
+                const kbHint = document.getElementById('keyboardHint');
+                if (kbHint) {
+                    kbHint.textContent = 'Klicke den Zielton des Intervalls!';
+                    kbHint.style.fontWeight = '600';
+                    kbHint.style.color = '#ea580c';
+                }
+                const kbCard = document.getElementById('keyboardCard');
+                if (kbCard) {
+                    kbCard.classList.remove('keyboard-viewonly');
+                    kbCard.classList.add('keyboard-input');
+                }
+            },
+
+            selectBuildingKey(name, oct) {
+                if (this.inputLocked) return;
+                const task = this.buildingCurrentTask;
+                if (!task) return;
+
+                // Enharmonik-Auflösung aus Intervallkontext (für ALLE Tasten)
+                const pressedMidi = this._noteToMidi({name, octave: this._octNumToName(oct)});
+                const startPos = this._getStaffPos(task.startNote.name);
+                const targetPosRaw = startPos + task.interval.steps - 1;
+                const targetLetterIdx = targetPosRaw % 7;
+                const octaveAdd = Math.floor(targetPosRaw / 7);
+                const expectedLetter = this.noteNames[targetLetterIdx];
+                const expectedOct = task.startNote.oct + octaveAdd;
+                const naturalMidi = this._noteToMidi({name: expectedLetter, octave: this._octNumToName(expectedOct)});
+                const diff = pressedMidi - naturalMidi;
+
+                const SHARP = {'C':'Cis','D':'Dis','E':'Eis','F':'Fis','G':'Gis','A':'Ais','H':'His'};
+                const FLAT  = {'C':'Ces','D':'Des','E':'Es','F':'Fes','G':'Ges','A':'As','H':'B'};
+
+                if (diff === 0) this.buildingSelectedKey = { name: expectedLetter, oct: expectedOct };
+                else if (diff === 1) this.buildingSelectedKey = { name: SHARP[expectedLetter], oct: expectedOct };
+                else if (diff === -1) this.buildingSelectedKey = { name: FLAT[expectedLetter], oct: expectedOct };
+                else this.buildingSelectedKey = { name, oct };
+
+                this._renderBuildingKeyboard();
+                this.drawStaff();
+            },
+
+            // Staff-Interaktion für int7
+            _enableBuildingStaffInteraction(svg) {
+                if (!svg) return;
+                // Cursor: none — Ghost-Note ist der visuelle Cursor (1:1 aus TT)
+                svg.style.cursor = 'none';
+
+                const getCoords = (e) => {
+                    const rect = svg.getBoundingClientRect();
+                    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                    const vb = svg.viewBox.baseVal;
+                    return {
+                        x: (cx - rect.left) / rect.width * vb.width + vb.x,
+                        y: (cy - rect.top) / rect.height * vb.height + vb.y
+                    };
+                };
+
+                // Y → Note+Oktave Konvertierung (1:1 aus TT _staffYToNoteInfo)
+                const yToNote = (svgY) => {
+                    const baseY = 260;
+                    const fullPos = Math.round((baseY - svgY) / 10);
+                    const octave = Math.floor((fullPos + 2) / 7) + 4;
+                    const staffPos = ((fullPos + 2) % 7 + 7) % 7;
+                    const posToNote = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                    let noteName = posToNote[staffPos];
+
+                    if (this.buildingActiveTool === 'sharp') {
+                        const m = {'C':'Cis','D':'Dis','E':'Eis','F':'Fis','G':'Gis','A':'Ais','H':'His'};
+                        if (m[noteName]) noteName = m[noteName];
+                    } else if (this.buildingActiveTool === 'flat') {
+                        const m = {'C':'Ces','D':'Des','E':'Es','F':'Fes','G':'Ges','A':'As','H':'B'};
+                        if (m[noteName]) noteName = m[noteName];
+                    }
+                    return { noteName, octave };
+                };
+
+                svg.onmousemove = (e) => {
+                    if (this.inputLocked) { this.buildingGhostNote = null; this.drawStaff(); return; }
+                    const coords = getCoords(e);
+                    const info = yToNote(coords.y);
+                    this.buildingGhostNote = { noteName: info.noteName, octave: info.octave };
+                    this.drawStaff();
+                };
+                svg.onmouseleave = () => { this.buildingGhostNote = null; this.drawStaff(); };
+                svg.onmousedown = (e) => {
+                    if (this.inputLocked) return;
+                    const coords = getCoords(e);
+                    const info = yToNote(coords.y);
+                    this.buildingStaffNote = { noteName: info.noteName, octave: info.octave };
+                    this.buildingGhostNote = null;
+                    this.drawStaff();
+                };
+                svg.ontouchstart = (e) => { e.preventDefault(); svg.onmousemove(e); };
+                svg.ontouchmove = (e) => { e.preventDefault(); svg.onmousemove(e); };
+                svg.ontouchend = (e) => {
+                    e.preventDefault();
+                    if (this.inputLocked || !this.buildingGhostNote) return;
+                    this.buildingStaffNote = { noteName: this.buildingGhostNote.noteName, octave: this.buildingGhostNote.octave };
+                    this.buildingGhostNote = null;
+                    this.drawStaff();
+                };
+            },
+
+            toggleBuildingTool(tool) {
+                this.buildingActiveTool = (this.buildingActiveTool === tool) ? null : tool;
+                const sharpBtn = document.getElementById('buildToolSharp');
+                const flatBtn = document.getElementById('buildToolFlat');
+                if (sharpBtn) {
+                    sharpBtn.style.borderColor = this.buildingActiveTool === 'sharp' ? '#ea580c' : '#d1d5db';
+                    sharpBtn.style.background = this.buildingActiveTool === 'sharp' ? '#fff7ed' : 'white';
+                    sharpBtn.style.fontWeight = this.buildingActiveTool === 'sharp' ? '600' : '400';
+                }
+                if (flatBtn) {
+                    flatBtn.style.borderColor = this.buildingActiveTool === 'flat' ? '#ea580c' : '#d1d5db';
+                    flatBtn.style.background = this.buildingActiveTool === 'flat' ? '#fff7ed' : 'white';
+                    flatBtn.style.fontWeight = this.buildingActiveTool === 'flat' ? '600' : '400';
+                }
+            },
+
+            checkBuildingAnswer() {
+                if (this.inputLocked || !this.buildingCurrentTask) return;
+                const task = this.buildingCurrentTask;
+                const fb = document.getElementById('feedback');
+                let correct = false;
+
+                if (this.buildingIsKeyboard) {
+                    if (!this.buildingSelectedKey) return;
+                    // MIDI + Rahmenintervall prüfen
+                    const selMidi = this._noteToMidi({name: this.buildingSelectedKey.name, octave: this._octNumToName(this.buildingSelectedKey.oct)});
+                    const targetMidi = this._noteToMidi({name: task.targetNote.name, octave: this._octNumToName(task.targetNote.oct)});
+                    const midiOk = selMidi === targetMidi;
+                    const selPos = this._getStaffPos(this.buildingSelectedKey.name);
+                    const startPos = this._getStaffPos(task.startNote.name);
+                    const octDiff = this.buildingSelectedKey.oct - task.startNote.oct;
+                    const actualSteps = (octDiff * 7 + selPos - startPos) + 1;
+                    correct = midiOk && actualSteps === task.interval.steps;
+                } else {
+                    if (!this.buildingStaffNote) return;
+                    correct = (this.buildingStaffNote.noteName === task.targetNote.name &&
+                               this.buildingStaffNote.octave === task.targetNote.oct);
+                }
+
+                this.inputLocked = true;
+
+                if (correct) {
+                    if (fb) { fb.textContent = '✓ Richtig! ' + task.targetNote.name; fb.className = 'feedback correct'; fb.classList.remove('hidden'); }
+                    if (quickStart.isActive) quickStart.handleAnswer(true);
+                    const quizDone = quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions;
+                    setTimeout(() => {
+                        if (!quizDone) this.generateInterval();
+                    }, 1200);
+                } else {
+                    if (fb) { fb.innerHTML = '⚠ Nicht ganz — versuch es nochmal.'; fb.className = 'feedback incorrect'; fb.classList.remove('hidden'); }
+                    if (quickStart.isActive) quickStart.handleAnswer(false);
+                    setTimeout(() => {
+                        this.inputLocked = false;
+                        this.buildingSelectedKey = null;
+                        this.buildingStaffNote = null;
+                        if (fb) fb.classList.add('hidden');
+                        this._renderBuildingKeyboard();
+                        this.drawStaff();
+                    }, 1500);
+                }
+            },
+
             checkAnswer() {
+                // Building-Modus: eigene Validierung
+                if (this.buildingMode) {
+                    this.checkBuildingAnswer();
+                    return;
+                }
                 // QUICK-START MODI: Weiterleitung an spezielle Handler
                 if (this.quickStartMode === 'einsteiger' && document.getElementById('intervalDropdown')) {
                     this.checkDropdownAnswer();
@@ -6291,7 +6933,7 @@
                     }
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
-                    const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert' };
+                    const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert', 'int6': 'Tastatur bilden', 'int7': 'Notensystem schreiben' };
                     const nodeName = nodeNames[nodeId] || '';
 
                     titleEl.textContent = `Hilfe: ${nodeName}`;
