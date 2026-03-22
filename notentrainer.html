@@ -186,7 +186,7 @@
 
         /* ===== SKILLTREE STYLES (Indigo) ===== */
         .skilltree-container {
-            max-width: 560px;
+            max-width: 35rem;
             margin: 0 auto;
         }
 
@@ -2007,17 +2007,28 @@
 
             // ---- Skilltree: Knoten auswählen ----
             selectNode(nodeId) {
-                document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
-                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
-                this.selectedSub = null;
-
-                document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
-
                 const wrapper = document.getElementById('stNode-' + nodeId);
                 if (!wrapper) return;
                 const node = wrapper.querySelector('.st-node');
                 if (node.classList.contains('locked')) return;
 
+                // Toggle: bereits offen → schließen
+                if (wrapper.classList.contains('expanded')) {
+                    wrapper.classList.remove('expanded');
+                    node.classList.remove('selected');
+                    this.selectedNode = null;
+                    this.selectedSub = null;
+                    this._updateStartButton();
+                    return;
+                }
+
+                // Alle anderen schließen
+                document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
+                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+                document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
+                this.selectedSub = null;
+
+                // Diesen öffnen
                 node.classList.add('selected');
                 wrapper.classList.add('expanded');
                 this.selectedNode = nodeId;

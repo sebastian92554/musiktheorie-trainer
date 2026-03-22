@@ -203,7 +203,7 @@
 
         /* Skilltree Container */
         .skilltree-container {
-            max-width: 480px;
+            max-width: 30rem;
             margin: 0 auto;
         }
 
@@ -258,7 +258,7 @@
         }
 
         /* Alle Knoten auf halbe Breite (konsistent mit Fork-Ästen) */
-        .st-node-wrapper { width: 100%; max-width: 230px; }
+        .st-node-wrapper { width: 100%; max-width: 14.375rem; }
 
         /* Verbindungslinien */
         .st-connector {
@@ -439,7 +439,7 @@
         .st-cross-app {
             margin-bottom: 0.25rem;
             width: 100%;
-            max-width: 230px;
+            max-width: 14.375rem;
         }
         .st-cross-label {
             font-size: 0.6rem;
@@ -2710,27 +2710,33 @@
 
         // ---- Skilltree: Knoten auswählen ----
         selectNode(nodeId) {
-            // Deselect all
-            document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
-            document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
-            this.selectedSub = null;
-
-            // Close all expanded
-            document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
-
-            // Select & expand this one
             const wrapper = document.getElementById('stNode-' + nodeId);
             if (!wrapper) return;
             const node = wrapper.querySelector('.st-node');
             if (node.classList.contains('locked')) return;
 
+            // Toggle: bereits offen → schließen
+            if (wrapper.classList.contains('expanded')) {
+                wrapper.classList.remove('expanded');
+                node.classList.remove('selected');
+                this.selectedNode = null;
+                this.selectedSub = null;
+                this._updateStartButton();
+                return;
+            }
+
+            // Alle anderen schließen
+            document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
+            document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+            document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
+            this.selectedSub = null;
+
+            // Diesen öffnen
             node.classList.add('selected');
             wrapper.classList.add('expanded');
             this.selectedNode = nodeId;
 
-            // Dot bei empfohlener Sub-Skill auf "current" setzen
             this._updateSubDotSelection(nodeId);
-
             this._updateStartButton();
         },
 
