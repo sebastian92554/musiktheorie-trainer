@@ -988,8 +988,11 @@
         .skilltree {
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 0.25rem;
         }
+        /* Alle Knoten auf halbe Breite (konsistent mit Fork-Ästen) */
+        .st-node-wrapper { width: 100%; max-width: 230px; }
 
         /* Verbindungslinien */
         .st-connector {
@@ -1120,6 +1123,8 @@
         /* Cross-App Abhängigkeit */
         .st-cross-app {
             margin-bottom: 0.75rem;
+            width: 100%;
+            max-width: 230px;
         }
         .st-cross-label {
             font-size: 0.6rem;
@@ -2580,11 +2585,8 @@
                         if (app.buildingSubIdx < 0) app.buildingSubIdx = 0;
                         app.settings.vzStartChance = app.buildingSubIdx >= 1 ? 0.4 : 0;
                         app.settings.noAudio = options.includes('noaudio');
-                        // Keyboard-Card verstecken im Staff-Modus
-                        {
-                            const kbCard = document.getElementById('keyboardCard');
-                            if (kbCard) kbCard.style.display = 'none';
-                        }
+                        // Keyboard als Orientierung sichtbar (view-only, wie int5)
+                        if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
                         break;
                 }
 
