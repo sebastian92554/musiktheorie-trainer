@@ -1226,6 +1226,21 @@
         .building-kb .black-key.selected::after { content: ''; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; border-radius: 50%; background: white; }
         .building-kb .key-label { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 0.65rem; color: #94a3b8; pointer-events: none; }
 
+        /* Fork-Stem + Bracket (Gabelung) */
+        .st-fork-stem { display: flex; justify-content: center; height: 14px; }
+        .st-fork-stem::before { content: ''; width: 2px; height: 100%; background: #d1d5db; }
+        .st-fork-stem.mastered::before { background: #ea580c; }
+
+        .st-fork-bracket {
+            width: calc(50% + 0.375rem);
+            margin: 0 auto;
+            height: 22px;
+            border: 2px solid #d1d5db;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+        .st-fork-bracket.mastered { border-color: #ea580c; }
+
         /* Fork-Branches (Erkennen / Bilden) */
         .st-fork-branches {
             display: grid;
@@ -1521,7 +1536,8 @@
                         <div class="st-sub-skills" id="stSubs-int3"></div>
                     </div>
 
-                    <div class="st-connector" id="stConn-int3-fork"></div>
+                    <div class="st-fork-stem" id="stForkStem"></div>
+                    <div class="st-fork-bracket" id="stForkBracket"></div>
 
                     <!-- Fork: Erkennen / Bilden -->
                     <div class="st-fork-branches">
@@ -2169,9 +2185,7 @@
                     // Connector-Zustand
                     const connectorId = nodeId === 'int2' ? 'stConn-int1-int2' :
                                        nodeId === 'int3' ? 'stConn-int2-int3' :
-                                       nodeId === 'int4' ? 'stConn-int3-fork' :
                                        nodeId === 'int5' ? 'stConn-int4-int5' :
-                                       nodeId === 'int6' ? 'stConn-int3-fork' :
                                        nodeId === 'int7' ? 'stConn-int6-int7' : null;
                     if (connectorId) {
                         const prevConn = document.getElementById(connectorId);
@@ -2210,6 +2224,16 @@
                         }).join('');
                     }
                 });
+
+                // Fork-Stem + Bracket: mastered wenn int3 komplett
+                const int3Level = this.nodeToLevel['int3'];
+                const int3Subs = this.nodeSubSkills['int3'];
+                const int3Mastered = this.progress[int3Level].mastered || [];
+                const int3Done = int3Subs.every(s => int3Mastered.includes(s.id));
+                const forkStem = document.getElementById('stForkStem');
+                const forkBracket = document.getElementById('stForkBracket');
+                if (forkStem) forkStem.classList.toggle('mastered', int3Done);
+                if (forkBracket) forkBracket.classList.toggle('mastered', int3Done);
 
                 // Gesamt-Fortschritt
                 const percentage = Math.round((totalMastered / totalSubs) * 100);
