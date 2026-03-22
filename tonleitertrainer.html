@@ -5573,7 +5573,7 @@
         getLernkarteKey(subSkillId) {
             const level = quickStart.currentLevel;
             if (level === 'einsteiger') return subSkillId;
-            const prefixMap = { 'aufsteiger': 'ton2_', 'profi': 'ton3_', 'meister': 'ton5_' };
+            const prefixMap = { 'aufsteiger': 'ton2_', 'profi': 'ton3_', 'bilden': 'ton4_', 'meister': 'ton5_' };
             const prefix = prefixMap[level];
             if (prefix) return prefix + subSkillId;
             return subSkillId;
@@ -5635,7 +5635,7 @@
 
             const allYs = computed.map(c => c.y);
             const minY = Math.min(...allYs, 52);
-            const maxY = Math.max(...allYs, 100);
+            const maxY = Math.max(...allYs, 112);
             const svgTop = minY - 14;
             const labelH = hideLabels ? 0 : 22;
             const svgBottom = maxY + (hideLabels ? 16 : 12) + labelH;
@@ -5692,7 +5692,9 @@
                 numOctaves = 1,
                 keyRange = null,
                 stepBrackets = null,
+                scaleKeys = null,
                 leftPad = 0,
+                keyWidth = null,
                 highlightKeys = [], arrows = [], topArrows = [], onKeyArrows = [],
                 keyStepArrows = [],
                 showBlackLabels = false, showHalftoneArrows = false, title = ''
@@ -5712,7 +5714,7 @@
             }
             const numWhite = whiteKeys.length;
 
-            const ww = numOctaves > 1 ? 24 : 32;
+            const ww = keyWidth || (numOctaves > 1 ? 24 : 32);
             const wh = numOctaves > 1 ? 64 : 80;
             const bw = numOctaves > 1 ? 15 : 20;
             const bh = numOctaves > 1 ? 40 : 50;
@@ -5925,29 +5927,34 @@
                 const armH = 6;
                 const vDepth = 8;
                 const gap = 2;
+                // scaleKeys erlaubt Brackets über beliebige Tasten (inkl. schwarze)
+                const bKeys = scaleKeys || whiteKeys.map(wk => wk.id);
                 // Stufennummern über jeder Taste (zwischen Taste und Brackets)
                 const stufenY = ky + pad + wh + labelSpace + 10;
-                whiteKeys.forEach((wk, i) => {
-                    const cx = keyPositions[wk.id];
+                bKeys.forEach((keyId, i) => {
+                    const cx = keyPositions[keyId];
+                    if (cx === undefined) return;
                     svg += `<text x="${cx}" y="${stufenY}" text-anchor="middle" font-size="8" fill="#6b7280" font-weight="600">${i + 1}</text>`;
                 });
                 // Brackets starten unterhalb der Stufennummern
                 const armTopY = stufenY + 3;
                 const bracketBaseY = armTopY + armH;
                 stepBrackets.forEach((step, i) => {
-                    if (i >= whiteKeys.length - 1) return;
-                    const x1 = keyPositions[whiteKeys[i].id] + gap / 2;
-                    const x2 = keyPositions[whiteKeys[i + 1].id] - gap / 2;
-                    const midX = (x1 + x2) / 2;
+                    if (i >= bKeys.length - 1) return;
+                    const x1 = keyPositions[bKeys[i]];
+                    const x2 = keyPositions[bKeys[i + 1]];
+                    if (x1 === undefined || x2 === undefined) return;
+                    const bx1 = x1 + gap / 2, bx2 = x2 - gap / 2;
+                    const midX = (bx1 + bx2) / 2;
                     const color = step === 'HT' ? '#dc2626' : '#16a34a';
 
                     if (step === 'GT') {
-                        svg += `<line x1="${x1}" y1="${bracketBaseY}" x2="${x2}" y2="${bracketBaseY}" stroke="${color}" stroke-width="1.5"/>`;
-                        svg += `<line x1="${x1}" y1="${bracketBaseY}" x2="${x1}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
-                        svg += `<line x1="${x2}" y1="${bracketBaseY}" x2="${x2}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${bx1}" y1="${bracketBaseY}" x2="${bx2}" y2="${bracketBaseY}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${bx1}" y1="${bracketBaseY}" x2="${bx1}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${bx2}" y1="${bracketBaseY}" x2="${bx2}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
                     } else {
-                        svg += `<line x1="${x1}" y1="${armTopY}" x2="${midX}" y2="${armTopY + vDepth}" stroke="${color}" stroke-width="1.5"/>`;
-                        svg += `<line x1="${midX}" y1="${armTopY + vDepth}" x2="${x2}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${bx1}" y1="${armTopY}" x2="${midX}" y2="${armTopY + vDepth}" stroke="${color}" stroke-width="1.5"/>`;
+                        svg += `<line x1="${midX}" y1="${armTopY + vDepth}" x2="${bx2}" y2="${armTopY}" stroke="${color}" stroke-width="1.5"/>`;
                     }
                     svg += `<text x="${midX}" y="${bracketBaseY + vDepth + 4}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${step}</text>`;
                 });
@@ -6092,7 +6099,6 @@
                         <div class="lk-tip"><strong>Tipp:</strong> Die Halbtonschritte sind im Notensystem farbig markiert — achte auf ihre Position, sie ist das Erkennungsmerkmal.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht: Dur, Moll oder Andere.</div>`,
                 render() {
-                    document.querySelector('#lernkarteOverlay .lernkarte').style.maxWidth = '414px';
                     // C-Dur: Staff + Tastatur
                     document.getElementById('lkVisualCDur3').innerHTML =
                         this.renderLernkarteStaff([
@@ -6100,7 +6106,7 @@
                             {label:'G', pos:2}, {label:'A', pos:3}, {label:'H', pos:4}, {label:'C', pos:5}
                         ], { hideLabels: true }) +
                         this.renderLernkarteTastatur({
-                            numOctaves: 2, keyRange: [0, 7], leftPad: 40,
+                            numOctaves: 2, keyRange: [0, 7], leftPad: 40, keyWidth: 29,
                             stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
                         });
                     // a-Moll: Staff + Tastatur
@@ -6110,7 +6116,7 @@
                             {label:'E', pos:7}, {label:'F', pos:8}, {label:'G', pos:9}, {label:'A', pos:10}
                         ], { hideLabels: true }) +
                         this.renderLernkarteTastatur({
-                            numOctaves: 2, keyRange: [5, 12], leftPad: 40,
+                            numOctaves: 2, keyRange: [5, 12], leftPad: 40, keyWidth: 29,
                             stepBrackets: ['GT','HT','GT','GT','HT','GT','GT']
                         });
                 }
@@ -6123,14 +6129,13 @@
                         <div class="lk-rule"><strong>Schritt 1:</strong> HT-Positionen finden → Tongeschlecht bestimmen.<br><strong>Schritt 2:</strong> Grundton ablesen → Name = Grundton + Tongeschlecht (z.B. „D-Dur").</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die HT-Stufen UND benenne die Tonleiter.</div>`,
                 render() {
-                    document.querySelector('#lernkarteOverlay .lernkarte').style.maxWidth = '414px';
                     document.getElementById('lkVisualDDur3b').innerHTML =
                         this.renderLernkarteStaff([
                             {label:'D', pos:-1}, {label:'E', pos:0}, {label:'Fis', pos:1, accidental:'sharp'}, {label:'G', pos:2},
                             {label:'A', pos:3}, {label:'H', pos:4}, {label:'Cis', pos:5, accidental:'sharp'}, {label:'D', pos:6}
                         ], { hideLabels: true }) +
                         this.renderLernkarteTastatur({
-                            numOctaves: 2, keyRange: [1, 8], leftPad: 40,
+                            numOctaves: 2, keyRange: [1, 8], leftPad: 40, keyWidth: 29,
                             stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
                         });
                 }
@@ -6153,14 +6158,138 @@
                         <div class="lk-rule"><strong>Regel:</strong> Bestimme die Tonleiter rein visuell anhand des Notenbilds.</div>`
             },
 
+            // ===== ton4: Tonleiter bilden (Building-Modus) =====
+            ton4_tastatur_einfach: {
+                title: 'Tastatur (einfach)',
+                body: `<p>Du siehst eine Tonleiter, bei der einige Töne <strong>fehlen</strong>. Ergänze die fehlenden Töne, indem du die richtigen Tasten auf der Tastatur antippst.</p>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">G-Dur — ergänze die fehlenden Töne</div>
+                        <div class="lk-visual" id="lkVisual1"></div>
+                        <div class="lk-rule"><strong>Regel:</strong> Jede Dur-Tonleiter folgt dem Muster <strong>GT–GT–HT–GT–GT–GT–HT</strong>. Die Halbtonschritte liegen immer zwischen Stufe 3–4 und 7–8. Jede Moll-Tonleiter folgt dem Muster <strong>GT–HT–GT–GT–HT–GT–GT</strong> (Stufe 2–3 und 5–6).</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Beginne beim Grundton und gehe Taste für Taste aufwärts. Bei Dur zähle mit: „Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb." Häufig landet man dabei nicht auf einer weißen, sondern auf einer <strong>schwarzen Taste</strong>. Der Stammton wird erhöht oder erniedrigt, damit das GT–HT-Muster eingehalten werden kann. Im Beispiel oben wird aus F ein Fis, weil der Abstand von Stufe 6 zu 7 einen Ganztonschritt beträgt.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Ergänze die fehlenden Töne auf der Tastatur. Die vorgegebenen Töne (blau) helfen dir bei der Orientierung.</div>`,
+                render() {
+                    // G-Dur: G A H C D E Fis G — vorgegeben: G(0), H(2), C(3), E(5), G(7)
+                    const pad = 6, clefSpace = 50, spacing = 44;
+                    const notes = [
+                        {label:'G', pos:2, given:true}, {label:'?', pos:3, given:false},
+                        {label:'H', pos:4, given:true}, {label:'C', pos:5, given:true},
+                        {label:'?', pos:6, given:false}, {label:'E', pos:7, given:true},
+                        {label:'?', pos:8, given:false}, {label:'G', pos:9, given:true}
+                    ];
+                    const totalW = pad + clefSpace + 8 * spacing + 6;
+                    const baseY = 100, lineSpacing = 12;
+                    const staffLines = [100, 88, 76, 64, 52];
+                    const minY = Math.min(...notes.map(n => baseY - n.pos * lineSpacing / 2), 52);
+                    const maxY = Math.max(...notes.map(n => baseY - n.pos * lineSpacing / 2), 112);
+                    const svgTop = minY - 14;
+                    const svgH = maxY + 16 - svgTop;
+
+                    let svg = `<svg width="100%" viewBox="0 ${svgTop} ${totalW} ${svgH}" preserveAspectRatio="xMidYMid meet">`;
+                    staffLines.forEach(ly => {
+                        svg += `<line x1="${pad}" y1="${ly}" x2="${totalW - 4}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                    });
+                    svg += `<g transform="translate(${pad - 45}, -56) scale(0.6)">${this.drawTrebleClefSVG()}</g>`;
+
+                    const rx = 7.5, ry = 5.7, hlW = 12;
+                    notes.forEach((n, i) => {
+                        const y = baseY - (n.pos * lineSpacing / 2);
+                        const cx = pad + clefSpace + i * spacing + spacing / 2;
+                        if (y > 100) for (let ly = 100 + lineSpacing; ly <= y; ly += lineSpacing)
+                            svg += `<line x1="${cx-hlW}" y1="${ly}" x2="${cx+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                        if (y < 52) for (let ly = 52 - lineSpacing; ly >= y; ly -= lineSpacing)
+                            svg += `<line x1="${cx-hlW}" y1="${ly}" x2="${cx+hlW}" y2="${ly}" stroke="#999" stroke-width="1"/>`;
+                        if (n.given) {
+                            svg += `<ellipse cx="${cx}" cy="${y}" rx="${rx}" ry="${ry}" fill="#3b82f6" transform="rotate(-20 ${cx} ${y})"/>`;
+                        } else {
+                            svg += `<circle cx="${cx}" cy="${maxY + 10}" r="4" fill="#d1d5db"/>`;
+                        }
+                    });
+                    svg += '</svg>';
+
+                    // Tastatur: G bis G, Brackets über scaleKeys (inkl. Fis)
+                    const _lp = 40, _pad = 6, _ww = 29, _wh = 64, _bh = 40;
+                    const kb = this.renderLernkarteTastatur({
+                        numOctaves: 2, keyRange: [4, 11], leftPad: _lp, keyWidth: _ww,
+                        highlightKeys: [
+                            {key:'G', color:'#dbeafe'},
+                            {key:'H', color:'#dbeafe'},
+                            {key:'C2', color:'#dbeafe'},
+                            {key:'E2', color:'#dbeafe'},
+                            {key:'G2', color:'#dbeafe'}
+                        ],
+                        scaleKeys: ['G','A','H','C2','D2','E2','Fis2','G2'],
+                        stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
+                    });
+
+                    document.getElementById('lkVisual1').innerHTML = svg + kb;
+
+                    // Bogen E→Fis (wie 1a) + Fis-Label
+                    const kbSvg = document.querySelector('#lkVisual1 svg:last-of-type');
+                    if (kbSvg) {
+                        const eX = _lp + _pad + 5 * _ww + _ww / 2;
+                        const fisX = _lp + _pad + 6 * _ww + _ww;
+                        const arrowY = _pad + _wh * 0.55;
+                        const midX = (eX + fisX) / 2;
+                        const radius = (fisX - eX) / 2;
+                        const color = '#16a34a';
+                        let g = '';
+                        g += `<path d="M${eX},${arrowY} A${radius},${radius} 0 0,1 ${fisX},${arrowY}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
+                        const tipSize = 5;
+                        const ax1 = fisX - tipSize * Math.cos(Math.PI/6);
+                        const ay1 = arrowY - tipSize * Math.sin(Math.PI/6);
+                        const ax2 = fisX + tipSize * Math.cos(Math.PI/3);
+                        const ay2 = arrowY - tipSize * Math.sin(Math.PI/3);
+                        g += `<polygon points="${fisX},${arrowY} ${ax1},${ay1} ${ax2},${ay2}" fill="${color}"/>`;
+                        g += `<circle cx="${eX}" cy="${arrowY}" r="2.5" fill="${color}"/>`;
+                        g += `<text x="${fisX}" y="${_pad + 14}" text-anchor="middle" font-size="7" fill="#fff" font-weight="700">Fis</text>`;
+                        kbSvg.insertAdjacentHTML('beforeend', g);
+                    }
+                }
+            },
+            ton4_tastatur_schwer: {
+                title: 'Tastatur (viele Vorzeichen)',
+                body: `<p>Jetzt kommen auch Tonarten mit <strong>4 oder mehr Vorzeichen</strong> dazu. Außerdem bekommst du weniger Töne vorgegeben — am Ende nur noch den Grundton.</p>
+                        <div class="lk-rule"><strong>Regel:</strong> Das Muster bleibt gleich — nur die Startnote ändert sich. Zähle vom Grundton aus: <span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span> (Dur) oder <span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span> (Moll).</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Wenn du unsicher bist, finde zuerst die Halbtonschritte. Bei Dur liegen sie immer zwischen Stufe 3–4 und 7–8. Dann müssen alle anderen Schritte Ganztöne sein.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Ergänze die fehlenden Töne auf der Tastatur. Es sind Lücken zum Füllen vorgegeben.</div>`
+            },
+            ton4_schreiben_einfach: {
+                title: 'Schreiben (einfach)',
+                body: `<p>Jetzt schreibst du die Tonleiter direkt ins <strong>Notensystem</strong>. Klicke auf die richtige Position, um eine Note zu platzieren. Für Vorzeichen nutzt du die Werkzeuge ♯ und ♭.</p>
+                        <div class="lk-visual">
+                            <div style="font-size:0.8rem; color:#475569; margin-bottom:8px;">Werkzeuge</div>
+                            <div style="display:flex; gap:8px; justify-content:center;">
+                                <span style="padding:4px 12px; border:2px solid #d1d5db; border-radius:6px; font-size:0.8rem;">🧹 Radierer</span>
+                                <span style="padding:4px 12px; border:2px solid #0891b2; border-radius:6px; font-size:0.8rem; background:#ecfeff; color:#0891b2; font-weight:600;">♯ Kreuz</span>
+                                <span style="padding:4px 12px; border:2px solid #d1d5db; border-radius:6px; font-size:0.8rem;">♭ Be</span>
+                            </div>
+                            <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Wähle ein Werkzeug, dann klicke ins Notensystem</div>
+                        </div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Arbeite dich Schritt für Schritt aufwärts — jede nächste Stufe liegt genau eine Position höher. Vergiss nicht: Wenn ein Ton ein ♯ oder ♭ braucht, wähle <em>zuerst</em> das Werkzeug, dann klicke.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe alle 8 Töne der Tonleiter ins leere Notensystem. Nutze die Werkzeuge für Vorzeichen.</div>`
+            },
+            ton4_schreiben_schwer: {
+                title: 'Schreiben (viele Vorzeichen)',
+                body: `<p>Wie zuvor, aber jetzt auch mit <strong>komplexeren Tonarten</strong>. Tonarten wie E-Dur (4♯) oder As-Dur (4♭) erfordern sicheren Umgang mit mehreren Vorzeichen.</p>
+                        <div class="lk-rule"><strong>Regel:</strong> Bei ♯-Tonarten werden Kreuze in der Reihenfolge <strong>F–C–G–D–A–E–H</strong> hinzugefügt. Bei ♭-Tonarten die Bes in der Reihenfolge <strong>H–E–A–D–G–C–F</strong> hinzugefügt (umgekehrte Reihenfolge!). Welche und wie viele Vorzeichen eine Tonart hat, lässt sich auch über den <strong>Quintenzirkel</strong> (Knoten 5) nach Regeln ableiten.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Überlege dir zuerst, welche Vorzeichen die Tonart hat. Beispiel: D-Dur hat 2♯ = Fis und Cis. Dann schreibe die Tonleiter und setze bei den betroffenen Tönen das Vorzeichen. Diese Strategie funktioniert besonders gut, wenn du den <strong>Quintenzirkel</strong> (Knoten 5) bereits beherrschst.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter ins Notensystem — auch bei Tonarten mit vielen Vorzeichen.</div>`
+            },
+            ton4_noaudio: {
+                title: 'Ohne Hörbeispiel',
+                body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr. Du musst die Tonleiter rein aus dem Wissen über das Tonleiter-Muster konstruieren.</p>
+                        <div class="lk-rule"><strong>Regel:</strong> Verlasse dich auf die Intervallstruktur: Dur = GT–GT–HT–GT–GT–GT–HT, Moll = GT–HT–GT–GT–HT–GT–GT.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Wenn du unsicher bist, stelle dir die Klaviatur im Kopf vor. Wo sind die natürlichen Halbtonschritte (E–F, H–C)? Von dort aus kannst du die Tonleiter ableiten.</div>`
+            },
+
             // ===== ton5: Quintenzirkel (Meister) =====
             ton5_aussenkr: {
                 title: 'Der Quintenzirkel — Außenkreis',
                 body: `<p>Der Quintenzirkel ordnet alle Dur-Tonarten nach ihrer Verwandtschaft. Im Uhrzeigersinn steigt die Anzahl der <span class="vz-sharp"></span>, gegen den Uhrzeigersinn die der <span class="vz-flat"></span>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen Uhrzeigersinn): <strong>F</strong>rische <strong>B</strong>rötchen <strong>Es</strong>sen <strong>As</strong>se <strong>Des</strong> <strong>Ges</strong>angs.</div>
+                        <div class="lk-rule"><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> C-Dur steht oben (0 Vorzeichen). Rechts = Kreuz, links = Be.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne die Dur-Tonart an einer Position oder die Anzahl der Vorzeichen.</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne die Anzahl der Vorzeichen einer Dur-Tonart — oder umgekehrt: Welche Dur-Tonart hat eine bestimmte Anzahl Vorzeichen?</div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this._buildQzVisual('aussenkr');
                 }
@@ -6169,7 +6298,7 @@
                 title: 'Innenkreis — Mollparallelen',
                 body: `<p>Jede Dur-Tonart hat eine <strong>parallele Molltonart</strong> mit den gleichen Vorzeichen. Sie liegt immer eine kleine Terz (3 HT) tiefer.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> C-Dur → a-Moll, G-Dur → e-Moll, D-Dur → h-Moll usw. Beide teilen dieselben Vorzeichen.</div>
+                        <div class="lk-rule"><strong>Regel:</strong> C-Dur → a-Moll, G-Dur → e-Moll, F-Dur → d-Moll usw. Beide teilen dieselben Vorzeichen.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Vom Dur-Grundton 3 HT abwärts = Moll-Parallele.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne zu einer Dur-Tonart die Mollparallele — oder umgekehrt.</div>`,
                 render() {
@@ -6183,16 +6312,10 @@
                         const angle = (hour * 30 - 90) * Math.PI / 180;
                         return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
                     }
-                    const allKeys = QUINTENZIRKEL.allKeys;
                     let extra = '';
-                    allKeys.forEach((dur, idx) => {
-                        const moll = QUINTENZIRKEL.parallelMinor[dur];
-                        if (moll) {
-                            const p = posAt(idx, innerR - 8);
-                            const isAnchor = (idx === 0 || idx === 1 || idx === 11);
-                            const clr = isAnchor ? '#94a3b8' : '#b0b8c4';
-                            extra += `<text x="${p.x}" y="${p.y + 4}" text-anchor="middle" font-size="12" font-weight="400" fill="${clr}">${moll}</text>`;
-                        }
+                    [{h:0, name:'a'}, {h:1, name:'e'}, {h:11, name:'d'}].forEach(m => {
+                        const p = posAt(m.h, innerR - 8);
+                        extra += `<text x="${p.x}" y="${p.y + 4}" text-anchor="middle" font-size="13" font-weight="400" fill="#94a3b8">${m.name}</text>`;
                     });
                     svgEl.insertAdjacentHTML('beforeend', extra);
                 }
@@ -6201,7 +6324,7 @@
                 title: 'Vorzeichen-Ableitung',
                 body: `<p>Die Vorzeichen erscheinen in einer <strong>festen Reihenfolge</strong>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Kreuz-Reihenfolge:</strong> Fis – Cis – Gis – Dis – Ais – Eis – His.<br><strong>Be-Reihenfolge:</strong> B – Es – As – Des – Ges – Ces – Fes.<br>(Umkehrung voneinander!)</div>
+                        <div class="lk-rule"><strong>Kreuz-Reihenfolge:</strong> Fis – Cis – Gis – Dis – Ais – Eis – His.<br><strong>Be-Reihenfolge:</strong> B – Es – As – Des – Ges – Ces – Fes.<br>Beide Reihen folgen derselben Abfolge von <strong>Stammtönen</strong> (F–C–G–D–A–E–H), nur in <strong>umgekehrter Richtung</strong>: Die Kreuz-Reihe beginnt bei F (→ Fis), die Be-Reihe endet bei F (← Fes).</div>
                         <div class="lk-tip"><strong>Tipp:</strong> G-Dur = 1<span class="vz-sharp"></span> → nur Fis. D-Dur = 2<span class="vz-sharp"></span> → Fis + Cis. Immer der Reihe nach.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne alle Vorzeichen einer Tonart in der richtigen Reihenfolge.</div>`,
                 render() {
@@ -6280,39 +6403,50 @@
                 title: 'Symmetrien im Quintenzirkel',
                 body: `<p>Der Quintenzirkel hat geometrische Symmetrien, die musikalisch bedeutsam sind.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Tritonus:</strong> Gegenüberliegende Tonarten (z.B. C ↔ Fis) — 6 Quinten Abstand.<br><strong>Großterz-Dreieck:</strong> 4 Quinten zwischen den Ecken (z.B. C – E – As).<br><strong>Kleinterz-Raute:</strong> 3 Quinten Abstand (z.B. C – Es – Fis – A).</div>
+                        <div class="lk-rule"><strong><span style="color:#dc2626">Tritonus</span></strong> <span style="color:#dc2626">&#9644;</span>: Gegenüberliegende Tonarten (z.B. C ↔ Fis) — 6 Quinten Abstand.<br><strong><span style="color:#2563eb">Großterz-Dreieck</span></strong> <span style="color:#2563eb">&#9650;</span>: 4 Quinten zwischen den Ecken (z.B. C – E – As).<br><strong><span style="color:#16a34a">Kleinterz-Raute</span></strong> <span style="color:#16a34a">&#9670;</span>: 3 Quinten Abstand (z.B. C – Es – Fis – A).</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Identifiziere Symmetrie-Partner einer Tonart im Quintenzirkel.</div>`,
                 render() {
                     const qzHtml = this._buildQzVisual('aussenkr');
                     document.getElementById('lkVisual1').innerHTML = qzHtml;
                     const svgEl = document.querySelector('#lkVisual1 svg');
-                    if (svgEl) {
-                        const cx = this._qzCx, cy = this._qzCy, r = this._qzR;
-                        const smallR = r - 18;
-                        const lineR = smallR - 12;
-                        const allKeys = QUINTENZIRKEL.allKeys;
-                        const highlight = '#ea580c';
-                        function posAt(hour, radius) {
-                            const angle = (hour * 30 - 90) * Math.PI / 180;
-                            return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
-                        }
-                        // Großterz-Dreieck: C(0) – E(4) – As(8)
-                        const triPts = [0,4,8].map(h => posAt(h, lineR));
-                        let pathD = `M${triPts[0].x},${triPts[0].y}`;
-                        triPts.slice(1).forEach(p => pathD += ` L${p.x},${p.y}`);
-                        pathD += ' Z';
-                        svgEl.insertAdjacentHTML('beforeend',
-                            `<path d="${pathD}" fill="${highlight}" fill-opacity="0.08" stroke="${highlight}" stroke-width="1.5" stroke-dasharray="5,3"/>`
-                        );
-                        // Labels für C, E, As
-                        [0,4,8].forEach(h => {
-                            const name = allKeys[h];
-                            const p = posAt(h, smallR);
-                            svgEl.insertAdjacentHTML('beforeend',
-                                `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="${highlight}">${name}</text>`
-                            );
-                        });
+                    if (!svgEl) return;
+                    const cx = this._qzCx, cy = this._qzCy, r = this._qzR;
+                    const smallR = r - 18;
+                    const lineR = smallR - 12;
+                    const allKeys = QUINTENZIRKEL.allKeys;
+                    function posAt(hour, radius) {
+                        const angle = (hour * 30 - 90) * Math.PI / 180;
+                        return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
                     }
+                    let g = '';
+
+                    // Kleinterz-Raute (grün): C – Es – Fis – A (0, 3, 6, 9)
+                    const rautePts = [0,3,6,9].map(h => posAt(h, lineR));
+                    let rauteD = `M${rautePts[0].x},${rautePts[0].y}`;
+                    rautePts.slice(1).forEach(p => rauteD += ` L${p.x},${p.y}`);
+                    rauteD += ' Z';
+                    g += `<path d="${rauteD}" fill="#16a34a" fill-opacity="0.06" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+
+                    // Großterz-Dreieck (blau): C – E – As (0, 4, 8)
+                    const triPts = [0,4,8].map(h => posAt(h, lineR));
+                    let triD = `M${triPts[0].x},${triPts[0].y}`;
+                    triPts.slice(1).forEach(p => triD += ` L${p.x},${p.y}`);
+                    triD += ' Z';
+                    g += `<path d="${triD}" fill="#2563eb" fill-opacity="0.06" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+
+                    // Tritonus (rot): C ↔ Fis (0, 6)
+                    const t0 = posAt(0, lineR), t6 = posAt(6, lineR);
+                    g += `<line x1="${t0.x}" y1="${t0.y}" x2="${t6.x}" y2="${t6.y}" stroke="#dc2626" stroke-width="2"/>`;
+
+                    // Tonart-Labels für alle beteiligten Positionen
+                    const labelHours = {0:'#dc2626', 3:'#16a34a', 4:'#2563eb', 6:'#dc2626', 8:'#2563eb', 9:'#16a34a'};
+                    Object.entries(labelHours).forEach(([h, color]) => {
+                        const p = posAt(parseInt(h), smallR);
+                        const name = allKeys[parseInt(h)];
+                        g += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="${color}">${name}</text>`;
+                    });
+
+                    svgEl.insertAdjacentHTML('beforeend', g);
                 }
             }
         },
