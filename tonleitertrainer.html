@@ -429,15 +429,11 @@
         /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
         /* Ghost-Note übernimmt Preview → Cursor ausblenden wenn Ghost sichtbar */
         #staffSvg.staff-interactive { cursor: none; }
-        /* Radierer: eigener Cursor (keine Ghost-Note) */
-        #staffSvg.staff-interactive.tool-eraser { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21'/%3E%3Cpath d='M22 21H7'/%3E%3Cpath d='m5 11 9 9'/%3E%3C/svg%3E") 4 20, pointer; }
 
         .building-tools { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 0.5rem; }
         .building-tool-btn { padding: 6px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
         .building-tool-btn.active { border-color: #0891b2; background: #ecfeff; color: #0891b2; font-weight: 600; }
         .building-tool-btn:hover { border-color: #94a3b8; }
-        .building-tool-btn.eraser { color: #ef4444; }
-        .building-tool-btn.eraser.active { border-color: #ef4444; background: #fef2f2; }
 
         /* Cross-App Abhängigkeit */
         .st-cross-app {
@@ -3813,7 +3809,7 @@
         buildingGivenIndices: [],       // Welche Noten-Indices vorgegeben sind
         buildingUserSelections: [],     // MIDI-Nummern der vom User gewählten Tasten (Keyboard)
         buildingStaffNotes: [],         // [{noteName, octave, x}] platzierte Noten (Staff)
-        buildingActiveTool: null,       // 'eraser', 'sharp', 'flat', oder null
+        buildingActiveTool: null,       // 'sharp', 'flat', oder null
         buildingGhostNote: null,        // {noteName, octave, x} Hover-Preview
         buildingTaskCounter: 0,         // Zählt Aufgaben für Lücken-Progression
 
@@ -4121,14 +4117,12 @@
         // ---- Staff-Building: Vorzeichen-Tools ----
         toggleBuildingTool(tool) {
             this.buildingActiveTool = (this.buildingActiveTool === tool) ? null : tool;
-            document.getElementById('buildToolEraser').classList.toggle('active', this.buildingActiveTool === 'eraser');
             document.getElementById('buildToolSharp').classList.toggle('active', this.buildingActiveTool === 'sharp');
             document.getElementById('buildToolFlat').classList.toggle('active', this.buildingActiveTool === 'flat');
             // Update cursor class on SVG
             const svg = document.getElementById('staffSvg');
-            svg.classList.remove('tool-eraser', 'tool-sharp', 'tool-flat');
-            if (this.buildingActiveTool === 'eraser') svg.classList.add('tool-eraser');
-            else if (this.buildingActiveTool === 'sharp') svg.classList.add('tool-sharp');
+            svg.classList.remove('tool-sharp', 'tool-flat');
+            if (this.buildingActiveTool === 'sharp') svg.classList.add('tool-sharp');
             else if (this.buildingActiveTool === 'flat') svg.classList.add('tool-flat');
         },
 
@@ -4175,7 +4169,7 @@
 
         // ---- Staff-Building: Event-Handler ----
         _staffBuildingHover(e) {
-            if (this.inputLocked || this.buildingActiveTool === 'eraser') {
+            if (this.inputLocked) {
                 this.buildingGhostNote = null;
                 return;
             }
@@ -4185,11 +4179,6 @@
 
             const startX = 185, spacing = 52;
             const slotX = startX + slot * spacing;
-            // Don't ghost over existing notes
-            if (this.buildingStaffNotes.find(n => Math.abs(n.x - slotX) < 10)) {
-                this.buildingGhostNote = null; this.drawStaff(); return;
-            }
-
             const info = this._staffYToNoteInfo(coords.y);
             this.buildingGhostNote = { ...info, x: slotX };
             this.drawStaff();
@@ -4197,36 +4186,31 @@
 
         _staffBuildingPlace(e) {
             if (this.inputLocked) return;
-            const svg = document.getElementById('staffSvg');
             const startX = 185, spacing = 52;
+            let noteName, octave, slotX;
 
             // Touch-End: use last ghost position
             if (e.type === 'touchend' && this.buildingGhostNote) {
-                if (this.buildingActiveTool === 'eraser') {
-                    this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - this.buildingGhostNote.x) > 10);
-                } else {
-                    this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - this.buildingGhostNote.x) > 10);
-                    this.buildingStaffNotes.push({ noteName: this.buildingGhostNote.noteName, octave: this.buildingGhostNote.octave, x: this.buildingGhostNote.x });
-                }
+                noteName = this.buildingGhostNote.noteName;
+                octave = this.buildingGhostNote.octave;
+                slotX = this.buildingGhostNote.x;
                 this.buildingGhostNote = null;
-                this.drawStaff();
-                return;
+            } else {
+                const coords = this._staffSvgCoords(e);
+                const slot = this._staffNearestSlot(coords.x);
+                if (slot === -1) return;
+                slotX = startX + slot * spacing;
+                const info = this._staffYToNoteInfo(coords.y);
+                noteName = info.noteName;
+                octave = info.octave;
             }
 
-            const coords = this._staffSvgCoords(e);
-            const slot = this._staffNearestSlot(coords.x);
-            if (slot === -1) return;
-            const slotX = startX + slot * spacing;
-
-            if (this.buildingActiveTool === 'eraser') {
-                this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - slotX) > 10);
-                this.drawStaff();
-                return;
-            }
-
-            const info = this._staffYToNoteInfo(coords.y);
+            // Toggle: gleiche Note am gleichen Slot → löschen, sonst ersetzen
+            const existing = this.buildingStaffNotes.find(n => Math.abs(n.x - slotX) < 10);
             this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - slotX) > 10);
-            this.buildingStaffNotes.push({ noteName: info.noteName, octave: info.octave, x: slotX });
+            if (!(existing && existing.noteName === noteName && existing.octave === octave)) {
+                this.buildingStaffNotes.push({ noteName, octave, x: slotX });
+            }
             this.drawStaff();
         },
 
@@ -4244,7 +4228,7 @@
 
         _disableStaffBuilding() {
             const svg = document.getElementById('staffSvg');
-            svg.classList.remove('staff-interactive', 'tool-eraser', 'tool-sharp', 'tool-flat');
+            svg.classList.remove('staff-interactive', 'tool-sharp', 'tool-flat');
             svg.onmousedown = null;
             svg.onmousemove = null;
             svg.onmouseleave = null;
@@ -4365,7 +4349,6 @@
                     // Staff-Building: Vorzeichen-Tools + Prüfen-Button
                     inputCard.innerHTML = `
                         <div class="building-tools">
-                            <button type="button" class="building-tool-btn eraser" id="buildToolEraser" onclick="app.toggleBuildingTool('eraser')">🧹 Radierer</button>
                             <button type="button" class="building-tool-btn" id="buildToolSharp" onclick="app.toggleBuildingTool('sharp')">♯ Kreuz</button>
                             <button type="button" class="building-tool-btn" id="buildToolFlat" onclick="app.toggleBuildingTool('flat')">♭ Be</button>
                         </div>
@@ -5436,7 +5419,7 @@
                     }
 
                     // Ghost-Note (Hover-Preview, halbtransparent)
-                    if (this.buildingGhostNote && this.buildingActiveTool !== 'eraser') {
+                    if (this.buildingGhostNote) {
                         svgContent += this.drawNoteAt(this.buildingGhostNote.noteName, this.buildingGhostNote.octave, this.buildingGhostNote.x, baseY, 'rgba(8,145,178,0.45)');
                     }
                 }
@@ -6259,11 +6242,10 @@
                         <div class="lk-visual">
                             <div style="font-size:0.8rem; color:#475569; margin-bottom:8px;">Werkzeuge</div>
                             <div style="display:flex; gap:8px; justify-content:center;">
-                                <span style="padding:4px 12px; border:2px solid #d1d5db; border-radius:6px; font-size:0.8rem;">🧹 Radierer</span>
                                 <span style="padding:4px 12px; border:2px solid #0891b2; border-radius:6px; font-size:0.8rem; background:#ecfeff; color:#0891b2; font-weight:600;">♯ Kreuz</span>
                                 <span style="padding:4px 12px; border:2px solid #d1d5db; border-radius:6px; font-size:0.8rem;">♭ Be</span>
                             </div>
-                            <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Wähle ein Werkzeug, dann klicke ins Notensystem</div>
+                            <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Wähle ein Werkzeug, dann klicke ins Notensystem. Gleiche Note erneut klicken = löschen.</div>
                         </div>
                         <div class="lk-tip"><strong>Tipp:</strong> Arbeite dich Schritt für Schritt aufwärts — jede nächste Stufe liegt genau eine Position höher. Vergiss nicht: Wenn ein Ton ein ♯ oder ♭ braucht, wähle <em>zuerst</em> das Werkzeug, dann klicke.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe alle 8 Töne der Tonleiter ins leere Notensystem. Nutze die Werkzeuge für Vorzeichen.</div>`
