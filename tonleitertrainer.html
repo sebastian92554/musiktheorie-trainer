@@ -2379,7 +2379,11 @@
             { root: 'F',  type: 'Dur', notes: ['F','G','A','B','C','D','E','F'],     octaves: [4,4,4,4,5,5,5,5], vorzeichen: 1 },
             { root: 'B',  type: 'Dur', notes: ['B','C','D','Es','F','G','A','B'],    octaves: [4,5,5,5,5,5,5,5], vorzeichen: 2 },
             { root: 'Es', type: 'Dur', notes: ['Es','F','G','As','B','C','D','Es'],  octaves: [4,4,4,4,4,5,5,5], vorzeichen: 3 },
-            { root: 'As', type: 'Dur', notes: ['As','B','C','Des','Es','F','G','As'],octaves: [4,4,5,5,5,5,5,5], vorzeichen: 4 }
+            { root: 'As', type: 'Dur', notes: ['As','B','C','Des','Es','F','G','As'],octaves: [4,4,5,5,5,5,5,5], vorzeichen: 4 },
+            { root: 'H',  type: 'Dur', notes: ['H','Cis','Dis','E','Fis','Gis','Ais','H'],octaves:[3,4,4,4,4,4,4,4], vorzeichen: 5 },
+            { root: 'Fis',type: 'Dur', notes: ['Fis','Gis','Ais','H','Cis','Dis','Eis','Fis'],octaves:[4,4,4,4,5,5,5,5], vorzeichen: 6 },
+            { root: 'Des',type: 'Dur', notes: ['Des','Es','F','Ges','As','B','C','Des'],octaves:[4,4,4,4,4,4,5,5], vorzeichen: 5 },
+            { root: 'Ges',type: 'Dur', notes: ['Ges','As','B','Ces','Des','Es','F','Ges'],octaves:[4,4,4,5,5,5,5,5], vorzeichen: 6 }
         ],
         moll: [
             { root: 'a',   type: 'Moll', notes: ['A','H','C','D','E','F','G','A'],      octaves: [4,4,5,5,5,5,5,5], vorzeichen: 0 },
@@ -2390,7 +2394,11 @@
             { root: 'd',   type: 'Moll', notes: ['D','E','F','G','A','B','C','D'],      octaves: [4,4,4,4,4,4,5,5], vorzeichen: 1 },
             { root: 'g',   type: 'Moll', notes: ['G','A','B','C','D','Es','F','G'],     octaves: [4,4,4,5,5,5,5,5], vorzeichen: 2 },
             { root: 'c',   type: 'Moll', notes: ['C','D','Es','F','G','As','B','C'],    octaves: [4,4,4,4,4,4,4,5], vorzeichen: 3 },
-            { root: 'f',   type: 'Moll', notes: ['F','G','As','B','C','Des','Es','F'],  octaves: [4,4,4,4,5,5,5,5], vorzeichen: 4 }
+            { root: 'f',   type: 'Moll', notes: ['F','G','As','B','C','Des','Es','F'],  octaves: [4,4,4,4,5,5,5,5], vorzeichen: 4 },
+            { root: 'gis', type: 'Moll', notes: ['Gis','Ais','H','Cis','Dis','E','Fis','Gis'],octaves:[4,4,4,5,5,5,5,5], vorzeichen: 5 },
+            { root: 'dis', type: 'Moll', notes: ['Dis','Eis','Fis','Gis','Ais','H','Cis','Dis'],octaves:[4,4,4,4,4,4,5,5], vorzeichen: 6 },
+            { root: 'b',   type: 'Moll', notes: ['B','C','Des','Es','F','Ges','As','B'],octaves:[4,5,5,5,5,5,5,5], vorzeichen: 5 },
+            { root: 'es',  type: 'Moll', notes: ['Es','F','Ges','As','B','Ces','Des','Es'],octaves:[4,4,4,4,4,5,5,5], vorzeichen: 6 }
         ],
         kirchentonarten: [
             // Dorisch (Ganz-Halb-Ganz-Ganz-Ganz-Halb-Ganz) — HS: 1,5
@@ -3833,10 +3841,13 @@
             const highestOption = quickStart.isActive ? quickStart.currentOptions[quickStart.currentOptions.length - 1] : 'tastatur_einfach';
             const isSchwer = (highestOption === 'tastatur_schwer' || highestOption === 'schreiben_schwer');
             const isNoAudio = (highestOption === 'noaudio');
-            let minVZ = 0, maxVZ = 4;
-            if (isSchwer || isNoAudio) {
-                // Schwere oder Ohne-HB Sub-Skills → nur 4+ VZ
+            let minVZ = 0, maxVZ = 6;
+            if (isSchwer) {
+                // Schwere Sub-Skills → nur 4+ VZ
                 minVZ = 4;
+            } else if (isNoAudio) {
+                // Ohne Hörbeispiel → alle VZ (0–6)
+                minVZ = 0;
             } else {
                 // Einfache Sub-Skills: progressive VZ-Steigerung über 10 Aufgaben
                 const t = this.buildingTaskCounter;
@@ -6571,6 +6582,9 @@
             container.innerHTML = html;
             container.style.height = '';
             container.style.overflow = '';
+            container.style.width = '';
+            container.style.position = '';
+            container.style.margin = '';
 
             // Keyboard-Hint und -Card dynamisch setzen (IT-Pattern)
             const kbHint = document.getElementById('keyboardHint');
