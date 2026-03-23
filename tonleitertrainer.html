@@ -270,9 +270,6 @@
             content: '';
             width: 2px;
             height: 100%;
-            background: #d1d5db;
-        }
-        .st-connector.mastered::before {
             background: #0891b2;
         }
 
@@ -388,18 +385,16 @@
 
         /* ===== Fork (Gabelung nach ton2) ===== */
         .st-fork-stem { display: flex; justify-content: center; height: 14px; }
-        .st-fork-stem::before { content: ''; width: 2px; height: 100%; background: #d1d5db; }
-        .st-fork-stem.mastered::before { background: #0891b2; }
+        .st-fork-stem::before { content: ''; width: 2px; height: 100%; background: #0891b2; }
 
         .st-fork-bracket {
             width: calc(50% + 0.375rem);
             margin: 0 auto;
             height: 22px;
-            border: 2px solid #d1d5db;
+            border: 2px solid #0891b2;
             border-bottom: none;
             border-radius: 10px 10px 0 0;
         }
-        .st-fork-bracket.mastered { border-color: #0891b2; }
 
         .st-fork-branches {
             display: grid;
@@ -423,8 +418,7 @@
         }
 
         .st-branch-inner-connector { display: flex; justify-content: center; height: 16px; }
-        .st-branch-inner-connector::before { content: ''; width: 2px; height: 100%; background: #d1d5db; }
-        .st-branch-inner-connector.mastered::before { background: #0891b2; }
+        .st-branch-inner-connector::before { content: ''; width: 2px; height: 100%; background: #0891b2; }
 
         /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
         /* Ghost-Note übernimmt Preview → Cursor ausblenden wenn Ghost sichtbar */
@@ -439,7 +433,6 @@
         .st-cross-app {
             margin-bottom: 0.25rem;
             width: 100%;
-            max-width: 14.375rem;
         }
         .st-cross-label {
             font-size: 0.6rem;

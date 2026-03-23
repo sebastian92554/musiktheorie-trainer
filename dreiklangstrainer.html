@@ -940,8 +940,21 @@
         .skilltree {
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 0.25rem;
         }
+
+        /* Nodes-Wrapper (Container für lineare Knoten vor der Gabelung) */
+        .st-nodes-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            width: 100%;
+        }
+
+        /* Alle Knoten auf halbe Breite (konsistent mit Fork-Ästen, wie IT) */
+        .st-node-wrapper { width: 100%; max-width: 14.375rem; }
 
         /* Verbindungslinien */
         .st-connector {
@@ -953,10 +966,82 @@
             content: '';
             width: 2px;
             height: 100%;
-            background: #d1d5db;
+            background: #10b981;
         }
         .st-connector.mastered::before {
             background: #10b981;
+        }
+
+        /* Fork-Struktur (Erkennen / Bilden) */
+        .st-fork-stem { display: flex; justify-content: center; height: 14px; }
+        .st-fork-stem::before { content: ''; width: 2px; height: 100%; background: #10b981; }
+
+        .st-fork-bracket {
+            width: calc(50% + 0.375rem);
+            margin: 0 auto;
+            height: 22px;
+            border: 2px solid #10b981;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .st-fork-branches {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .st-fork-branches .st-node-wrapper { max-width: 100%; } /* In Fork-Ästen volle Breite der Spalte */
+
+        .st-branch-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            color: #475569;
+            background: #f1f5f9;
+        }
+
+        .st-branch-inner-connector {
+            display: flex;
+            justify-content: center;
+            height: 16px;
+        }
+        .st-branch-inner-connector::before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background: #10b981;
+        }
+
+        /* Building-Tools (♯ Kreuz / ♭ Be) — aus NT/TT übernommen */
+        .building-tools { display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 0.5rem; }
+        .building-tool-btn { padding: 6px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+        .building-tool-btn.active { border-color: #10b981; background: #f0fdf4; color: #10b981; font-weight: 600; }
+        .building-tool-btn:hover { border-color: #94a3b8; }
+
+        /* Kompetenz-Trenner zwischen Dreiklänge bilden und Umkehrungen bilden */
+        .st-competency-separator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 8px 0;
+            font-size: 0.55rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .st-competency-separator::before,
+        .st-competency-separator::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
         }
 
         /* Skill-Knoten */
@@ -1459,38 +1544,94 @@
                         </div>
                         <div class="st-sub-skills" id="stSubs-drei2"></div>
                     </div>
-                    <div class="st-connector" id="stConn-drei2-drei3"></div>
+                    <div class="st-fork-stem" id="stForkStem"></div>
+                    <div class="st-fork-bracket" id="stForkBracket"></div>
 
-                    <!-- Node 3: Doppelvorzeichen -->
-                    <div class="st-node-wrapper" id="stNode-drei3">
-                        <div class="st-node available" onclick="quickStart.selectNode('drei3')">
-                            <div class="st-node-icon">3</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Dreiklänge benennen</div>
-                                <div class="st-node-desc">Alle Dreiklangstypen benennen</div>
+                    <!-- Fork: Erkennen / Bilden -->
+                    <div class="st-fork-branches">
+                        <!-- Linker Ast: Erkennen -->
+                        <div>
+                            <div class="st-branch-label">Erkennen</div>
+                            <div class="st-node-wrapper" id="stNode-drei3">
+                                <div class="st-node available" onclick="quickStart.selectNode('drei3')">
+                                    <div class="st-node-icon">3</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Dreiklänge benennen</div>
+                                        <div class="st-node-desc">Alle Dreiklangstypen benennen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-drei3"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-drei3"></div>
-                    </div>
-                    <div class="st-connector" id="stConn-drei3-drei4"></div>
-
-                    <!-- Node 4: Umkehrungen -->
-                    <div class="st-node-wrapper" id="stNode-drei4">
-                        <div class="st-node available" onclick="quickStart.selectNode('drei4')">
-                            <div class="st-node-icon">4</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Umkehrungen</div>
-                                <div class="st-node-desc">Stellung und Dreiklang bestimmen</div>
+                            <div class="st-branch-inner-connector" id="stConn-drei3-drei4"></div>
+                            <div class="st-node-wrapper" id="stNode-drei4">
+                                <div class="st-node available" onclick="quickStart.selectNode('drei4')">
+                                    <div class="st-node-icon">4</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Umkehrungen</div>
+                                        <div class="st-node-desc">Stellung und Dreiklang erkennen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-drei4"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
                         </div>
-                        <div class="st-sub-skills" id="stSubs-drei4"></div>
+                        <!-- Rechter Ast: Bilden -->
+                        <div>
+                            <div class="st-branch-label">Bilden</div>
+                            <div class="st-node-wrapper" id="stNode-drei5">
+                                <div class="st-node available" onclick="quickStart.selectNode('drei5')">
+                                    <div class="st-node-icon">5</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Dreiklänge bilden</div>
+                                        <div class="st-node-desc">Akkorde auf der Tastatur bauen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-drei5"></div>
+                            </div>
+                            <div class="st-branch-inner-connector" id="stConn-drei5-drei6"></div>
+                            <div class="st-node-wrapper" id="stNode-drei6">
+                                <div class="st-node available" onclick="quickStart.selectNode('drei6')">
+                                    <div class="st-node-icon">6</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Dreiklänge notieren</div>
+                                        <div class="st-node-desc">Akkorde im Notensystem bauen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-drei6"></div>
+                            </div>
+                            <div class="st-competency-separator">Umkehrungen</div>
+                            <div class="st-node-wrapper" id="stNode-drei7">
+                                <div class="st-node available" onclick="quickStart.selectNode('drei7')">
+                                    <div class="st-node-icon">7</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Umkehrungen bilden</div>
+                                        <div class="st-node-desc">Akkordlagen auf der Tastatur</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-drei7"></div>
+                            </div>
+                            <div class="st-branch-inner-connector" id="stConn-drei7-drei8"></div>
+                            <div class="st-node-wrapper" id="stNode-drei8">
+                                <div class="st-node available" onclick="quickStart.selectNode('drei8')">
+                                    <div class="st-node-icon">8</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Umkehrungen notieren</div>
+                                        <div class="st-node-desc">Akkordlagen im Notensystem</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-drei8"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="st-progress-info" id="stProgressInfo">
-                    0 von 8 Teilkompetenzen gemeistert
+                    0 von 32 Teilkompetenzen gemeistert
                     <div class="st-progress-bar-bg">
                         <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
                     </div>
@@ -1736,10 +1877,12 @@
             <div class="staff-and-hs-wrapper">
                 <!-- Staff (Links auf Desktop, Oben auf Mobile) -->
                 <div class="card staff-card">
-                    <p id="taskDescription" style="text-align: center; font-size: 0.95rem; color: #374151; margin: 0 0 0.5rem 0; font-weight: 500;"></p>
-                    <div class="text-center">
-                        <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
-                        <span class="clef-badge" id="displayBadge" style="background: #ddd6fe; color: #5b21b6;">Harmonisch</span>
+                    <div id="staffTopArea">
+                        <p id="taskDescription" style="text-align: center; font-size: 0.95rem; color: #374151; margin: 0 0 0.5rem 0; font-weight: 500;"></p>
+                        <div class="text-center">
+                            <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
+                            <span class="clef-badge" id="displayBadge" style="background: #ddd6fe; color: #5b21b6;">Harmonisch</span>
+                        </div>
                     </div>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 0;">
                         <div id="staffContainer" style="flex: 0 1 auto;"></div>
@@ -1894,7 +2037,11 @@
                 'drei1': 'einsteiger',
                 'drei2': 'aufsteiger',
                 'drei3': 'profi',
-                'drei4': 'meister'
+                'drei4': 'meister',
+                'drei5': 'bilden_key',
+                'drei6': 'bilden_staff',
+                'drei7': 'bilden_umk_key',
+                'drei8': 'bilden_umk_staff'
             },
 
             // Sub-Skills pro Knoten
@@ -1926,6 +2073,26 @@
                     { id: 'range', label: 'Großer Tonumfang' },
                     { id: 'noaudio', label: 'Ohne Hörbeispiel' },
                     { id: 'doubleAccidentals', label: 'Mit Doppelvorzeichen' }
+                ],
+                'drei5': [
+                    { id: 'basis', label: 'Dur & Moll (einfach)' },
+                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
+                    { id: 'augdim', label: 'Übermäßig & vermindert' }
+                ],
+                'drei6': [
+                    { id: 'basis', label: 'Dur & Moll (einfach)' },
+                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
+                    { id: 'augdim', label: 'Übermäßig & vermindert' }
+                ],
+                'drei7': [
+                    { id: 'basis', label: 'Dur & Moll (einfach)' },
+                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
+                    { id: 'augdim', label: 'Übermäßig & vermindert' }
+                ],
+                'drei8': [
+                    { id: 'basis', label: 'Dur & Moll (einfach)' },
+                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
+                    { id: 'augdim', label: 'Übermäßig & vermindert' }
                 ]
             },
 
@@ -1938,8 +2105,10 @@
             },
 
             // ---- localStorage ----
+            _storageKey: 'dreiklangstrainer_quickstart_v2',
+
             loadProgress() {
-                const data = localStorage.getItem('dreiklangstrainer_quickstart_v1');
+                const data = localStorage.getItem(this._storageKey);
                 if (!data) {
                     this.progress = this.createNewProgress();
                     this.saveProgress();
@@ -1950,13 +2119,20 @@
                         this.saveProgress();
                     } else {
                         this.progress = parsed;
+                        // Migration: fehlende Building-Level ergänzen
+                        const buildingLevels = ['bilden_key', 'bilden_staff', 'bilden_umk_key', 'bilden_umk_staff'];
+                        buildingLevels.forEach(lvl => {
+                            if (!this.progress[lvl]) {
+                                this.progress[lvl] = { mastered: [], attempts: {}, scores: {} };
+                            }
+                        });
                     }
                 }
             },
 
             saveProgress() {
                 this.progress.timestamp = Date.now();
-                localStorage.setItem('dreiklangstrainer_quickstart_v1', JSON.stringify(this.progress));
+                localStorage.setItem(this._storageKey, JSON.stringify(this.progress));
             },
 
             createNewProgress() {
@@ -1965,13 +2141,18 @@
                     einsteiger: { mastered: [], attempts: {}, scores: {} },
                     aufsteiger: { mastered: [], attempts: {}, scores: {} },
                     profi: { mastered: [], attempts: {}, scores: {} },
-                    meister: { mastered: [], attempts: {}, scores: {} }
+                    meister: { mastered: [], attempts: {}, scores: {} },
+                    bilden_key: { mastered: [], attempts: {}, scores: {} },
+                    bilden_staff: { mastered: [], attempts: {}, scores: {} },
+                    bilden_umk_key: { mastered: [], attempts: {}, scores: {} },
+                    bilden_umk_staff: { mastered: [], attempts: {}, scores: {} }
                 };
             },
 
             // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
-                const nodes = ['drei1', 'drei2', 'drei3', 'drei4'];
+                const nodes = ['drei1', 'drei2', 'drei3', 'drei4', 'drei5', 'drei6', 'drei7', 'drei8'];
+                const nodeNumbers = { drei1:1, drei2:2, drei3:3, drei4:4, drei5:5, drei6:6, drei7:7, drei8:8 };
                 let totalSubs = 0;
                 let totalMastered = 0;
                 let firstAvailableNode = null;
@@ -1979,6 +2160,10 @@
                 nodes.forEach(nodeId => {
                     const level = this.nodeToLevel[nodeId];
                     const subs = this.nodeSubSkills[nodeId];
+                    // Migration: fehlende Level-Einträge ergänzen (alte Progress-Daten)
+                    if (!this.progress[level]) {
+                        this.progress[level] = { mastered: [], attempts: {}, scores: {} };
+                    }
                     const mastered = this.progress[level].mastered || [];
                     const allMastered = subs.every(s => mastered.includes(s.id));
                     const nextUnmastered = subs.find(s => !mastered.includes(s.id));
@@ -1997,20 +2182,32 @@
                         node.querySelector('.st-node-icon').textContent = '✓';
                     } else {
                         node.classList.add('available');
-                        node.querySelector('.st-node-icon').textContent = nodes.indexOf(nodeId) + 1;
+                        node.querySelector('.st-node-icon').textContent = nodeNumbers[nodeId];
                         if (!firstAvailableNode) firstAvailableNode = nodeId;
                     }
 
-                    // Connector-Zustand
-                    const prevConn = nodeId === 'drei2' ? document.getElementById('stConn-drei1-drei2') :
-                                     nodeId === 'drei3' ? document.getElementById('stConn-drei2-drei3') :
-                                     nodeId === 'drei4' ? document.getElementById('stConn-drei3-drei4') : null;
-                    if (prevConn) {
-                        const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
-                        const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
-                        const prevMastered = this.progress[prevLevel].mastered || [];
-                        const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
-                        prevConn.classList.toggle('mastered', prevAllDone);
+                    // Connector-Zustand (Fork-fähig)
+                    const connectorMap = {
+                        'drei2': 'stConn-drei1-drei2',
+                        'drei4': 'stConn-drei3-drei4',
+                        'drei6': 'stConn-drei5-drei6',
+                        'drei8': 'stConn-drei7-drei8'
+                    };
+                    const predecessors = {
+                        'drei2':'drei1', 'drei3':'drei2', 'drei4':'drei3',
+                        'drei5':'drei2', 'drei6':'drei5', 'drei7':'drei6', 'drei8':'drei7'
+                    };
+                    const connectorId = connectorMap[nodeId];
+                    if (connectorId) {
+                        const prevConn = document.getElementById(connectorId);
+                        if (prevConn) {
+                            const prevNodeId = predecessors[nodeId];
+                            const prevLevel = this.nodeToLevel[prevNodeId];
+                            const prevSubs = this.nodeSubSkills[prevNodeId];
+                            const prevMastered = this.progress[prevLevel].mastered || [];
+                            const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
+                            prevConn.classList.toggle('mastered', prevAllDone);
+                        }
                     }
 
                     // Sub-Skills rendern
@@ -2035,6 +2232,16 @@
                     }
                 });
 
+                // Fork-Stem + Bracket: mastered wenn drei2 komplett
+                const drei2Level = this.nodeToLevel['drei2'];
+                const drei2Subs = this.nodeSubSkills['drei2'];
+                const drei2Mastered = this.progress[drei2Level].mastered || [];
+                const drei2Done = drei2Subs.every(s => drei2Mastered.includes(s.id));
+                const forkStem = document.getElementById('stForkStem');
+                const forkBracket = document.getElementById('stForkBracket');
+                if (forkStem) forkStem.classList.toggle('mastered', drei2Done);
+                if (forkBracket) forkBracket.classList.toggle('mastered', drei2Done);
+
                 // Gesamt-Fortschritt
                 const percentage = Math.round((totalMastered / totalSubs) * 100);
                 const progressInfo = document.getElementById('stProgressInfo');
@@ -2055,17 +2262,28 @@
 
             // ---- Skilltree: Knoten auswählen ----
             selectNode(nodeId) {
-                document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
-                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
-                this.selectedSub = null;
-
-                document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
-
                 const wrapper = document.getElementById('stNode-' + nodeId);
                 if (!wrapper) return;
                 const node = wrapper.querySelector('.st-node');
                 if (node.classList.contains('locked')) return;
 
+                // Toggle: bereits offen → schließen
+                if (wrapper.classList.contains('expanded')) {
+                    wrapper.classList.remove('expanded');
+                    node.classList.remove('selected');
+                    this.selectedNode = null;
+                    this.selectedSub = null;
+                    this._updateStartButton();
+                    return;
+                }
+
+                // Alle anderen schließen
+                document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
+                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+                document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
+                this.selectedSub = null;
+
+                // Diesen öffnen
                 node.classList.add('selected');
                 wrapper.classList.add('expanded');
                 this.selectedNode = nodeId;
@@ -2230,11 +2448,40 @@
                 app.settings.simpleRootsOnly = false;
                 app.settings.noAudio = false;
 
-                // Play-Button + Toggle immer sichtbar im Freien Üben
-                const playBtn = document.getElementById('playChordBtn');
-                if (playBtn) playBtn.style.display = '';
-                const audioToggle = document.getElementById('audioModeToggle');
-                if (audioToggle) audioToggle.style.display = '';
+                // DOM-Reihenfolge wiederherstellen: Input-Card nach Keyboard
+                const inputCardRestore = document.querySelector('.input-card');
+                const kbCardRestore = document.getElementById('keyboardCard');
+                if (inputCardRestore && kbCardRestore && kbCardRestore.parentNode) {
+                    kbCardRestore.parentNode.insertBefore(inputCardRestore, kbCardRestore.nextSibling);
+                }
+
+                // Staff-Card Top-Area: Freier-Modus-Layout wiederherstellen
+                const staffTopArea = document.getElementById('staffTopArea');
+                if (staffTopArea) {
+                    staffTopArea.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.25rem;">
+                            <p id="taskDescription" style="text-align:center; font-size:0.95rem; color:#374151; margin:0; font-weight:500;"></p>
+                            <button type="button" id="playChordBtn" onclick="app.playChord()" title="Dreiklang anhören"
+                                style="background:none; border:none; cursor:pointer; padding:2px; opacity:0.5; transition:opacity 0.15s;"
+                                onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                                </svg>
+                            </button>
+                            <button type="button" id="audioModeToggle" onclick="app.toggleAudioMode()"
+                                style="background:none; border:none; cursor:pointer; font-size:0.65rem; color:#6b7280; padding:0; white-space:nowrap;">♪♪ harmonisch</button>
+                        </div>
+                        <div class="text-center">
+                            <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
+                            <span class="clef-badge" id="displayBadge" style="background:#ddd6fe; color:#5b21b6;">Harmonisch</span>
+                        </div>
+                    `;
+                }
+                // audioControls neben Staff ausblenden
+                const audioCtrlFM = document.getElementById('audioControls');
+                if (audioCtrlFM) audioCtrlFM.style.display = 'none';
 
                 document.getElementById('appTitle').textContent = 'Freies Üben';
                 document.getElementById('headerExerciseInfo').classList.remove('active');
@@ -2345,9 +2592,87 @@
             configureAppForLevel(level, options) {
                 app.quickStartMode = level;
 
-                // 1a: nur Stammtöne (kein Vorzeichen-Option aktiv)
-                // 1b: mit Vorzeichen (aber max 3 Vorzeichen = complexKeys false)
-                // 1c: voller Tonumfang (range aktiv → beginnerFriendlyRange false)
+                // Building-SVG entfernen (erzwingt Neuerstellen + Event-Binding im neuen Modus)
+                const oldBuildingSvg = document.querySelector('#staffContainer svg#buildingStaffSvg');
+                if (oldBuildingSvg) oldBuildingSvg.remove();
+
+                // Building-Mode Reset
+                app.buildingMode = false;
+                app.buildingIsKeyboard = true;
+                app.buildingIsInversion = false;
+                app.buildingCurrentTask = null;
+                app.buildingSelectedKeys = [];
+                app.buildingStaffNotes = [];
+                app.buildingGhostNote = null;
+                app.buildingActiveTool = null;
+                app.buildingSubIdx = 0;
+                app.inputLocked = false;
+                app.buildingLastTaskKey = null;
+                app._buildingRecentChords = [];
+                app._buildingRecentRoots = [];
+
+                // Building-Modi
+                if (level.startsWith('bilden_')) {
+                    app.buildingMode = true;
+                    app.buildingIsKeyboard = level.includes('_key');
+                    app.buildingIsInversion = level.includes('_umk_');
+
+                    // SubIdx aus options ableiten
+                    const subIds = ['basis', 'vorzeichen', 'augdim'];
+                    app.buildingSubIdx = subIds.indexOf(options[options.length - 1] || 'basis');
+                    if (app.buildingSubIdx < 0) app.buildingSubIdx = 0;
+
+                    // Staff-Card Top-Area: Aufgabe + Audio (ersetzt Badges)
+                    const staffTopArea = document.getElementById('staffTopArea');
+                    if (staffTopArea) {
+                        staffTopArea.innerHTML = `
+                            <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.25rem;">
+                                <div id="taskDescription" style="font-size:0.95rem; color:#374151; font-weight:500;"></div>
+                                <button type="button" id="playChordBtn" onclick="app.playChord()" title="Dreiklang anhören"
+                                    style="background:none; border:none; cursor:pointer; padding:2px; opacity:0.5; transition:opacity 0.15s;"
+                                    onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                    }
+                    // audioControls neben Staff ausblenden (wird jetzt oben gerendert)
+                    const audioCtrl = document.getElementById('audioControls');
+                    if (audioCtrl) audioCtrl.style.display = 'none';
+
+                    // Keyboard-Card sichtbar
+                    document.getElementById('keyboardCard').classList.add('active');
+                    const keyboardContainer = document.getElementById('keyboardContainer');
+                    if (keyboardContainer) keyboardContainer.classList.remove('keyboard-view-only');
+
+                    // Staff-Modus: Keyboard als view-only, Input-Card vor Keyboard (wie TT 4d)
+                    if (!app.buildingIsKeyboard) {
+                        if (keyboardContainer) keyboardContainer.classList.add('keyboard-view-only');
+                        const inputCardEl = document.querySelector('.input-card');
+                        const kbCard = document.getElementById('keyboardCard');
+                        if (inputCardEl && kbCard && kbCard.parentNode) {
+                            kbCard.parentNode.insertBefore(inputCardEl, kbCard);
+                        }
+                    }
+
+                    app.setupInput();
+                    app.score = { correct: 0, total: 0 };
+                    app.freeRetry = false;
+                    return;
+                }
+
+                // DOM-Reihenfolge wiederherstellen: Input-Card nach Keyboard (falls von Staff-Building umgestellt)
+                const inputCardRestore = document.querySelector('.input-card');
+                const kbCardRestore = document.getElementById('keyboardCard');
+                if (inputCardRestore && kbCardRestore && kbCardRestore.parentNode) {
+                    kbCardRestore.parentNode.insertBefore(inputCardRestore, kbCardRestore.nextSibling);
+                }
+
+                // Erkennen-Modi (bestehend)
                 app.settings.simpleRootsOnly = !options.includes('vorzeichen');
                 app.settings.complexKeys = options.includes('doubleAccidentals');
                 app.settings.requireQuality = options.includes('augmented');
@@ -2360,15 +2685,35 @@
                 // Keyboard always visible in quiz
                 document.getElementById('keyboardCard').classList.add('active');
 
-                // Audio-Controls: Play-Button + Toggle
+                // Staff-Card Top-Area: Erkennen-Layout wiederherstellen
+                // (Aufgabe + Audio-Button inline, Badges darunter)
                 const isNoAudio = options.includes('noaudio');
-                const playBtn = document.getElementById('playChordBtn');
-                const audioToggle = document.getElementById('audioModeToggle');
-                if (playBtn) playBtn.style.display = isNoAudio ? 'none' : '';
-                if (audioToggle) {
-                    audioToggle.style.display = isNoAudio ? 'none' : '';
-                    audioToggle.textContent = '♪♪ harmonisch';
+                const staffTopArea = document.getElementById('staffTopArea');
+                if (staffTopArea) {
+                    staffTopArea.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.25rem;">
+                            <p id="taskDescription" style="text-align:center; font-size:0.95rem; color:#374151; margin:0; font-weight:500;"></p>
+                            <button type="button" id="playChordBtn" onclick="app.playChord()" title="Dreiklang anhören"
+                                style="background:none; border:none; cursor:pointer; padding:2px; opacity:0.5; transition:opacity 0.15s;${isNoAudio ? ' display:none;' : ''}"
+                                onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                                </svg>
+                            </button>
+                            <button type="button" id="audioModeToggle" onclick="app.toggleAudioMode()"
+                                style="background:none; border:none; cursor:pointer; font-size:0.65rem; color:#6b7280; padding:0; white-space:nowrap;${isNoAudio ? ' display:none;' : ''}">♪♪ harmonisch</button>
+                        </div>
+                        <div class="text-center">
+                            <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
+                            <span class="clef-badge" id="displayBadge" style="background:#ddd6fe; color:#5b21b6;">Harmonisch</span>
+                        </div>
+                    `;
                 }
+                // audioControls neben Staff ausblenden (wird jetzt oben gerendert)
+                const audioCtrl = document.getElementById('audioControls');
+                if (audioCtrl) audioCtrl.style.display = 'none';
 
                 // Setup dynamic input
                 app.setupInput();
@@ -2392,8 +2737,14 @@
 
             updateQuizOverlay() {
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                const nodeIdx = ['drei1', 'drei2', 'drei3', 'drei4'].indexOf(nodeId) + 1;
-                const nodeNames = { 'drei1': 'Tastaturorientierung', 'drei2': 'Terzen bestimmen', 'drei3': 'Dreiklänge benennen', 'drei4': 'Umkehrungen' };
+                const nodeNumbers = { drei1:1, drei2:2, drei3:3, drei4:4, drei5:5, drei6:6, drei7:7, drei8:8 };
+                const nodeIdx = nodeNumbers[nodeId] || 0;
+                const nodeNames = {
+                    'drei1': 'Tastaturorientierung', 'drei2': 'Terzen bestimmen',
+                    'drei3': 'Dreiklänge benennen', 'drei4': 'Umkehrungen',
+                    'drei5': 'Dreiklänge bilden', 'drei6': 'Dreiklänge notieren',
+                    'drei7': 'Umkehrungen bilden', 'drei8': 'Umkehrungen notieren'
+                };
                 const nodeName = nodeNames[nodeId] || '';
 
                 const subs = this.nodeSubSkills[nodeId];
@@ -2403,10 +2754,14 @@
                 const subLabel = `${nodeIdx}${subLetter}`;
 
                 const taskTexts = {
-                    einsteiger: 'Finde die Töne auf der Tastatur!',
-                    aufsteiger: 'Zähle die Halbtonschritte!',
-                    profi: 'Bestimme den Dreiklang!',
-                    meister: 'Bestimme Stellung und Dreiklang!'
+                    einsteiger: 'Welche Töne gehören zum Dreiklang?',
+                    aufsteiger: 'Wie viele Halbtonschritte liegen zwischen den Tönen?',
+                    profi: 'Welcher Dreiklang ist das?',
+                    meister: 'Welcher Dreiklang in welcher Stellung?',
+                    bilden_key: 'Welche Tasten gehören zum Dreiklang?',
+                    bilden_staff: 'Wie sieht der Dreiklang im Notensystem aus?',
+                    bilden_umk_key: 'Welche Tasten gehören zur Umkehrung?',
+                    bilden_umk_staff: 'Wie sieht die Umkehrung im Notensystem aus?'
                 };
 
                 const label = document.getElementById('headerExerciseLabel');
@@ -2635,8 +2990,21 @@
             audioMode: 'harmonic',  // 'harmonic' oder 'melodic' — steuert Audio + Darstellung
 
             // QUICK-START FLAGS
-            quickStartMode: null,  // null, 'einsteiger', 'aufsteiger', 'profi', 'meister'
+            quickStartMode: null,  // null, 'einsteiger', 'aufsteiger', 'profi', 'meister', 'bilden_key', etc.
             keyboardViewOnly: false,
+
+            // BUILDING MODE STATE
+            buildingMode: false,
+            buildingIsKeyboard: true,    // true = Tastatur, false = Notensystem
+            buildingIsInversion: false,  // true = drei7/drei8
+            buildingSelectedKeys: [],    // Array von {name, oct, midi}
+            buildingStaffNotes: [],      // Array von {name, oct}
+            buildingGhostNote: null,     // {name, oct} für Staff-Vorschau
+            buildingActiveTool: null,    // 'sharp'|'flat'|null
+            buildingCurrentTask: null,   // {type, root, rootOct, inversion, targetNotes, label}
+            buildingSubIdx: 0,
+            buildingLastTaskKey: null,
+            inputLocked: false,
             
             // MULTI-INPUT VALIDIERUNG
             validationState: {
@@ -2774,6 +3142,26 @@
                 // HS-Panel zurücksetzen
                 if (hsPanel) { hsPanel.classList.add('hidden'); hsPanel.innerHTML = ''; }
                 if (wrapper) wrapper.classList.remove('with-hs-panel');
+
+                // ---- Building Mode ----
+                if (this.buildingMode) {
+                    const toolsHtml = !this.buildingIsKeyboard ? `
+                        <div class="building-tools">
+                            <button type="button" class="building-tool-btn${this.buildingActiveTool === 'sharp' ? ' active' : ''}"
+                                id="buildingTool-sharp" onclick="app.toggleBuildingTool('sharp')">♯ Kreuz</button>
+                            <button type="button" class="building-tool-btn${this.buildingActiveTool === 'flat' ? ' active' : ''}"
+                                id="buildingTool-flat" onclick="app.toggleBuildingTool('flat')">♭ Be</button>
+                        </div>` : '';
+                    inputCard.innerHTML = `
+                        ${toolsHtml}
+                        <div class="input-buttons">
+                            <button type="button" id="buildingCheckBtn" onclick="app.checkBuildingAnswer()" class="btn-primary"
+                                style="padding:12px 30px;font-size:1.1rem;" disabled>✓ PRÜFEN</button>
+                        </div>
+                        <div id="buildingFeedback" style="min-height:1.4rem;text-align:center;margin-top:6px;"></div>
+                    `;
+                    return;
+                }
 
                 if (this.quickStartMode === 'einsteiger') {
                     inputCard.innerHTML = `
@@ -2964,6 +3352,638 @@
                 if (rootInput) rootInput.addEventListener('keypress', e => { if (e.key === 'Enter') app.checkAnswer(); });
             },
 
+            // ========================================
+            // BUILDING MODE
+            // ========================================
+
+            // Building-Pools: Akkordtypen × Grundtöne
+            BUILDING_POOLS: [
+                // Pool 0 (basis): Dur & Moll einfach (max 1 VZ in den Akkordtönen)
+                // 0 VZ: C-Dur(C,E,G) F-Dur(F,A,C) G-Dur(G,H,D) D-Moll(D,F,A) E-Moll(E,G,H) A-Moll(A,C,E)
+                // 1 VZ: D-Dur(D,Fis,A) A-Dur(A,Cis,E) E-Dur(E,Gis,H) H-Moll(H,D,Fis) G-Moll(G,B,D) C-Moll(C,Es,G) F-Moll(F,As,C)
+                [
+                    { type: 'dur', roots: ['C', 'F', 'G', 'D', 'A', 'E'] },
+                    { type: 'moll', roots: ['D', 'E', 'A', 'H', 'G', 'C', 'F'] }
+                ],
+                // Pool 1 (vorzeichen): alle weiteren Dur & Moll (2+ VZ, VZ-Grundtöne)
+                // H-Dur(H,Dis,Fis) + alle mit VZ-Grundtönen
+                [
+                    { type: 'dur', roots: ['H', 'Des', 'Es', 'Fis', 'As', 'B'] },
+                    { type: 'moll', roots: ['Cis', 'Dis', 'Fis', 'Gis', 'B'] }
+                ],
+                // Pool 2 (augdim): Übermäßig & Vermindert
+                [
+                    { type: 'übermäßig', roots: ['C', 'D', 'E', 'F', 'G', 'A', 'H', 'Es', 'As', 'B'] },
+                    { type: 'vermindert', roots: ['C', 'D', 'E', 'F', 'G', 'A', 'H', 'Cis', 'Dis', 'Fis', 'Gis'] }
+                ]
+            ],
+
+            // Pool-Auswahl: nur der aktuelle Sub-Skill-Pool (keine Kaskade)
+            _getBuildingPool(subIdx) {
+                const idx = Math.min(subIdx, this.BUILDING_POOLS.length - 1);
+                return this.BUILDING_POOLS[idx];
+            },
+
+            // Halbton-Offset für Notennamen (relativ zu C)
+            _noteToSemitone: { 'C':0, 'D':2, 'E':4, 'F':5, 'G':7, 'A':9, 'H':11 },
+
+            // Notenname → Basis-Buchstabe + Akzident
+            _parseNoteName(name) {
+                if (name.endsWith('is')) return { letter: name.slice(0, -2).toUpperCase(), acc: 1 };
+                if (name.endsWith('es') && name !== 'Des' && name !== 'Ges') return { letter: name.slice(0, -2).toUpperCase(), acc: -1 };
+                if (name === 'Des') return { letter: 'D', acc: -1 };
+                if (name === 'Ges') return { letter: 'G', acc: -1 };
+                if (name === 'B') return { letter: 'H', acc: -1 };
+                if (name === 'Es') return { letter: 'E', acc: -1 };
+                if (name === 'As') return { letter: 'A', acc: -1 };
+                return { letter: name[0].toUpperCase(), acc: 0 };
+            },
+
+            // Notenname → MIDI (mit Oktave)
+            _noteToMidi(name, oct) {
+                const p = this._parseNoteName(name);
+                const base = this._noteToSemitone[p.letter];
+                // Oktave: eingestrichen = 4 (MIDI 60 = C4)
+                const octNum = this._octNameToNum(oct);
+                return 12 * (octNum + 1) + base + p.acc;
+            },
+
+            // Oktavname ↔ Nummer
+            _octNameToNum(name) {
+                const map = { 'kontra': 1, 'gross': 2, 'klein': 3, 'eingestrichen': 4, 'zweigestrichen': 5, 'dreigestrichen': 6 };
+                return map[name] || 4;
+            },
+            _octNumToName(num) {
+                const map = { 1: 'kontra', 2: 'gross', 3: 'klein', 4: 'eingestrichen', 5: 'zweigestrichen', 6: 'dreigestrichen' };
+                return map[num] || 'eingestrichen';
+            },
+
+            // Berechne die 3 Noten eines Dreiklangs
+            _calculateChordNotes(rootName, rootOct, type, inversion) {
+                const letters = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                const parsed = this._parseNoteName(rootName);
+                const rootIdx = letters.indexOf(parsed.letter);
+                const rootMidi = this._noteToMidi(rootName, rootOct);
+
+                // Intervalle in Halbtönen
+                const intervals = this.chordTypes[type];
+                const ht1 = intervals.interval1; // Grundton → Terz
+                const ht2 = intervals.interval2; // Terz → Quinte
+
+                // Terz: 2 Buchstaben über dem Grundton
+                const terzIdx = (rootIdx + 2) % 7;
+                const terzLetter = letters[terzIdx];
+                const terzOctBase = this._octNameToNum(rootOct) + (rootIdx + 2 >= 7 ? 1 : 0);
+                const terzBaseMidi = 12 * (terzOctBase + 1) + this._noteToSemitone[terzLetter];
+                const terzTargetMidi = rootMidi + ht1;
+                const terzAcc = terzTargetMidi - terzBaseMidi;
+                const terzName = terzAcc === 0 ? terzLetter :
+                                 terzAcc === 1 ? (terzLetter === 'H' ? 'His' : terzLetter.toLowerCase() + 'is') :
+                                 terzAcc === -1 ? (terzLetter === 'H' ? 'B' : terzLetter === 'E' ? 'Es' : terzLetter === 'A' ? 'As' : terzLetter.toLowerCase() + 'es') :
+                                 null; // Doppelvorzeichen → ungültig
+                if (!terzName) return null;
+                const terzOct = this._octNumToName(terzOctBase);
+
+                // Quinte: 4 Buchstaben über dem Grundton
+                const quintIdx = (rootIdx + 4) % 7;
+                const quintLetter = letters[quintIdx];
+                const quintOctBase = this._octNameToNum(rootOct) + (rootIdx + 4 >= 7 ? 1 : 0);
+                const quintBaseMidi = 12 * (quintOctBase + 1) + this._noteToSemitone[quintLetter];
+                const quintTargetMidi = rootMidi + ht1 + ht2;
+                const quintAcc = quintTargetMidi - quintBaseMidi;
+                const quintName = quintAcc === 0 ? quintLetter :
+                                  quintAcc === 1 ? (quintLetter === 'H' ? 'His' : quintLetter.toLowerCase() + 'is') :
+                                  quintAcc === -1 ? (quintLetter === 'H' ? 'B' : quintLetter === 'E' ? 'Es' : quintLetter === 'A' ? 'As' : quintLetter.toLowerCase() + 'es') :
+                                  null;
+                if (!quintName) return null;
+                const quintOct = this._octNumToName(quintOctBase);
+
+                // Grundstellung
+                let notes = [
+                    { name: rootName, oct: rootOct },
+                    { name: terzName, oct: terzOct },
+                    { name: quintName, oct: quintOct }
+                ];
+
+                // Umkehrungen: untere Note(n) eine Oktave hoch
+                if (inversion === 1) {
+                    // 1. Umkehrung: Grundton eine Oktave hoch
+                    const newOct = this._octNumToName(this._octNameToNum(rootOct) + 1);
+                    notes = [
+                        { name: terzName, oct: terzOct },
+                        { name: quintName, oct: quintOct },
+                        { name: rootName, oct: newOct }
+                    ];
+                } else if (inversion === 2) {
+                    // 2. Umkehrung: Grundton und Terz eine Oktave hoch
+                    const newRootOct = this._octNumToName(this._octNameToNum(rootOct) + 1);
+                    const newTerzOct = this._octNumToName(this._octNameToNum(terzOct) + 1);
+                    notes = [
+                        { name: quintName, oct: quintOct },
+                        { name: rootName, oct: newRootOct },
+                        { name: terzName, oct: newTerzOct }
+                    ];
+                }
+
+                // MIDI berechnen für jede Note
+                return notes.map(n => ({
+                    ...n,
+                    midi: this._noteToMidi(n.name, n.oct)
+                }));
+            },
+
+            // Varianz-Tracking
+            _buildingRecentChords: [],
+            _buildingRecentRoots: [],
+
+            generateBuildingTask() {
+                const pool = this._getBuildingPool(this.buildingSubIdx);
+                this.buildingSelectedKeys = [];
+                this.buildingStaffNotes = [];
+                this.buildingGhostNote = null;
+                this.buildingActiveTool = null;
+                this.inputLocked = false;
+
+                const startOcts = ['eingestrichen'];
+
+                for (let attempt = 0; attempt < 300; attempt++) {
+                    // Zufälligen Pool-Eintrag wählen
+                    const entry = pool[Math.floor(Math.random() * pool.length)];
+                    const type = entry.type;
+                    const root = entry.roots[Math.floor(Math.random() * entry.roots.length)];
+                    const rootOct = startOcts[Math.floor(Math.random() * startOcts.length)];
+
+                    // Umkehrung (nur für drei7/drei8): 1. und 2. Umkehrung bevorzugt (80%), Grundstellung selten (20%)
+                    let inversion = 0;
+                    if (this.buildingIsInversion) {
+                        inversion = Math.random() < 0.2 ? 0 : (Math.random() < 0.5 ? 1 : 2);
+                    }
+
+                    // Akkord-Noten berechnen
+                    const notes = this._calculateChordNotes(root, rootOct, type, inversion);
+                    if (!notes) continue; // Doppelvorzeichen → skip
+
+                    // Range-Check: alle Noten zwischen MIDI 48 (C3) und 84 (C6)
+                    if (notes.some(n => n.midi < 48 || n.midi > 84)) continue;
+
+                    // Varianz: gleiche Aufgabe vermeiden
+                    const taskKey = `${root}-${type}-${inversion}`;
+                    if (taskKey === this.buildingLastTaskKey) continue;
+
+                    // Varianz: kürzlich gespielte Akkorde (70% re-roll)
+                    if (this._buildingRecentChords.includes(taskKey) && Math.random() < 0.7) continue;
+
+                    // Varianz: kürzlich gespielte Grundtöne (60% re-roll)
+                    if (this._buildingRecentRoots.includes(root) && Math.random() < 0.6) continue;
+
+                    // Task-Label erstellen
+                    const typeLabel = { dur: 'Dur', moll: 'Moll', 'übermäßig': 'Übermäßig', vermindert: 'Vermindert' }[type];
+                    const invLabel = !this.buildingIsInversion ? '' :
+                        inversion === 0 ? ', Grundstellung' :
+                        inversion === 1 ? ', 1. Umkehrung' : ', 2. Umkehrung';
+                    const label = `${root}-${typeLabel}${invLabel}`;
+
+                    // Task speichern
+                    this.buildingCurrentTask = { type, root, rootOct, inversion, targetNotes: notes, label };
+                    this.buildingLastTaskKey = taskKey;
+
+                    // Varianz-History aktualisieren
+                    this._buildingRecentChords.push(taskKey);
+                    if (this._buildingRecentChords.length > 10) this._buildingRecentChords.shift();
+                    this._buildingRecentRoots.push(root);
+                    if (this._buildingRecentRoots.length > 8) this._buildingRecentRoots.shift();
+
+                    // UI aktualisieren
+                    const taskEl = document.getElementById('taskDescription');
+                    const task = this.buildingCurrentTask;
+                    const verb = this.buildingIsKeyboard
+                        ? 'Finde die Tasten für'
+                        : 'Schreibe ins Notensystem:';
+                    if (taskEl) taskEl.innerHTML = `${verb} <strong>${task.label}</strong>`;
+
+                    this.setupInput();
+                    this.drawStaff();
+                    this.renderKeyboard();
+                    return;
+                }
+
+                // Fallback: sollte nie passieren
+                console.warn('generateBuildingTask: 300 Versuche fehlgeschlagen');
+            },
+
+            // Keyboard Building: Taste auswählen/abwählen
+            selectBuildingKey(name, oct) {
+                if (this.inputLocked) return;
+                const midi = this._noteToMidi(name, oct);
+
+                // Prüfen ob bereits ausgewählt → entfernen
+                const existingIdx = this.buildingSelectedKeys.findIndex(k => k.midi === midi);
+                if (existingIdx >= 0) {
+                    this.buildingSelectedKeys.splice(existingIdx, 1);
+                } else if (this.buildingSelectedKeys.length < 3) {
+                    this.buildingSelectedKeys.push({ name, oct, midi });
+                } else {
+                    // Schon 3 Tasten → älteste ersetzen
+                    this.buildingSelectedKeys.shift();
+                    this.buildingSelectedKeys.push({ name, oct, midi });
+                }
+
+                this.renderKeyboard();
+                this.drawStaff();
+                this._updateBuildingCheckButton();
+            },
+
+            // Prüfen-Button Zustand
+            _updateBuildingCheckButton() {
+                const btn = document.getElementById('buildingCheckBtn');
+                if (!btn) return;
+                const needed = 3;
+                const has = this.buildingIsKeyboard ? this.buildingSelectedKeys.length : this.buildingStaffNotes.length;
+                btn.disabled = has < needed;
+            },
+
+            // Staff Building: Note platzieren/entfernen
+            selectBuildingStaffNote(name, oct) {
+                if (this.inputLocked) return;
+
+                // Prüfen ob bereits platziert → entfernen
+                const existingIdx = this.buildingStaffNotes.findIndex(n => n.name === name && n.oct === oct);
+                if (existingIdx >= 0) {
+                    this.buildingStaffNotes.splice(existingIdx, 1);
+                } else if (this.buildingStaffNotes.length < 3) {
+                    this.buildingStaffNotes.push({ name, oct });
+                } else {
+                    this.buildingStaffNotes.shift();
+                    this.buildingStaffNotes.push({ name, oct });
+                }
+
+                this.drawStaff();
+                this._updateBuildingCheckButton();
+            },
+
+            // VZ-Tool umschalten
+            toggleBuildingTool(tool) {
+                this.buildingActiveTool = (this.buildingActiveTool === tool) ? null : tool;
+                // Button-Styles via CSS-Klasse (wie NT/TT)
+                ['sharp', 'flat'].forEach(t => {
+                    const btn = document.getElementById('buildingTool-' + t);
+                    if (btn) {
+                        btn.classList.toggle('active', this.buildingActiveTool === t);
+                    }
+                });
+            },
+
+            // Antwort prüfen (Building Mode)
+            checkBuildingAnswer() {
+                if (this.inputLocked) return;
+                const task = this.buildingCurrentTask;
+                if (!task) return;
+
+                let userMidis;
+                if (this.buildingIsKeyboard) {
+                    if (this.buildingSelectedKeys.length !== 3) return;
+                    userMidis = this.buildingSelectedKeys.map(k => k.midi).sort((a, b) => a - b);
+                } else {
+                    if (this.buildingStaffNotes.length !== 3) return;
+                    userMidis = this.buildingStaffNotes.map(n => this._noteToMidi(n.name, n.oct)).sort((a, b) => a - b);
+                }
+
+                const targetMidis = task.targetNotes.map(n => n.midi).sort((a, b) => a - b);
+
+                let isCorrect;
+                if (this.buildingIsInversion) {
+                    // Umkehrungen: absolute MIDI-Werte vergleichen (Lage zählt)
+                    // Aber Oktav-Verschiebung erlauben: Differenzen zwischen Noten müssen stimmen
+                    const targetDiffs = [targetMidis[1] - targetMidis[0], targetMidis[2] - targetMidis[1]];
+                    const userDiffs = [userMidis[1] - userMidis[0], userMidis[2] - userMidis[1]];
+                    isCorrect = targetDiffs[0] === userDiffs[0] && targetDiffs[1] === userDiffs[1];
+                } else {
+                    // Grundstellung: Pitch-Classes vergleichen (Oktave irrelevant)
+                    const targetPCs = targetMidis.map(m => m % 12).sort((a, b) => a - b);
+                    const userPCs = userMidis.map(m => m % 12).sort((a, b) => a - b);
+                    isCorrect = targetPCs.every((pc, i) => pc === userPCs[i]);
+                }
+
+                // Debug: Validierung nachvollziehbar machen
+                console.log('🔍 Building-Validierung:', {
+                    aufgabe: task.label,
+                    targetNotes: task.targetNotes.map(n => `${n.name} ${n.oct} (MIDI ${n.midi})`),
+                    targetMidis,
+                    userNotes: this.buildingIsKeyboard
+                        ? this.buildingSelectedKeys.map(k => `${k.name} ${k.oct} (MIDI ${k.midi})`)
+                        : this.buildingStaffNotes.map(n => `${n.name} ${n.oct} (MIDI ${this._noteToMidi(n.name, n.oct)})`),
+                    userMidis,
+                    isCorrect
+                });
+
+                this.inputLocked = true;
+
+                // Feedback anzeigen
+                const feedbackEl = document.getElementById('buildingFeedback');
+                if (feedbackEl) {
+                    if (isCorrect) {
+                        feedbackEl.innerHTML = `<span style="color:#10b981;font-weight:600;">✓ Richtig!</span>`;
+                    } else if (this.buildingIsInversion) {
+                        // Umkehrungen: unterscheide falsche Töne vs. falsche Stellung
+                        const targetPCs = targetMidis.map(m => m % 12).sort((a, b) => a - b);
+                        const userPCs = userMidis.map(m => m % 12).sort((a, b) => a - b);
+                        const rightNotes = targetPCs.every((pc, i) => pc === userPCs[i]);
+                        const correctNames = task.targetNotes.map(n => n.name).join(' – ');
+
+                        if (rightNotes) {
+                            // Richtige Töne, falsche Lage
+                            feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsche Stellung</span>
+                                <span style="color:#6b7280;font-size:0.85rem;"> — Die Töne stimmen, aber die Lage nicht. Richtig: ${correctNames}</span>`;
+                        } else {
+                            feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsche Töne</span>
+                                <span style="color:#6b7280;font-size:0.85rem;"> — Richtig: ${correctNames}</span>`;
+                        }
+                    } else {
+                        const correctNames = task.targetNotes.map(n => n.name).join(' – ');
+                        feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsch</span>
+                            <span style="color:#6b7280;font-size:0.85rem;"> — Richtig: ${correctNames}</span>`;
+                    }
+                }
+
+                // QuickStart-Integration
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(isCorrect);
+                }
+
+                // Nach Pause: nächste Aufgabe (richtig) oder Retry (falsch)
+                setTimeout(() => {
+                    this.inputLocked = false;
+                    const feedbackEl2 = document.getElementById('buildingFeedback');
+                    if (feedbackEl2) feedbackEl2.innerHTML = '';
+
+                    if (quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions && isCorrect) {
+                        return; // Quiz beendet, Success-Screen wird von handleAnswer gezeigt
+                    }
+
+                    if (isCorrect) {
+                        // Richtig → nächste Aufgabe
+                        this.generateBuildingTask();
+                    } else {
+                        // Falsch → Retry: gleiche Aufgabe, Eingabe zurücksetzen
+                        this.buildingSelectedKeys = [];
+                        this.buildingStaffNotes = [];
+                        this.drawStaff();
+                        this.renderKeyboard();
+                        this._updateBuildingCheckButton();
+                    }
+                }, isCorrect ? 1200 : 2500);
+            },
+
+            // Building Keyboard: nutzt 1:1 die bewährte renderKeyboard() + selectKey()
+            _renderBuildingKeyboard() {
+                const task = this.buildingCurrentTask;
+                if (!task) return;
+
+                // Feste Tastatur-Range: c' bis c''' (eingestrichen ± 1 Oktave)
+                // Unabhängig von Target-MIDIs, da Oktave bei Validierung irrelevant ist
+                const savedChord = this.currentChord;
+                this.currentChord = {
+                    _id: 'building-fixed-range',
+                    note1: { name: 'C', octave: 'eingestrichen', midi: 60 },
+                    note2: { name: 'E', octave: 'eingestrichen', midi: 64 },
+                    note3: { name: 'C', octave: 'zweigestrichen', midi: 72 }
+                };
+
+                // selectedKeys synchronisieren (renderKeyboard nutzt this.selectedKeys)
+                this.selectedKeys = this.buildingSelectedKeys.map(k => k.midi);
+
+                // Originale renderKeyboard aufrufen (Router umgehen via _skipBuildingRouter)
+                this._skipBuildingRouter = true;
+                this.renderKeyboard();
+                this._skipBuildingRouter = false;
+
+                // Keyboard-Hint anpassen
+                const kbHint = document.getElementById('keyboardHint');
+                if (kbHint) kbHint.textContent = 'Klicke die 3 Töne';
+
+                // State wiederherstellen
+                this.currentChord = savedChord;
+            },
+
+            // Building Staff: eigene SVG, einheitlicher Code-Pfad für 0-3 Noten + Ghost
+            _drawBuildingStaff() {
+                if (!this.buildingCurrentTask) return;
+                const container = document.getElementById('staffContainer');
+                if (!container) return;
+
+                const baseY = 260;
+                const staffLines = [260, 240, 220, 200, 180];
+                const x = 200; // Akkord-X-Position
+
+                // Noten sammeln (Keyboard → vom User geklickte Keys; Staff → vom User platzierte Noten)
+                const displayNotes = this.buildingIsKeyboard
+                    ? this.buildingSelectedKeys.map(k => ({ name: k.name, oct: k.oct }))
+                    : [...this.buildingStaffNotes];
+
+                // Noten sortieren (aufsteigend)
+                displayNotes.sort((a, b) => this._noteToMidi(a.name, a.oct) - this._noteToMidi(b.name, b.oct));
+
+                // Positionen berechnen (nutzt bewährte notePositions-Map)
+                const getBaseName = (name) => {
+                    if (name === 'B') return 'H';
+                    if (name === 'As') return 'A';
+                    if (name === 'Es') return 'E';
+                    return name.replace(/is|es/gi, '').toUpperCase() || name.charAt(0).toUpperCase();
+                };
+
+                const noteData = displayNotes.map(n => {
+                    const baseName = getBaseName(n.name);
+                    const key = `${baseName}-${n.oct}-treble`;
+                    const pos = this.notePositions[key];
+                    const y = pos !== undefined ? baseY - (pos * 10) : null;
+                    const hasSharp = n.name.includes('is') && !n.name.includes('isis');
+                    const hasFlat = n.name === 'Es' || n.name === 'As' || n.name === 'B' || (n.name.length > 2 && n.name.endsWith('es'));
+                    return { ...n, pos, y, hasSharp, hasFlat };
+                }).filter(n => n.y !== null);
+
+                // Ghost-Note Position berechnen
+                let ghostData = null;
+                if (!this.buildingIsKeyboard && this.buildingGhostNote && !this.inputLocked) {
+                    const g = this.buildingGhostNote;
+                    const baseName = getBaseName(g.name);
+                    const key = `${baseName}-${g.oct}-treble`;
+                    const pos = this.notePositions[key];
+                    if (pos !== undefined) {
+                        const hasSharp = g.name.includes('is') && !g.name.includes('isis');
+                        const hasFlat = g.name === 'Es' || g.name === 'As' || g.name === 'B' || (g.name.length > 2 && g.name.endsWith('es'));
+                        ghostData = { y: baseY - (pos * 10), pos, hasSharp, hasFlat };
+                    }
+                }
+
+                // ViewBox fest: deckt den gesamten Building-Range ab
+                // Staff-Linien: y=180 (oben) bis y=260 (unten)
+                // C klein (pos -9): y=350, C dreigestrichen (pos 12): y=140
+                // Fester Bereich mit Padding oben/unten
+                const svgMinY = 120;
+                const svgHeight = 260;
+
+                // SVG aufbauen — innerHTML des bestehenden <svg> updaten oder neues SVG erstellen
+                let svgEl = container.querySelector('svg#buildingStaffSvg');
+                if (!svgEl) {
+                    // Erstes Rendern: SVG erstellen + Events einmalig binden
+                    container.innerHTML = `<svg id="buildingStaffSvg" width="320" height="${svgHeight}" viewBox="0 ${svgMinY} 320 ${svgHeight}" style="margin:0 auto; display:block; max-width:100%;"></svg>`;
+                    svgEl = container.querySelector('svg#buildingStaffSvg');
+                    if (!this.buildingIsKeyboard) {
+                        this._enableBuildingStaffInteraction(svgEl);
+                    }
+                }
+                // Folge-Rendern: nur innerHTML updaten, SVG-Element + Events bleiben
+
+                let content = '';
+
+                // 5 Notenlinien
+                staffLines.forEach(ly => {
+                    content += `<line x1="80" y1="${ly}" x2="290" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+                });
+
+                // Violinschlüssel (identisch zur echten drawStaff)
+                content += `<g transform="translate(85, 158) scale(0.15)"><g transform="matrix(.21599 0 0 .21546 -250.44 -1202.6)"><path d="m2002 7851c-61 17-116 55-167 113-51 59-76 124-76 194 0 44 15 94 44 147 29 54 73 93 130 118 19 4 28 14 28 28 0 5-7 10-24 14-91-23-166-72-224-145-58-74-88-158-90-254 3-103 34-199 93-287 60-89 137-152 231-189l-69-355c-154 128-279 261-376 401-97 139-147 290-151 453 2 73 17 144 45 212 28 69 70 131 126 188 113 113 260 172 439 178 61-4 126-15 196-33l-155-783zm72-10l156 769c154-62 231-197 231-403-9-69-29-131-63-186-33-56-77-100-133-132s-119-48-191-48zm-205-1040c33-20 71-55 112-104 41-48 81-105 119-169 39-65 70-131 93-198 23-66 34-129 34-187 0-25-2-50-7-72-4-36-15-64-34-83-19-18-43-28-73-28-60 0-114 37-162 111-37 64-68 140-90 226-23 87-36 173-38 260 5 99 21 180 46 244zm-63 58c-45-162-70-327-75-495 1-108 12-209 33-303 20-94 49-175 87-245 37-70 80-123 128-159 43-32 74-49 91-49 13 0 24 5 34 14s23 24 39 44c119 169 179 373 179 611 0 113-15 223-45 333-29 109-72 213-129 310-58 98-126 183-205 256l81 394c44-5 74-9 91-9 76 0 144 16 207 48s117 75 161 130c44 54 78 116 102 186 23 70 36 143 36 219 0 118-31 226-93 323s-155 168-280 214c8 49 22 120 43 211 20 92 35 165 45 219s14 106 14 157c0 79-19 149-57 211-39 62-91 110-157 144-65 34-137 51-215 51-110 0-206-31-288-92-82-62-126-145-130-251 3-47 14-91 34-133s47-76 82-102c34-27 75-41 122-44 39 0 76 11 111 32 34 22 62 51 83 88 20 37 31 78 31 122 0 59-20 109-60 150s-91 62-152 62h-23c39 60 103 91 192 91 45 0 91-10 137-28 47-19 86-44 119-76s55-66 64-102c17-41 25-98 25-169 0-48-5-96-14-144-9-47-23-110-42-188-19-77-33-137-41-178-60 15-122 23-187 23-109 0-212-22-309-67s-182-107-256-187c-73-80-130-170-171-272-40-101-61-207-62-317 4-102 23-200 59-292 36-93 82-181 139-263s116-157 177-224c62-66 143-151 245-254z" fill="#000" stroke="#000" stroke-width="53"/></g></g>`;
+
+                // Hilfslinien für platzierte Noten
+                const allNoteY = noteData.map(n => n.y);
+                if (allNoteY.length > 0) {
+                    const noteMinY = Math.min(...allNoteY);
+                    const noteMaxY = Math.max(...allNoteY);
+                    if (noteMaxY >= 280) {
+                        for (let ly = 280; ly <= noteMaxY; ly += 20) {
+                            content += `<line x1="${x - 20}" y1="${ly}" x2="${x + 20}" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+                        }
+                    }
+                    if (noteMinY <= 160) {
+                        for (let ly = 160; ly >= noteMinY; ly -= 20) {
+                            content += `<line x1="${x - 20}" y1="${ly}" x2="${x + 20}" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+                        }
+                    }
+                }
+
+                // Platzierte Noten zeichnen (bewährte harmonische Logik aus drawStaff)
+                if (noteData.length > 0) {
+                    // Sekund-Erkennung (wie echte drawStaff)
+                    const is12Second = noteData.length >= 2 && Math.abs(noteData[1].pos - noteData[0].pos) === 1;
+                    const is23Second = noteData.length >= 3 && Math.abs(noteData[2].pos - noteData[1].pos) === 1;
+                    const hasSecond = is12Second || is23Second;
+
+                    // Vorzeichen-Erkennung pro Note
+                    const hasAcc = noteData.map(n => n.hasSharp || n.hasFlat);
+                    // Mittlere Note (i=1): VZ-Staffelung wenn äußere Noten auch VZ haben (wie echte drawStaff)
+                    const midAccOffset = (noteData.length >= 3 && (hasAcc[0] || hasAcc[2])) ? 20 : 0;
+
+                    noteData.forEach((n, i) => {
+                        let nx = x;
+                        // Sekund-Versatz (identisch zur echten drawStaff)
+                        if (hasSecond && i === 0 && is12Second) nx = x - 5;
+                        if (hasSecond && i === 1 && is12Second) nx = x + 12;
+                        if (hasSecond && i === 2 && is23Second) nx = x + 12;
+
+                        // Vorzeichen (Abstände identisch zur echten drawStaff: Sharp x-45, Flat x-55)
+                        const accOffset = (i === 1) ? midAccOffset : 0;
+                        if (n.hasSharp) {
+                            content += `<text x="${nx - 45 - accOffset}" y="${n.y + 13}" font-size="42" font-family="serif">♯</text>`;
+                        }
+                        if (n.hasFlat) {
+                            content += `<text x="${nx - 55 - accOffset}" y="${n.y + 10}" font-size="38" font-family="serif">♭</text>`;
+                        }
+
+                        // Notenkopf (schwarz, wie im Erkennen-Modus)
+                        content += `<ellipse cx="${nx}" cy="${n.y}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${nx} ${n.y})"/>`;
+                    });
+                }
+
+                // Ghost-Note
+                if (ghostData) {
+                    // Hilfslinien für Ghost
+                    if (ghostData.y >= 280) {
+                        for (let ly = 280; ly <= ghostData.y; ly += 20) {
+                            content += `<line x1="${x - 20}" y1="${ly}" x2="${x + 20}" y2="${ly}" stroke="#9ca3af" stroke-width="1" opacity="0.3"/>`;
+                        }
+                    }
+                    if (ghostData.y <= 160) {
+                        for (let ly = 160; ly >= ghostData.y; ly -= 20) {
+                            content += `<line x1="${x - 20}" y1="${ly}" x2="${x + 20}" y2="${ly}" stroke="#9ca3af" stroke-width="1" opacity="0.3"/>`;
+                        }
+                    }
+                    // Ghost-Vorzeichen (gleiche Abstände wie platzierte Noten)
+                    if (ghostData.hasSharp) {
+                        content += `<text x="${x - 45}" y="${ghostData.y + 13}" font-size="42" font-family="serif" fill="#9ca3af" opacity="0.3">♯</text>`;
+                    }
+                    if (ghostData.hasFlat) {
+                        content += `<text x="${x - 55}" y="${ghostData.y + 10}" font-size="38" font-family="serif" fill="#9ca3af" opacity="0.3">♭</text>`;
+                    }
+                    content += `<ellipse cx="${x}" cy="${ghostData.y}" rx="12.5" ry="9.5" fill="#9ca3af" opacity="0.3" transform="rotate(-20 ${x} ${ghostData.y})"/>`;
+                }
+
+                svgEl.innerHTML = content;
+            },
+
+            // Staff-Interaction: Events EINMALIG auf SVG binden
+            _enableBuildingStaffInteraction(svg) {
+                const self = this;
+                const baseY = 260;
+
+                function getCoords(e) {
+                    const rect = svg.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    const vb = svg.viewBox.baseVal;
+                    return {
+                        svgX: ((clientX - rect.left) / rect.width) * vb.width,
+                        svgY: ((clientY - rect.top) / rect.height) * vb.height + vb.y
+                    };
+                }
+
+                function yToNote(svgY) {
+                    const position = Math.round((baseY - svgY) / 10);
+                    const noteOrder = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+                    // Position -9 = C klein, -2 = C eingestrichen, 0 = E eingestrichen, 5 = C zweigestrichen
+                    const idx = position + 9; // 0 = C klein (Position -9 ist der tiefste Treble-Eintrag)
+                    const octOffset = Math.floor(idx / 7);
+                    const letterIdx = ((idx % 7) + 7) % 7;
+                    const letter = noteOrder[letterIdx];
+                    const octNames = ['klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+                    const octName = octNames[Math.max(0, Math.min(octNames.length - 1, octOffset))];
+
+                    let noteName = letter;
+                    if (self.buildingActiveTool === 'sharp') {
+                        noteName = letter === 'H' ? 'His' : letter.toLowerCase() + 'is';
+                    } else if (self.buildingActiveTool === 'flat') {
+                        noteName = letter === 'H' ? 'B' : letter === 'E' ? 'Es' : letter === 'A' ? 'As' : letter.toLowerCase() + 'es';
+                    }
+                    return { name: noteName, oct: octName };
+                }
+
+                svg.addEventListener('mousemove', function(e) {
+                    if (self.inputLocked) return;
+                    const { svgY } = getCoords(e);
+                    self.buildingGhostNote = yToNote(svgY);
+                    self._drawBuildingStaff(); // updatet nur innerHTML, Events bleiben
+                });
+
+                svg.addEventListener('mouseleave', function() {
+                    self.buildingGhostNote = null;
+                    self._drawBuildingStaff();
+                });
+
+                svg.addEventListener('mousedown', function(e) {
+                    if (self.inputLocked) return;
+                    const { svgY } = getCoords(e);
+                    const note = yToNote(svgY);
+                    self.selectBuildingStaffNote(note.name, note.oct);
+                });
+
+                svg.addEventListener('touchstart', function(e) {
+                    if (self.inputLocked) return;
+                    e.preventDefault();
+                    const { svgY } = getCoords(e);
+                    const note = yToNote(svgY);
+                    self.selectBuildingStaffNote(note.name, note.oct);
+                }, { passive: false });
+            },
+
             // HS-Dropdown Wert auslesen (Aufsteiger-Modus)
             getHSValue(id) {
                 const sel = document.getElementById(id);
@@ -3003,6 +4023,9 @@
             },
 
             generateChord() {
+                // Building-Mode Router
+                if (this.buildingMode) { this.generateBuildingTask(); return; }
+
                 const dbg = this._debugKeyboard || new URLSearchParams(window.location.search).get('debug') === 'keyboard';
                 if (dbg) console.log('🎲 generateChord() START | quickStartMode:', this.quickStartMode, '| originalApp visible:', document.getElementById('originalApp')?.classList.contains('active'));
 
@@ -3518,23 +4541,23 @@
                 const taskDesc = document.getElementById('taskDescription');
                 if (taskDesc) {
                     if (this.quickStartMode === 'einsteiger') {
-                        taskDesc.textContent = '🎹 Finde die 3 Töne auf der Tastatur!';
+                        taskDesc.textContent = 'Finde die 3 Töne auf der Tastatur';
                     } else if (this.quickStartMode === 'aufsteiger') {
-                        taskDesc.textContent = '🔢 Zähle die Halbtonschritte!';
+                        taskDesc.textContent = 'Finde die 3 Töne auf der Tastatur';
                     } else if (this.quickStartMode === 'profi') {
-                        taskDesc.textContent = '🎯 Bestimme den Dreiklang!';
+                        taskDesc.textContent = 'Bestimme Grundton und Art des Dreiklangs';
                     } else if (this.quickStartMode === 'meister') {
-                        taskDesc.textContent = '🎯 Bestimme Stellung und Dreiklang!';
+                        taskDesc.textContent = 'Bestimme Stellung, Grundton und Art';
                     } else {
                         // Free Mode: erste Stufe anzeigen
-                        if (this.settings.requireKeyboard && this.settings.showSemitones) {
-                            taskDesc.textContent = '🎹 Finde die 3 Töne auf der Tastatur!';
-                        } else if (this.settings.requireKeyboard) {
-                            taskDesc.textContent = '🎹 Finde die 3 Töne auf der Tastatur!';
+                        if (this.settings.requireKeyboard) {
+                            taskDesc.textContent = 'Finde die 3 Töne auf der Tastatur';
                         } else if (this.settings.showSemitones) {
-                            taskDesc.textContent = '🔢 Bestimme die Halbtonschritte zwischen den Tönen!';
+                            taskDesc.textContent = 'Zähle die Halbtonschritte zwischen den Tönen';
+                        } else if (this.settings.includeInversions) {
+                            taskDesc.textContent = 'Bestimme Stellung, Grundton und Art';
                         } else {
-                            taskDesc.textContent = '🎯 Bestimme den Dreiklang!';
+                            taskDesc.textContent = 'Bestimme Grundton und Art des Dreiklangs';
                         }
                     }
                 }
@@ -3768,6 +4791,9 @@
             },
 
             drawStaff() {
+                // Building-Mode Router (skip wenn von _drawBuildingStaff aufgerufen)
+                if (this.buildingMode && !this._skipBuildingRouter) { this._drawBuildingStaff(); return; }
+
                 const note1 = this.currentChord.note1;
                 const note2 = this.currentChord.note2;
                 const note3 = this.currentChord.note3;
@@ -4116,6 +5142,9 @@
             },
 
             renderKeyboard() {
+                // Building-Mode Router (skip wenn von _renderBuildingKeyboard aufgerufen)
+                if (this.buildingMode && !this._skipBuildingRouter) { this._renderBuildingKeyboard(); return; }
+
                 const container = document.getElementById('keyboardContainer');
                 if (!container) return;
 
@@ -4241,8 +5270,8 @@
                 // Add final C
                 whiteKeys.push({ name: 'C', oct: endOct + 1, midi: (endOct + 1) * 12 });
 
-                // Klickbar im Einsteiger-Quiz ODER im Freien Üben mit Tastatur-Eingabe
-                const isClickable = this.quickStartMode === 'einsteiger' || (!this.quickStartMode && this.settings.requireKeyboard);
+                // Klickbar im Einsteiger-Quiz, Building-Keyboard ODER im Freien Üben mit Tastatur-Eingabe
+                const isClickable = this.quickStartMode === 'einsteiger' || this.buildingMode || (!this.quickStartMode && this.settings.requireKeyboard);
                 const showCorrect = document.getElementById('feedback')?.textContent.includes('Richtig') && !document.getElementById('feedback')?.classList.contains('hidden');
 
                 // Visuelle Unterscheidung: Orientierungstastatur vs. Aufgabentastatur
@@ -4333,7 +5362,60 @@
                 }
             },
 
+            // Enharmonik-Auflösung: MIDI → korrekter Notenname aus Target-Kontext
+            _resolveEnharmonic(midi) {
+                const task = this.buildingCurrentTask;
+                if (task) {
+                    // Prüfe ob eine Target-Note diesen MIDI-Wert hat (beliebige Oktave)
+                    const pc = midi % 12;
+                    const target = task.targetNotes.find(n => n.midi % 12 === pc);
+                    if (target) {
+                        // Übernimm den enharmonisch korrekten Namen
+                        // Oktave: aus MIDI der gedrückten Taste ableiten, aber korrigieren
+                        // für Oktavgrenzen-Überschreitung (His=C+1Oktave, Ces=H-1Oktave)
+                        const octNum = Math.floor(midi / 12) - 1;
+                        const oct = this._octNumToName(octNum);
+                        // Tatsächliche MIDI für diese Name+Oktave-Kombination berechnen
+                        const resolvedMidi = this._noteToMidi(target.name, oct);
+                        // Wenn die MIDI nicht übereinstimmt (His/Ces Oktavgrenze), Oktave korrigieren
+                        if (resolvedMidi !== midi) {
+                            const diff = midi - resolvedMidi;
+                            const correctedOctNum = octNum + Math.round(diff / 12);
+                            const correctedOct = this._octNumToName(correctedOctNum);
+                            const correctedMidi = this._noteToMidi(target.name, correctedOct);
+                            return { name: target.name, oct: correctedOct, midi: correctedMidi };
+                        }
+                        return { name: target.name, oct, midi };
+                    }
+                }
+                // Fallback: Standard-Zuordnung
+                const octNum = Math.floor(midi / 12) - 1;
+                const semitone = midi % 12;
+                const whiteMap = {0:'C', 2:'D', 4:'E', 5:'F', 7:'G', 9:'A', 11:'H'};
+                const blackMap = {1:'Cis', 3:'Dis', 6:'Fis', 8:'Gis', 10:'B'};
+                const name = whiteMap[semitone] || blackMap[semitone] || 'C';
+                return { name, oct: this._octNumToName(octNum), midi };
+            },
+
             selectKey(midi) {
+                // Building-Modus: Klick auf Tastatur → buildingSelectedKeys aktualisieren
+                if (this.buildingMode) {
+                    if (this.inputLocked) return;
+                    const existingIdx = this.buildingSelectedKeys.findIndex(k => k.midi === midi);
+                    if (existingIdx >= 0) {
+                        this.buildingSelectedKeys.splice(existingIdx, 1);
+                    } else if (this.buildingSelectedKeys.length < 3) {
+                        this.buildingSelectedKeys.push(this._resolveEnharmonic(midi));
+                    } else {
+                        this.buildingSelectedKeys.shift();
+                        this.buildingSelectedKeys.push(this._resolveEnharmonic(midi));
+                    }
+                    this.renderKeyboard();
+                    this.drawStaff();
+                    this._updateBuildingCheckButton();
+                    return;
+                }
+
                 // Erlaubt in: Einsteiger-Quiz ODER Freiem Modus mit Tastatur-Eingabe
                 if (this.quickStartMode !== 'einsteiger' &&
                     (this.quickStartMode || !this.settings.requireKeyboard)) return;
@@ -4408,6 +5490,38 @@
 
             // ---- Web Audio: Dreiklang abspielen (Piano-ähnlich) ----
             playChord() {
+                // Building-Modus: spiele ab was der User gebaut hat
+                if (this.buildingMode) {
+                    const userNotes = this.buildingIsKeyboard
+                        ? this.buildingSelectedKeys
+                        : this.buildingStaffNotes.map(n => ({ ...n, midi: this._noteToMidi(n.name, n.oct) }));
+                    if (userNotes.length === 0) return;
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const midiToFreq = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+                    const playNote = (freq, time) => {
+                        const harmonics = [1, 2, 3, 4, 5, 6];
+                        const amplitudes = [0.35, 0.15, 0.08, 0.04, 0.02, 0.01];
+                        harmonics.forEach((h, i) => {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.value = freq * h;
+                            gain.gain.setValueAtTime(0, time);
+                            gain.gain.linearRampToValueAtTime(amplitudes[i], time + 0.01);
+                            gain.gain.exponentialRampToValueAtTime(amplitudes[i] * 0.3, time + 0.15);
+                            gain.gain.exponentialRampToValueAtTime(0.001, time + 1.0);
+                            osc.connect(gain); gain.connect(ctx.destination);
+                            osc.start(time); osc.stop(time + 1.0);
+                        });
+                    };
+                    const now = ctx.currentTime;
+                    userNotes.forEach(n => playNote(midiToFreq(n.midi), now));
+                    // Visuelles Feedback
+                    const btn = document.getElementById('playChordBtn');
+                    if (btn) { btn.style.opacity = '1'; setTimeout(() => btn.style.opacity = '0.5', 300); }
+                    return;
+                }
+
                 if (!this.currentChord) return;
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -4463,6 +5577,9 @@
             },
 
             checkAnswer() {
+                // Building-Mode Router
+                if (this.buildingMode) { this.checkBuildingAnswer(); return; }
+
                 const feedbackEl = document.getElementById('feedback');
                 const rootNoteInput = document.getElementById('rootNoteInput');
                 const chordTypeSelect = document.getElementById('chordTypeSelect');
@@ -4553,7 +5670,7 @@
 
                             // Aufgabenstellung aktualisieren
                             const td = document.getElementById('taskDescription');
-                            if (td) td.textContent = '🔢 Bestimme die Halbtonschritte zwischen den Tönen!';
+                            if (td) td.textContent = 'Zähle die Halbtonschritte zwischen den Tönen';
 
                             feedbackEl.classList.remove('hidden');
                             feedbackEl.className = 'feedback correct';
@@ -4616,8 +5733,8 @@
                         const td = document.getElementById('taskDescription');
                         if (td) {
                             td.textContent = this.settings.includeInversions
-                                ? '🎯 Bestimme jetzt Stellung und Name des Dreiklangs!'
-                                : '🎯 Bestimme jetzt den Dreiklang!';
+                                ? 'Bestimme jetzt Stellung, Grundton und Art'
+                                : 'Bestimme jetzt Grundton und Art';
                         }
 
                         feedbackEl.classList.remove('hidden');
@@ -4743,8 +5860,8 @@
                         const td = document.getElementById('taskDescription');
                         if (td) {
                             td.textContent = this.settings.includeInversions
-                                ? '🎯 Bestimme jetzt Stellung und Name des Dreiklangs!'
-                                : '🎯 Bestimme jetzt den Dreiklang!';
+                                ? 'Bestimme jetzt Stellung, Grundton und Art'
+                                : 'Bestimme jetzt Grundton und Art';
                         }
 
                         feedbackEl.classList.remove('hidden');
