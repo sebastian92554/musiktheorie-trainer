@@ -183,6 +183,97 @@
             background: #fee2e2;
         }
 
+        /* Gap-Fill Antwort-Buttons */
+        .gap-answer-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+        .gap-task-label {
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #6b21a8;
+            margin-bottom: 0.25rem;
+        }
+        .gap-option-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            color: #1f2937;
+            border: 2px solid #d1d5db;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 64px;
+            min-height: 80px;
+        }
+        .gap-option-btn:hover:not(:disabled) {
+            background: #e5e7eb;
+            border-color: #8b5cf6;
+        }
+        .gap-option-symbol {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gap-option-name {
+            font-size: 0.65rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        .gap-option-btn.gap-correct {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .gap-option-btn.gap-wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .gap-option-btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        /* Dictation UI */
+        .dictation-container { padding: 1rem; }
+        .dictation-task-label {
+            text-align: center; font-weight: 600; font-size: 0.95rem;
+            color: #6b21a8; margin-bottom: 0.5rem;
+        }
+        .dictation-note-buttons {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        .dictation-note-buttons .gap-option-btn { /* Wiederverwendet gap-option-btn Styles */ }
+        .dictation-actions {
+            display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 0.5rem;
+        }
+        .dictation-action-btn {
+            padding: 0.4rem 1rem; border-radius: 0.5rem; border: 2px solid #d1d5db;
+            background: #f3f4f6; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .dictation-action-btn:hover:not(:disabled) { border-color: #8b5cf6; background: #ede9fe; }
+        .dictation-action-btn:disabled { opacity: 0.4; cursor: default; }
+        .dictation-check-btn:not(:disabled) { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+        .dictation-check-btn:not(:disabled):hover { background: #7c3aed; }
+        .dictation-fill-bar {
+            height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;
+        }
+        .dictation-fill-progress {
+            height: 100%; background: #8b5cf6; border-radius: 2px;
+            transition: width 0.2s ease;
+        }
+
         /* Taktart-Wechsel Toast — über dem Staff zentriert */
         .taktart-hint-toast {
             position: absolute;
@@ -868,9 +959,53 @@
             content: '';
             width: 2px;
             height: 100%;
-            background: #d1d5db;
+            background: #8b5cf6;
         }
         .st-connector.mastered::before {
+            background: #8b5cf6;
+        }
+
+        /* Fork (Gabelung nach rhy2) */
+        .st-fork-stem { display: flex; justify-content: center; height: 14px; }
+        .st-fork-stem::before { content: ''; width: 2px; height: 100%; background: #8b5cf6; }
+
+        .st-fork-bracket {
+            width: calc(50% + 0.375rem);
+            margin: 0 auto;
+            height: 22px;
+            border: 2px solid #8b5cf6;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .st-fork-branches {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .st-fork-branches .st-node-wrapper { max-width: 100%; }
+        .st-branch-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            color: #475569;
+            background: #f1f5f9;
+        }
+        .st-branch-inner-connector {
+            display: flex;
+            justify-content: center;
+            height: 16px;
+        }
+        .st-branch-inner-connector::before {
+            content: '';
+            width: 2px;
+            height: 100%;
             background: #8b5cf6;
         }
 
@@ -1239,34 +1374,65 @@
                         <div class="st-sub-skills" id="stSubs-rhy2"></div>
                     </div>
 
-                    <div class="st-connector" id="stConn-rhy2-rhy3"></div>
+                    <!-- Fork nach rhy2 -->
+                    <div class="st-fork-stem" id="stForkStem"></div>
+                    <div class="st-fork-bracket" id="stForkBracket"></div>
 
-                    <!-- Knoten 3: Zählzeiten bestimmen -->
-                    <div class="st-node-wrapper" id="stNode-rhy3">
-                        <div class="st-node available" onclick="quickStart.selectNode('rhy3')">
-                            <div class="st-node-icon">3</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Zählzeiten bestimmen</div>
-                                <div class="st-node-desc">Position im Takt erkennen</div>
+                    <div class="st-fork-branches">
+                        <!-- LINKS: Bestimmen -->
+                        <div>
+                            <div class="st-branch-label">Bestimmen</div>
+                            <div class="st-node-wrapper" id="stNode-rhy3">
+                                <div class="st-node available" onclick="quickStart.selectNode('rhy3')">
+                                    <div class="st-node-icon">3</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Zählzeiten bestimmen</div>
+                                        <div class="st-node-desc">Position im Takt erkennen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-rhy3"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-rhy3"></div>
-                    </div>
-
-                    <div class="st-connector" id="stConn-rhy3-rhy4"></div>
-
-                    <!-- Knoten 4: Rhythmussprache -->
-                    <div class="st-node-wrapper" id="stNode-rhy4">
-                        <div class="st-node available" onclick="quickStart.selectNode('rhy4')">
-                            <div class="st-node-icon">4</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Rhythmussprache</div>
-                                <div class="st-node-desc">Rhythmussilben richtig sprechen</div>
+                            <div class="st-branch-inner-connector" id="stConn-rhy3-rhy4"></div>
+                            <div class="st-node-wrapper" id="stNode-rhy4">
+                                <div class="st-node available" onclick="quickStart.selectNode('rhy4')">
+                                    <div class="st-node-icon">4</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Rhythmussprache</div>
+                                        <div class="st-node-desc">Rhythmussilben richtig sprechen</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-rhy4"></div>
                             </div>
-                            <div class="st-node-action">&#9662;</div>
                         </div>
-                        <div class="st-sub-skills" id="stSubs-rhy4"></div>
+                        <!-- RECHTS: Schreiben -->
+                        <div>
+                            <div class="st-branch-label">Schreiben</div>
+                            <div class="st-node-wrapper" id="stNode-rhy5">
+                                <div class="st-node available" onclick="quickStart.selectNode('rhy5')">
+                                    <div class="st-node-icon">5</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Fehlenden Wert ergänzen</div>
+                                        <div class="st-node-desc">Welcher Notenwert fehlt im Takt?</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-rhy5"></div>
+                            </div>
+                            <div class="st-branch-inner-connector" id="stConn-rhy5-rhy6"></div>
+                            <div class="st-node-wrapper" id="stNode-rhy6">
+                                <div class="st-node available" onclick="quickStart.selectNode('rhy6')">
+                                    <div class="st-node-icon">6</div>
+                                    <div class="st-node-content">
+                                        <div class="st-node-name">Rhythmusdiktat</div>
+                                        <div class="st-node-desc">Gehörten Rhythmus nachschreiben</div>
+                                    </div>
+                                    <div class="st-node-action">&#9662;</div>
+                                </div>
+                                <div class="st-sub-skills" id="stSubs-rhy6"></div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -1435,6 +1601,7 @@
                         <option value="time-signature-id">Taktart erkennen</option>
                         <option value="counting-time">Zählzeit bestimmen</option>
                         <option value="rhythm-syllable">Rhythmussilbe bestimmen</option>
+                        <option value="gap-fill">Fehlenden Wert ergänzen</option>
                     </select>
                 </div>
 
@@ -1603,6 +1770,22 @@
         <!-- Taktart-Buttons (nur bei time-signature-id) -->
         <div class="card ts-button-container hidden" id="tsButtonContainer"></div>
 
+        <!-- Gap-Fill Antwort-Buttons (nur bei gap-fill) -->
+        <div class="card gap-answer-container" id="gapAnswerContainer" style="display:none;"></div>
+
+        <!-- Dictation UI (nur bei dictation) -->
+        <div class="card dictation-container" id="dictationContainer" style="display:none;">
+            <div class="dictation-task-label">Welchen Rhythmus hörst du?</div>
+            <div class="dictation-note-buttons" id="dictationNoteButtons"></div>
+            <div class="dictation-actions">
+                <button class="dictation-action-btn" id="dictationUndoBtn" onclick="app.undoDictationNote()" disabled>↩ Rückgängig</button>
+                <button class="dictation-action-btn dictation-check-btn" id="dictationCheckBtn" onclick="app.checkDictationAnswer()" disabled>Prüfen</button>
+            </div>
+            <div class="dictation-fill-bar">
+                <div class="dictation-fill-progress" id="dictationFillProgress"></div>
+            </div>
+        </div>
+
         <!-- Input Card - bei Zählzeit- und Rhythmussilben-Aufgabe sichtbar -->
         <div class="card input-card hidden" id="inputCard">
             <div id="inputContainer">
@@ -1769,7 +1952,9 @@
                 'rhy1': 'einsteiger',
                 'rhy2': 'taktarten',
                 'rhy3': 'fortgeschrittener',
-                'rhy4': 'profi'
+                'rhy4': 'profi',
+                'rhy5': 'notenwert_bilden',
+                'rhy6': 'rhythmusdiktat'
             },
 
             // Sub-Skills pro Knoten (zunehmender Schwierigkeitsgrad)
@@ -1803,6 +1988,16 @@
                     { id: 'punktierte', label: 'Mit punktierten Noten' },
                     { id: 'triolen', label: 'Mit Triolen' },
                     { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+                ],
+                'rhy5': [
+                    { id: '8tel', label: 'Basis (bis Achtel)' },
+                    { id: 'punktierte', label: 'Mit punktierten Noten' },
+                    { id: '16tel', label: 'Mit Sechzehntelnoten' }
+                ],
+                'rhy6': [
+                    { id: '8tel', label: 'Basis (bis Achtel)' },
+                    { id: 'punktierte', label: 'Mit punktierten Noten' },
+                    { id: '16tel', label: 'Mit Sechzehntelnoten' }
                 ]
             },
 
@@ -1831,6 +2026,17 @@
 
             // Migration: v2 (3 Knoten) → v3 (4 Knoten mit Taktarten + Pausen nach vorne)
             _migrateProgress() {
+                // v4: notenwert_bilden hinzufügen
+                if (!this.progress.notenwert_bilden) {
+                    this.progress.notenwert_bilden = { mastered: [], attempts: {}, scores: {} };
+                    this.saveProgress();
+                }
+                // v5: rhythmusdiktat hinzufügen
+                if (!this.progress.rhythmusdiktat) {
+                    this.progress.rhythmusdiktat = { mastered: [], attempts: {}, scores: {} };
+                    this.saveProgress();
+                }
+
                 // Bereits migriert? (taktarten-Level existiert)
                 if (this.progress.taktarten) return;
 
@@ -1861,7 +2067,9 @@
                     einsteiger: { mastered: [], attempts: {}, scores: {} },
                     taktarten: { mastered: [], attempts: {}, scores: {} },
                     fortgeschrittener: { mastered: [], attempts: {}, scores: {} },
-                    profi: { mastered: [], attempts: {}, scores: {} }
+                    profi: { mastered: [], attempts: {}, scores: {} },
+                    notenwert_bilden: { mastered: [], attempts: {}, scores: {} },
+                    rhythmusdiktat: { mastered: [], attempts: {}, scores: {} }
                 };
             },
             
@@ -1932,7 +2140,20 @@
 
             // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
-                const nodes = ['rhy1', 'rhy2', 'rhy3', 'rhy4'];
+                const nodes = ['rhy1', 'rhy2', 'rhy3', 'rhy4', 'rhy5', 'rhy6'];
+                const nodeNumbers = { 'rhy1': 1, 'rhy2': 2, 'rhy3': 3, 'rhy4': 4, 'rhy5': 5, 'rhy6': 6 };
+                const predecessors = {
+                    'rhy2': 'rhy1',
+                    'rhy3': 'rhy2',
+                    'rhy4': 'rhy3',
+                    'rhy5': 'rhy2',
+                    'rhy6': 'rhy5'
+                };
+                const connectorMap = {
+                    'rhy2': 'stConn-rhy1-rhy2',
+                    'rhy4': 'stConn-rhy3-rhy4',
+                    'rhy6': 'stConn-rhy5-rhy6'
+                };
                 let totalSubs = 0;
                 let totalMastered = 0;
                 let firstAvailableNode = null;
@@ -1958,20 +2179,22 @@
                         node.querySelector('.st-node-icon').textContent = '✓';
                     } else {
                         node.classList.add('available');
-                        node.querySelector('.st-node-icon').textContent = nodes.indexOf(nodeId) + 1;
+                        node.querySelector('.st-node-icon').textContent = nodeNumbers[nodeId];
                         if (!firstAvailableNode) firstAvailableNode = nodeId;
                     }
 
-                    // Connector-Zustand
-                    const prevConn = nodeId === 'rhy2' ? document.getElementById('stConn-rhy1-rhy2') :
-                                     nodeId === 'rhy3' ? document.getElementById('stConn-rhy2-rhy3') :
-                                     nodeId === 'rhy4' ? document.getElementById('stConn-rhy3-rhy4') : null;
-                    if (prevConn) {
-                        const prevLevel = this.nodeToLevel[nodes[nodes.indexOf(nodeId) - 1]];
-                        const prevSubs = this.nodeSubSkills[nodes[nodes.indexOf(nodeId) - 1]];
-                        const prevMastered = this.progress[prevLevel].mastered || [];
-                        const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
-                        prevConn.classList.toggle('mastered', prevAllDone);
+                    // Connector-Zustand (nur für Knoten mit regulären Connectors)
+                    const connId = connectorMap[nodeId];
+                    if (connId) {
+                        const prevConn = document.getElementById(connId);
+                        const prevNodeId = predecessors[nodeId];
+                        if (prevConn && prevNodeId) {
+                            const prevLevel = this.nodeToLevel[prevNodeId];
+                            const prevSubs = this.nodeSubSkills[prevNodeId];
+                            const prevMastered = this.progress[prevLevel].mastered || [];
+                            const prevAllDone = prevSubs.every(s => prevMastered.includes(s.id));
+                            prevConn.classList.toggle('mastered', prevAllDone);
+                        }
                     }
 
                     // Sub-Skills rendern
@@ -1996,6 +2219,16 @@
                     }
                 });
 
+                // Fork-Stem + Bracket: mastered wenn rhy2 komplett
+                const rhy2Level = this.nodeToLevel['rhy2'];
+                const rhy2Subs = this.nodeSubSkills['rhy2'];
+                const rhy2Mastered = this.progress[rhy2Level].mastered || [];
+                const rhy2Done = rhy2Subs.every(s => rhy2Mastered.includes(s.id));
+                const forkStem = document.getElementById('stForkStem');
+                const forkBracket = document.getElementById('stForkBracket');
+                if (forkStem) forkStem.classList.toggle('mastered', rhy2Done);
+                if (forkBracket) forkBracket.classList.toggle('mastered', rhy2Done);
+
                 // Gesamt-Fortschritt
                 const percentage = Math.round((totalMastered / totalSubs) * 100);
                 const progressInfo = document.getElementById('stProgressInfo');
@@ -2016,17 +2249,28 @@
 
             // ---- Skilltree: Knoten auswählen ----
             selectNode(nodeId) {
-                document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
-                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
-                this.selectedSub = null;
-
-                document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
-
                 const wrapper = document.getElementById('stNode-' + nodeId);
                 if (!wrapper) return;
                 const node = wrapper.querySelector('.st-node');
                 if (node.classList.contains('locked')) return;
 
+                // Toggle: bereits offen → schließen
+                if (wrapper.classList.contains('expanded')) {
+                    wrapper.classList.remove('expanded');
+                    node.classList.remove('selected');
+                    this.selectedNode = null;
+                    this.selectedSub = null;
+                    this._updateStartButton();
+                    return;
+                }
+
+                // Alle anderen schließen
+                document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
+                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
+                document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
+                this.selectedSub = null;
+
+                // Diesen öffnen
                 node.classList.add('selected');
                 wrapper.classList.add('expanded');
                 this.selectedNode = nodeId;
@@ -2202,6 +2446,10 @@
                     app.settings.taskType = 'counting-time';
                 } else if (level === 'profi') {
                     app.settings.taskType = 'rhythm-syllable';
+                } else if (level === 'notenwert_bilden') {
+                    app.settings.taskType = 'gap-fill';
+                } else if (level === 'rhythmusdiktat') {
+                    app.settings.taskType = 'dictation';
                 }
                 
                 console.log('[QuickStart] Konfiguriere App:', level, 'mit Optionen:', options);
@@ -2327,8 +2575,64 @@
                     console.log('[QuickStart] Taktarten-Modus: Pool =', pool);
                 }
 
-                // AUDIO: Nur in rhy3/rhy4 aktiv (nicht rhy1/rhy2)
-                const hasAudio = (level === 'fortgeschrittener' || level === 'profi');
+                // NOTENWERT BILDEN (gap-fill): Konfiguration
+                if (level === 'notenwert_bilden') {
+                    // Pausen + Achtel sind IMMER aktiv (kein separater Sub-Skill)
+                    app.settings.includeRests = true;
+                    app.settings.includeEighths = true;
+                    document.getElementById('includeRests').checked = true;
+                    document.getElementById('includeEighths').checked = true;
+                    app.settings.timeSignature = '4/4';
+                    app.settings._taktartenPool = null;
+                    const gfBadge = document.getElementById('timeSignatureBadge');
+                    if (gfBadge) gfBadge.textContent = app.settings.timeSignature;
+                    // Hilfen AUS (Raster + Zählzeiten verraten die Lösung)
+                    app.settings.showLegend = false;
+                    app.settings.showGrid = false;
+                    app.settings.showCountingTimes = false;
+                    app.settings.showRhythmSyllables = false;
+                    document.getElementById('showLegend').checked = false;
+                    document.getElementById('showGrid').checked = false;
+                    document.getElementById('showGrid').disabled = true;
+                    document.getElementById('showCountingTimes').checked = false;
+                    document.getElementById('showCountingTimes').disabled = true;
+                    document.getElementById('showRhythmSyllables').checked = false;
+                    document.getElementById('showRhythmSyllables').disabled = true;
+                    // Interaction-Hint ausblenden (kein Hover in gap-fill)
+                    const gfHint = document.getElementById('interactionHint');
+                    if (gfHint) gfHint.classList.add('hidden');
+                    app.interactionHintShown = false;
+                    console.log('[QuickStart] Gap-Fill-Modus, Optionen:', options);
+                }
+
+                // RHYTHMUSDIKTAT: Konfiguration
+                if (level === 'rhythmusdiktat') {
+                    app.settings.includeRests = true;
+                    app.settings.includeEighths = true;
+                    document.getElementById('includeRests').checked = true;
+                    document.getElementById('includeEighths').checked = true;
+                    app.settings.timeSignature = '4/4';
+                    app.settings._taktartenPool = null;
+                    // Hilfen AUS
+                    app.settings.showLegend = false;
+                    app.settings.showGrid = false;
+                    app.settings.showCountingTimes = false;
+                    app.settings.showRhythmSyllables = false;
+                    document.getElementById('showLegend').checked = false;
+                    document.getElementById('showGrid').checked = false;
+                    document.getElementById('showGrid').disabled = true;
+                    document.getElementById('showCountingTimes').checked = false;
+                    document.getElementById('showCountingTimes').disabled = true;
+                    document.getElementById('showRhythmSyllables').checked = false;
+                    document.getElementById('showRhythmSyllables').disabled = true;
+                    const dictHint = document.getElementById('interactionHint');
+                    if (dictHint) dictHint.classList.add('hidden');
+                    app.interactionHintShown = false;
+                    console.log('[QuickStart] Dictation-Modus, Optionen:', options);
+                }
+
+                // AUDIO: Nur in rhy3/rhy4/rhy6 aktiv (nicht rhy1/rhy2)
+                const hasAudio = (level === 'fortgeschrittener' || level === 'profi' || level === 'rhythmusdiktat');
                 const isNoAudio = options.includes('noaudio');
                 app.noAudio = !hasAudio || isNoAudio;
                 const playBtn = document.getElementById('playRhythmBtn');
@@ -2364,6 +2668,17 @@
                         document.getElementById('showGrid').checked = false;
                         document.getElementById('showCountingTimes').checked = false;
                         console.log('[QuickStart] PROFI: Alle Hilfen per default AUS (Legende + Raster + Zählzeiten)');
+                    } else if (level === 'notenwert_bilden' || level === 'rhythmusdiktat') {
+                        // SCHREIBEN-ZWEIG: Hilfen IMMER AUS (verraten die Lösung)
+                        app.settings.showLegend = false;
+                        app.settings.showGrid = false;
+                        app.settings.showCountingTimes = false;
+                        document.getElementById('showLegend').checked = false;
+                        document.getElementById('showGrid').checked = false;
+                        document.getElementById('showGrid').disabled = true;
+                        document.getElementById('showCountingTimes').checked = false;
+                        document.getElementById('showCountingTimes').disabled = true;
+                        console.log('[QuickStart] Schreiben-Modus: Alle Hilfen AUS');
                     } else {
                         // EINSTEIGER/AUFSTEIGER: Hilfen einschalten
                         app.settings.showLegend = true;
@@ -2399,8 +2714,9 @@
 
             updateQuizOverlay() {
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                const nodeIdx = ['rhy1', 'rhy2', 'rhy3', 'rhy4'].indexOf(nodeId) + 1;
-                const nodeNames = { 'rhy1': 'Notenwerte', 'rhy2': 'Taktarten', 'rhy3': 'Zählzeiten', 'rhy4': 'Rhythmussprache' };
+                const nodeNumbers = { 'rhy1': 1, 'rhy2': 2, 'rhy3': 3, 'rhy4': 4, 'rhy5': 5, 'rhy6': 6 };
+                const nodeIdx = nodeNumbers[nodeId] || 0;
+                const nodeNames = { 'rhy1': 'Notenwerte', 'rhy2': 'Taktarten', 'rhy3': 'Zählzeiten', 'rhy4': 'Rhythmussprache', 'rhy5': 'Fehlenden Wert ergänzen', 'rhy6': 'Rhythmusdiktat' };
                 const nodeName = nodeNames[nodeId] || '';
 
                 const subs = this.nodeSubSkills[nodeId];
@@ -2418,7 +2734,9 @@
                     einsteiger: 'Notenwerte addieren',
                     taktarten: 'Taktart erkennen',
                     fortgeschrittener: 'Zählzeiten bestimmen',
-                    profi: 'Rhythmussprache sprechen'
+                    profi: 'Rhythmussprache sprechen',
+                    notenwert_bilden: 'Fehlenden Wert ergänzen',
+                    rhythmusdiktat: 'Rhythmusdiktat'
                 };
                 task.textContent = taskTexts[this.currentLevel] || '';
 
@@ -2548,18 +2866,40 @@
                 this.hideQuizOverlay();
 
                 const percentage = Math.round((this.questionsCorrect / this.totalQuestions) * 100);
-                const scoreText = `${this.questionsCorrect} von ${this.totalQuestions} richtig (${percentage}%)`;
+                const isDictation = (this.currentLevel === 'rhythmusdiktat');
 
-                // Sterne: 100%=3, 90%=2, 80%=1, <80%=0 (DT/TT-Pattern)
+                // Dictation: Erstversuche-richtig zählen (app.score.correct)
+                // Andere Knoten: Prozent-basiert (DT/TT-Pattern)
+                const firstTryCorrect = isDictation ? (app.score.correct || 0) : 0;
+                const firstTryTotal = isDictation ? (app.score.total || this.totalQuestions) : this.totalQuestions;
+
+                const scoreText = isDictation
+                    ? `${firstTryCorrect} von ${firstTryTotal} beim ersten Versuch richtig`
+                    : `${this.questionsCorrect} von ${this.totalQuestions} richtig (${percentage}%)`;
+
                 let emoji, title, stars;
-                if (percentage === 100) {
-                    emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
-                } else if (percentage >= 90) {
-                    emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
-                } else if (percentage >= 80) {
-                    emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
+                if (isDictation) {
+                    // Dictation-Sterne: basierend auf Erstversuche-richtig
+                    if (firstTryCorrect >= 9) {
+                        emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
+                    } else if (firstTryCorrect >= 7) {
+                        emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+                    } else if (firstTryCorrect >= 5) {
+                        emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
+                    } else {
+                        emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
+                    }
                 } else {
-                    emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
+                    // Standard-Sterne: 100%=3, 90%=2, 80%=1, <80%=0
+                    if (percentage === 100) {
+                        emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
+                    } else if (percentage >= 90) {
+                        emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+                    } else if (percentage >= 80) {
+                        emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
+                    } else {
+                        emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
+                    }
                 }
 
                 document.getElementById('successEmoji').textContent = emoji;
@@ -2567,15 +2907,18 @@
                 document.getElementById('successStars').textContent = stars;
                 document.getElementById('successScore').textContent = scoreText;
 
-                const passed = percentage >= 80;
+                // Bestanden-Logik: Dictation braucht ≥5 Erstversuche, andere ≥80%
+                const passed = isDictation ? (firstTryCorrect >= 5) : (percentage >= 80);
 
                 if (passed) {
-                    const starCount = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
+                    const starCount = isDictation
+                        ? (firstTryCorrect >= 9 ? 3 : firstTryCorrect >= 7 ? 2 : 1)
+                        : (percentage === 100 ? 3 : percentage >= 90 ? 2 : 1);
                     this._saveSubSkillScore(starCount);
                     this.saveQuizResult(percentage);
-                    this.showSuccessMessage(passed, percentage);
+                    this.showSuccessMessage(passed, percentage, isDictation ? firstTryCorrect : null);
                 } else {
-                    this.showSuccessMessage(passed, percentage);
+                    this.showSuccessMessage(passed, percentage, isDictation ? firstTryCorrect : null);
                 }
 
                 document.getElementById('originalApp').classList.remove('active');
@@ -2610,7 +2953,7 @@
                 this.updateAllProgress();
             },
 
-            showSuccessMessage(passed, scorePercent) {
+            showSuccessMessage(passed, scorePercent, firstTryCorrect) {
                 const messageEl = document.getElementById('successMessage');
                 const buttonsEl = document.getElementById('successButtons');
 
@@ -2620,21 +2963,37 @@
                 const subs = this.nodeSubSkills[nodeId];
                 const mastered = this.progress[this.currentLevel].mastered || [];
                 const nextUnmastered = subs.find(s => !mastered.includes(s.id));
+                const isDictation = (firstTryCorrect !== null && firstTryCorrect !== undefined);
 
-                if (passed && nextUnmastered) {
-                    messageEl.innerHTML = `
-                        <p><strong>💡 Nächster Schritt:</strong></p>
-                        <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
-                    `;
-                } else if (passed && !nextUnmastered) {
+                if (!passed) {
+                    if (isDictation) {
+                        messageEl.innerHTML = `
+                            <p><strong>💪 Weiter üben!</strong></p>
+                            <p>Zum Bestehen: 5 von 10 auf Anhieb richtig.</p>
+                        `;
+                    } else {
+                        messageEl.innerHTML = `
+                            <p><strong>💪 Tipp:</strong></p>
+                            <p>Übe noch etwas, um die 80% zu schaffen!</p>
+                        `;
+                    }
+                } else if (nextUnmastered) {
+                    if (isDictation && firstTryCorrect < 9) {
+                        messageEl.innerHTML = `
+                            <p><strong>💡 Nächster Schritt:</strong></p>
+                            <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
+                            <p style="font-size:0.8rem;color:#64748b;margin-top:0.3rem;">Für 3 Sterne: 9 von 10 auf Anhieb richtig.</p>
+                        `;
+                    } else {
+                        messageEl.innerHTML = `
+                            <p><strong>💡 Nächster Schritt:</strong></p>
+                            <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
+                        `;
+                    }
+                } else {
                     messageEl.innerHTML = `
                         <p><strong>🏆 GLÜCKWUNSCH!</strong></p>
                         <p>Du hast ALLE Teilkompetenzen in dieser Stufe gemeistert!</p>
-                    `;
-                } else {
-                    messageEl.innerHTML = `
-                        <p><strong>💪 Tipp:</strong></p>
-                        <p>Übe noch etwas, um die 80% zu schaffen!</p>
                     `;
                 }
 
@@ -3549,8 +3908,11 @@ Gerät:
             // renderLegendModal entfernt — Legende ist jetzt im Hilfe-Menü integriert
 
             updateSettings() {
-                this.settings.taskType = document.getElementById('taskTypeSelect').value;
-                this.settings.timeSignature = document.getElementById('timeSignatureSelect').value;
+                // Im QuickStart: taskType wird von configureApp gesetzt, nicht vom Dropdown
+                if (!quickStart.isActive) {
+                    this.settings.taskType = document.getElementById('taskTypeSelect').value;
+                    this.settings.timeSignature = document.getElementById('timeSignatureSelect').value;
+                }
 
                 // Audio-Sichtbarkeit im Freien Üben: nur bei Zählzeiten/Rhythmussprache
                 if (!quickStart.isActive) {
@@ -3563,15 +3925,18 @@ Gerät:
                     if (audioControls) audioControls.style.display = this.noAudio ? 'none' : '';
                     if (tempoControl) tempoControl.style.display = this.noAudio ? 'none' : '';
                 }
-                this.settings.includeEighths = document.getElementById('includeEighths').checked;
-                this.settings.includeSixteenths = document.getElementById('includeSixteenths').checked;
-                this.settings.includeDotted = document.getElementById('includeDotted').checked;
-                this.settings.includeRests = document.getElementById('includeRests').checked;
-                this.settings.includeTriplets = document.getElementById('includeTriplets').checked;
-                this.settings.showCountingTimes = document.getElementById('showCountingTimes').checked;
-                this.settings.showRhythmSyllables = document.getElementById('showRhythmSyllables').checked;
-                this.settings.showGrid = document.getElementById('showGrid').checked;
-                this.settings.showLegend = document.getElementById('showLegend').checked;
+                // Im QuickStart: Settings werden von configureApp gesetzt, nicht vom DOM
+                if (!quickStart.isActive) {
+                    this.settings.includeEighths = document.getElementById('includeEighths').checked;
+                    this.settings.includeSixteenths = document.getElementById('includeSixteenths').checked;
+                    this.settings.includeDotted = document.getElementById('includeDotted').checked;
+                    this.settings.includeRests = document.getElementById('includeRests').checked;
+                    this.settings.includeTriplets = document.getElementById('includeTriplets').checked;
+                    this.settings.showCountingTimes = document.getElementById('showCountingTimes').checked;
+                    this.settings.showRhythmSyllables = document.getElementById('showRhythmSyllables').checked;
+                    this.settings.showGrid = document.getElementById('showGrid').checked;
+                    this.settings.showLegend = document.getElementById('showLegend').checked;
+                }
                 
                 // Reset Fingerprint bei Settings-Änderung
                 this._recentFingerprints = [];
@@ -3665,6 +4030,41 @@ Gerät:
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
                     taskFocusBadge.textContent = '🎯 Welche Taktart hat dieser Rhythmus?';
+                } else if (this.settings.taskType === 'gap-fill') {
+                    // Fehlenden Wert ergänzen
+                    inputCard.classList.add('hidden');
+                    taskFocusText.classList.remove('hidden');
+                    staffWrapper.classList.remove('hidden');
+                    additionContainer.classList.add('hidden');
+                    taskFocusBadge.textContent = '🎯 Welcher Notenwert fehlt im Takt?';
+                    // Hilfen AUS (Raster + Zählzeiten verraten die Lösung)
+                    showCountingTimesCheckbox.checked = false;
+                    showCountingTimesCheckbox.disabled = true;
+                    showRhythmSyllablesCheckbox.checked = false;
+                    showRhythmSyllablesCheckbox.disabled = true;
+                    this.settings.showCountingTimes = false;
+                    this.settings.showRhythmSyllables = false;
+                    const gfGridCb = document.getElementById('showGrid');
+                    gfGridCb.checked = false;
+                    gfGridCb.disabled = true;
+                    this.settings.showGrid = false;
+                } else if (this.settings.taskType === 'dictation') {
+                    // Rhythmusdiktat
+                    inputCard.classList.add('hidden');
+                    taskFocusText.classList.remove('hidden');
+                    staffWrapper.classList.remove('hidden');
+                    additionContainer.classList.add('hidden');
+                    taskFocusBadge.textContent = '🎯 Welchen Rhythmus hörst du?';
+                    showCountingTimesCheckbox.checked = false;
+                    showCountingTimesCheckbox.disabled = true;
+                    showRhythmSyllablesCheckbox.checked = false;
+                    showRhythmSyllablesCheckbox.disabled = true;
+                    this.settings.showCountingTimes = false;
+                    this.settings.showRhythmSyllables = false;
+                    const dictGridCb = document.getElementById('showGrid');
+                    dictGridCb.checked = false;
+                    dictGridCb.disabled = true;
+                    this.settings.showGrid = false;
                 } else {
                     // View-Modus
                     inputCard.classList.add('hidden');
@@ -3672,15 +4072,27 @@ Gerät:
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
                 }
-                
+
                 // Legend cards removed - now integrated into help menu
-                
+
                 // Reset score when changing task type
-                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition' || this.settings.taskType === 'time-signature-id') {
+                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition' || this.settings.taskType === 'time-signature-id' || this.settings.taskType === 'gap-fill' || this.settings.taskType === 'dictation') {
                     this.score = { correct: 0, total: 0 };
                     this.updateScoreDisplay();
                 }
-                
+
+                // Gap-Fill Container verstecken, wenn nicht gap-fill
+                const gapContainer = document.getElementById('gapAnswerContainer');
+                if (gapContainer && this.settings.taskType !== 'gap-fill') {
+                    gapContainer.style.display = 'none';
+                }
+
+                // Dictation Container verstecken, wenn nicht dictation
+                const dictContainer = document.getElementById('dictationContainer');
+                if (dictContainer && this.settings.taskType !== 'dictation') {
+                    dictContainer.style.display = 'none';
+                }
+
                 this.generateNewTask();
             },
 
@@ -4129,9 +4541,9 @@ Gerät:
             getProgressionWeight(noteType) {
                 const baseWeight = this.noteWeights[noteType] || 1;
 
-                // Nur im Quiz-Modus für kn3 (counting-time) und kn4 (rhythm-syllable)
+                // Nur im Quiz-Modus für kn3, kn4, kn5
                 if (!quickStart.isActive ||
-                    (this.settings.taskType !== 'counting-time' && this.settings.taskType !== 'rhythm-syllable')) {
+                    (this.settings.taskType !== 'counting-time' && this.settings.taskType !== 'rhythm-syllable' && this.settings.taskType !== 'gap-fill' && this.settings.taskType !== 'dictation')) {
                     return baseWeight;
                 }
 
@@ -4513,6 +4925,595 @@ Gerät:
                 feedback.className = 'ts-feedback ' + (isCorrect ? 'ts-feedback-correct' : 'ts-feedback-wrong');
             },
 
+            // === GAP-FILL (Fehlenden Wert ergänzen) ===
+            gapFillCurrentTask: null,
+            gapFillAnswered: false,
+
+            generateGapFillTask() {
+                const maxValue = this.getMaxValue();
+
+                // Fester Pool bestimmen (keine Ganzen, keine Pausen)
+                // 5a Basis:      half, quarter, eighth
+                // 5b Punktierte: + dotted-half, dotted-quarter
+                // 5c 16tel:      5b + sixteenth
+                const opts = quickStart.currentOptions || [];
+                let fixedPool;
+                if (opts.includes('16tel')) {
+                    fixedPool = ['half', 'quarter', 'eighth', 'dotted-half', 'dotted-quarter', 'sixteenth'];
+                } else if (opts.includes('punktierte')) {
+                    fixedPool = ['half', 'quarter', 'eighth', 'dotted-half', 'dotted-quarter'];
+                } else {
+                    fixedPool = ['half', 'quarter', 'eighth'];
+                }
+                const poolValues = new Set(fixedPool.map(t => this.noteValues[t].value));
+
+                // Takt generieren: NUR Noten aus dem festen Pool + deren Pausen-Varianten
+                const gapAvailableNotes = [...fixedPool];
+                // Pausen-Varianten hinzufügen (Takt darf Pausen enthalten)
+                fixedPool.forEach(t => {
+                    const restType = t + '-rest';
+                    if (this.noteValues[restType]) gapAvailableNotes.push(restType);
+                });
+                // Spezialfälle: quarter-rest, half-rest, eighth-rest existieren anders
+                ['quarter-rest', 'half-rest', 'eighth-rest', 'sixteenth-rest'].forEach(r => {
+                    if (this.noteValues[r] && poolValues.has(this.noteValues[r].value) && !gapAvailableNotes.includes(r)) {
+                        gapAvailableNotes.push(r);
+                    }
+                });
+
+                const params = {
+                    maxValue: maxValue,
+                    availableNotes: gapAvailableNotes,
+                    qAnswered: 0,
+                    currentSub: '',
+                    isQuiz: quickStart.isActive,
+                    taskType: 'gap-fill',
+                    needsMarker: false,
+                    isBasis: false
+                };
+
+                // Mindest-Vielfalt: Takt muss N verschiedene Notenwert-Dauern enthalten
+                let minDistinctValues;
+                if (opts.includes('16tel')) {
+                    minDistinctValues = 3;
+                } else if (opts.includes('punktierte')) {
+                    minDistinctValues = 3;
+                } else {
+                    minDistinctValues = 2;
+                }
+
+                let bar = null;
+                for (let attempt = 0; attempt < 15; attempt++) {
+                    const candidate = this._generateBarWithRetries(params);
+                    if (!candidate || !candidate.notes || candidate.notes.length < 2) continue;
+                    const distinctValues = new Set();
+                    candidate.notes.forEach(n => {
+                        const nv = this.noteValues[n.type];
+                        if (nv && !n.tiedFrom) distinctValues.add(nv.value);
+                    });
+                    if (distinctValues.size >= minDistinctValues) {
+                        bar = candidate;
+                        break;
+                    }
+                }
+                if (!bar) {
+                    bar = this._generateBarWithRetries(params);
+                    if (!bar || !bar.notes || bar.notes.length < 2) {
+                        bar = this._fallbackBar(params);
+                    }
+                }
+
+                // Kandidaten für Lücke: keine gebundenen Noten, keine Triolen,
+                // UND Notenwert muss im festen Antwort-Pool sein (keine Pausen als Lücke)
+                const candidates = [];
+                bar.notes.forEach((note, idx) => {
+                    if (note.tiedFrom || note.tiedTo) return;
+                    if (note.type.includes('triplet')) return;
+                    if (!this.noteValues[note.type]) return;
+                    // Nur Noten (keine Pausen) deren Wert im festen Pool vorkommt
+                    if (this.noteValues[note.type].isRest) return;
+                    if (!poolValues.has(this.noteValues[note.type].value)) return;
+                    candidates.push(idx);
+                });
+
+                if (candidates.length === 0) {
+                    // Kein geeigneter Kandidat → neu generieren
+                    console.warn('[GapFill] Kein Kandidat, regeneriere...');
+                    return this.generateGapFillTask();
+                }
+
+                // Zufälligen Kandidaten wählen
+                const gapIndex = candidates[Math.floor(Math.random() * candidates.length)];
+                const removedNote = { ...bar.notes[gapIndex] };
+
+                // Lücke einsetzen
+                bar.notes[gapIndex] = {
+                    type: '_gap',
+                    value: removedNote.value,
+                    isRest: false,
+                    isMarked: false
+                };
+
+                const correctType = removedNote.type;
+                const correctValue = removedNote.value;
+
+                // Finde korrekten Typ aus dem Pool (bevorzuge exakten Match)
+                let correctPoolType = fixedPool.find(t => t === correctType);
+                if (!correctPoolType) {
+                    // Fallback: gleicher Wert im Pool
+                    correctPoolType = fixedPool.find(t => Math.abs(this.noteValues[t].value - correctValue) < 0.001);
+                }
+
+                // ALLE Pool-Einträge als Buttons zeigen (kompletter Pool)
+                const options = fixedPool.map(t => ({
+                    type: t,
+                    value: this.noteValues[t].value,
+                    isCorrect: t === correctPoolType
+                }));
+
+                // Fisher-Yates Shuffle
+                for (let i = options.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [options[i], options[j]] = [options[j], options[i]];
+                }
+
+                this.gapFillCurrentTask = {
+                    bar: bar,
+                    gapIndex: gapIndex,
+                    removedNote: removedNote,
+                    options: options
+                };
+                this.currentTask = bar;
+                this.hasBeenChecked = false;
+                this.freeRetry = false;
+                this.gapFillAnswered = false;
+
+                // Rendern
+                this.renderBar();
+                this.renderGapFillOptions(options);
+
+                // Badge sichtbar (Taktart wird angezeigt)
+                const badge = document.getElementById('timeSignatureBadge');
+                if (badge) {
+                    badge.textContent = this.settings.timeSignature;
+                    badge.style.display = '';
+                }
+            },
+
+            _renderNoteIconSvg(noteType) {
+                const nv = this.noteValues[noteType];
+                if (!nv) return '';
+                const isDotted = noteType.startsWith('dotted-');
+                const baseType = isDotted ? nv.baseType : noteType;
+                const isRest = nv.isRest;
+
+                const getSvgKey = (type) => {
+                    const mapping = {
+                        'whole-rest': 'wholeRest', 'half-rest': 'halfRest',
+                        'quarter-rest': 'quarterRest', 'eighth-rest': 'eighthRest',
+                        'sixteenth-rest': 'sixteenthRest'
+                    };
+                    return mapping[type] || type;
+                };
+
+                const svgKey = getSvgKey(baseType);
+                const svgData = this.svgPaths[svgKey];
+                const scale = this.svgScales[svgKey];
+                if (!svgData) return `<span style="font-size:1.6rem">${nv.symbol}</span>`;
+
+                // Berechne skalierte Größe
+                const sw = svgData.width * scale;
+                const sh = svgData.height * scale;
+
+                // Button-SVG: 60x76 Viewport, Note am Boden verankert
+                const vw = 60, vh = 76;
+                const cx = vw / 2;
+                const bottom = vh - 6; // Unterer Anker (6px Padding)
+
+                let offsetX, offsetY;
+                if (isRest) {
+                    // Pausen: vertikal zentriert
+                    const cy = vh / 2;
+                    if (baseType === 'whole-rest') { offsetX = cx - 12; offsetY = cy - 1; }
+                    else if (baseType === 'half-rest') { offsetX = cx - 12; offsetY = cy - 8; }
+                    else if (baseType === 'quarter-rest') { offsetX = cx - 7; offsetY = cy - 18; }
+                    else if (baseType === 'eighth-rest') { offsetX = cx - 8; offsetY = cy - 18; }
+                    else if (baseType === 'sixteenth-rest') { offsetX = cx - 8; offsetY = cy - 22; }
+                    else { offsetX = cx - sw / 2; offsetY = cy - sh / 2; }
+                } else {
+                    // Noten: Notenkopf am Boden, Hals nach oben
+                    if (baseType === 'whole') { offsetX = cx - sw / 2; offsetY = bottom - sh; }
+                    else if (baseType === 'half') { offsetX = cx - 10; offsetY = bottom - sh; }
+                    else if (baseType === 'quarter') { offsetX = cx - 10; offsetY = bottom - sh; }
+                    else if (baseType === 'eighth') { offsetX = cx - 12; offsetY = bottom - sh; }
+                    else if (baseType === 'sixteenth') { offsetX = cx - 10; offsetY = bottom - sh; }
+                    else { offsetX = cx - sw / 2; offsetY = bottom - sh; }
+                }
+
+                let inner = `<g transform="translate(${offsetX}, ${offsetY}) scale(${scale})">`;
+                if (svgData.transform) inner += `<g transform="${svgData.transform}">`;
+                inner += `<path d="${svgData.path}" fill="#1f2937"/>`;
+                if (svgData.transform) inner += `</g>`;
+                inner += `</g>`;
+
+                // Punkt bei punktierten Noten
+                if (isDotted) {
+                    let dotX, dotY;
+                    if (isRest) {
+                        const cy = vh / 2;
+                        dotX = cx + 16; dotY = cy - 5;
+                        if (baseType === 'half-rest') { dotX = cx + 16; dotY = cy - 12; }
+                        else if (baseType === 'quarter-rest') { dotX = cx + 12; dotY = cy - 5; }
+                        else if (baseType === 'eighth-rest') { dotX = cx + 10; dotY = cy - 5; }
+                    } else {
+                        // Punkt neben dem Notenkopf (am Boden)
+                        dotX = cx + 18; dotY = bottom - 8;
+                    }
+                    inner += `<circle cx="${dotX}" cy="${dotY}" r="3" fill="#1f2937"/>`;
+                }
+
+                return `<svg width="56" height="72" viewBox="0 0 ${vw} ${vh}">${inner}</svg>`;
+            },
+
+            renderGapFillOptions(options) {
+                const container = document.getElementById('gapAnswerContainer');
+                if (!container) return;
+                container.style.display = 'flex';
+
+                // TS-Buttons verstecken
+                const tsContainer = document.getElementById('tsButtonContainer');
+                if (tsContainer) tsContainer.style.display = 'none';
+
+                // Aufgabentext
+                const taskLabel = document.getElementById('additionTaskContainer');
+                if (taskLabel) taskLabel.style.display = 'none';
+
+                container.innerHTML = '<div class="gap-task-label">Welcher Notenwert fehlt?</div>' +
+                    options.map((opt, i) => {
+                        const iconSvg = this._renderNoteIconSvg(opt.type);
+                        return `<button class="gap-option-btn" onclick="app.checkGapFillAnswer(${i})">
+                            <span class="gap-option-symbol">${iconSvg}</span>
+                        </button>`;
+                    }).join('');
+            },
+
+            checkGapFillAnswer(optionIndex) {
+                const task = this.gapFillCurrentTask;
+                if (!task || this.gapFillAnswered) return;
+
+                const selected = task.options[optionIndex];
+                const correct = task.removedNote;
+                const isCorrect = Math.abs(selected.value - correct.value) < 0.001;
+
+                const container = document.getElementById('gapAnswerContainer');
+                const buttons = container.querySelectorAll('.gap-option-btn');
+
+                if (isCorrect) {
+                    this.gapFillAnswered = true;
+                    buttons.forEach((btn, i) => {
+                        btn.disabled = true;
+                        if (i === optionIndex) btn.classList.add('gap-correct');
+                    });
+                    // Lücke im Takt aufdecken
+                    this._revealGapNote();
+                } else {
+                    buttons[optionIndex].classList.add('gap-wrong');
+                    buttons[optionIndex].disabled = true;
+                    setTimeout(() => buttons[optionIndex].classList.remove('gap-wrong'), 600);
+                }
+
+                // Score tracken (nur erster Versuch)
+                if (!this.hasBeenChecked) {
+                    if (!this.freeRetry) {
+                        this.score.total++;
+                        if (isCorrect) this.score.correct++;
+                    }
+                    this.hasBeenChecked = true;
+                    this.updateScoreDisplay();
+                }
+
+                // QuickStart-Hook
+                if (quickStart.isActive && quickStart.currentLevel) {
+                    if (isCorrect) {
+                        setTimeout(() => quickStart.onAnswerChecked(true), 1000);
+                    } else {
+                        quickStart.onAnswerChecked(false);
+                    }
+                    return;
+                }
+
+                // Freies Üben: Auto-Continue bei Erfolg
+                if (isCorrect) {
+                    setTimeout(() => this.generateNewTask(), 1000);
+                }
+            },
+
+            _revealGapNote() {
+                const task = this.gapFillCurrentTask;
+                if (!task) return;
+                // Ersetze den Gap-Platzhalter mit der echten Note
+                task.bar.notes[task.gapIndex] = { ...task.removedNote, isMarked: true };
+                this.currentTask = task.bar;
+                this.renderBar();
+            },
+
+            // ========================================================
+            // RHYTHMUSDIKTAT (rhy6)
+            // ========================================================
+
+            dictationCurrentTask: null,   // { originalBar }
+            dictationUserNotes: [],
+            dictationChecked: false,
+
+            generateDictationTask() {
+                const maxValue = this.getMaxValue();
+
+                // Fester Pool (gleich wie gap-fill)
+                const opts = quickStart.currentOptions || [];
+                let fixedPool;
+                if (opts.includes('16tel')) {
+                    fixedPool = ['half', 'quarter', 'eighth', 'dotted-half', 'dotted-quarter', 'dotted-eighth', 'sixteenth'];
+                } else if (opts.includes('punktierte')) {
+                    fixedPool = ['half', 'quarter', 'eighth', 'dotted-half', 'dotted-quarter'];
+                } else {
+                    fixedPool = ['half', 'quarter', 'eighth'];
+                }
+
+                // availableNotes für Taktgenerierung: NUR Noten, KEINE Pausen
+                // (User kann Pausen nicht hören)
+                const poolValues = new Set(fixedPool.map(t => this.noteValues[t].value));
+
+                const params = {
+                    maxValue: maxValue,
+                    availableNotes: fixedPool,
+                    qAnswered: 0, currentSub: '',
+                    isQuiz: quickStart.isActive,
+                    taskType: 'dictation',
+                    needsMarker: false, isBasis: false
+                };
+
+                // Mindest-Vielfalt + Pre-Split-Noten müssen im Pool sein
+                const minDistinct = opts.includes('16tel') || opts.includes('punktierte') ? 3 : 2;
+                let bar = null;
+                for (let attempt = 0; attempt < 20; attempt++) {
+                    const candidate = this._generateBarWithRetries(params);
+                    if (!candidate || !candidate.notes || candidate.notes.length < 2) continue;
+
+                    // Pre-Split-Noten prüfen (das sind die Noten VOR splitNotesAtDivisions)
+                    const preSplit = candidate._preSplitNotes || candidate.notes;
+                    const allInPool = preSplit.every(n => {
+                        const nv = this.noteValues[n.type];
+                        return nv && (poolValues.has(nv.value) || nv.isRest);
+                    });
+                    if (!allInPool) continue;
+
+                    const dv = new Set();
+                    preSplit.forEach(n => {
+                        const nv = this.noteValues[n.type];
+                        if (nv && !nv.isRest) dv.add(nv.value);
+                    });
+                    if (dv.size >= minDistinct) { bar = candidate; break; }
+                }
+                if (!bar) {
+                    bar = this._generateBarWithRetries(params);
+                    if (!bar || !bar.notes || bar.notes.length < 2) bar = this._fallbackBar(params);
+                }
+
+                // Original-Takt speichern, leeren User-Takt anzeigen
+                this.dictationCurrentTask = { originalBar: bar, fixedPool: fixedPool };
+                this.dictationUserNotes = [];
+                this.dictationChecked = false;
+                this._dictConfirmedCorrect = 0;
+                this._dictFirstAttemptReported = false;
+                this.hasBeenChecked = false;
+                this.freeRetry = false;
+
+                // Leeren Takt rendern (nur Taktstriche + Taktart)
+                this.currentTask = { notes: [], maxValue: maxValue, currentValue: 0 };
+                this.renderBar();
+
+                // Dictation-UI anzeigen
+                this._renderDictationButtons();
+                this._updateDictationState();
+
+                const badge = document.getElementById('timeSignatureBadge');
+                if (badge) { badge.textContent = this.settings.timeSignature; badge.style.display = ''; }
+
+                this.updateScoreDisplay();
+                this.taskCounter++;
+            },
+
+            _renderDictationButtons() {
+                const container = document.getElementById('dictationContainer');
+                if (!container) return;
+                container.style.display = 'block';
+
+                // Gap-Fill verstecken
+                const gapC = document.getElementById('gapAnswerContainer');
+                if (gapC) gapC.style.display = 'none';
+                const tsC = document.getElementById('tsButtonContainer');
+                if (tsC) tsC.classList.add('hidden');
+
+                const pool = this.dictationCurrentTask.fixedPool;
+                const btnHtml = pool.map(type => {
+                    const iconSvg = this._renderNoteIconSvg(type);
+                    return `<button class="gap-option-btn" data-note-type="${type}" onclick="app.addDictationNote('${type}')">
+                        <span class="gap-option-symbol">${iconSvg}</span>
+                    </button>`;
+                }).join('');
+
+                document.getElementById('dictationNoteButtons').innerHTML = btnHtml;
+            },
+
+            addDictationNote(type) {
+                if (this.dictationChecked) return;
+                const nv = this.noteValues[type];
+                if (!nv) return;
+                const maxValue = this.getMaxValue();
+                const currentSum = this.dictationUserNotes.reduce((s, n) => s + n.value, 0);
+                if (currentSum + nv.value > maxValue + 0.001) return; // Passt nicht
+
+                this.dictationUserNotes.push({ type: type, value: nv.value });
+                this._renderDictationBar();
+                this._updateDictationState();
+            },
+
+            undoDictationNote() {
+                const confirmed = this._dictConfirmedCorrect || 0;
+                if (this.dictationChecked || this.dictationUserNotes.length <= confirmed) return;
+                this.dictationUserNotes.pop();
+                this._renderDictationBar();
+                this._updateDictationState();
+            },
+
+            _renderDictationBar() {
+                const maxValue = this.getMaxValue();
+                // Anzahl bereits verifiziert-korrekter Noten merken
+                const confirmedCount = this._dictConfirmedCorrect || 0;
+                const tempBar = {
+                    notes: this.dictationUserNotes.map((n, i) => ({
+                        type: n.type, value: n.value, isRest: this.noteValues[n.type]?.isRest || false,
+                        isMarked: i < confirmedCount, // Grün für bereits bestätigte Noten
+                        tiedFrom: null, tiedTo: null
+                    })),
+                    maxValue: maxValue,
+                    currentValue: this.dictationUserNotes.reduce((s, n) => s + n.value, 0)
+                };
+                this.currentTask = tempBar;
+                this.renderBar();
+            },
+
+            _updateDictationState() {
+                const maxValue = this.getMaxValue();
+                const currentSum = this.dictationUserNotes.reduce((s, n) => s + n.value, 0);
+                const remaining = maxValue - currentSum;
+
+                // Buttons deaktivieren wenn Wert > Restplatz
+                const btns = document.querySelectorAll('#dictationNoteButtons .gap-option-btn');
+                btns.forEach(btn => {
+                    const type = btn.dataset.noteType;
+                    const nv = this.noteValues[type];
+                    btn.disabled = this.dictationChecked || !nv || nv.value > remaining + 0.001;
+                });
+
+                // Undo-Button
+                const undoBtn = document.getElementById('dictationUndoBtn');
+                if (undoBtn) undoBtn.disabled = this.dictationChecked || this.dictationUserNotes.length === 0;
+
+                // Prüfen-Button: aktiv wenn Takt voll
+                const checkBtn = document.getElementById('dictationCheckBtn');
+                if (checkBtn) checkBtn.disabled = this.dictationChecked || Math.abs(currentSum - maxValue) > 0.001;
+
+                // Fortschrittsbalken
+                const progress = document.getElementById('dictationFillProgress');
+                if (progress) progress.style.width = Math.min(100, (currentSum / maxValue) * 100) + '%';
+            },
+
+            checkDictationAnswer() {
+                if (this.dictationChecked) return;
+                this.dictationChecked = true;
+
+                // Pre-Split-Noten als Referenz (ohne Ties, so wie der User sie eingeben soll)
+                const original = this.dictationCurrentTask.originalBar._preSplitNotes
+                    || this.dictationCurrentTask.originalBar.notes.filter(n => !n.tiedFrom);
+                const user = this.dictationUserNotes;
+
+                let correctCount = 0;
+                const totalNotes = Math.max(original.length, user.length);
+
+                // Note-für-Note Vergleich
+                const results = [];
+                for (let i = 0; i < totalNotes; i++) {
+                    const orig = original[i];
+                    const usr = user[i];
+                    if (orig && usr && Math.abs(orig.value - usr.value) < 0.001) {
+                        results.push('correct');
+                        correctCount++;
+                    } else {
+                        results.push('wrong');
+                    }
+                }
+
+                const isCorrect = correctCount === original.length && user.length === original.length;
+
+                // Visuelle Rückmeldung: User-Noten einfärben
+                const maxValue = this.getMaxValue();
+                const feedbackBar = {
+                    notes: user.map((n, i) => ({
+                        type: n.type, value: n.value,
+                        isRest: this.noteValues[n.type]?.isRest || false,
+                        isMarked: results[i] === 'correct',
+                        _dictWrong: results[i] === 'wrong',
+                        tiedFrom: null, tiedTo: null
+                    })),
+                    maxValue: maxValue,
+                    currentValue: user.reduce((s, n) => s + n.value, 0)
+                };
+                this.currentTask = feedbackBar;
+                this.renderBar();
+
+                // Buttons + UI sperren während Feedback
+                this._updateDictationState();
+
+                // Score (nur beim ersten Prüfen zählen)
+                if (!this.hasBeenChecked) {
+                    this.score.total++;
+                    if (isCorrect) this.score.correct++;
+                    this.hasBeenChecked = true;
+                    this.updateScoreDisplay();
+                }
+
+                // QuickStart: Erstversuch-Ergebnis melden (Score-Zählung)
+                if (quickStart.isActive && quickStart.currentLevel && !this.hasBeenChecked) {
+                    // Wird VOR hasBeenChecked=true aufgerufen — NEIN, hasBeenChecked ist schon true
+                    // Stattdessen: Beim ERSTEN checkDictation-Aufruf den QuickStart informieren
+                }
+                // Beim ersten Fehlversuch: QuickStart muss wissen dass Frage beantwortet wurde
+                if (!isCorrect && !this._dictFirstAttemptReported) {
+                    this._dictFirstAttemptReported = true;
+                    if (quickStart.isActive && quickStart.currentLevel) {
+                        quickStart.onAnswerChecked(false); // Zählt als Erstversuch falsch
+                    }
+                }
+
+                if (isCorrect) {
+                    // Alles grün → weiter zur nächsten Aufgabe
+                    const feedbackDelay = 1500;
+                    if (quickStart.isActive && quickStart.currentLevel) {
+                        setTimeout(() => quickStart.onAnswerChecked(true), feedbackDelay);
+                    } else {
+                        setTimeout(() => this.generateNewTask(), feedbackDelay);
+                    }
+                } else {
+                    // Grün/rot anzeigen → nach 2s rote entfernen → User baut weiter
+                    setTimeout(() => {
+                        // Rote Noten entfernen, grüne behalten (ab erstem Fehler alles weg)
+                        const keptNotes = [];
+                        for (let i = 0; i < user.length; i++) {
+                            if (results[i] === 'correct') {
+                                keptNotes.push(user[i]);
+                            } else {
+                                break;
+                            }
+                        }
+                        this.dictationUserNotes = keptNotes;
+                        this._dictConfirmedCorrect = keptNotes.length; // Grün-Marker
+                        this.dictationChecked = false; // Wieder prüfbar
+                        this._renderDictationBar();
+                        this._updateDictationState();
+                    }, 2000);
+                }
+            },
+
+            // Audio: Original-Rhythmus abspielen (für Dictation)
+            playDictationRhythm() {
+                if (!this.dictationCurrentTask) return;
+                const saved = this.currentTask;
+                this.currentTask = this.dictationCurrentTask.originalBar;
+                this.playRhythm();
+                this.currentTask = saved;
+            },
+
             // ========================================================
             // REFACTORED TASK GENERATION (Zwei-Phasen-Architektur)
             // Regel-Hierarchie:
@@ -4730,6 +5731,10 @@ Gerät:
                     if (!bar) continue;
 
                     // Notation: splitNotesAtDivisions (Ebene 2 — Ties IMMER erlaubt)
+                    // Dictation: Pre-Split-Noten für Vergleich merken
+                    if (params.taskType === 'dictation') {
+                        bar._preSplitNotes = bar.notes.map(n => ({ type: n.type, value: n.value, isRest: n.isRest }));
+                    }
                     bar = this.splitNotesAtDivisions(bar);
 
                     // Pausen zusammenfassen (Ebene 5)
@@ -4954,6 +5959,14 @@ Gerät:
                     this.generateTimeSignatureTask();
                     return;
                 }
+                if (this.settings.taskType === 'gap-fill') {
+                    this.generateGapFillTask();
+                    return;
+                }
+                if (this.settings.taskType === 'dictation') {
+                    this.generateDictationTask();
+                    return;
+                }
 
                 // Progressive Hilfen-Ausblendung: Ab Frage 4 Raster + Zählzeiten ausblenden (kn3/kn4)
                 if (quickStart.isActive && quickStart.questionsAnswered >= 3 &&
@@ -5110,6 +6123,18 @@ Gerät:
             },
 
             playRhythm() {
+                // Dictation: immer den Original-Rhythmus abspielen
+                if (this.settings.taskType === 'dictation' && this.dictationCurrentTask) {
+                    const saved = this.currentTask;
+                    this.currentTask = this.dictationCurrentTask.originalBar;
+                    this._playRhythmInternal();
+                    this.currentTask = saved;
+                    return;
+                }
+                this._playRhythmInternal();
+            },
+
+            _playRhythmInternal() {
                 console.log('[Audio] playRhythm() aufgerufen, noAudio:', this.noAudio, 'currentTask:', !!this.currentTask);
                 if (!this.currentTask || this.noAudio) return;
                 try {
@@ -5406,7 +6431,7 @@ Gerät:
                 const barHeight = 240; // Mehr Höhe für Zählzeiten oben
                 const barlineLeft = 40; // Linker Taktstrich
                 const barlineRight = 660; // Rechter Taktstrich
-                const gridStartX = 120; // RASTER beginnt NACH Taktart (Padding zur großen Taktartanzeige)
+                const gridStartX = 145; // RASTER beginnt NACH Taktart (Padding zur großen Taktartanzeige)
                 const gridEndX = 660; // Raster endet bei rechtem Taktstrich
                 const noteAreaWidth = gridEndX - gridStartX; // 600px für Noten
                 
@@ -5524,9 +6549,13 @@ Gerät:
                     const markedIdx = this.currentTask.markedNoteIndex;
                     const isDirectlyMarked = markedIdx === index;
                     const isTiedToMarked = (note.tiedFrom === markedIdx) || (note.tiedTo === markedIdx);
-                    const isMarked = ((this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') && 
+                    const isMarked = ((this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable') &&
                                     (isDirectlyMarked || isTiedToMarked));
-                    const noteColor = isMarked ? '#8b5cf6' : '#000'; // Violett für markierte, Schwarz für normale
+                    // Gap-Fill: aufgedeckte Note grün markieren
+                    const isGapRevealed = (this.settings.taskType === 'gap-fill' && note.isMarked);
+                    const isDictCorrect = (this.settings.taskType === 'dictation' && note.isMarked);
+                    const isDictWrong = (this.settings.taskType === 'dictation' && note._dictWrong);
+                    const noteColor = isDictWrong ? '#ef4444' : isDictCorrect ? '#10b981' : isGapRevealed ? '#10b981' : (isMarked ? '#8b5cf6' : '#000');
                     
                     // Determine stem direction and length
                     const stemUp = true;
@@ -5550,6 +6579,13 @@ Gerät:
                         svg += `<polygon points="${ax},${ay} ${ax - 12},${ay - 15} ${ax + 12},${ay - 15}" fill="#ef4444"/>`;
                     }
                     
+                    // GAP-FILL: Fehlende Note komplett ausblenden (kein Platzhalter)
+                    if (note.type === '_gap') {
+                        currentPosition += note.value;
+                        svg += `</g>`;
+                        return;
+                    }
+
                     // Draw note based on type using professional SVG paths
                     // Determine if note is dotted and get base type
                     const isDotted = note.type.startsWith('dotted-');
@@ -5737,9 +6773,17 @@ Gerät:
                     const startX = gridStartX + (notePositions[0].position * gridSpacing) + 12; // +12 für Stem-Offset (größere Köpfe)
                     const endX = gridStartX + (notePositions[notePositions.length - 1].position * gridSpacing) + 12;
                     const beamY = staffY - 50; // Oben am Hals
-                    
+
+                    // Beam-Farbe: dictation-Feedback berücksichtigen
+                    const groupNotes = notePositions.map(p => bar.notes[p.index]);
+                    const allDictCorrect = groupNotes.every(n => n.isMarked && this.settings.taskType === 'dictation');
+                    const anyDictWrong = groupNotes.some(n => n._dictWrong);
+                    const allGapRevealed = groupNotes.every(n => n.isMarked && this.settings.taskType === 'gap-fill');
+                    const allMarked = groupNotes.every(n => n.isMarked);
+                    const beamColor = anyDictWrong ? '#ef4444' : allDictCorrect ? '#10b981' : allGapRevealed ? '#10b981' : allMarked ? '#8b5cf6' : '#000';
+
                     // Primärbalken (für alle Noten in Gruppe)
-                    svg += `<line x1="${startX}" y1="${beamY}" x2="${endX}" y2="${beamY}" stroke="#000" stroke-width="4"/>`;
+                    svg += `<line x1="${startX}" y1="${beamY}" x2="${endX}" y2="${beamY}" stroke="${beamColor}" stroke-width="4"/>`;
                     
                     // Sekundärbalken-Logik: Differenzierte Regeln!
                     const beamY2 = beamY + 6;
@@ -5749,7 +6793,7 @@ Gerät:
                     
                     if (allSixteenths) {
                         // Durchgehender Sekundärbalken für reine Sechzehntel-Gruppe
-                        svg += `<line x1="${startX}" y1="${beamY2}" x2="${endX}" y2="${beamY2}" stroke="#000" stroke-width="4"/>`;
+                        svg += `<line x1="${startX}" y1="${beamY2}" x2="${endX}" y2="${beamY2}" stroke="${beamColor}" stroke-width="4"/>`;
                     } else {
                         // Gemischte Gruppe: Jede 16tel bekommt Sekundärbalken (aber unterschiedlich!)
                         for (let i = 0; i < notePositions.length; i++) {
@@ -5763,19 +6807,19 @@ Gerät:
                                 if (hasNextSixteenth) {
                                     // Fall 1: Nächste ist auch 16tel → voller Balken vorwärts
                                     const nextNoteX = gridStartX + (notePositions[i + 1].position * gridSpacing) + 12;
-                                    svg += `<line x1="${secBeamStartX}" y1="${beamY2}" x2="${nextNoteX}" y2="${beamY2}" stroke="#000" stroke-width="4"/>`;
+                                    svg += `<line x1="${secBeamStartX}" y1="${beamY2}" x2="${nextNoteX}" y2="${beamY2}" stroke="${beamColor}" stroke-width="4"/>`;
                                 } else if (!hasPrevSixteenth) {
                                     // Fall 2: Isolierte 16tel (keine 16tel davor)
                                     if (i + 1 < notePositions.length) {
                                         // Halber Balken vorwärts (16tel → 8tel)
                                         const nextNoteX = gridStartX + (notePositions[i + 1].position * gridSpacing) + 12;
                                         const halfwayX = secBeamStartX + (nextNoteX - secBeamStartX) / 2;
-                                        svg += `<line x1="${secBeamStartX}" y1="${beamY2}" x2="${halfwayX}" y2="${beamY2}" stroke="#000" stroke-width="4"/>`;
+                                        svg += `<line x1="${secBeamStartX}" y1="${beamY2}" x2="${halfwayX}" y2="${beamY2}" stroke="${beamColor}" stroke-width="4"/>`;
                                     } else if (i > 0) {
                                         // Halber Balken rückwärts (8tel → 16tel)
                                         const prevNoteX = gridStartX + (notePositions[i - 1].position * gridSpacing) + 12;
                                         const halfwayX = prevNoteX + (secBeamStartX - prevNoteX) / 2;
-                                        svg += `<line x1="${halfwayX}" y1="${beamY2}" x2="${secBeamStartX}" y2="${beamY2}" stroke="#000" stroke-width="4"/>`;
+                                        svg += `<line x1="${halfwayX}" y1="${beamY2}" x2="${secBeamStartX}" y2="${beamY2}" stroke="${beamColor}" stroke-width="4"/>`;
                                     }
                                 }
                                 // Fall 3: hasPrevSixteenth = true → Balken wurde schon von vorheriger 16tel gezeichnet → nichts tun
@@ -6627,7 +7671,7 @@ Gerät:
                 const scoreText = document.getElementById('scoreText');
                 const scorePercentage = document.getElementById('scorePercentage');
 
-                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition' || this.settings.taskType === 'time-signature-id') {
+                if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition' || this.settings.taskType === 'time-signature-id' || this.settings.taskType === 'gap-fill' || this.settings.taskType === 'dictation') {
                     const percentage = this.score.total > 0
                         ? Math.round((this.score.correct / this.score.total) * 100)
                         : 0;
