@@ -1324,6 +1324,107 @@
             transition: background 0.2s;
         }
         .btn-next:hover { background: #e5e7eb; }
+
+        /* ---- Lernkarten-Overlay ---- */
+        .lernkarte-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 250;
+            justify-content: center;
+            align-items: center;
+        }
+        .lernkarte-overlay.active { display: flex; }
+        .lernkarte {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 520px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .lernkarte h2 {
+            font-size: 1.25rem;
+            color: #4c1d95;
+            margin-bottom: 12px;
+        }
+        .lernkarte p {
+            color: #374151;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+        .lk-visual {
+            background: #faf5ff;
+            border: 1px solid #c4b5fd;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .lk-visual svg { max-width: 100%; }
+        .lk-tip {
+            background: #ecfdf5;
+            border-left: 3px solid #10b981;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #065f46;
+        }
+        .lk-rule {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #1e40af;
+        }
+        .lk-task {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #92400e;
+        }
+        .lk-contrast {
+            display: flex;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .lk-contrast > div {
+            flex: 1;
+            background: #faf5ff;
+            border: 1px solid #c4b5fd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .lk-contrast .lk-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #4c1d95;
+        }
+        .lernkarte button {
+            width: 100%;
+            padding: 14px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 14px;
+        }
+        .lernkarte button:hover { background: #7c3aed; }
     </style>
 </head>
 <body>
@@ -2428,9 +2529,12 @@
                 document.querySelector('.score-display').classList.add('hidden-in-quiz');
 
                 this.showQuizOverlay();
+                // Lernkarte anzeigen (wenn vorhanden), sonst direkt starten
+                const currentSub = this.currentOptions[this.currentOptions.length - 1];
+                if (currentSub && app.showLernkarte(currentSub, true)) return;
                 app.generateNewTask();
             },
-            
+
             configureApp(level, options) {
                 // Quiz startet immer in 4/4
                 app.settings.timeSignature = '4/4';
@@ -3342,6 +3446,10 @@
                     !document.getElementById('quickStartScreen').classList.contains('active');
 
                 if (inExercise) {
+                    // Lernkarte anzeigen statt altem Hilfe-Modal
+                    const currentSub = quickStart.currentOptions[quickStart.currentOptions.length - 1];
+                    if (currentSub && this.showLernkarte(currentSub, false)) return;
+
                     const level = quickStart.currentLevel;
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
@@ -7713,7 +7821,916 @@ Gerät:
             },
 
             // === GOAL SYSTEM ===
-            
+
+            // ---- Lernkarten ----
+            getLernkarteKey(subSkillId) {
+                const level = quickStart.currentLevel;
+                if (level === 'einsteiger') return subSkillId;
+                const prefixMap = {
+                    'taktarten': 'rhy2_',
+                    'fortgeschrittener': 'rhy3_',
+                    'profi': 'rhy4_',
+                    'notenwert_bilden': 'rhy5_',
+                    'rhythmusdiktat': 'rhy6_'
+                };
+                const prefix = prefixMap[level];
+                return prefix ? prefix + subSkillId : subSkillId;
+            },
+            showLernkarte(subSkillId, fromStart) {
+                const key = this.getLernkarteKey(subSkillId);
+                const content = this.lernkartenContent ? this.lernkartenContent[key] : null;
+                if (!content) return false;
+                this._lernkarteFromStart = !!fromStart;
+                document.getElementById('lernkarteTitle').textContent = content.title;
+                document.getElementById('lernkarteBody').innerHTML = content.body;
+                document.getElementById('lernkarteOverlay').classList.add('active');
+                if (typeof content.render === 'function') content.render();
+                return true;
+            },
+            dismissLernkarte() {
+                document.getElementById('lernkarteOverlay').classList.remove('active');
+                if (this._lernkarteFromStart) {
+                    this._lernkarteFromStart = false;
+                    app.generateNewTask();
+                }
+            },
+
+        };
+
+        // ---- Lernkarten: Globale Helfer ----
+        const sym = (t, w=35, h=35) => app.renderLegendSymbol(t, w, h);
+        const renderLegendSymbol = (t, w, h) => app.renderLegendSymbol(t, w, h);
+        const renderDottedLegendSymbol = (t, w, h) => app.renderDottedLegendSymbol(t, w, h);
+        const renderTripletLegendSymbol = (t, w, h) => app.renderTripletLegendSymbol(t, w, h);
+        function renderLernkarteSymbols(symbols) {
+            let html = '<div style="display:flex; align-items:flex-end; gap:1.25rem; flex-wrap:wrap; justify-content:center">';
+            symbols.forEach(s => {
+                const w = s.width || 40, h = s.height || 40;
+                html += '<span style="text-align:center">' + renderLegendSymbol(s.type, w, h) + '<br><small style="font-size:0.8rem;color:#4c1d95;font-weight:600">' + s.label + '</small></span>';
+            });
+            html += '</div>';
+            return html;
+        }
+        function renderTimeSignature(num, den, width, height) {
+            width = width || 50; height = height || 60;
+            return '<svg width="' + width + '" height="' + height + '" viewBox="0 0 50 60"><text x="25" y="24" font-family="Times New Roman,Georgia,serif" font-weight="bold" font-size="28" text-anchor="middle">' + num + '</text><text x="25" y="52" font-family="Times New Roman,Georgia,serif" font-weight="bold" font-size="28" text-anchor="middle">' + den + '</text></svg>';
+        }
+
+        app.lernkartenContent = {
+
+            // ========== rhy1: Notenwerte addieren (Einsteiger) ==========
+            'basis': {
+                title: '1a — Notenwerte addieren',
+                body: `<p>Du siehst mehrere Notenwerte und rechnest ihre Dauer zusammen — wie eine Matheaufgabe.</p>
+                    <div class="lk-visual" id="lkVisualBasis"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Ganze = 4, Halbe = 2, Viertel = 1. Notenwerte halbieren sich immer.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Addiere die gezeigten Notenwerte und gib die Summe ein.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualBasis');
+                    if (el) el.innerHTML = renderLernkarteSymbols([
+                        {type:'whole', label:'Ganze = 4'}, {type:'half', label:'Halbe = 2'}, {type:'quarter', label:'Viertel = 1'}
+                    ]);
+                }
+            },
+            'pausen': {
+                title: '1b — Mit Pausen',
+                body: `<p>Pausen sind stille Stellen — sie haben aber <strong>denselben Wert</strong> wie die entsprechende Note.</p>
+                    <div class="lk-contrast" id="lkVisualPausen"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Jede Pause hat exakt denselben Wert wie ihre Note. Pausen werden genauso addiert.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne auch Pausen in die Summe mit ein.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualPausen');
+                    if (el) el.innerHTML = `
+                        <div>
+                            <div class="lk-label">Noten</div>
+                            <div style="display:flex;gap:0.5rem;justify-content:center;align-items:flex-end">
+                                <span style="text-align:center">${sym('half')}<br><small style="font-size:0.75rem">= 2</small></span>
+                                <span style="text-align:center">${sym('quarter')}<br><small style="font-size:0.75rem">= 1</small></span>
+                                <span style="text-align:center">${sym('eighth')}<br><small style="font-size:0.75rem">= 0,5</small></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="lk-label">Pausen</div>
+                            <div style="display:flex;gap:0.5rem;justify-content:center;align-items:flex-end">
+                                <span style="text-align:center">${sym('half-rest')}<br><small style="font-size:0.75rem">= 2</small></span>
+                                <span style="text-align:center">${sym('quarter-rest')}<br><small style="font-size:0.75rem">= 1</small></span>
+                                <span style="text-align:center">${sym('eighth-rest')}<br><small style="font-size:0.75rem">= 0,5</small></span>
+                            </div>
+                        </div>`;
+                }
+            },
+            '8tel': {
+                title: '1c — Mit Achtelnoten',
+                body: `<p>Die Achtelnote ist <strong>halb so lang</strong> wie eine Viertel.</p>
+                    <div class="lk-visual" id="lkVisual8tel"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Achtel = 0,5 Schläge. Zwei Achtel = eine Viertel.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Achtel werden jetzt mitgerechnet.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisual8tel');
+                    if (el) el.innerHTML = renderLernkarteSymbols([
+                        {type:'eighth', label:'Achtel = 0,5'}
+                    ]);
+                }
+            },
+            '16tel': {
+                title: '1d — Mit Sechzehntelnoten',
+                body: `<p>Die Sechzehntelnote ist <strong>halb so lang</strong> wie eine Achtel.</p>
+                    <div class="lk-visual" id="lkVisual16tel"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Sechzehntel = 0,25 Schläge. Vier Sechzehntel = eine Viertel.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Sechzehntel werden jetzt mitgerechnet.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisual16tel');
+                    if (el) el.innerHTML = renderLernkarteSymbols([
+                        {type:'sixteenth', label:'16tel = 0,25'}
+                    ]);
+                }
+            },
+            'punktierte': {
+                title: '1e — Mit punktierten Noten',
+                body: `<p>Ein <strong>Punkt hinter der Note</strong> verlängert sie um die Hälfte ihres Werts — die Note wird 1,5× so lang.</p>
+                    <div class="lk-visual" id="lkVisualPunktierte"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Punktiert = Notenwert + halber Notenwert. Beispiel: Halbe (2) + Punkt (1) = 3.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Punktierte Noten werden jetzt mitgerechnet.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualPunktierte');
+                    if (el) el.innerHTML = renderLernkarteSymbols([
+                        {type:'dotted-half', label:'Punkt. Halbe = 3', width:45, height:40},
+                        {type:'dotted-quarter', label:'Punkt. Viertel = 1,5', width:45, height:40},
+                        {type:'dotted-eighth', label:'Punkt. Achtel = 0,75', width:45, height:40}
+                    ]);
+                }
+            },
+            'triolen': {
+                title: '1f — Mit Triolen',
+                body: `<p>Bei Triolen werden <strong>drei Noten</strong> in die Zeit gespielt, die normalerweise <strong>zwei Noten</strong> gleichen Typs einnehmen. Du erkennst sie an der <strong>3</strong> über den Noten.</p>
+                    <div class="lk-visual" id="lkVisualTriolen"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Eine Triolen-Gruppe dauert immer so lang wie <strong>zwei reguläre Noten</strong> gleichen Typs. Du rechnest also nur den Wert der regulären Zweiergruppe.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Achtel- und 16tel-Triolen erkennst du am <strong>Balken mit der 3</strong>. Viertel- und Halbe-Triolen haben stattdessen eine <strong>Klammer mit der 3</strong>.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Triolen werden jetzt mitgerechnet. Achte auf die 3 über den Noten.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualTriolen');
+                    if (el) el.innerHTML = `
+                        <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+                            <div style="display:flex;gap:1.5rem;align-items:flex-end;flex-wrap:wrap;justify-content:center">
+                                <span style="text-align:center">
+                                    ${renderTripletLegendSymbol('eighth-triplet', 90, 40)}
+                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 Achtel-Triolen = 1</small>
+                                    <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre Achtel)</small>
+                                </span>
+                                <span style="text-align:center">
+                                    ${renderTripletLegendSymbol('quarter-triplet', 90, 40)}
+                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 Viertel-Triolen = 2</small>
+                                    <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre Viertel)</small>
+                                </span>
+                            </div>
+                            <div style="display:flex;gap:1.5rem;align-items:flex-end;flex-wrap:wrap;justify-content:center">
+                                <span style="text-align:center">
+                                    ${renderTripletLegendSymbol('half-triplet', 100, 40)}
+                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 Halbe-Triolen = 4</small>
+                                    <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre Halbe)</small>
+                                </span>
+                                <span style="text-align:center">
+                                    ${renderTripletLegendSymbol('sixteenth-triplet', 90, 40)}
+                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 16tel-Triolen = 0,5</small>
+                                    <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre 16tel)</small>
+                                </span>
+                            </div>
+                        </div>`;
+                }
+            },
+            'hilfen_aus': {
+                title: '1g — Ohne Legende',
+                body: `<p>Die <strong>Werteanzeige über den Noten</strong> wird jetzt ausgeblendet. Du rechnest die Notenwerte rein aus dem Notenbild zusammen.</p>
+                    <div class="lk-rule"><strong>Merke:</strong> Du kennst die Werte bereits: Ganze = 4, Halbe = 2, Viertel = 1, Achtel = 0,5, Sechzehntel = 0,25. Punktierte Noten = Wert × 1,5.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Addiere die Notenwerte wie gewohnt — nur ohne Hilfsanzeige.</div>`
+            },
+
+            // ========== rhy2: Taktarten erkennen (Taktarten) ==========
+            'rhy2_regelmaessig': {
+                title: '2a — Taktarten erkennen',
+                body: `<p>Die <strong>Taktart</strong> verrät, wie viele Schläge in einen Takt passen.</p>
+                    <div class="lk-visual" id="lkVisualTaktarten"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Die <strong>untere Zahl</strong> der Taktart gibt den Notenwert des Grundschlags an (4 = Viertel, 8 = Achtel). Die <strong>obere Zahl</strong> verrät, wie viele davon in den Takt passen.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Addiere alle Notenwerte im Takt — die Summe verrät die Taktart.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Taktart des gezeigten Rhythmus.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualTaktarten');
+                    if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
+                        <span style="text-align:center">${renderTimeSignature(2,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">2 Viertelschläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(3,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">3 Viertelschläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(4,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">4 Viertelschläge</small></span>
+                    </div>`;
+                }
+            },
+            'rhy2_unregelmaessig1': {
+                title: '2b — Unregelmäßige Taktarten',
+                body: `<p>Jetzt kommen Taktarten hinzu, deren Schlagzahl <strong>nicht durch 2 oder 3 teilbar</strong> ist.</p>
+                    <div class="lk-visual" id="lkVisualUnreg1"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> 5/4 und 7/4 sind unregelmäßig — sie lassen sich nicht gleichmäßig in 2er- oder 3er-Gruppen aufteilen.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Taktart — auch bei 5 oder 7 Schlägen pro Takt.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualUnreg1');
+                    if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
+                        <span style="text-align:center">${renderTimeSignature(5,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">5 Schläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(7,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">7 Schläge</small></span>
+                    </div>`;
+                }
+            },
+            'rhy2_unregelmaessig2': {
+                title: '2c — Achtel-Taktarten',
+                body: `<p>Bei diesen Taktarten ist die <strong>Grundeinheit eine Achtel</strong> statt einer Viertel.</p>
+                    <div class="lk-visual" id="lkVisualUnreg2"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Die untere Zahl ist 8 — also bekommt die Achtel einen Schlag. 7/8 = 3,5 Viertel, 9/8 = 4,5 Viertel.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Taktart — achte auf die untere Zahl!</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualUnreg2');
+                    if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
+                        <span style="text-align:center">${renderTimeSignature(7,8)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">7 Achtel</small></span>
+                        <span style="text-align:center">${renderTimeSignature(9,8)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">9 Achtel</small></span>
+                    </div>`;
+                }
+            },
+
+            // ========== rhy3: Zählzeiten bestimmen (Fortgeschrittener) ==========
+            'rhy3_basis': {
+                title: '3a — Zählzeiten bestimmen',
+                body: `<p>Du siehst einen Takt und bestimmst die <strong>Zählzeit der markierten Note</strong> (violett + roter Pfeil).</p>
+                    <div class="lk-visual" id="lkVisualRhy3Basis"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Im 4/4-Takt gibt es die Zählzeiten 1, 2, 3, 4. Jede Viertelnote bekommt einen Schlag.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Nutze das Raster im Takt — jede gestrichelte Linie markiert einen Schlag. Zähle von links und erschließe, auf welcher Zählzeit die markierte Note beginnt.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein, auf der die markierte Note beginnt.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy3Basis');
+                    if (el) {
+                        // Staff 1:1 wie RT: 4/4-Takt mit Halbe + Viertel + Viertel
+                        // Dritte Note (Viertel auf Schlag 4) ist markiert (violett + roter Pfeil)
+                        const W = 700, H = 240, staffY = 140;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4;
+                        const purple = '#8b5cf6';
+
+                        const n1X = gridStart;                    // Pos 0: Halbe
+                        const n2X = gridStart + 2 * gridSpacing;  // Pos 2: Viertel
+                        const n3X = gridStart + 3 * gridSpacing;  // Pos 3: Viertel (MARKIERT)
+
+                        el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <!-- Staff-Linie -->
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <!-- Taktstriche -->
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <!-- Taktart 4/4 -->
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- Rasterlinien (gestrichelt) -->
+                            ${[0,1,2,3].map(i => {
+                                const x = gridStart + i * gridSpacing;
+                                return '<line x1="' + x + '" y1="' + (staffY-50) + '" x2="' + x + '" y2="' + (staffY+50) + '" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4,4" opacity="0.8"/>';
+                            }).join('')}
+                            <!-- Zählzeiten über dem Staff (i=3 weglassen — Pfeil) -->
+                            ${[0,1,2,3].map(i => {
+                                if (i === 3) return '';
+                                const x = gridStart + i * gridSpacing;
+                                return '<text x="' + x + '" y="' + (staffY-60) + '" font-size="14" font-weight="700" fill="#6d28d9" text-anchor="middle">' + (i+1) + '</text>';
+                            }).join('')}
+                            <!-- Note 1: Halbe (schwarz) -->
+                            <ellipse cx="${n1X}" cy="${staffY}" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2.5" transform="rotate(-20 ${n1X} ${staffY})"/>
+                            <line x1="${n1X+12}" y1="${staffY}" x2="${n1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Note 2: Viertel (schwarz) -->
+                            <ellipse cx="${n2X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n2X} ${staffY})"/>
+                            <line x1="${n2X+12}" y1="${staffY}" x2="${n2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Note 3: Viertel (VIOLETT — markiert) -->
+                            <ellipse cx="${n3X}" cy="${staffY}" rx="12" ry="8" fill="${purple}" transform="rotate(-20 ${n3X} ${staffY})"/>
+                            <line x1="${n3X+12}" y1="${staffY}" x2="${n3X+12}" y2="${staffY-50}" stroke="${purple}" stroke-width="2.5"/>
+                            <!-- Roter Pfeil über markierter Note -->
+                            <rect x="${n3X-3}" y="${staffY-90}" width="6" height="25" fill="#ef4444" rx="2"/>
+                            <polygon points="${n3X},${staffY-55} ${n3X-12},${staffY-70} ${n3X+12},${staffY-70}" fill="#ef4444"/>
+                        </svg>`;
+                    }
+                }
+            },
+            'rhy3_pausen': {
+                title: '3b — Mit Pausen',
+                body: `<p>Auch Pausen haben eine Zählzeit — die Musik <strong>zählt durch stille Stellen weiter</strong>.</p>
+                    <div class="lk-rule"><strong>Merke:</strong> Die Zählzeiten laufen durch Pausen weiter. Eine Pause auf Schlag 2 hat die Zählzeit 2.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Zählzeit auch bei markierten Pausen.</div>`
+            },
+            'rhy3_8tel': {
+                title: '3c — Mit Achtelnoten',
+                body: `<p>Achtel liegen <strong>zwischen den Hauptschlägen</strong> — auf den „und"-Positionen.</p>
+                    <div class="lk-visual" id="lkVisualRhy3_8tel"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Das Raster wird feiner — zwischen den Hauptschlägen erscheint je eine dünnere Hilfslinie für das „und".</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein — z.B. „2und" für eine Achtel zwischen Schlag 2 und 3.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy3_8tel');
+                    if (el) {
+                        // Staff mit Achtel-Raster: 4/4-Takt, Viertel + 2 Achtel + Viertel + Viertel
+                        // Zweite Achtel (auf "2und") ist markiert
+                        const W = 700, H = 240, staffY = 140;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4; // Viertel-Abstand
+                        const subGridSpacing = gridSpacing / 2;     // Achtel-Abstand
+                        const purple = '#8b5cf6';
+
+                        // Noten: Viertel(0) + Achtel(1) + Achtel(1.5) + Viertel(2) + Viertel(3)
+                        const n1X = gridStart;                         // Pos 0: Viertel
+                        const n2X = gridStart + 1 * gridSpacing;      // Pos 1: Achtel
+                        const n3X = gridStart + 1.5 * gridSpacing;    // Pos 1.5: Achtel (MARKIERT — "2und")
+                        const n4X = gridStart + 2 * gridSpacing;      // Pos 2: Viertel
+                        const n5X = gridStart + 3 * gridSpacing;      // Pos 3: Viertel
+
+                        el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <!-- Staff-Linie -->
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <!-- Taktstriche -->
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <!-- Taktart 4/4 -->
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- Raster: Hauptschläge (stärker) + "und"-Positionen (farbig) -->
+                            ${[0,1,2,3,4,5,6,7].map(i => {
+                                const x = gridStart + i * subGridSpacing;
+                                const isMain = i % 2 === 0;
+                                const sw = isMain ? '2' : '1.5';
+                                const color = isMain ? '#9ca3af' : '#c4b5fd';
+                                const dash = isMain ? '4,4' : '3,3';
+                                return '<line x1="' + x + '" y1="' + (staffY-50) + '" x2="' + x + '" y2="' + (staffY+50) + '" stroke="' + color + '" stroke-width="' + sw + '" stroke-dasharray="' + dash + '" opacity="0.8"/>';
+                            }).join('')}
+                            <!-- Zählzeiten über dem Staff (i=3 weglassen — Pfeil) -->
+                            ${[0,1,2,3,4,5,6,7].map(i => {
+                                if (i === 3) return '';
+                                const x = gridStart + i * subGridSpacing;
+                                const isMain = i % 2 === 0;
+                                const beat = Math.floor(i / 2) + 1;
+                                const label = isMain ? beat : 'und';
+                                const color = isMain ? '#6d28d9' : '#a78bfa';
+                                const weight = isMain ? '700' : '600';
+                                const size = isMain ? '14' : '12';
+                                return '<text x="' + x + '" y="' + (staffY-60) + '" font-size="' + size + '" font-weight="' + weight + '" fill="' + color + '" text-anchor="middle">' + label + '</text>';
+                            }).join('')}
+                            <!-- Note 1: Viertel -->
+                            <ellipse cx="${n1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n1X} ${staffY})"/>
+                            <line x1="${n1X+12}" y1="${staffY}" x2="${n1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Note 2+3: Achtel (verbalkt) — Note 3 violett -->
+                            <ellipse cx="${n2X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n2X} ${staffY})"/>
+                            <line x1="${n2X+12}" y1="${staffY}" x2="${n2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <ellipse cx="${n3X}" cy="${staffY}" rx="12" ry="8" fill="${purple}" transform="rotate(-20 ${n3X} ${staffY})"/>
+                            <line x1="${n3X+12}" y1="${staffY}" x2="${n3X+12}" y2="${staffY-50}" stroke="${purple}" stroke-width="2.5"/>
+                            <line x1="${n2X+12}" y1="${staffY-50}" x2="${n3X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
+                            <!-- Roter Pfeil über markierter Note -->
+                            <rect x="${n3X-3}" y="${staffY-90}" width="6" height="25" fill="#ef4444" rx="2"/>
+                            <polygon points="${n3X},${staffY-55} ${n3X-12},${staffY-70} ${n3X+12},${staffY-70}" fill="#ef4444"/>
+                            <!-- Note 4: Viertel -->
+                            <ellipse cx="${n4X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n4X} ${staffY})"/>
+                            <line x1="${n4X+12}" y1="${staffY}" x2="${n4X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Note 5: Viertel -->
+                            <ellipse cx="${n5X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n5X} ${staffY})"/>
+                            <line x1="${n5X+12}" y1="${staffY}" x2="${n5X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                        </svg>`;
+                    }
+                }
+            },
+            'rhy3_16tel': {
+                title: '3d — Mit Sechzehntelnoten',
+                body: `<p>Jeder Schlag wird jetzt in <strong>4 Positionen</strong> unterteilt.</p>
+                    <div class="lk-visual" id="lkVisualRhy3_16tel"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Das Raster wird nochmals feiner — jeder Schlag hat 4 Teile: Zahl, e, und, te.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein — z.B. „1e" oder „3und".</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy3_16tel');
+                    if (el) {
+                        // Staff mit 16tel-Raster: 4/4-Takt
+                        // Noten: Viertel(0) + 4x 16tel(1, 1.25, 1.5, 1.75) + Halbe(2)
+                        // Dritte 16tel (Pos 1.5 = "2und") ist markiert
+                        const W = 700, H = 240, staffY = 140;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4;
+                        const subGridSpacing = gridSpacing / 4; // 16tel-Abstand
+                        const purple = '#8b5cf6';
+
+                        const n1X = gridStart;                          // Pos 0: Viertel
+                        const s1X = gridStart + 1 * gridSpacing;       // Pos 1: 16tel
+                        const s2X = gridStart + 1.25 * gridSpacing;    // Pos 1.25: 16tel
+                        const s3X = gridStart + 1.5 * gridSpacing;     // Pos 1.5: 16tel (MARKIERT — "2und")
+                        const s4X = gridStart + 1.75 * gridSpacing;    // Pos 1.75: 16tel
+                        const n2X = gridStart + 2 * gridSpacing;       // Pos 2: Halbe
+
+                        // Markierte Position im 16tel-Raster: Pos 1.5 = Index 6 (i = beat*4 + sub)
+                        const markedIdx = 6; // 1*4 + 2 = 6
+
+                        // Zählzeit-Labels: 1 e und e | 2 e und e | 3 e und e | 4 e und e
+                        const labels = [];
+                        for (let beat = 1; beat <= 4; beat++) {
+                            labels.push(String(beat), 'e', 'und', 'te');
+                        }
+
+                        el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <!-- Staff-Linie -->
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <!-- Taktstriche -->
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <!-- Taktart 4/4 -->
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- 16tel-Raster: Hauptschläge / "und" / "e"-Positionen -->
+                            ${Array.from({length:16}, (_,i) => {
+                                const x = gridStart + i * subGridSpacing;
+                                const isBeat = i % 4 === 0;
+                                const isUnd = i % 4 === 2;
+                                const sw = isBeat ? '2' : isUnd ? '1.5' : '1';
+                                const color = isBeat ? '#9ca3af' : isUnd ? '#a78bfa' : '#c4b5fd';
+                                const dash = isBeat ? '4,4' : isUnd ? '3,3' : '2,3';
+                                return '<line x1="' + x + '" y1="' + (staffY-50) + '" x2="' + x + '" y2="' + (staffY+50) + '" stroke="' + color + '" stroke-width="' + sw + '" stroke-dasharray="' + dash + '" opacity="0.8"/>';
+                            }).join('')}
+                            <!-- Zählzeiten über dem Staff (markedIdx weglassen) -->
+                            ${Array.from({length:16}, (_,i) => {
+                                if (i === markedIdx) return '';
+                                const x = gridStart + i * subGridSpacing;
+                                const isBeat = i % 4 === 0;
+                                const isUnd = i % 4 === 2;
+                                const color = isBeat ? '#6d28d9' : isUnd ? '#a78bfa' : '#c4b5fd';
+                                const weight = isBeat ? '700' : '600';
+                                const size = isBeat ? '16' : isUnd ? '14' : '13';
+                                return '<text x="' + x + '" y="' + (staffY-60) + '" font-size="' + size + '" font-weight="' + weight + '" fill="' + color + '" text-anchor="middle">' + labels[i] + '</text>';
+                            }).join('')}
+                            <!-- Note 1: Viertel -->
+                            <ellipse cx="${n1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n1X} ${staffY})"/>
+                            <line x1="${n1X+12}" y1="${staffY}" x2="${n1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- 4x 16tel (verbalkt) — s3 violett -->
+                            <ellipse cx="${s1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${s1X} ${staffY})"/>
+                            <line x1="${s1X+12}" y1="${staffY}" x2="${s1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <ellipse cx="${s2X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${s2X} ${staffY})"/>
+                            <line x1="${s2X+12}" y1="${staffY}" x2="${s2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <ellipse cx="${s3X}" cy="${staffY}" rx="12" ry="8" fill="${purple}" transform="rotate(-20 ${s3X} ${staffY})"/>
+                            <line x1="${s3X+12}" y1="${staffY}" x2="${s3X+12}" y2="${staffY-50}" stroke="${purple}" stroke-width="2.5"/>
+                            <ellipse cx="${s4X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${s4X} ${staffY})"/>
+                            <line x1="${s4X+12}" y1="${staffY}" x2="${s4X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Doppelbalken -->
+                            <line x1="${s1X+12}" y1="${staffY-50}" x2="${s4X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
+                            <line x1="${s1X+12}" y1="${staffY-44}" x2="${s4X+12}" y2="${staffY-44}" stroke="#000" stroke-width="4"/>
+                            <!-- Roter Pfeil über markierter Note -->
+                            <rect x="${s3X-3}" y="${staffY-90}" width="6" height="25" fill="#ef4444" rx="2"/>
+                            <polygon points="${s3X},${staffY-55} ${s3X-12},${staffY-70} ${s3X+12},${staffY-70}" fill="#ef4444"/>
+                            <!-- Note 2: Halbe -->
+                            <ellipse cx="${n2X}" cy="${staffY}" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2.5" transform="rotate(-20 ${n2X} ${staffY})"/>
+                            <line x1="${n2X+12}" y1="${staffY}" x2="${n2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                        </svg>`;
+                    }
+                }
+            },
+            'rhy3_punktierte': {
+                title: '3e — Mit punktierten Noten',
+                body: `<p>Punktierte Noten dauern <strong>1,5× so lang</strong> — sie verschieben die nachfolgenden Zählzeiten.</p>
+                    <div class="lk-rule"><strong>Merke:</strong> Eine punktierte Viertel dauert 1,5 Schläge. Die nächste Note beginnt nicht auf einem regulären Schlag!</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Nutze das Raster! Es zeigt genau, wo die verschobene Note beginnt.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Zählzeit — auch wenn sie durch Punktierung verschoben ist.</div>`
+            },
+            'rhy3_noaudio': {
+                title: '3f — Ohne Hörbeispiel',
+                body: `<p>Nun kannst du den Rhythmus <strong>nicht mehr vorspielen</strong> — ein rein <strong>theoretisches Errechnen</strong> der Zählzeit ist nötig.</p>
+                    <div class="lk-rule"><strong>Merke:</strong> Zähle die Notenwerte von links nach rechts zusammen und leite daraus die Position der markierten Note ab.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Nutze das Raster und zähle die Schläge im Kopf mit.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Zählzeit der markierten Note — ohne Audio-Hilfe.</div>`
+            },
+
+            // ========== rhy4: Rhythmussilben (Profi) ==========
+            'rhy4_basis': {
+                title: '4a — Rhythmussilben sprechen',
+                body: `<p>Jede Note bekommt eine <strong>Sprechsilbe</strong>. So lassen sich Rhythmen laut vorlesen. Es gibt kein Raster mehr — du musst die Position selbst erkennen.</p>
+                    <div class="lk-visual" id="lkVisualRhy4_8tel"></div>
+                    <div class="lk-rule"><strong>Regel:</strong> Note auf dem Schlag → <strong>„du"</strong>. Note auf dem „und" → <strong>„dei"</strong>.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Rhythmussilbe ein, die zur markierten Note gehört.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy4_8tel');
+                    if (el) {
+                        // Staff ohne Raster: 4/4, Viertel + 2 Achtel + Viertel + Viertel
+                        // Zweite Achtel (auf "und") ist markiert → Silbe = "dei"
+                        const W = 700, H = 240, staffY = 140;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4;
+                        const purple = '#8b5cf6';
+
+                        const n1X = gridStart;
+                        const n2X = gridStart + 1 * gridSpacing;
+                        const n3X = gridStart + 1.5 * gridSpacing;  // MARKIERT
+                        const n4X = gridStart + 2 * gridSpacing;
+                        const n5X = gridStart + 3 * gridSpacing;
+
+                        el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- Silben unter den Noten -->
+                            <text x="${n1X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <text x="${n2X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <text x="${n3X}" y="${staffY+80}" font-size="15" font-weight="700" fill="${purple}" text-anchor="middle">?</text>
+                            <text x="${n4X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <text x="${n5X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <!-- Note 1: Viertel -->
+                            <ellipse cx="${n1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n1X} ${staffY})"/>
+                            <line x1="${n1X+12}" y1="${staffY}" x2="${n1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Note 2+3: Achtel (verbalkt) — Note 3 violett -->
+                            <ellipse cx="${n2X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n2X} ${staffY})"/>
+                            <line x1="${n2X+12}" y1="${staffY}" x2="${n2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <ellipse cx="${n3X}" cy="${staffY}" rx="12" ry="8" fill="${purple}" transform="rotate(-20 ${n3X} ${staffY})"/>
+                            <line x1="${n3X+12}" y1="${staffY}" x2="${n3X+12}" y2="${staffY-50}" stroke="${purple}" stroke-width="2.5"/>
+                            <line x1="${n2X+12}" y1="${staffY-50}" x2="${n3X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
+                            <!-- Roter Pfeil -->
+                            <rect x="${n3X-3}" y="${staffY-90}" width="6" height="25" fill="#ef4444" rx="2"/>
+                            <polygon points="${n3X},${staffY-55} ${n3X-12},${staffY-70} ${n3X+12},${staffY-70}" fill="#ef4444"/>
+                            <!-- Note 4: Viertel -->
+                            <ellipse cx="${n4X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n4X} ${staffY})"/>
+                            <line x1="${n4X+12}" y1="${staffY}" x2="${n4X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Note 5: Viertel -->
+                            <ellipse cx="${n5X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n5X} ${staffY})"/>
+                            <line x1="${n5X+12}" y1="${staffY}" x2="${n5X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                        </svg>
+                        <div style="font-size:0.85rem;color:#374151;text-align:center;margin-top:6px">
+                            Die markierte Note liegt auf dem <strong>„und"</strong> → Silbe = <strong style="color:${purple}">dei</strong>
+                        </div>`;
+                    }
+                }
+            },
+            'rhy4_16tel': {
+                title: '4b — Mit Sechzehntelnoten',
+                body: `<p>Vier Sechzehntel auf einem Schlag bekommen die Silben <strong>du te dei te</strong>.</p>
+                    <div class="lk-visual" id="lkVisualRhy4_16tel"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> du = Schlag, te = „e"-Position, dei = „und"-Position, te = letzte „te"-Position.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die richtige Silbe ein: du, te oder dei.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy4_16tel');
+                    if (el) {
+                        // Staff ohne Raster: 4/4, Viertel + 4x 16tel + Halbe
+                        // Dritte 16tel ("und"-Position) ist markiert → Silbe = "dei"
+                        const W = 700, H = 240, staffY = 140;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4;
+                        const purple = '#8b5cf6';
+
+                        const n1X = gridStart;
+                        const s1X = gridStart + 1 * gridSpacing;
+                        const s2X = gridStart + 1.25 * gridSpacing;
+                        const s3X = gridStart + 1.5 * gridSpacing;   // MARKIERT
+                        const s4X = gridStart + 1.75 * gridSpacing;
+                        const n2X = gridStart + 2 * gridSpacing;
+
+                        el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- Silben unter den Noten -->
+                            <text x="${n1X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <text x="${s1X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <text x="${s2X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">te</text>
+                            <text x="${s3X}" y="${staffY+80}" font-size="15" font-weight="700" fill="${purple}" text-anchor="middle">?</text>
+                            <text x="${s4X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">te</text>
+                            <text x="${n2X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <!-- Note 1: Viertel -->
+                            <ellipse cx="${n1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n1X} ${staffY})"/>
+                            <line x1="${n1X+12}" y1="${staffY}" x2="${n1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- 4x 16tel (verbalkt) — s3 violett -->
+                            <ellipse cx="${s1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${s1X} ${staffY})"/>
+                            <line x1="${s1X+12}" y1="${staffY}" x2="${s1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <ellipse cx="${s2X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${s2X} ${staffY})"/>
+                            <line x1="${s2X+12}" y1="${staffY}" x2="${s2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <ellipse cx="${s3X}" cy="${staffY}" rx="12" ry="8" fill="${purple}" transform="rotate(-20 ${s3X} ${staffY})"/>
+                            <line x1="${s3X+12}" y1="${staffY}" x2="${s3X+12}" y2="${staffY-50}" stroke="${purple}" stroke-width="2.5"/>
+                            <ellipse cx="${s4X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${s4X} ${staffY})"/>
+                            <line x1="${s4X+12}" y1="${staffY}" x2="${s4X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <line x1="${s1X+12}" y1="${staffY-50}" x2="${s4X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
+                            <line x1="${s1X+12}" y1="${staffY-44}" x2="${s4X+12}" y2="${staffY-44}" stroke="#000" stroke-width="4"/>
+                            <!-- Roter Pfeil -->
+                            <rect x="${s3X-3}" y="${staffY-90}" width="6" height="25" fill="#ef4444" rx="2"/>
+                            <polygon points="${s3X},${staffY-55} ${s3X-12},${staffY-70} ${s3X+12},${staffY-70}" fill="#ef4444"/>
+                            <!-- Note 2: Halbe -->
+                            <ellipse cx="${n2X}" cy="${staffY}" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2.5" transform="rotate(-20 ${n2X} ${staffY})"/>
+                            <line x1="${n2X+12}" y1="${staffY}" x2="${n2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                        </svg>
+                        <div style="font-size:0.85rem;color:#374151;text-align:center;margin-top:6px">
+                            Die markierte Note liegt auf dem <strong>„und"</strong> → Silbe = <strong style="color:${purple}">dei</strong>
+                        </div>`;
+                    }
+                }
+            },
+            'rhy4_punktierte': {
+                title: '4c — Mit punktierten Noten',
+                body: `<p>Die Silbe richtet sich nach der <strong>Position des Notenanfangs</strong>, nicht nach der Dauer.</p>
+                    <div class="lk-rule"><strong>Merke:</strong> Eine punktierte Note auf dem Schlag = „du". Die Dauer spielt für die Silbe keine Rolle — nur die Startposition zählt.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Durch die Punktierung beginnt die Folgenote auf einer ungewöhnlichen Position — deren Silbe ändert sich!</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Silbe passend zur Startposition der markierten Note ein.</div>`
+            },
+            'rhy4_triolen': {
+                title: '4d — Mit Triolen',
+                body: `<p>Triolen bekommen eigene Silben: <strong>du-da-di</strong>. „du" fällt auf den Schlag, „da" und „di" liegen dazwischen — sie fallen <strong>nicht</strong> mit „dei" oder „te" zusammen.</p>
+                    <div class="lk-visual" id="lkVisualRhy4Triolen"></div>
+                    <div class="lk-rule"><strong>Regel:</strong> Erste Triolen-Note → <strong>„du"</strong>. Zweite → <strong>„da"</strong>. Dritte → <strong>„di"</strong>.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib „du", „da" oder „di" ein — je nach Position innerhalb der Triole.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy4Triolen');
+                    if (el) {
+                        // Staff ohne Raster: 4/4, Viertel + 3 Achtel-Triolen + Halbe
+                        // Zweite Triolen-Note ist markiert → Silbe = "da"
+                        const W = 700, H = 240, staffY = 140;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4;
+                        const purple = '#8b5cf6';
+
+                        const n1X = gridStart;                          // Pos 0: Viertel
+                        const t1X = gridStart + 1 * gridSpacing;       // Pos 1: Triole 1
+                        const t2X = gridStart + 1.333 * gridSpacing;   // Pos 1.33: Triole 2 (MARKIERT)
+                        const t3X = gridStart + 1.667 * gridSpacing;   // Pos 1.67: Triole 3
+                        const n2X = gridStart + 2 * gridSpacing;       // Pos 2: Halbe
+
+                        el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- Silben unter den Noten -->
+                            <text x="${n1X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <text x="${t1X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <text x="${t2X}" y="${staffY+80}" font-size="15" font-weight="700" fill="${purple}" text-anchor="middle">?</text>
+                            <text x="${t3X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">di</text>
+                            <text x="${n2X}" y="${staffY+80}" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">du</text>
+                            <!-- Note 1: Viertel -->
+                            <ellipse cx="${n1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${n1X} ${staffY})"/>
+                            <line x1="${n1X+12}" y1="${staffY}" x2="${n1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- 3 Achtel-Triolen (verbalkt) — t2 violett -->
+                            <ellipse cx="${t1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${t1X} ${staffY})"/>
+                            <line x1="${t1X+12}" y1="${staffY}" x2="${t1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <ellipse cx="${t2X}" cy="${staffY}" rx="12" ry="8" fill="${purple}" transform="rotate(-20 ${t2X} ${staffY})"/>
+                            <line x1="${t2X+12}" y1="${staffY}" x2="${t2X+12}" y2="${staffY-50}" stroke="${purple}" stroke-width="2.5"/>
+                            <ellipse cx="${t3X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${t3X} ${staffY})"/>
+                            <line x1="${t3X+12}" y1="${staffY}" x2="${t3X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Balken -->
+                            <line x1="${t1X+12}" y1="${staffY-50}" x2="${t3X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
+                            <!-- "3" über dem Balken -->
+                            <text x="${(t1X+t3X)/2 + 12}" y="${staffY-56}" font-size="18" font-weight="bold" fill="#000" text-anchor="middle">3</text>
+                            <!-- Roter Pfeil (höher, über der "3") -->
+                            <rect x="${t2X-3}" y="${staffY-110}" width="6" height="25" fill="#ef4444" rx="2"/>
+                            <polygon points="${t2X},${staffY-75} ${t2X-12},${staffY-90} ${t2X+12},${staffY-90}" fill="#ef4444"/>
+                            <!-- Note 2: Halbe -->
+                            <ellipse cx="${n2X}" cy="${staffY}" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2.5" transform="rotate(-20 ${n2X} ${staffY})"/>
+                            <line x1="${n2X+12}" y1="${staffY}" x2="${n2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                        </svg>
+                        <div style="font-size:0.85rem;color:#374151;text-align:center;margin-top:6px">
+                            Die markierte Note ist die <strong>zweite Triolen-Note</strong> → Silbe = <strong style="color:${purple}">da</strong>
+                        </div>`;
+                    }
+                }
+            },
+            'rhy4_noaudio': {
+                title: '4e — Ohne Hörbeispiel',
+                body: `<p>Der Audio-Button ist jetzt <strong>deaktiviert</strong> — du kannst dir den Rhythmus nicht mehr vorspielen lassen. Die Rhythmussilbe muss rein aus der <strong>Notation</strong> abgeleitet werden.</p>
+                    <div class="lk-rule"><strong>Merke:</strong> Bestimme zuerst die Position der markierten Note (Schlag, und, e, te) und leite daraus die Silbe ab: du, dei, te — oder bei Triolen: du, da, di.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Zähle die Notenwerte von links nach rechts zusammen, um die Position der markierten Note zu errechnen.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Rhythmussilbe der markierten Note ein — ohne Audio-Hilfe.</div>`
+            },
+
+            // ========== rhy5: Fehlenden Notenwert ergänzen (Gap-Fill) ==========
+            'rhy5_8tel': {
+                title: '5a — Fehlenden Notenwert ergänzen',
+                body: `<p>Du siehst einen Takt mit Noten — aber er ist <strong>nicht voll</strong>. Rechne die vorhandenen Notenwerte zusammen und bestimme, welcher Notenwert fehlt.</p>
+                    <div class="lk-visual" id="lkVisualRhy5Basis"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Taktart minus Summe der vorhandenen Noten = fehlender Wert.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Die <strong>untere Zahl</strong> der Taktart gibt den Notenwert des Grundschlags an (4 = Viertel, 8 = Achtel). Die <strong>obere Zahl</strong> verrät, wie viele davon in den Takt passen.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Button mit dem richtigen Notenwert.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy5Basis');
+                    if (el) {
+                        // Staff 1:1 wie RT renderBar(): viewBox 700×240, staffY=140
+                        // Beispiel: 4/4-Takt, Halbe (=2) + 2 verbalkene Achtel (=0,5+0,5) → fehlt 1
+                        const W = 700, H = 200, staffY = 120;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4; // 128.75 pro Viertel
+
+                        // Noten-Positionen (in Vierteln)
+                        const halfX = gridStart;                    // Pos 0
+                        const eighth1X = gridStart + 2 * gridSpacing; // Pos 2
+                        const eighth2X = gridStart + 2.5 * gridSpacing; // Pos 2.5
+                        const qX = gridStart + 3 * gridSpacing;     // Pos 3 (Fragezeichen)
+
+                        const staffSvg = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <!-- Staff-Linie -->
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <!-- Taktstriche -->
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <!-- Taktart 4/4 -->
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- Halbe Note: offener Kopf + Hals -->
+                            <ellipse cx="${halfX}" cy="${staffY}" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2.5" transform="rotate(-20 ${halfX} ${staffY})"/>
+                            <line x1="${halfX+12}" y1="${staffY}" x2="${halfX+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Achtel 1: gefüllter Kopf + Hals -->
+                            <ellipse cx="${eighth1X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${eighth1X} ${staffY})"/>
+                            <line x1="${eighth1X+12}" y1="${staffY}" x2="${eighth1X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Achtel 2: gefüllter Kopf + Hals -->
+                            <ellipse cx="${eighth2X}" cy="${staffY}" rx="12" ry="8" fill="#000" transform="rotate(-20 ${eighth2X} ${staffY})"/>
+                            <line x1="${eighth2X+12}" y1="${staffY}" x2="${eighth2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="2.5"/>
+                            <!-- Balken zwischen den Achteln -->
+                            <line x1="${eighth1X+12}" y1="${staffY-50}" x2="${eighth2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
+                            <!-- Fragezeichen -->
+                            <text x="${qX}" y="${staffY+8}" font-size="32" fill="#8b5cf6" font-weight="700" text-anchor="middle">?</text>
+                        </svg>`;
+
+                        el.innerHTML = `
+                            <div style="margin-bottom:14px">
+                                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:6px">Beispiel:</div>
+                                ${staffSvg}
+                            </div>
+                            <!-- Schrittweise Herleitung -->
+                            <div style="font-size:0.85rem;line-height:1.8;color:#374151;text-align:left;padding:0 4px">
+                                <div style="margin-bottom:6px"><strong style="color:#4c1d95">Schritt 1 — Notenwerte zusammenrechnen:</strong><br>
+                                    <span style="margin-left:12px">Halbe (2) + Achtel (0,5) + Achtel (0,5) = <strong>3</strong></span></div>
+                                <div><strong style="color:#4c1d95">Schritt 2 — Differenz zur Taktart:</strong><br>
+                                    <span style="margin-left:12px">Die Taktart <strong>4/4</strong> bedeutet: 4 Viertelschläge füllen den Takt.</span><br>
+                                    <span style="margin-left:12px">4 − 3 = <strong style="color:#8b5cf6">1 → Viertel</strong></span></div>
+                            </div>
+                            <div style="font-size:0.8rem;color:#6b7280;margin:10px 0 6px">Antwort-Buttons:</div>
+                            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('half',30,30)}<br><small style="font-size:0.7rem">Halbe</small></span>
+                                <span style="text-align:center;background:#ede9fe;border:2px solid #8b5cf6;border-radius:8px;padding:6px 10px">${sym('quarter',30,30)}<br><small style="font-size:0.7rem;color:#8b5cf6;font-weight:700">Viertel ✓</small></span>
+                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('eighth',30,30)}<br><small style="font-size:0.7rem">Achtel</small></span>
+                            </div>`;
+                    }
+                }
+            },
+            'rhy5_punktierte': {
+                title: '5b — Mit punktierten Noten',
+                body: `<p>Jetzt können auch <strong>punktierte Noten</strong> im Takt vorkommen oder als Lösung gefragt sein.</p>
+                    <div class="lk-visual" id="lkVisualRhy5Punkt"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Ein Punkt verlängert die Note um die Hälfte ihres Werts. Punktierte Halbe = 2 + 1 = 3, punktierte Viertel = 1 + 0,5 = 1,5.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Der Button-Pool ist größer — rechne genau und wähle den einen fehlenden Notenwert.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy5Punkt');
+                    if (el) el.innerHTML = `
+                        <div style="font-size:0.8rem;color:#6b7280;margin-bottom:8px">Erweiterter Button-Pool:</div>
+                        <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('half',28,28)}<br><small style="font-size:0.65rem">Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-half',28,28)}<br><small style="font-size:0.65rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('quarter',28,28)}<br><small style="font-size:0.65rem">Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-quarter',28,28)}<br><small style="font-size:0.65rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('eighth',28,28)}<br><small style="font-size:0.65rem">Achtel</small></span>
+                        </div>`;
+                }
+            },
+            'rhy5_16tel': {
+                title: '5c — Mit Sechzehntelnoten',
+                body: `<p>Sechzehntel und punktierte Achtel kommen als mögliche fehlende Werte hinzu.</p>
+                    <div class="lk-visual" id="lkVisualRhy5_16tel"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Sechzehntel = 0,25. Achte auf kleine Unterschiede — die Differenz kann jetzt auch 0,25 sein!</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Pool wächst auf 6 Notenwerte. Exakt rechnen!</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy5_16tel');
+                    if (el) el.innerHTML = `
+                        <div style="font-size:0.8rem;color:#6b7280;margin-bottom:8px">Voller Button-Pool:</div>
+                        <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('half',26,26)}<br><small style="font-size:0.6rem">Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-half',26,26)}<br><small style="font-size:0.6rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('quarter',26,26)}<br><small style="font-size:0.6rem">Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-quarter',26,26)}<br><small style="font-size:0.6rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('eighth',26,26)}<br><small style="font-size:0.6rem">Achtel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-eighth',26,26)}<br><small style="font-size:0.6rem">P. Achtel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('sixteenth',26,26)}<br><small style="font-size:0.6rem">16tel</small></span>
+                        </div>`;
+                }
+            },
+
+            // ========== rhy6: Rhythmusdiktat (Dictation) ==========
+            'rhy6_8tel': {
+                title: '6a — Rhythmusdiktat',
+                body: `<p>Tippe auf den <strong>Audio-Button</strong>, um den Rhythmus zu hören. Ein <strong>Einzähler</strong> gibt dir das Tempo vor. Baue dann den Takt <strong>Note für Note</strong> nach, indem du auf die Noten-Buttons tippst.</p>
+                    <div class="lk-visual" id="lkVisualRhy6Basis"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Höre genau zu und baue den Takt von links nach rechts auf. Der Fortschrittsbalken zeigt, wie voll der Takt ist.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Du kannst den Rhythmus beliebig oft anhören. Nutze Undo, um die letzte Note zu entfernen.</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Wenn der Takt voll ist, tippe „Prüfen".</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy6Basis');
+                    if (el) {
+                        // Staff 1:1 wie RT: 4/4-Takt nach "Prüfen"
+                        // Lösung wäre: Halbe + Viertel + Achtel + Achtel
+                        // User hat eingegeben: Halbe + Viertel + Viertel + ??? (Takt zu voll / letzte Note falsch)
+                        // → Halbe = grün, Viertel = grün, Achtel = grün, letzte Achtel = rot (falsch)
+                        const W = 700, H = 200, staffY = 120;
+                        const blL = 40, blR = 660, gridStart = 145;
+                        const gridSpacing = (blR - gridStart) / 4;
+
+                        const n1X = gridStart;                        // Pos 0: Halbe (GRÜN)
+                        const n2X = gridStart + 2 * gridSpacing;     // Pos 2: Viertel (GRÜN)
+                        const n3X = gridStart + 3 * gridSpacing;     // Pos 3: Achtel (GRÜN)
+                        const n4X = gridStart + 3.5 * gridSpacing;   // Pos 3.5: Achtel (ROT — falsch)
+
+                        const red = '#ef4444', green = '#10b981';
+
+                        const staffSvg = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="max-width:600px;display:block;margin:0 auto">
+                            <!-- Staff-Linie -->
+                            <line x1="${blL}" y1="${staffY}" x2="${blR}" y2="${staffY}" stroke="#000" stroke-width="2"/>
+                            <!-- Taktstriche -->
+                            <line x1="${blL}" y1="${staffY-60}" x2="${blL}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <line x1="${blR}" y1="${staffY-60}" x2="${blR}" y2="${staffY+60}" stroke="#000" stroke-width="4"/>
+                            <!-- Taktart 4/4 -->
+                            <text x="58" y="${staffY-5}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <text x="58" y="${staffY+50}" font-family="'Times New Roman',Georgia,serif" font-weight="bold" font-size="56" fill="#000" text-anchor="middle">4</text>
+                            <!-- Note 1: Halbe — GRÜN (richtig) -->
+                            <ellipse cx="${n1X}" cy="${staffY}" rx="12" ry="8" fill="none" stroke="${green}" stroke-width="2.5" transform="rotate(-20 ${n1X} ${staffY})"/>
+                            <line x1="${n1X+12}" y1="${staffY}" x2="${n1X+12}" y2="${staffY-50}" stroke="${green}" stroke-width="2.5"/>
+                            <!-- Note 2: Viertel — GRÜN (richtig) -->
+                            <ellipse cx="${n2X}" cy="${staffY}" rx="12" ry="8" fill="${green}" transform="rotate(-20 ${n2X} ${staffY})"/>
+                            <line x1="${n2X+12}" y1="${staffY}" x2="${n2X+12}" y2="${staffY-50}" stroke="${green}" stroke-width="2.5"/>
+                            <!-- Note 3: Achtel — GRÜN (richtig, verbalkt mit Note 4) -->
+                            <ellipse cx="${n3X}" cy="${staffY}" rx="12" ry="8" fill="${green}" transform="rotate(-20 ${n3X} ${staffY})"/>
+                            <line x1="${n3X+12}" y1="${staffY}" x2="${n3X+12}" y2="${staffY-50}" stroke="${green}" stroke-width="2.5"/>
+                            <!-- Note 4: Achtel — ROT (falsch, verbalkt mit Note 3) -->
+                            <ellipse cx="${n4X}" cy="${staffY}" rx="12" ry="8" fill="${red}" transform="rotate(-20 ${n4X} ${staffY})"/>
+                            <line x1="${n4X+12}" y1="${staffY}" x2="${n4X+12}" y2="${staffY-50}" stroke="${red}" stroke-width="2.5"/>
+                            <!-- Balken zwischen Achtel 3+4 (gemischt: schwarz) -->
+                            <line x1="${n3X+12}" y1="${staffY-50}" x2="${n4X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
+                        </svg>`;
+
+                        el.innerHTML = `
+                            <div style="margin-bottom:6px">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                                    <span style="display:inline-flex;align-items:center;justify-content:center;opacity:0.5">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                                        </svg>
+                                    </span>
+                                    <span style="font-size:0.85rem;color:#374151">Rhythmus anhören (mit Einzähler)</span>
+                                </div>
+                                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:6px">So könnte ein Ergebnis nach dem Prüfen aussehen:</div>
+                                ${staffSvg}
+                            </div>
+                            <!-- Erklärung Korrektur-Methode -->
+                            <div style="font-size:0.85rem;line-height:1.8;color:#374151;text-align:left;padding:0 4px">
+                                <div style="margin-bottom:4px">
+                                    <span style="color:${green};font-weight:700">■ Grüne Noten</span> = richtig — sie bleiben stehen.</div>
+                                <div style="margin-bottom:4px">
+                                    <span style="color:${red};font-weight:700">■ Rote Noten</span> = falsch — sie werden entfernt.</div>
+                                <div>Du baust <strong>ab der ersten roten Note</strong> weiter. Höre nochmal hin und korrigiere.</div>
+                            </div>
+                            <div style="font-size:0.8rem;color:#6b7280;margin:10px 0 6px">Noten-Buttons:</div>
+                            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:8px">
+                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('half',30,30)}<br><small style="font-size:0.7rem">Halbe</small></span>
+                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('quarter',30,30)}<br><small style="font-size:0.7rem">Viertel</small></span>
+                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('eighth',30,30)}<br><small style="font-size:0.7rem">Achtel</small></span>
+                            </div>
+                            <div style="display:flex;gap:0.5rem;justify-content:center">
+                                <span style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:4px 12px;font-size:0.75rem;color:#dc2626">↩ Undo</span>
+                                <span style="background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:4px 12px;font-size:0.75rem;color:#16a34a">✓ Prüfen</span>
+                            </div>`;
+                    }
+                }
+            },
+            'rhy6_punktierte': {
+                title: '6b — Mit punktierten Noten',
+                body: `<p>Punktierte Noten kommen als neue Bausteine hinzu.</p>
+                    <div class="lk-visual" id="lkVisualRhy6Punkt"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Punkt. Halbe = 3 Schläge, Punkt. Viertel = 1,5 Schläge. Höre auf längere Töne!</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Buttons, die nicht in den Restplatz passen, werden automatisch deaktiviert.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy6Punkt');
+                    if (el) el.innerHTML = `
+                        <div style="font-size:0.8rem;color:#6b7280;margin-bottom:6px">Erweiterter Noten-Pool:</div>
+                        <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('half',28,28)}<br><small style="font-size:0.65rem">Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-half',28,28)}<br><small style="font-size:0.65rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('quarter',28,28)}<br><small style="font-size:0.65rem">Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-quarter',28,28)}<br><small style="font-size:0.65rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('eighth',28,28)}<br><small style="font-size:0.65rem">Achtel</small></span>
+                        </div>`;
+                }
+            },
+            'rhy6_16tel': {
+                title: '6c — Mit Sechzehntelnoten',
+                body: `<p>Sechzehntel und punktierte Achtel erweitern den Pool.</p>
+                    <div class="lk-visual" id="lkVisualRhy6_16tel"></div>
+                    <div class="lk-rule"><strong>Merke:</strong> Sechzehntel = 0,25, Punkt. Achtel = 0,75. Höre auf schnelle Noten!</div>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Größerer Pool — genau hinhören und den Takt Schritt für Schritt aufbauen.</div>`,
+                render() {
+                    const el = document.getElementById('lkVisualRhy6_16tel');
+                    if (el) el.innerHTML = `
+                        <div style="font-size:0.8rem;color:#6b7280;margin-bottom:6px">Voller Noten-Pool:</div>
+                        <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('half',26,26)}<br><small style="font-size:0.6rem">Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-half',26,26)}<br><small style="font-size:0.6rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('quarter',26,26)}<br><small style="font-size:0.6rem">Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-quarter',26,26)}<br><small style="font-size:0.6rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('eighth',26,26)}<br><small style="font-size:0.6rem">Achtel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-eighth',26,26)}<br><small style="font-size:0.6rem">P. Achtel</small></span>
+                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('sixteenth',26,26)}<br><small style="font-size:0.6rem">16tel</small></span>
+                        </div>`;
+                }
+            }
         };
 
         // Initialize app when DOM is loaded
@@ -7731,5 +8748,13 @@ Gerät:
     <footer class="site-footer" style="text-align:center; padding:1.5rem 1rem; color:#94a3b8; font-size:0.75rem; line-height:1.6;">
         <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
     </footer>
+    <!-- Lernkarte Overlay -->
+    <div class="lernkarte-overlay" id="lernkarteOverlay">
+        <div class="lernkarte">
+            <h2 id="lernkarteTitle"></h2>
+            <div id="lernkarteBody"></div>
+            <button onclick="app.dismissLernkarte()">Verstanden, los!</button>
+        </div>
+    </div>
 </body>
 </html>
