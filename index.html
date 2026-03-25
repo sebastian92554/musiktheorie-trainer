@@ -83,48 +83,7 @@
             line-height: 1.5;
         }
 
-        /* ── Ebenen ── */
-        .ebene {
-            margin-bottom: 1rem;
-            position: relative;
-        }
-
-        .ebene-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-            margin-bottom: 0.5rem;
-            padding-left: 0.25rem;
-            font-weight: 600;
-        }
-
-        /* ── Verbindungspfeile ── */
-        .pfeil {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 2rem;
-            margin: 0.5rem 0;
-            line-height: 1;
-        }
-
-        .pfeil-gabel {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            color: #94a3b8;
-            font-size: 1.8rem;
-            margin: 0.5rem 0;
-        }
-
         /* ── Trainer-Karten ── */
-        .trainer-row {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-        }
-
         .trainer-card {
             display: block;
             background: white;
@@ -144,10 +103,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }
 
-        .trainer-card.full-width {
-            max-width: 420px;
-        }
-
         /* Farben pro Trainer */
         .trainer-card.noten { border-left-color: #4f46e5; }
         .trainer-card.noten .trainer-icon { background: #eef2ff; color: #4f46e5; }
@@ -160,9 +115,6 @@
 
         .trainer-card.dreiklang { border-left-color: #10b981; }
         .trainer-card.dreiklang .trainer-icon { background: #ecfdf5; color: #10b981; }
-
-        .trainer-card.umkehrung { border-left-color: #059669; }
-        .trainer-card.umkehrung .trainer-icon { background: #ecfdf5; color: #059669; }
 
         .trainer-card.rhythmus { border-left-color: #8b5cf6; }
         .trainer-card.rhythmus .trainer-icon { background: #f5f3ff; color: #8b5cf6; }
@@ -196,33 +148,97 @@
             line-height: 1.45;
         }
 
-        .trainer-stufen {
+        /* ── Lernpfad-Tree ── */
+        .lp-bereich-labels {
             display: flex;
-            gap: 0.3rem;
-            margin-top: 0.6rem;
+            gap: 0.75rem;
+            justify-content: center;
+            max-width: calc(840px + 0.75rem);
+            margin: 0 auto 0.5rem;
         }
 
-        .stufe {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.45rem;
-            border-radius: 1rem;
-            background: #f1f5f9;
-            color: #64748b;
-        }
-
-        /* ── Bereiche ── */
-        .bereich {
-            margin-bottom: 2rem;
-        }
-
-        .bereich-label {
+        .lp-bereich-label {
+            flex: 1;
+            max-width: 420px;
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: #94a3b8;
             font-weight: 700;
-            margin-bottom: 0.75rem;
             padding-left: 0.25rem;
+        }
+
+        .lp-fundament {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        /* L-förmiger Connector: NT → IT (durchgehender SVG-Pfad) */
+        .lp-connector-svg {
+            display: block;
+            max-width: calc(840px + 0.75rem);
+            margin: 0 auto;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        /* IT zentriert */
+        .lp-mitte {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Fork-Stem: vertikale Linie unter IT */
+        .lp-fork-stem {
+            display: flex;
+            justify-content: center;
+            height: 14px;
+        }
+
+        .lp-fork-stem::before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background: #94a3b8;
+        }
+
+        /* Fork-Bracket: geschwungene Gabelung */
+        .lp-fork-bracket {
+            width: calc(50% + 0.375rem + 2px);
+            margin: 0 auto;
+            height: 22px;
+            border: 2px solid #94a3b8;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        /* Fork-Branches: TT + DT nebeneinander */
+        .lp-fork-branches {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        /* Kleine Connector-Stubs über den Fork-Branch-Karten */
+        .lp-branch-stub {
+            display: flex;
+            justify-content: center;
+            height: 10px;
+        }
+
+        .lp-branch-stub::before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background: #94a3b8;
+        }
+
+        .lp-branch-col {
+            flex: 1;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
         }
 
         /* ── Info-Bereich ── */
@@ -234,10 +250,11 @@
         }
 
         .info-box {
-            background: white;
+            background: #f1f5f9;
             border-radius: 0.75rem;
             padding: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            box-shadow: none;
         }
 
         .info-box h3 {
@@ -284,16 +301,53 @@
                 padding: 1rem;
             }
 
-            .trainer-row {
+            .lp-fundament {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .lp-fundament .trainer-card {
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .lp-bereich-labels {
                 flex-direction: column;
             }
 
-            .trainer-card {
+            /* L-Connector SVG wird via JS auf Mobile zur vertikalen Linie */
+
+            .lp-mitte .trainer-card {
                 max-width: 100%;
+                width: 100%;
             }
 
-            .trainer-card.full-width {
+            .lp-fork-bracket {
+                display: none;
+            }
+
+            .lp-fork-branches {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .lp-branch-col {
                 max-width: 100%;
+                width: 100%;
+            }
+
+            .lp-branch-stub {
+                display: none;
+            }
+
+            /* Einfache vertikale Connectors auf Mobile */
+            .lp-fork-stem + .lp-fork-bracket + .lp-fork-branches .lp-branch-col + .lp-branch-col::before {
+                content: '';
+                display: block;
+                width: 2px;
+                height: 12px;
+                background: #94a3b8;
+                margin: 0 auto;
             }
 
             .info-section {
@@ -306,7 +360,7 @@
 
     <header class="site-header">
         <h1>Musiktheorie-Trainer</h1>
-        <p>Interaktive Übungen für den Musikunterricht – strukturiert aufgebaut vom Notenlesen bis zum Dreiklang</p>
+        <p>Interaktive Übungen für den Musikunterricht – Melodik und Rhythmik strukturiert aufgebaut</p>
     </header>
 
     <main class="container">
@@ -314,85 +368,84 @@
         <section class="kompetenzbaum">
             <h2>Lernpfad</h2>
             <p class="kompetenzbaum-info">
-                Musiktheorie baut aufeinander auf. Wer Dreiklänge bestimmen will, muss erst Intervalle verstehen – und dafür braucht man sicheres Notenlesen. Starte beim Fundament und arbeite dich nach oben.
+                Musiktheorie hat zwei Säulen: Melodik und Rhythmik. Der melodische Pfad baut aufeinander auf – wer Dreiklänge bestimmen will, muss erst Intervalle verstehen, und dafür braucht man sicheres Notenlesen. Der Rhythmustrainer steht für sich und kann jederzeit parallel bearbeitet werden.
             </p>
 
-            <!-- Rhythmik -->
-            <div class="bereich">
-                <div class="bereich-label">Rhythmik</div>
-                <div class="trainer-row">
-                    <a href="rhythmustrainer.html" class="trainer-card rhythmus full-width">
+            <!-- Bereich-Labels -->
+            <div class="lp-bereich-labels">
+                <div class="lp-bereich-label">Melodik</div>
+                <div class="lp-bereich-label">Rhythmik</div>
+            </div>
+
+            <!-- Fundament: NT + RT nebeneinander -->
+            <div class="lp-fundament">
+                <a href="notentrainer.html" class="trainer-card noten">
+                    <div class="trainer-top">
+                        <div class="trainer-icon">♪</div>
+                        <div class="trainer-name">Notentrainer</div>
+                    </div>
+                    <div class="trainer-desc">Noten im Violin- und Bassschlüssel lesen, Position der Töne auf der Tastatur lernen – und im Building-Modus selbst in das Notensystem setzen. Stammtöne, Vorzeichen, Lagen und Hilfslinien.</div>
+                </a>
+                <a href="rhythmustrainer.html" class="trainer-card rhythmus">
+                    <div class="trainer-top">
+                        <div class="trainer-icon">🥁</div>
+                        <div class="trainer-name">Rhythmustrainer</div>
+                    </div>
+                    <div class="trainer-desc">Notenwerte erkennen, Taktarten bestimmen, Rhythmusdiktat lösen – und im Building-Modus unvollständige Takte ergänzen.</div>
+                </a>
+            </div>
+
+            <!-- L-förmiger Connector: NT → IT -->
+            <!-- L-förmiger Connector: NT → IT (durchgehender SVG-Pfad) -->
+            <svg class="lp-connector-svg" width="100%" height="56" aria-hidden="true">
+                <path fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+
+            <!-- IT zentriert -->
+            <div class="lp-mitte">
+                <a href="intervalltrainer.html" class="trainer-card intervall">
+                    <div class="trainer-top">
+                        <div class="trainer-icon">↕</div>
+                        <div class="trainer-name">Intervalltrainer</div>
+                    </div>
+                    <div class="trainer-desc">Intervalle benennen, Halbtonschritte zählen, Feinbestimmung üben – und im Building-Modus mittels Tastatur und Notensystem eingeben.</div>
+                </a>
+            </div>
+
+            <!-- Fork: IT → TT + DT -->
+            <div class="lp-fork-stem"></div>
+            <div class="lp-fork-bracket"></div>
+
+            <div class="lp-fork-branches">
+                <div class="lp-branch-col">
+                    <div class="lp-branch-stub tonleiter"></div>
+                    <a href="tonleitertrainer.html" class="trainer-card tonleiter">
                         <div class="trainer-top">
-                            <div class="trainer-icon">🥁</div>
-                            <div class="trainer-name">Rhythmustrainer</div>
+                            <div class="trainer-icon">🎵</div>
+                            <div class="trainer-name">Tonleitertrainer</div>
                         </div>
-                        <div class="trainer-desc">Notenwerte, Taktarten, Zählzeiten und Rhythmussprache verstehen und anwenden.</div>
+                        <div class="trainer-desc">Dur- und Moll-Tonleitern erkennen, Ganz- und Halbtonschritte unterscheiden, Tonleitern bauen und den Quintenzirkel meistern.</div>
+                    </a>
+                </div>
+                <div class="lp-branch-col">
+                    <div class="lp-branch-stub dreiklang"></div>
+                    <a href="dreiklangstrainer.html" class="trainer-card dreiklang">
+                        <div class="trainer-top">
+                            <div class="trainer-icon">♬</div>
+                            <div class="trainer-name">Dreiklangstrainer</div>
+                        </div>
+                        <div class="trainer-desc">Dreiklangstypen bestimmen, Umkehrungen erkennen – und im Building-Modus Akkorde mittels Tastatur und Notensystem eingeben.</div>
                     </a>
                 </div>
             </div>
 
-            <!-- Melodik -->
-            <div class="bereich">
-                <div class="bereich-label">Melodik</div>
-
-                <div class="ebene">
-                    <div class="trainer-row">
-                        <a href="notentrainer.html" class="trainer-card noten full-width">
-                            <div class="trainer-top">
-                                <div class="trainer-icon">♪</div>
-                                <div class="trainer-name">Notentrainer</div>
-                            </div>
-                            <div class="trainer-desc">Noten im Violin- und Bassschlüssel lesen und auf der Tastatur finden. Die Grundlage für alles Weitere.</div>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="pfeil">↓</div>
-
-                <div class="ebene">
-                    <div class="trainer-row">
-                        <a href="intervalltrainer.html" class="trainer-card intervall full-width">
-                            <div class="trainer-top">
-                                <div class="trainer-icon">↕</div>
-                                <div class="trainer-name">Intervalltrainer</div>
-                            </div>
-                            <div class="trainer-desc">Intervalle benennen, auf der Tastatur finden, Halbtonschritte zählen und Feinbestimmung üben.</div>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="pfeil-gabel">
-                    <span>↙</span>
-                    <span>↘</span>
-                </div>
-
-                <div class="ebene">
-                    <div class="trainer-row">
-                        <a href="tonleitertrainer.html" class="trainer-card tonleiter">
-                            <div class="trainer-top">
-                                <div class="trainer-icon">🎵</div>
-                                <div class="trainer-name">Tonleitertrainer</div>
-                            </div>
-                            <div class="trainer-desc">Ganzton- und Halbtonschritte unterscheiden, Dur- und Moll-Tonleitern erkennen und benennen.</div>
-                        </a>
-                        <a href="dreiklangstrainer.html" class="trainer-card dreiklang">
-                            <div class="trainer-top">
-                                <div class="trainer-icon">♬</div>
-                                <div class="trainer-name">Dreiklangstrainer</div>
-                            </div>
-                            <div class="trainer-desc">Akkordtöne finden, Halbtonschritte zählen, Dreiklangstypen bestimmen und Umkehrungen erkennen.</div>
-                        </a>
-                    </div>
-                </div>
-
-            </div>
         </section>
 
         <!-- Info-Bereich -->
         <section class="info-section">
             <div class="info-box">
                 <h3>Schritt für Schritt</h3>
-                <p>Jeder Trainer führt von einfachen zu komplexen Aufgaben. Ideal als Ergänzung zum Musikunterricht – starte beim Notentrainer und arbeite dich durch den Lernpfad.</p>
+                <p>Jeder Trainer führt von einfachen zu komplexen Aufgaben. Lernkarten erklären die Konzepte Schritt für Schritt und sind jederzeit als Nachschlagewerk zugänglich – Übungen unter Anleitung und mit Rückmeldung.</p>
             </div>
             <div class="info-box">
                 <h3>Sofort loslegen</h3>
@@ -408,6 +461,37 @@
     </footer>
 
     <script>
+        // L-Connector SVG-Pfad: durchgehende Linie NT → IT
+        function updateLpConnector() {
+            const svg = document.querySelector('.lp-connector-svg');
+            if (!svg) return;
+            const path = svg.querySelector('path');
+            const w = svg.clientWidth;
+            const h = 56;
+            const r = 10;
+
+            if (w < 500) {
+                const cx = w * 0.5;
+                path.setAttribute('d', `M ${cx} 0 V ${h}`);
+                return;
+            }
+
+            const x1 = w * 0.25 - 3;
+            const x2 = w * 0.5;
+            const yBend = 24;
+
+            path.setAttribute('d',
+                `M ${x1} 0` +
+                ` V ${yBend - r}` +
+                ` Q ${x1} ${yBend} ${x1 + r} ${yBend}` +
+                ` H ${x2 - r}` +
+                ` Q ${x2} ${yBend} ${x2} ${yBend + r}` +
+                ` V ${h}`
+            );
+        }
+        updateLpConnector();
+        window.addEventListener('resize', updateLpConnector);
+
         // Landing Page Tracking
         document.querySelectorAll('.trainer-card').forEach(card => {
             card.addEventListener('click', function() {
