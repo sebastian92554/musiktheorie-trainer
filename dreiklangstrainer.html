@@ -1468,6 +1468,116 @@
                 padding: 0.75rem;
             }
         }
+        /* ============================================================
+           Lernkarten-System (analog IT, Farbschema DT-grün)
+           ============================================================ */
+        .lernkarte-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 250;
+            justify-content: center;
+            align-items: center;
+        }
+        .lernkarte-overlay.active { display: flex; }
+        .lernkarte {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 520px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .lernkarte h2 {
+            font-size: 1.25rem;
+            color: #065f46;
+            margin-bottom: 12px;
+        }
+        .lernkarte p {
+            color: #374151;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+        .lk-visual {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .lk-visual svg { max-width: 100%; }
+        .lk-rule {
+            background: #ecfdf5;
+            border-left: 3px solid #10b981;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #065f46;
+        }
+        .lk-tip {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #1e40af;
+        }
+        .lk-task {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #92400e;
+        }
+        .lk-contrast {
+            display: flex;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .lk-contrast > div {
+            flex: 1;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .lk-contrast .lk-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #065f46;
+        }
+        .lernkarte button {
+            width: 100%;
+            padding: 14px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 14px;
+        }
+        .lernkarte button:hover { background: #059669; }
+        .vz-sharp, .vz-flat {
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            top: -3px;
+            line-height: 0;
+        }
+        .vz-sharp svg, .vz-flat svg { display: block; }
     </style>
 </head>
 <body>
@@ -1690,6 +1800,15 @@
                 <button onclick="app.showFeedback()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
                     Feedback geben
                 </button>
+            </div>
+        </div>
+
+        <!-- Lernkarte Overlay -->
+        <div class="lernkarte-overlay" id="lernkarteOverlay">
+            <div class="lernkarte">
+                <h2 id="lernkarteTitle"></h2>
+                <div id="lernkarteBody"></div>
+                <button onclick="app.dismissLernkarte()">Verstanden, los!</button>
             </div>
         </div>
 
@@ -2583,7 +2702,11 @@
                 // Doppeltes rAF: erst Layout berechnen (Grid-Wechsel), dann Keyboard rendern
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        app.generateChord();
+                        // Lernkarte anzeigen — danach startet dismissLernkarte() die erste Aufgabe
+                        const currentSub = this.currentOptions[this.currentOptions.length - 1];
+                        if (currentSub && app.showLernkarte(currentSub, true)) return;
+                        // Fallback: direkt Aufgabe starten
+                        app.buildingMode ? app.generateBuildingTask() : app.generateChord();
                     });
                 });
             },
@@ -2962,6 +3085,668 @@
                 }
             }
         };
+
+// ============================================================
+// SVG Glyph Helpers (1:1 aus NT portiert)
+// ============================================================
+const _sharpPathD = "m 2121,2729 c 8,-11 18,-21 31,-27 l 549,-267 V 1259 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 V 2289 L 4018,1794 V 460 c 0,-9 3,-17 7,-25 5,-8 11,-14 18,-18 8,-5 17,-7 25,-7 h 199 c 9,0 18,2 25,7 8,4 14,10 19,18 4,8 6,16 6,25 v 1188 l 409,-199 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -613,297 v 1483 l 439,-214 c 12,-6 26,-8 40,-8 13,1 26,6 38,14 11,7 20,18 26,30 h -1 l 137,280 c 6,12 9,26 8,40 -1,13 -6,26 -13,38 -8,11 -18,20 -31,26 l -643,313 v 1193 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4314 l -1018,495 v 1351 c 0,9 -2,17 -6,25 -5,8 -11,14 -19,18 -7,5 -16,7 -25,7 h -199 c -8,0 -17,-2 -25,-7 -7,-4 -13,-10 -18,-18 -4,-8 -7,-16 -7,-25 V 4955 l -315,153 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 8,-11 18,-21 31,-27 l 519,-252 V 2954 l -345,168 c -12,6 -26,9 -39,8 -14,-1 -27,-6 -38,-13 -12,-8 -21,-18 -27,-31 l -136,-280 c -6,-12 -9,-25 -8,-39 1,-14 6,-27 13,-38 z m 879,79 V 4290 L 4018,3795 V 2313 Z";
+const _flatPathD = "m 2834,4387 12,1609 c 136,-127 138,-160 268,-274 131,-149 218,-224 368,-400 150,-176 263,-369 317,-551 54,-182 34,-244 2,-374 -32,-130 -98,-228 -191,-283 -94,-55 -212,-65 -342,-31 -124,43 -168,60 -300,175 -58,58 -67,69 -134,129 z M 2510,522 c 128,-5 187,5 315,-5 5,138 3,3533 0,3534 222,-152 199,-154 421,-238 221,-84 439,-117 632,-93 192,23 352,101 464,226 112,125 244,306 245,499 1,193 -98,437 -237,600 -190,222 -414,397 -673,577 -255,177 -493,359 -683,529 -184,150 -272,234 -479,416 -5,-168 -15,-355 -14,-487 z";
+const _SHARP_REF = { cx: 3545.5, cy: 3549, h: 5937 };
+const _FLAT_REF  = { cx: 3544.5, cy: 5192, h: 6053 };
+
+function _svgSharp(x, y, color, targetH = 11) {
+    const s = targetH / _SHARP_REF.h;
+    return `<g transform="translate(${x},${y}) scale(${s}) translate(${-_SHARP_REF.cx},${-_SHARP_REF.cy})"><path d="${_sharpPathD}" fill="${color}" stroke="none"/></g>`;
+}
+function _svgFlat(x, y, color, targetH = 11) {
+    const s = targetH / _FLAT_REF.h;
+    return `<g transform="translate(${x},${y}) scale(${s}) translate(${-_FLAT_REF.cx},${-_FLAT_REF.cy})"><path d="${_flatPathD}" fill="${color}" stroke="none"/></g>`;
+}
+function _inlineVz(pathD, ref, w, h) {
+    const s = h / ref.h;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${Math.round(ref.cx*2*s)} ${Math.round(ref.h*s)}" style="vertical-align:middle"><g transform="scale(${s})"><path d="${pathD}" fill="currentColor" stroke="none"/></g></svg>`;
+}
+
+// ============================================================
+// renderLernkarteTastatur (1:1 aus NT portiert)
+// ============================================================
+function renderLernkarteTastatur(options = {}) {
+    const {
+        numOctaves = 1,
+        highlightKeys = [], arrows = [], topArrows = [], onKeyArrows = [],
+        keyStepArrows = [],
+        showBlackLabels = false, showHalftoneArrows = false, title = ''
+    } = options;
+    const allWhite = ['C','D','E','F','G','A','H'];
+    const blackMap = { 'C': 'Cis', 'D': 'Dis', 'F': 'Fis', 'G': 'Gis', 'A': 'Ais' };
+    const blackLabels = { 'Cis': ['Cis','Des'], 'Dis': ['Dis','Es'], 'Fis': ['Fis','Ges'], 'Gis': ['Gis','As'], 'Ais': ['Ais','B'] };
+    const whiteKeys = [];
+    for (let oct = 1; oct <= numOctaves; oct++) {
+        const suffix = oct === 1 ? '' : String(oct);
+        allWhite.forEach(k => whiteKeys.push({ name: k, id: k + suffix, label: k }));
+    }
+    const numWhite = whiteKeys.length;
+    const ww = numOctaves > 1 ? 24 : 32, wh = numOctaves > 1 ? 64 : 80;
+    const bw = numOctaves > 1 ? 15 : 20, bh = numOctaves > 1 ? 40 : 50;
+    const pad = 6;
+    const totalW = numWhite * ww + pad * 2;
+    const hasLabels = highlightKeys.some(h => h.label);
+    const labelSpace = hasLabels ? 16 : 0;
+    const arrowSpace = arrows.length > 0 ? 30 : 0;
+    const titleSpace = title ? 18 : 0;
+    const topArrowSpace = topArrows.length > 0 ? 32 : 0;
+    const totalH = topArrowSpace + wh + pad * 2 + labelSpace + arrowSpace + titleSpace;
+    const keyPositions = {};
+    whiteKeys.forEach((wk, i) => {
+        keyPositions[wk.id] = pad + i * ww + ww / 2;
+        if (blackMap[wk.name] && i < numWhite - 1) {
+            const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+            keyPositions[blackMap[wk.name] + suffix] = pad + i * ww + ww;
+        }
+    });
+    let svg = `<svg width="100%" viewBox="0 0 ${totalW} ${totalH}" preserveAspectRatio="xMidYMid meet">`;
+    if (title) svg += `<text x="${totalW/2}" y="14" text-anchor="middle" font-size="11" fill="#6b7280" font-weight="600">${title}</text>`;
+    const ky = titleSpace + topArrowSpace;
+    whiteKeys.forEach((wk, i) => {
+        const x = pad + i * ww;
+        const hl = highlightKeys.find(h => h.key === wk.id);
+        const fill = hl ? (hl.color || '#c7d2fe') : '#fff';
+        svg += `<rect x="${x}" y="${ky + pad}" width="${ww - 1}" height="${wh}" rx="3" fill="${fill}" stroke="#333" stroke-width="1.5"/>`;
+        svg += `<text x="${x + ww/2}" y="${ky + pad + wh - 8}" text-anchor="middle" font-size="${hl ? '13' : '11'}" fill="${hl ? '#000' : '#aaa'}" font-weight="${hl ? '800' : '500'}">${wk.label}</text>`;
+        if (hl && hl.label) svg += `<text x="${x + 2}" y="${ky + pad + wh + labelSpace - 3}" text-anchor="start" font-size="9" fill="#065f46" font-weight="700">${hl.label}</text>`;
+    });
+    whiteKeys.forEach((wk, i) => {
+        if (blackMap[wk.name] && i < numWhite - 1) {
+            const bx = pad + i * ww + ww - bw / 2;
+            const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
+            const bkId = blackMap[wk.name] + suffix;
+            const hl = highlightKeys.find(h => h.key === bkId);
+            svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${hl ? (hl.color || '#c7d2fe') : '#222'}" stroke="#000" stroke-width="1"/>`;
+            if (showBlackLabels) {
+                const lblArr = blackLabels[blackMap[wk.name]];
+                if (lblArr) {
+                    if (hl) {
+                        const hlName = hl.displayName || (lblArr.includes(hl.key) ? hl.key : lblArr[1]);
+                        svg += `<text x="${bx + bw/2}" y="${ky + pad + 16}" text-anchor="middle" font-size="10" fill="#000" font-weight="800">${hlName}</text>`;
+                    } else {
+                        svg += `<text x="${bx + bw/2}" y="${ky + pad + 12}" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">${lblArr[0]}</text>`;
+                        svg += `<text x="${bx + bw/2}" y="${ky + pad + 20}" text-anchor="middle" font-size="6" fill="#ddd" font-weight="400">${lblArr[1]}</text>`;
+                    }
+                }
+            }
+            if (hl && hl.label) svg += `<text x="${bx + bw/2}" y="${ky + pad + 18}" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">${hl.label}</text>`;
+        }
+    });
+    // onKeyArrows
+    const _bks = new Set();
+    whiteKeys.forEach(wk => { if (blackMap[wk.name]) { const s = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : ''; _bks.add(blackMap[wk.name] + s); } });
+    onKeyArrows.forEach(a => {
+        const fromX = keyPositions[a.from]; if (fromX === undefined) return;
+        const color = a.color || '#4f46e5', startY = ky + pad + wh - 22;
+        const toX = keyPositions[a.to]; let endX, endY;
+        if (toX !== undefined) { endX = toX; endY = _bks.has(a.to) ? ky + pad + bh * 0.5 : ky + pad + wh * 0.5; }
+        else { endX = fromX + 20; endY = startY - 30; }
+        const dx = endX - fromX, dy = endY - startY, len = Math.sqrt(dx*dx + dy*dy);
+        const ux = dx/len, uy = dy/len, tL = 8, tW = 5, px = -uy * tW, py = ux * tW;
+        svg += `<line x1="${fromX}" y1="${startY}" x2="${endX - ux*tL}" y2="${endY - uy*tL}" stroke="${color}" stroke-width="2"/>`;
+        svg += `<polygon points="${endX},${endY} ${endX-ux*tL+px},${endY-uy*tL+py} ${endX-ux*tL-px},${endY-uy*tL-py}" fill="${color}"/>`;
+        if (a.label) {
+            const mx = (fromX + endX) / 2, my = (startY + endY) / 2, oX = endX > fromX ? 10 : -10;
+            if (a.label === '\u266F') svg += _svgSharp(mx + oX, my, color, 11);
+            else if (a.label === '\u266D') svg += _svgFlat(mx + oX + 4, my + 5, color, 11);
+            else svg += `<text x="${mx + oX}" y="${my}" text-anchor="middle" font-size="12" fill="${color}" font-weight="700">${a.label}</text>`;
+        }
+    });
+    // arrows below keyboard
+    if (arrows.length > 0) {
+        const arrowY = ky + pad + wh + labelSpace + 10;
+        arrows.forEach(a => {
+            const fromX = keyPositions[a.from], toX = keyPositions[a.to];
+            if (fromX === undefined || toX === undefined) return;
+            const color = a.color || '#4f46e5', dir = toX > fromX ? 1 : -1;
+            svg += `<line x1="${fromX}" y1="${arrowY}" x2="${toX}" y2="${arrowY}" stroke="${color}" stroke-width="2"/>`;
+            svg += `<polygon points="${toX},${arrowY} ${toX - dir*6},${arrowY-4} ${toX - dir*6},${arrowY+4}" fill="${color}"/>`;
+            svg += `<circle cx="${fromX}" cy="${arrowY}" r="3" fill="${color}"/>`;
+            if (a.label) svg += `<text x="${(fromX + toX) / 2}" y="${arrowY + 14}" text-anchor="middle" font-size="10" fill="${color}" font-weight="600">${a.label}</text>`;
+        });
+    }
+    // topArrows
+    topArrows.forEach(a => {
+        const fromX = keyPositions[a.from], toX = keyPositions[a.to];
+        if (fromX === undefined || toX === undefined) return;
+        const color = a.color || '#4f46e5', midX = (fromX + toX) / 2, dist = Math.abs(toX - fromX);
+        const bowTop = ky - 8, bowH = Math.min(dist * 0.8, 20), dir = toX > fromX ? 1 : -1;
+        svg += `<path d="M${fromX},${bowTop} Q${midX},${bowTop - bowH} ${toX},${bowTop}" fill="none" stroke="${color}" stroke-width="2"/>`;
+        svg += `<polygon points="${toX},${bowTop} ${toX - dir*5},${bowTop-4} ${toX - dir*5},${bowTop+4}" fill="${color}"/>`;
+        svg += `<circle cx="${fromX}" cy="${bowTop}" r="2.5" fill="${color}"/>`;
+        if (a.label) svg += `<text x="${midX}" y="${bowTop - bowH - 3}" text-anchor="middle" font-size="9" fill="${color}" font-weight="600">${a.label}</text>`;
+    });
+    svg += '</svg>';
+    return svg;
+}
+
+// ============================================================
+// renderLernkarteDreiklang — Mini-Staff mit 3 Noten
+// ============================================================
+const notePositions = {
+    'C-eingestrichen-treble': -2, 'D-eingestrichen-treble': -1, 'E-eingestrichen-treble': 0,
+    'F-eingestrichen-treble': 1, 'G-eingestrichen-treble': 2, 'A-eingestrichen-treble': 3,
+    'H-eingestrichen-treble': 4, 'C-zweigestrichen-treble': 5, 'D-zweigestrichen-treble': 6,
+    'E-zweigestrichen-treble': 7, 'F-zweigestrichen-treble': 8, 'G-zweigestrichen-treble': 9,
+    'A-zweigestrichen-treble': 10, 'H-zweigestrichen-treble': 11, 'C-dreigestrichen-treble': 12,
+    'C-klein-treble': -9, 'D-klein-treble': -8, 'E-klein-treble': -7,
+    'F-klein-treble': -6, 'G-klein-treble': -5, 'A-klein-treble': -4, 'H-klein-treble': -3
+};
+const chromaticNotes = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','Ais','H'];
+function noteToChromIndex(name) {
+    return {'C':0,'Cis':1,'D':2,'Dis':3,'E':4,'F':5,'Fis':6,'G':7,'Gis':8,'A':9,'Ais':10,'H':11,'Des':1,'Es':3,'Ges':6,'As':8,'B':10}[name];
+}
+function getTriadNotes(type, rootName, rootOctave, inversion) {
+    const ct = {dur:{i1:4,i2:3},moll:{i1:3,i2:4},uebermassig:{i1:4,i2:4},vermindert:{i1:3,i2:3}}[type];
+    const octaves = ['klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+    let idx = noteToChromIndex(rootName), oi = octaves.indexOf(rootOctave);
+    const notes = [{ name: chromaticNotes[idx], octave: octaves[oi] }];
+    idx += ct.i1; if (idx >= 12) { idx -= 12; oi++; }
+    notes.push({ name: chromaticNotes[idx], octave: octaves[oi] });
+    idx += ct.i2; if (idx >= 12) { idx -= 12; oi++; }
+    notes.push({ name: chromaticNotes[idx], octave: octaves[oi] });
+    for (let inv = 0; inv < (inversion || 0); inv++) {
+        const m = notes.shift(); m.octave = octaves[octaves.indexOf(m.octave) + 1]; notes.push(m);
+    }
+    return notes;
+}
+function renderLernkarteDreiklang(type, rootName, rootOctave, width, height, inversion, label) {
+    width = width || 130; height = height || 120; inversion = inversion || 0;
+    const notes = getTriadNotes(type, rootName, rootOctave, inversion);
+    const positions = notes.map(n => { const k = `${n.name}-${n.octave}-treble`; return notePositions[k] !== undefined ? notePositions[k] : 0; });
+    const baseY = 100, ls = 10, ys = positions.map(p => baseY - p * ls);
+    const staffLines = [baseY, baseY-20, baseY-40, baseY-60, baseY-80];
+    const minY = Math.min(...ys, staffLines[4]) - 15, maxY = Math.max(...ys, staffLines[0]) + 15;
+    const svgH = maxY - minY + 10, labelH = label ? 18 : 0;
+    let svg = `<svg width="${width}" viewBox="0 ${minY - 5} ${width} ${svgH + labelH}" style="display:block;margin:0 auto;">`;
+    staffLines.forEach(ly => { svg += `<line x1="35" y1="${ly}" x2="${width-10}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`; });
+    svg += `<g transform="translate(37, ${baseY - 82}) scale(0.09)"><g transform="matrix(.21599 0 0 .21546 -250.44 -1202.6)"><path d="m2002 7851c-61 17-116 55-167 113-51 59-76 124-76 194 0 44 15 94 44 147 29 54 73 93 130 118 19 4 28 14 28 28 0 5-7 10-24 14-91-23-166-72-224-145-58-74-88-158-90-254 3-103 34-199 93-287 60-89 137-152 231-189l-69-355c-154 128-279 261-376 401-97 139-147 290-151 453 2 73 17 144 45 212 28 69 70 131 126 188 113 113 260 172 439 178 61-4 126-15 196-33l-155-783zm72-10l156 769c154-62 231-197 231-403-9-69-29-131-63-186-33-56-77-100-133-132s-119-48-191-48zm-205-1040c33-20 71-55 112-104 41-48 81-105 119-169 39-65 70-131 93-198 23-66 34-129 34-187 0-25-2-50-7-72-4-36-15-64-34-83-19-18-43-28-73-28-60 0-114 37-162 111-37 64-68 140-90 226-23 87-36 173-38 260 5 99 21 180 46 244zm-63 58c-45-162-70-327-75-495 1-108 12-209 33-303 20-94 49-175 87-245 37-70 80-123 128-159 43-32 74-49 91-49 13 0 24 5 34 14s23 24 39 44c119 169 179 373 179 611 0 113-15 223-45 333-29 109-72 213-129 310-58 98-126 183-205 256l81 394c44-5 74-9 91-9 76 0 144 16 207 48s117 75 161 130c44 54 78 116 102 186 23 70 36 143 36 219 0 118-31 226-93 323s-155 168-280 214c8 49 22 120 43 211 20 92 35 165 45 219s14 106 14 157c0 79-19 149-57 211-39 62-91 110-157 144-65 34-137 51-215 51-110 0-206-31-288-92-82-62-126-145-130-251 3-47 14-91 34-133s47-76 82-102c34-27 75-41 122-44 39 0 76 11 111 32 34 22 62 51 83 88 20 37 31 78 31 122 0 59-20 109-60 150s-91 62-152 62h-23c39 60 103 91 192 91 45 0 91-10 137-28 47-19 86-44 119-76s55-66 64-102c17-41 25-98 25-169 0-48-5-96-14-144-9-47-23-110-42-188-19-77-33-137-41-178-60 15-122 23-187 23-109 0-212-22-309-67s-182-107-256-187c-73-80-130-170-171-272-40-101-61-207-62-317 4-102 23-200 59-292 36-93 82-181 139-263s116-157 177-224c62-66 143-151 245-254z" fill="#000" stroke="#000" stroke-width="53"/></g></g>`;
+    const noteX = 85;
+    ys.forEach(y => {
+        if (y >= baseY + 20) for (let ly = baseY + 20; ly <= y; ly += 20) svg += `<line x1="${noteX-15}" y1="${ly}" x2="${noteX+15}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+        if (y <= baseY - 100) for (let ly = baseY - 100; ly >= y; ly -= 20) svg += `<line x1="${noteX-15}" y1="${ly}" x2="${noteX+15}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+    });
+    const is12Sec = Math.abs(positions[1] - positions[0]) === 1, is23Sec = Math.abs(positions[2] - positions[1]) === 1;
+    notes.forEach((n, i) => {
+        let cx = noteX;
+        if (i === 1 && is12Sec) cx += 14;
+        if (i === 2 && is23Sec) cx += 14;
+        svg += `<ellipse cx="${cx}" cy="${ys[i]}" rx="8" ry="6" fill="#000" transform="rotate(-20 ${cx} ${ys[i]})"/>`;
+    });
+    if (label) svg += `<text x="${width/2}" y="${maxY + labelH - 2}" text-anchor="middle" font-size="10" fill="#065f46" font-weight="600">${label}</text>`;
+    svg += '</svg>';
+    return svg;
+}
+
+// ============================================================
+// Audio-Hilfsfunktion: Dreiklang abspielen
+// ============================================================
+function playTriad(midiNotes) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    const midiToFreq = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+    const playNote = (freq, time) => {
+        const harmonics = [1, 2, 3, 4, 5, 6];
+        const amplitudes = [0.35, 0.15, 0.08, 0.04, 0.02, 0.01];
+        harmonics.forEach((h, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq * h;
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(amplitudes[i], time + 0.01);
+            gain.gain.exponentialRampToValueAtTime(amplitudes[i] * 0.3, time + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 1.0);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(time); osc.stop(time + 1.0);
+        });
+    };
+    midiNotes.forEach(midi => playNote(midiToFreq(midi), now));
+    setTimeout(() => ctx.close(), 1500);
+}
+
+// ============================================================
+// Lernkarten-Inhalte (15 Karten)
+// ============================================================
+// Staff-SVG mit Trainer-Proportionen (global, wiederverwendbar)
+// ============================================================
+const _clefPath = 'm2002 7851c-61 17-116 55-167 113-51 59-76 124-76 194 0 44 15 94 44 147 29 54 73 93 130 118 19 4 28 14 28 28 0 5-7 10-24 14-91-23-166-72-224-145-58-74-88-158-90-254 3-103 34-199 93-287 60-89 137-152 231-189l-69-355c-154 128-279 261-376 401-97 139-147 290-151 453 2 73 17 144 45 212 28 69 70 131 126 188 113 113 260 172 439 178 61-4 126-15 196-33l-155-783zm72-10l156 769c154-62 231-197 231-403-9-69-29-131-63-186-33-56-77-100-133-132s-119-48-191-48zm-205-1040c33-20 71-55 112-104 41-48 81-105 119-169 39-65 70-131 93-198 23-66 34-129 34-187 0-25-2-50-7-72-4-36-15-64-34-83-19-18-43-28-73-28-60 0-114 37-162 111-37 64-68 140-90 226-23 87-36 173-38 260 5 99 21 180 46 244zm-63 58c-45-162-70-327-75-495 1-108 12-209 33-303 20-94 49-175 87-245 37-70 80-123 128-159 43-32 74-49 91-49 13 0 24 5 34 14s23 24 39 44c119 169 179 373 179 611 0 113-15 223-45 333-29 109-72 213-129 310-58 98-126 183-205 256l81 394c44-5 74-9 91-9 76 0 144 16 207 48s117 75 161 130c44 54 78 116 102 186 23 70 36 143 36 219 0 118-31 226-93 323s-155 168-280 214c8 49 22 120 43 211 20 92 35 165 45 219s14 106 14 157c0 79-19 149-57 211-39 62-91 110-157 144-65 34-137 51-215 51-110 0-206-31-288-92-82-62-126-145-130-251 3-47 14-91 34-133s47-76 82-102c34-27 75-41 122-44 39 0 76 11 111 32 34 22 62 51 83 88 20 37 31 78 31 122 0 59-20 109-60 150s-91 62-152 62h-23c39 60 103 91 192 91 45 0 91-10 137-28 47-19 86-44 119-76s55-66 64-102c17-41 25-98 25-169 0-48-5-96-14-144-9-47-23-110-42-188-19-77-33-137-41-178-60 15-122 23-187 23-109 0-212-22-309-67s-182-107-256-187c-73-80-130-170-171-272-40-101-61-207-62-317 4-102 23-200 59-292 36-93 82-181 139-263s116-157 177-224c62-66 143-151 245-254z';
+function renderQuizStaff(notes, label, opts = {}) {
+    const baseY = 260, staffLines = [260,240,220,200,180];
+    const noteX = 105; // Noten x-Position
+    const staffL = 30, staffR = 150; // Linienstart/-ende
+    const minNoteY = Math.min(...notes.map(n => baseY - n.pos * 10));
+    const maxNoteY = Math.max(...notes.map(n => baseY - n.pos * 10));
+    const ghostMinY = opts.shiftArrow ? baseY - Math.max(opts.shiftArrow.fromPos, opts.shiftArrow.toPos) * 10 : 999;
+    const ghostMaxY = opts.shiftArrow ? baseY - Math.min(opts.shiftArrow.fromPos, opts.shiftArrow.toPos) * 10 : 0;
+    const viewMinY = Math.min(140, minNoteY - 30, ghostMinY - 30);
+    const viewMaxY = Math.max(310, maxNoteY + 30, ghostMaxY + 30);
+    const labelH = label ? 20 : 0;
+    const hasLabels = notes.some(n => n.label);
+    const hasArrow = !!opts.shiftArrow;
+    // Layout: System | Pfeil direkt neben Noten | Labels ganz rechts
+    const arrowX = noteX + 22; // direkt rechts neben den Notenköpfen
+    const labelX = hasLabels ? 158 : staffR + 8; // feste Position für Labels
+    // Feste Breite wenn Labels vorhanden, damit alle SVGs gleich skalieren
+    const totalW = hasLabels ? 190 : (hasArrow ? arrowX + 15 : staffR + 15);
+    let svg = `<svg viewBox="0 ${viewMinY} ${totalW} ${viewMaxY - viewMinY + labelH}" style="display:block;margin:0 auto;max-width:100%;width:100%;">`;
+    staffLines.forEach(ly => { svg += `<line x1="${staffL}" y1="${ly}" x2="${staffR}" y2="${ly}" stroke="#000" stroke-width="2"/>`; });
+    svg += `<g transform="translate(${staffL + 2}, 158) scale(0.15)"><g transform="matrix(.21599 0 0 .21546 -250.44 -1202.6)"><path d="${_clefPath}" fill="#000" stroke="#000" stroke-width="53"/></g></g>`;
+    notes.forEach(n => {
+        const y = baseY - (n.pos * 10);
+        if (y >= 280) for (let ly = 280; ly <= y; ly += 20) svg += `<line x1="${noteX-18}" y1="${ly}" x2="${noteX+18}" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+        if (y <= 160) for (let ly = 160; ly >= y; ly -= 20) svg += `<line x1="${noteX-18}" y1="${ly}" x2="${noteX+18}" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+        if (n.flat) svg += `<text x="${noteX - 40}" y="${y + 10}" font-size="32" font-family="serif">\u266D</text>`;
+        if (n.sharp) svg += `<text x="${noteX - 35}" y="${y + 12}" font-size="36" font-family="serif">\u266F</text>`;
+        svg += `<ellipse cx="${noteX}" cy="${y}" rx="11" ry="8.5" fill="#000" transform="rotate(-20 ${noteX} ${y})"/>`;
+        if (n.label) {
+            svg += `<text x="${labelX}" y="${y + 6}" font-size="16" fill="#065f46" font-weight="700" text-anchor="start" font-family="system-ui,sans-serif">${n.label}</text>`;
+        }
+    });
+    if (opts.shiftArrow) {
+        const { fromPos, toPos } = opts.shiftArrow;
+        const fromY = baseY - fromPos * 10;
+        const toY = baseY - toPos * 10;
+        const dist = Math.abs(toY - fromY);
+        const rx = 12; // flacher Bogen (kleiner rx = flacher)
+        const ry = dist / 2;
+        // Ghost-Notenkopf
+        svg += `<ellipse cx="${noteX}" cy="${fromY}" rx="11" ry="8.5" fill="#fecaca" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,3" opacity="0.7" transform="rotate(-20 ${noteX} ${fromY})"/>`;
+        if (fromY >= 280) for (let ly = 280; ly <= fromY; ly += 20) svg += `<line x1="${noteX-18}" y1="${ly}" x2="${noteX+18}" y2="${ly}" stroke="#999" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+        // Bogen: kürzer starten (nicht ganz unten), damit Pfeilspitze Platz hat oben
+        const arrowEndY = toY + 10; // Bogen endet 10px unter dem Ziel, Pfeilspitze schließt an
+        svg += `<path d="M${arrowX},${fromY} A${rx},${ry} 0 0,0 ${arrowX},${arrowEndY}" fill="none" stroke="#dc2626" stroke-width="3.5"/>`;
+        // Pfeilspitze: ~11-Uhr-Richtung (leicht nach links geneigt, passend zum Bogen von rechts)
+        const ts = 12;
+        svg += `<polygon points="${arrowX-ts*0.2},${toY} ${arrowX+ts*0.8},${toY+ts*1.1} ${arrowX-ts*0.5},${toY+ts*1.3}" fill="#dc2626"/>`;
+    }
+    if (label) svg += `<text x="${totalW/2}" y="${viewMaxY + labelH - 4}" text-anchor="middle" font-size="13" fill="#065f46" font-weight="600">${label}</text>`;
+    svg += '</svg>';
+    return svg;
+}
+
+const _lernkartenContent = {
+    'basis': {
+        title: '1a — Dur- und Moll-Dreiklänge',
+        body: `<p>Ein <strong>Dreiklang</strong> besteht aus drei Tönen, die übereinander geschichtet werden. Die beiden wichtigsten Dreiklangtypen sind <strong>Dur</strong> (klingt hell, fröhlich) und <strong>Moll</strong> (klingt dunkel, weich).</p>
+            <div class="lk-contrast" id="lkContrastBasis"></div>
+            <div class="lk-rule"><strong>Merke:</strong> Dur = große Terz (4 HS) + kleine Terz (3 HS). Moll = kleine Terz (3 HS) + große Terz (4 HS). Beide ergeben zusammen 7 Halbtonschritte (reine Quinte).</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Spiele das Hörbeispiel ab und vergleiche: Dur klingt "hell", Moll klingt "dunkel".</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst einen Dreiklang im Notensystem. Finde die drei Töne auf der Tastatur und klicke sie an.</div>`,
+        render() {
+            const speakerSvg = (midi) => `<svg onclick="playTriad(${JSON.stringify(midi)})" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;cursor:pointer;opacity:0.5;margin-left:4px;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+            // C eingestrichen: pos=-2, E: pos=0, G: pos=2, Eb: pos=0 mit flat
+            const staffCDur = renderQuizStaff([{pos:-2},{pos:0},{pos:2}]);
+            const staffCMoll = renderQuizStaff([{pos:-2},{pos:0,flat:true},{pos:2}]);
+            const left = renderLernkarteTastatur({ numOctaves:1, title:'C-Dur (4+3 HS)', highlightKeys:[{key:'C',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'}], arrows:[{from:'C',to:'E',label:'4 HS',color:'#059669'},{from:'E',to:'G',label:'3 HS',color:'#059669'}] });
+            const right = renderLernkarteTastatur({ numOctaves:1, title:'c-Moll (3+4 HS)', highlightKeys:[{key:'C',color:'#fecaca'},{key:'Dis',color:'#f87171'},{key:'G',color:'#fecaca'}], arrows:[{from:'C',to:'Dis',label:'3 HS',color:'#dc2626'},{from:'Dis',to:'G',label:'4 HS',color:'#dc2626'}], showBlackLabels:true });
+            document.getElementById('lkContrastBasis').innerHTML =
+                '<div><div class="lk-label">C-Dur ' + speakerSvg([60,64,67]) + '</div>' + staffCDur + left + '</div>' +
+                '<div><div class="lk-label">c-Moll ' + speakerSvg([60,63,67]) + '</div>' + staffCMoll + right + '</div>';
+        }
+    },
+    'vorzeichen': {
+        title: '1b — Mit Vorzeichen',
+        body: `<p>Ein <span class="vz-sharp"></span> (<strong>Kreuz</strong>) erhöht einen Ton um einen Halbton — eine Taste nach <strong>rechts</strong>. Ein <span class="vz-flat"></span> (<strong>Be</strong>) erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
+            <div class="lk-visual" id="lkVisualVorzeichen"></div>
+            <div class="lk-rule"><strong>Zur Erinnerung:</strong> <span class="vz-sharp"></span> = Stammton + "is" (Fis, Cis, ...). <span class="vz-flat"></span> = Stammton + "es" (Des, Ges, ...). <strong>Ausnahmen:</strong> Es, As, B (statt Hes).</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Finde zuerst den Stammton auf der Tastatur, dann wende das Vorzeichen an (1 Taste nach rechts oder links).</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die richtigen Tasten — auch schwarze Tasten.</div>`,
+        render() { document.getElementById('lkVisualVorzeichen').innerHTML = renderLernkarteTastatur({ numOctaves:1, showBlackLabels:true, highlightKeys:[{key:'F',color:'#bbf7d0'}], onKeyArrows:[{from:'F',to:'Fis',label:'\u266F',color:'#16a34a'},{from:'F',to:'E',label:'\u266D',color:'#dc2626'}] }); }
+    },
+    'range': {
+        title: '1c — Großer Tonumfang',
+        body: `<p>Die Dreiklänge können jetzt in einem <strong>größeren Tonumfang</strong> vorkommen. Die Noten können auf Hilfslinien erscheinen.</p>
+            <div class="lk-rule"><strong>Merke:</strong> Die Intervallstruktur bleibt immer gleich — nur der Startton verschiebt sich. Dur ist immer 4+3 HS, Moll immer 3+4 HS.</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Konzentriere dich auf die Notennamen, nicht auf ihre Position im System. Nutze die Ankertöne C und F auf der Tastatur zur Orientierung.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die drei Töne auf der Tastatur — auch bei Noten auf Hilfslinien.</div>`
+    },
+    'drei2_basis': {
+        title: '2a — Halbtonschritte zählen',
+        body: `<p>Du zählst jetzt die <strong>Halbtonschritte (HS)</strong> zwischen den drei Tönen des Dreiklangs auf der Tastatur.</p>
+            <div class="lk-contrast" id="lkContrastDrei2Basis"></div>
+            <div class="lk-rule"><strong>Merke:</strong> Dur = 4 HS + 3 HS (große + kleine Terz). Moll = 3 HS + 4 HS (kleine + große Terz). Beide ergeben zusammen 7 HS.</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Zähle auf der Tastatur von Taste zu Taste — schwarze Tasten mitzählen! Die erste Taste selbst wird nicht mitgezählt.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und wähle die HS-Zahlen in den Dropdowns aus.</div>`,
+        render() {
+            const left = renderLernkarteTastatur({ numOctaves:1, title:'C-Dur: 4+3 HS', highlightKeys:[{key:'C',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'}], arrows:[{from:'C',to:'E',label:'4 HS',color:'#059669'},{from:'E',to:'G',label:'3 HS',color:'#059669'}] });
+            const right = renderLernkarteTastatur({ numOctaves:1, title:'c-Moll: 3+4 HS', highlightKeys:[{key:'C',color:'#fecaca'},{key:'Dis',color:'#fecaca'},{key:'G',color:'#fecaca'}], arrows:[{from:'C',to:'Dis',label:'3 HS',color:'#dc2626'},{from:'Dis',to:'G',label:'4 HS',color:'#dc2626'}], showBlackLabels:true });
+            document.getElementById('lkContrastDrei2Basis').innerHTML = '<div>' + left + '</div><div>' + right + '</div>';
+        }
+    },
+    'drei2_vorzeichen': {
+        title: '2b — Alle Typen mit Vorzeichen',
+        body: `<p>Jetzt kommen <strong>Vorzeichen</strong> dazu. Achte besonders auf die schwarzen Tasten!</p>
+            <div class="lk-rule"><strong>Methode:</strong><br>1. Alle drei Noten auf der Tastatur finden (Stammton + Vorzeichen anwenden).<br>2. Halbtonschritte zwischen benachbarten Noten zählen.<br>3. An der HS-Struktur den Typ erkennen: 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die richtigen Tasten und bestimme die Halbtonschritte — auch mit Vorzeichen.</div>`
+    },
+    'drei2_augmented': {
+        title: '2c — Übermäßige und verminderte Dreiklänge',
+        body: `<p>Neben Dur und Moll gibt es zwei weitere Dreiklangtypen: <strong>Übermäßig</strong> und <strong>Vermindert</strong>.</p>
+            <div class="lk-contrast" id="lkContrastDrei2Aug" style="flex-wrap:wrap"></div>
+            <div class="lk-rule"><strong>Die 4 Dreiklangtypen:</strong><br>Dur: 4 + 3 = 7 HS (große + kleine Terz)<br>Moll: 3 + 4 = 7 HS (kleine + große Terz)<br>Übermäßig: 4 + 4 = 8 HS (große + große Terz)<br>Vermindert: 3 + 3 = 6 HS (kleine + kleine Terz)</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Dur und Moll ergeben beide 7 HS — sie unterscheiden sich nur in der Reihenfolge! Übermäßig hat immer 8, Vermindert hat immer 6 HS.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und wähle die HS-Zahlen in den Dropdowns aus.</div>`,
+        render() {
+            const types = [
+                {title:'Dur (4+3)',keys:[{key:'C'},{key:'E'},{key:'G'}],arr:[{from:'C',to:'E',label:'4'},{from:'E',to:'G',label:'3'}],color:'#059669'},
+                {title:'Moll (3+4)',keys:[{key:'C'},{key:'Dis',displayName:'Es'},{key:'G'}],arr:[{from:'C',to:'Dis',label:'3'},{from:'Dis',to:'G',label:'4'}],color:'#dc2626'},
+                {title:'Überm. (4+4)',keys:[{key:'C'},{key:'E'},{key:'Gis'}],arr:[{from:'C',to:'E',label:'4'},{from:'E',to:'Gis',label:'4'}],color:'#7c3aed'},
+                {title:'Verm. (3+3)',keys:[{key:'C'},{key:'Dis',displayName:'Es'},{key:'Fis',displayName:'Ges'}],arr:[{from:'C',to:'Dis',label:'3'},{from:'Dis',to:'Fis',label:'3'}],color:'#b45309'}
+            ];
+            document.getElementById('lkContrastDrei2Aug').innerHTML = types.map(t => '<div style="flex:1;min-width:200px">' + renderLernkarteTastatur({ numOctaves:1, title:t.title, highlightKeys:t.keys.map(k=>({...k,color:'#d1fae5'})), arrows:t.arr.map(a=>({...a,color:t.color})), showBlackLabels:true }) + '</div>').join('');
+        }
+    },
+    'drei2_range': {
+        title: '2d — Großer Tonumfang',
+        body: `<p>Die Dreiklänge können jetzt in einem <strong>größeren Tonumfang</strong> vorkommen. Die Noten können auf Hilfslinien erscheinen.</p>
+            <div class="lk-rule"><strong>Merke:</strong> Egal ob mit oder ohne Hilfslinien — die Halbtonschritte zwischen den drei Tönen bestimmen den Typ. Dur ist immer 4+3, Moll immer 3+4.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die Töne auf der Tastatur und bestimme die Halbtonschritte — auch bei größerem Tonumfang.</div>`
+    },
+    'drei2_noaudio': {
+        title: '2e — Ohne Hörbeispiel',
+        body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr. Du zählst die Halbtonschritte rein visuell.</p>
+            <div class="lk-rule"><strong>Methode:</strong> Noten ablesen, auf der Tastatur finden, Halbtonschritte zählen — auch ohne Klang.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Halbtonschritte ohne Hörbeispiel.</div>`
+    },
+    'drei3_basis': {
+        title: '3a — Dreiklänge benennen',
+        body: `<p>Du bestimmst jetzt den <strong>Grundton</strong> und die <strong>Art</strong> (Dur/Moll) des Dreiklangs.</p>
+            <div class="lk-rule"><strong>Methode:</strong><br>1. Tiefsten Ton im Notensystem ablesen — das ist der <strong>Grundton</strong>.<br>2. HS auf der Tastatur zählen: 4+3 = <strong>Dur</strong>, 3+4 = <strong>Moll</strong>.<br>3. Antwort eingeben: z.B. "C-Dur" oder "a-Moll".</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Lies zuerst den untersten Ton ab — das ist dein Grundton. Dann zähle die HS der unteren Terz: 4 HS = Dur, 3 HS = Moll. Die obere Terz musst du gar nicht mehr prüfen!</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme den Grundton und die Art des Dreiklangs (z.B. "C-Dur").</div>`
+    },
+    'drei3_vorzeichen': {
+        title: '3b — Mit Vorzeichen',
+        body: `<p>Die Dreiklänge enthalten jetzt <strong>Vorzeichen</strong>. Achte auf <span class="vz-sharp"></span> und <span class="vz-flat"></span> vor den Noten!</p>
+            <div class="lk-rule"><strong>Methode:</strong><br>1. Grundton ablesen (Stammton + Vorzeichen anwenden).<br>2. HS zählen: 4+3 = Dur, 3+4 = Moll.<br>3. Antwort eingeben: z.B. "Fis-Dur" oder "es-Moll".</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Finde zuerst den Stammton auf der Tastatur, dann wende das Vorzeichen an. Die Vorzeichen gelten für alle drei Noten, die auf derselben Linie/Zwischenraum liegen.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme Grundton und Art — auch mit Vorzeichen.</div>`
+    },
+    'drei3_augmented': {
+        title: '3c — Übermäßig und vermindert',
+        body: `<p>Jetzt kommen auch <strong>übermäßige</strong> und <strong>verminderte</strong> Dreiklänge vor.</p>
+            <div class="lk-rule"><strong>Strategie:</strong><br>1. Grundton ablesen (Stammton + Vorzeichen).<br>2. HS zählen: unteres Intervall + oberes Intervall.<br>3. Am HS-Muster den Typ bestimmen: 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Achtung — nur die untere Terz zu prüfen reicht nicht mehr! 4 HS unten kann jetzt Dur (4+3) oder übermäßig (4+4) sein, 3 HS unten kann Moll (3+4) oder vermindert (3+3) sein. Du musst jetzt <strong>beide</strong> Terzen zählen.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme Grundton und Art — auch bei übermäßigen und verminderten Dreiklängen.</div>`
+    },
+    'drei3_range': {
+        title: '3d — Großer Tonumfang',
+        body: `<p>Die Dreiklänge können jetzt in einem <strong>größeren Tonumfang</strong> vorkommen. Die Noten können auf Hilfslinien erscheinen.</p>
+            <div class="lk-rule"><strong>Merke:</strong> Egal ob mit oder ohne Hilfslinien — der Grundton ist immer der tiefste Ton (in Grundstellung). Die Intervallstruktur bestimmt den Typ.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme Grundton und Art — auch bei Noten auf Hilfslinien.</div>`
+    },
+    'drei3_noaudio': {
+        title: '3e — Ohne Hörbeispiel',
+        body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr.</p>
+            <div class="lk-rule"><strong>Methode:</strong> Grundton ablesen, Halbtonschritte zählen, Typ bestimmen — rein visuell.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne den Dreiklang ohne Hörbeispiel.</div>`
+    },
+    'drei3_doubleAccidentals': {
+        title: '3f — Mit Doppelvorzeichen',
+        body: `<p>Doppelvorzeichen verschieben einen Ton um <strong>2 Halbtonschritte</strong> statt 1. Das <strong>Doppelkreuz</strong> (<span style="font-size:1.4em;vertical-align:baseline;position:relative;top:1px;">\uD834\uDD2A</span>) erhöht um 2 HS, das <strong>Doppel-Be</strong> (<span style="font-size:1.4em;vertical-align:baseline;position:relative;top:1px;">\uD834\uDD2B</span>) erniedrigt um 2 HS.</p>
+            <div class="lk-visual" id="lkVisualDrei3DblAcc"></div>
+            <div class="lk-rule"><strong>Benennung:</strong> Doppelkreuz: Stammton + "-isis" (Cisis, Fisis, Gisis). Doppel-Be: Stammton + "-eses" (Deses, Geses). <strong>Ausnahmen:</strong> Asas (statt Aeses), Heses (statt Hes-es).</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Auf der Tastatur entspricht ein Doppelvorzeichen oft einem Stammton: Cisis = D, Deses = C. Aber im Notenbild steht Cisis auf der C-Linie — nicht auf der D-Linie!</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne den Grundton (auch mit Doppelvorzeichen) und bestimme die Art des Dreiklangs.</div>`,
+        render() {
+            document.getElementById('lkVisualDrei3DblAcc').innerHTML = renderLernkarteTastatur({ numOctaves:1, highlightKeys:[{key:'C',color:'#bbf7d0',label:'C'},{key:'D',color:'#fef3c7',label:'Cisis'}], showBlackLabels:true });
+            // Halbkreisbogen C→D wie in TT ton1 basis
+            const svgEl = document.querySelector('#lkVisualDrei3DblAcc svg');
+            if (!svgEl) return;
+            // 1 Oktave: ww=32, wh=80, pad=6, bw=20, bh=50
+            const ww = 32, pad = 6, wh = 80, bh = 50;
+            const arrowY = pad + wh * 0.6;
+            const cX = pad + 0 * ww + ww / 2;
+            const dX = pad + 1 * ww + ww / 2;
+            const midX = (cX + dX) / 2;
+            const radius = (dX - cX) / 2;
+            const tipSize = 5;
+            const color = '#059669';
+            let g = '';
+            g += `<path d="M${cX},${arrowY} A${radius},${radius} 0 0,1 ${dX},${arrowY}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
+            const ax1 = dX - tipSize * Math.cos(Math.PI/6);
+            const ay1 = arrowY - tipSize * Math.sin(Math.PI/6);
+            const ax2 = dX + tipSize * Math.cos(Math.PI/3);
+            const ay2 = arrowY - tipSize * Math.sin(Math.PI/3);
+            g += `<polygon points="${dX},${arrowY} ${ax1},${ay1} ${ax2},${ay2}" fill="${color}"/>`;
+            // Tastenlabel "D" durchstreichen (diagonal, mittig)
+            const dLabelX = dX;
+            const dLabelY = pad + wh - 7;
+            g += `<line x1="${dLabelX - 7}" y1="${dLabelY - 1}" x2="${dLabelX + 7}" y2="${dLabelY - 9}" stroke="#dc2626" stroke-width="1.5"/>`;
+            // 𝄪 auf der schwarzen Taste unter dem Bogen
+            const cisX = pad + 0 * ww + ww;
+            g += `<text x="${cisX}" y="${pad + bh - 2}" text-anchor="middle" font-size="20" fill="#dc2626" font-weight="700">\uD834\uDD2A</text>`;
+            svgEl.insertAdjacentHTML('beforeend', g);
+        }
+    },
+    'drei4_basis': {
+        title: '4a — Umkehrungen erkennen',
+        body: `<p>Ein Dreiklang kann in drei <strong>Stellungen</strong> erscheinen. Bei einer Umkehrung wird der unterste Ton um eine Oktave nach oben versetzt.</p>
+            <div class="lk-contrast" id="lkContrastDrei4"></div>
+            <div class="lk-rule"><strong>Die 3 Stellungen:</strong><br><strong>Grundstellung:</strong> Grundton unten — Terz + Terz übereinander<br><strong>1. Umkehrung:</strong> Terz unten — Terz + Quarte übereinander<br><strong>2. Umkehrung:</strong> Quinte unten — Quarte + Terz übereinander</div>
+            <div class="lk-tip"><strong>Tipp:</strong> In Umkehrungen erscheint eine <strong>Quarte</strong> (5 HS) als Intervall. Finde die Quarte — sie zeigt dir, wo der Grundton liegt!</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Stellung (Grundstellung, 1. oder 2. Umkehrung), den Grundton und die Art des Dreiklangs.</div>`,
+        render() {
+            const el = document.getElementById('lkContrastDrei4');
+            // Grundstellung: C(-2) E(0) G(2) | 1.Umk: E(0) G(2) C(5) | 2.Umk: G(2) C(5) E(7)
+            // Pfeil zeigt Verschiebung des untersten Tons nach oben
+            el.innerHTML =
+                '<div><div class="lk-label">Grundstellung</div>' + renderQuizStaff([{pos:-2,label:'C'},{pos:0,label:'E'},{pos:2,label:'G'}]) + '</div>' +
+                '<div><div class="lk-label">1. Umkehrung</div>' + renderQuizStaff([{pos:0,label:'E'},{pos:2,label:'G'},{pos:5,label:'C'}], null, {shiftArrow:{fromPos:-2,toPos:5}}) + '</div>' +
+                '<div><div class="lk-label">2. Umkehrung</div>' + renderQuizStaff([{pos:2,label:'G'},{pos:5,label:'C'},{pos:7,label:'E'}], null, {shiftArrow:{fromPos:0,toPos:7}}) + '</div>';
+        }
+    },
+    'drei4_vorzeichen': {
+        title: '4b — Mit Vorzeichen',
+        body: `<p>Die Umkehrungen enthalten jetzt <strong>Vorzeichen</strong>. Die Methode bleibt gleich — nur die Töne verschieben sich.</p>
+            <div class="lk-rule"><strong>Methode:</strong><br>1. Alle drei Töne ablesen (Stammton + Vorzeichen).<br>2. HS zählen und die Quarte (5 HS) finden.<br>3. Umkehrung bestimmen, Grundton ableiten, Art erkennen.</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Auch mit Vorzeichen gilt: Die Quarte verrät die Umkehrung! Bei der 1. Umkehrung liegt sie oben, bei der 2. Umkehrung unten.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme Stellung, Grundton und Art — auch mit Vorzeichen.</div>`
+    },
+    'drei4_augmented': {
+        title: '4c — Übermäßig und vermindert',
+        body: `<p>Jetzt kommen auch <strong>übermäßige</strong> und <strong>verminderte</strong> Dreiklänge in Umkehrungen vor.</p>
+            <div class="lk-rule"><strong>Besonderheiten:</strong><br>Übermäßig: Alle Umkehrungen haben 4+4 HS — klingen identisch! Aber im Notenbild ist die <strong>verminderte Quarte</strong> (4 HS) gut erkennbar, da sich das Rahmenintervall Quarte deutlich von der großen Terz unterscheidet.<br>Vermindert: Grundstellung 3+3, 1. Umkehrung 3+6, 2. Umkehrung 6+3 — auch hier verrät die Quarte die Umkehrung: diesmal die <strong>übermäßige Quarte</strong> (6 HS).</div>
+            <div class="lk-tip"><strong>Tipp:</strong> Suche im Notenbild die Quarte — sie zeigt dir bei beiden Typen die Umkehrung! Verminderte Quarte (4 HS) → übermäßig, übermäßige Quarte (6 HS) → vermindert.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme Stellung, Grundton und Art — auch bei übermäßigen und verminderten Dreiklängen.</div>`
+    },
+    'drei4_range': {
+        title: '4d — Großer Tonumfang',
+        body: `<p>Die Dreiklänge können jetzt in einem größeren Tonumfang erscheinen — auch mit Umkehrungen.</p>
+            <div class="lk-rule"><strong>Merke:</strong> Der <strong>tiefste Ton</strong> ist nicht immer der Grundton! Bei Umkehrungen liegt der Grundton in der Mitte oder oben.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme Stellung, Grundton und Art bei großem Tonumfang.</div>`
+    },
+    'drei4_noaudio': {
+        title: '4e — Ohne Hörbeispiel',
+        body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr. Du analysierst den Dreiklang rein visuell.</p>
+            <div class="lk-rule"><strong>Methode:</strong> Alle drei Intervalle zwischen den Noten bestimmen, Umkehrung erkennen, Grundton ableiten, Art bestimmen.</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Analysiere den Dreiklang vollständig ohne Hörbeispiel.</div>`
+    },
+    'drei4_doubleAccidentals': {
+        title: '4f — Mit Doppelvorzeichen',
+        body: `<p>Jetzt können Umkehrungen auch <strong>Doppelvorzeichen</strong> enthalten.</p>
+            <div class="lk-rule"><strong>Strategie:</strong><br>1. Halbtonschritte zwischen den drei Tönen zählen.<br>2. Die Quarte finden: reine Quarte (5 HS), verminderte Quarte (4 HS) oder übermäßige Quarte (6 HS).<br>3. Daraus die Umkehrung ableiten.<br>4. Grundton bestimmen.<br>5. Art bestimmen.</div>
+            <div class="lk-rule"><strong>HS in Umkehrungen:</strong><br>Grundstellung: 3+4 / 4+3 / 3+3 / 4+4<br>1. Umkehrung: 3+5 / 4+5 / 3+6 / 4+4<br>2. Umkehrung: 5+3 / 5+4 / 6+3 / 4+4</div>
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme Stellung, Grundton und Art — auch mit Doppelvorzeichen.</div>`
+    },
+
+    // ===== DREI5: Dreiklänge bilden — Tastatur =====
+    'drei5_basis': {
+        title: '5a — Dur & Moll bilden — Tastatur',
+        body: `<p>Ab jetzt drehst du die Aufgabe um: Statt einen Dreiklang zu <strong>erkennen</strong>, sollst du ihn <strong>bilden</strong>. Du siehst den Dreiklangnamen (z.B. "C-Dur") und klickst die drei richtigen Tasten auf der Klaviatur.</p>
+                <div class="lk-visual" id="lkVisualDrei5Basis"></div>
+                <div class="lk-rule"><strong>Zur Erinnerung:</strong> Dur = 4 HS + 3 HS (große + kleine Terz). Moll = 3 HS + 4 HS (kleine + große Terz).</div>
+                <div class="lk-tip"><strong>Strategie:</strong> Finde den Grundton auf der Tastatur. Zähle dann 4 HS (Dur) oder 3 HS (Moll) nach rechts für die Terz, danach nochmals 3 HS (Dur) oder 4 HS (Moll) für die Quinte.</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten des angezeigten Dreiklangs.</div>`,
+        render() {
+            document.getElementById('lkVisualDrei5Basis').innerHTML = renderLernkarteTastatur({
+                highlightKeys: [
+                    {key:'C',color:'#bbf7d0',label:'Grundton'},
+                    {key:'E',color:'#bbf7d0',label:'Terz'},
+                    {key:'G',color:'#bbf7d0',label:'Quinte'}
+                ],
+                arrows: [{from:'C',to:'E',label:'4 HS',color:'#059669'},{from:'E',to:'G',label:'3 HS',color:'#059669'}],
+                title: 'Beispiel: C-Dur bilden'
+            });
+        }
+    },
+    'drei5_vorzeichen': {
+        title: '5b — Dreiklänge mit Vorzeichen bilden',
+        body: `<p>Jetzt kommen häufiger <strong>Vorzeichen</strong> vor. Die schwarzen Tasten werden wichtig!</p>
+                <div class="lk-visual" id="lkVisualDrei5Vz"></div>
+                <div class="lk-tip"><strong>Tipp:</strong> Finde zuerst den Grundton (Stammton + Vorzeichen). Zähle dann die Halbtonschritte ab — schwarze Tasten mitzählen!</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei richtigen Tasten — auch schwarze Tasten.</div>`,
+        render() {
+            document.getElementById('lkVisualDrei5Vz').innerHTML = renderLernkarteTastatur({
+                highlightKeys: [
+                    {key:'Dis',color:'#bbf7d0',displayName:'Es'},
+                    {key:'G',color:'#bbf7d0'},
+                    {key:'Ais',color:'#bbf7d0',displayName:'B'}
+                ],
+                showBlackLabels: true,
+                arrows: [{from:'Dis',to:'G',label:'4 HS',color:'#059669'},{from:'G',to:'Ais',label:'3 HS',color:'#059669'}],
+                title: 'Beispiel: Es-Dur bilden'
+            });
+        }
+    },
+    'drei5_augdim': {
+        title: '5c — Übermäßig & vermindert bilden — Tastatur',
+        body: `<p>Jetzt kommen <strong>übermäßige</strong> und <strong>verminderte</strong> Dreiklänge hinzu.</p>
+                <div class="lk-rule"><strong>Regel:</strong> Übermäßig = 4 + 4 HS (große + große Terz). Vermindert = 3 + 3 HS (kleine + kleine Terz).</div>
+                <div class="lk-visual" id="lkVisualDrei5Aug"></div>
+                <div class="lk-tip"><strong>Merke:</strong> Übermäßig: Quinte ist 8 HS vom Grundton entfernt (statt 7). Vermindert: Quinte ist nur 6 HS entfernt (statt 7).</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten — auch für übermäßige und verminderte Dreiklänge.</div>`,
+        render() {
+            document.getElementById('lkVisualDrei5Aug').innerHTML =
+                renderLernkarteTastatur({
+                    highlightKeys: [
+                        {key:'C',color:'#e9d5ff'},
+                        {key:'E',color:'#e9d5ff'},
+                        {key:'Gis',color:'#e9d5ff'}
+                    ],
+                    showBlackLabels: true,
+                    arrows: [{from:'C',to:'E',label:'4 HS',color:'#7c3aed'},{from:'E',to:'Gis',label:'4 HS',color:'#7c3aed'}],
+                    title: 'Übermäßig: C (4+4 HS)'
+                }) +
+                '<div style="height:12px"></div>' +
+                renderLernkarteTastatur({
+                    highlightKeys: [
+                        {key:'C',color:'#fef3c7'},
+                        {key:'Dis',color:'#fef3c7',displayName:'Es'},
+                        {key:'Fis',color:'#fef3c7',displayName:'Ges'}
+                    ],
+                    showBlackLabels: true,
+                    arrows: [{from:'C',to:'Dis',label:'3 HS',color:'#b45309'},{from:'Dis',to:'Fis',label:'3 HS',color:'#b45309'}],
+                    title: 'Vermindert: C (3+3 HS)'
+                });
+        }
+    },
+
+    // ===== DREI6: Dreiklänge notieren — Notensystem =====
+    'drei6_basis': {
+        title: '6a — Dur & Moll notieren — Notensystem',
+        body: `<p>Jetzt platzierst du die Dreiklangtöne direkt im <strong>Notensystem</strong> statt auf der Tastatur. Du siehst den Dreiklangnamen und setzt die drei Noten.</p>
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; margin:8px 0;">
+                    <div style="font-size:0.75rem; color:#065f46; font-weight:700; margin-bottom:6px;">Werkzeuge</div>
+                    <div style="display:flex; gap:8px; justify-content:center;">
+                        <span style="padding:4px 12px; background:#fff; border:2px solid #6ee7b7; border-radius:6px; font-size:0.85rem; font-weight:600;">♯ Kreuz</span>
+                        <span style="padding:4px 12px; background:#fff; border:2px solid #6ee7b7; border-radius:6px; font-size:0.85rem; font-weight:600;">♭ Be</span>
+                    </div>
+                    <div style="font-size:0.7rem; color:#064e3b; margin-top:6px;">Klicke ins Notensystem, um Noten zu platzieren. Klicke auf eine gesetzte Note, um sie zu löschen. Wähle zuerst ♯ oder ♭, dann klicke auf eine Note, um das Vorzeichen zu setzen.</div>
+                </div>
+                <div class="lk-rule"><strong>Methode:</strong><br>1. Grundton platzieren.<br>2. Ab dem Grundton Halbtonschritte nach oben zählen: Dur = 4+3 HS, Moll = 3+4 HS.<br>3. Bei Bedarf Vorzeichen setzen.</div>
+                <div class="lk-tip"><strong>Tipp:</strong> Bei einfachen Dur/Moll-Dreiklängen auf Stammtönen brauchst du oft kein Vorzeichen. Aber prüfe immer die HS-Zahl!</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die drei Noten des Dreiklangs im Notensystem.</div>`
+    },
+    'drei6_vorzeichen': {
+        title: '6b — Dreiklänge mit Vorzeichen notieren',
+        body: `<p>Jetzt kommen häufiger <strong>Vorzeichen</strong> vor. Der Grundton und/oder die Terz und Quinte benötigen meistens ein ♯ oder ♭.</p>
+                <div class="lk-rule"><strong>Zwei-Schritt-Methode:</strong><br>1. Platziere alle drei Noten an den richtigen Stufen (Grundton, Terz, Quinte).<br>2. Prüfe für jede Note: Stimmen die natürlichen Halbtonschritte? Falls nicht → Vorzeichen setzen.</div>
+                <div class="lk-tip"><strong>Beispiel:</strong> Fis-Dur: Grundton = Fis (♯), Terz = Ais (♯), Quinte = Cis (♯). Alle drei Noten brauchen ein Kreuz.</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Noten und setze bei Bedarf Vorzeichen mit den Werkzeug-Buttons.</div>`
+    },
+    'drei6_augdim': {
+        title: '6c — Übermäßig & vermindert notieren',
+        body: `<p>Jetzt kommen <strong>übermäßige und verminderte</strong> Dreiklänge im Notensystem dazu.</p>
+                <div class="lk-rule"><strong>Gleiche Stufen, anderes Vorzeichen:</strong> Die Notenpositionen bleiben bei Terz und Quinte auf denselben Stufen. Nur die Vorzeichen ändern sich:<br>Übermäßig: Quinte wird um 1 HS erhöht (♯).<br>Vermindert: Terz und Quinte werden um je 1 HS erniedrigt (♭).</div>
+                <div class="lk-tip"><strong>Beispiel:</strong> C-Dur: C–E–G. C übermäßig: C–E–Gis (Quinte ♯). C vermindert: C–Es–Ges (Terz ♭, Quinte ♭).</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Noten mit den passenden Vorzeichen für alle Dreiklangtypen.</div>`
+    },
+
+    // ===== DREI7: Umkehrungen bilden — Tastatur =====
+    'drei7_basis': {
+        title: '7a — Umkehrungen bilden — Tastatur',
+        body: `<p>Jetzt bildest du Dreiklänge in <strong>bestimmten Umkehrungen</strong> auf der Tastatur. Du siehst z.B. "C-Dur, 1. Umkehrung" und klickst die drei richtigen Tasten.</p>
+                <div class="lk-visual" id="lkVisualDrei7Basis"></div>
+                <div class="lk-rule"><strong>Zur Erinnerung:</strong><br>Grundstellung: Grundton – Terz – Quinte (z.B. C–E–G)<br>1. Umkehrung: Terz – Quinte – Grundton+8va (z.B. E–G–C)<br>2. Umkehrung: Quinte – Grundton+8va – Terz+8va (z.B. G–C–E)</div>
+                <div class="lk-tip"><strong>Strategie:</strong> Bilde zuerst den Dreiklang in Grundstellung. Dann verschiebe den/die unteren Ton/Töne um eine Oktave nach oben.</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten in der angegebenen Umkehrung.</div>`,
+        render() {
+            document.getElementById('lkVisualDrei7Basis').innerHTML = renderLernkarteTastatur({
+                numOctaves: 2,
+                highlightKeys: [
+                    {key:'E',color:'#dbeafe',label:'Terz'},
+                    {key:'G',color:'#bbf7d0',label:'Quinte'},
+                    {key:'C2',color:'#bbf7d0',label:'Grundton'}
+                ],
+                arrows: [{from:'E',to:'G',label:'3 HS',color:'#059669'},{from:'G',to:'C2',label:'5 HS',color:'#059669'}],
+                title: 'Beispiel: C-Dur, 1. Umkehrung'
+            });
+        }
+    },
+    'drei7_vorzeichen': {
+        title: '7b — Umkehrungen mit Vorzeichen bilden',
+        body: `<p>Jetzt kommen häufiger <strong>Vorzeichen</strong> vor. Die Methode bleibt gleich — nur die Tasten verschieben sich.</p>
+                <div class="lk-rule"><strong>Methode:</strong><br>1. Dreiklang in Grundstellung bilden (Grundton + Vorzeichen, HS abzählen).<br>2. Die Töne für die gewünschte Umkehrung umsortieren.<br>3. Die richtigen Tasten auf der Klaviatur klicken.</div>
+                <div class="lk-tip"><strong>Tipp:</strong> In der 1. Umkehrung liegt die Quarte (5 HS) oben. In der 2. Umkehrung liegt sie unten. Das hilft zur Kontrolle!</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten in der richtigen Umkehrung — auch mit Vorzeichen.</div>`
+    },
+    'drei7_augdim': {
+        title: '7c — Übermäßig & vermindert in Umkehrungen — Tastatur',
+        body: `<p>Jetzt kommen <strong>übermäßige und verminderte</strong> Dreiklänge in Umkehrungen hinzu.</p>
+                <div class="lk-rule"><strong>Besonderheiten:</strong><br>Übermäßig: Alle Umkehrungen haben 4+4 HS — klingen gleich, nur die Notenanalyse unterscheidet sie.<br>Vermindert: Grundstellung 3+3, 1. Umkehrung 3+6, 2. Umkehrung 6+3 — die übermäßige Quarte (6 HS) zeigt die Umkehrung.</div>
+                <div class="lk-tip"><strong>Tipp:</strong> Bilde zuerst den Dreiklang in Grundstellung, dann ordne die Töne für die gewünschte Umkehrung um.</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten in der richtigen Umkehrung — auch für übermäßige und verminderte Dreiklänge.</div>`
+    },
+
+    // ===== DREI8: Umkehrungen notieren — Notensystem =====
+    'drei8_basis': {
+        title: '8a — Umkehrungen notieren — Notensystem',
+        body: `<p>Jetzt platzierst du Dreiklänge in bestimmten <strong>Umkehrungen</strong> direkt im Notensystem.</p>
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; margin:8px 0;">
+                    <div style="font-size:0.75rem; color:#065f46; font-weight:700; margin-bottom:6px;">Werkzeuge</div>
+                    <div style="display:flex; gap:8px; justify-content:center;">
+                        <span style="padding:4px 12px; background:#fff; border:2px solid #6ee7b7; border-radius:6px; font-size:0.85rem; font-weight:600;">♯ Kreuz</span>
+                        <span style="padding:4px 12px; background:#fff; border:2px solid #6ee7b7; border-radius:6px; font-size:0.85rem; font-weight:600;">♭ Be</span>
+                    </div>
+                    <div style="font-size:0.7rem; color:#064e3b; margin-top:6px;">Klicke ins Notensystem, um Noten zu platzieren. Klicke auf eine gesetzte Note, um sie zu löschen. Wähle zuerst ♯ oder ♭, dann klicke auf eine Note, um das Vorzeichen zu setzen.</div>
+                </div>
+                <div class="lk-rule"><strong>Methode:</strong><br>1. Dreiklang in Grundstellung bestimmen (Grundton, Terz, Quinte).<br>2. Für die Umkehrung: Unterste(n) Ton/Töne eine Oktave nach oben versetzen.<br>3. Alle drei Noten an den richtigen Positionen im System platzieren.<br>4. Vorzeichen bei Bedarf setzen.</div>
+                <div class="lk-tip"><strong>Tipp:</strong> In der 1. Umkehrung beginnt der Dreiklang auf der Terz. In der 2. Umkehrung auf der Quinte. Achte auf die Stufen-Abstände!</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die drei Noten in der angegebenen Umkehrung im Notensystem.</div>`
+    },
+    'drei8_vorzeichen': {
+        title: '8b — Umkehrungen mit Vorzeichen notieren',
+        body: `<p>Jetzt kommen häufiger <strong>Vorzeichen</strong> vor. Die Noten müssen in der richtigen Umkehrung und mit den passenden Vorzeichen im System stehen.</p>
+                <div class="lk-rule"><strong>Zwei-Schritt-Methode:</strong><br>1. Bestimme die drei Töne des Dreiklangs in der gewünschten Umkehrung.<br>2. Platziere jede Note auf der richtigen Stufe und prüfe, ob ein Vorzeichen nötig ist.</div>
+                <div class="lk-tip"><strong>Tipp:</strong> Berechne zuerst den Dreiklang mental auf der Tastatur (Grundton finden, HS abzählen). Übertrage dann die Töne ins Notensystem.</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Noten in der richtigen Umkehrung mit Vorzeichen im Notensystem.</div>`
+    },
+    'drei8_augdim': {
+        title: '8c — Übermäßig & vermindert in Umkehrungen notieren',
+        body: `<p>Jetzt kommen <strong>übermäßige und verminderte</strong> Dreiklänge in Umkehrungen im Notensystem dazu.</p>
+                <div class="lk-rule"><strong>Wichtig für übermäßige Dreiklänge:</strong> Alle Umkehrungen klingen gleich (4+4 HS) — aber im Notenbild sieht man die verminderte Quarte, auch wenn man sie nicht hört. Sie entsteht durch die Stammtonposition und bestätigt die korrekte Umkehrung.</div>
+                <div class="lk-rule"><strong>Verminderte Dreiklänge:</strong> Die übermäßige Quarte (6 HS) hilft zur Kontrolle nach dem Notieren — sie bestätigt die korrekte Umkehrung.</div>
+                <div class="lk-tip"><strong>Tipp:</strong> Der Stufen-Abstand verrät die Umkehrung: Grundstellung = Terz+Terz, 1. Umkehrung = Terz+Quarte, 2. Umkehrung = Quarte+Terz. Setze dann die passenden Vorzeichen.</div>
+                <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Noten der Umkehrung mit den passenden Vorzeichen im Notensystem.</div>`
+    }
+};
 
         // ===================================
         // HAUPTANWENDUNG
@@ -5488,6 +6273,54 @@
                 this.playChord();
             },
 
+            // ---- Lernkarten-System ----
+            lernkartenContent: _lernkartenContent,
+
+            getLernkarteKey(subSkillId) {
+                const level = quickStart.currentLevel;
+                // drei1 Sub-Skills sind direkt
+                if (['basis','vorzeichen','range'].includes(subSkillId) && level === 'einsteiger') return subSkillId;
+                const prefixMap = {
+                    'aufsteiger': 'drei2_', 'profi': 'drei3_', 'meister': 'drei4_',
+                    'bilden_key': 'drei5_', 'bilden_staff': 'drei6_',
+                    'bilden_umk_key': 'drei7_', 'bilden_umk_staff': 'drei8_'
+                };
+                const prefix = prefixMap[level];
+                return prefix ? prefix + subSkillId : subSkillId;
+            },
+
+            showLernkarte(subSkillId, fromStart) {
+                const key = this.getLernkarteKey(subSkillId);
+                const content = this.lernkartenContent[key];
+                if (!content) return false;
+                this._lernkarteFromStart = !!fromStart;
+                document.getElementById('lernkarteTitle').textContent = content.title;
+                document.getElementById('lernkarteBody').innerHTML = content.body;
+                document.getElementById('lernkarteOverlay').classList.add('active');
+                // SVG-Visualisierungen dynamisch rendern
+                if (typeof content.render === 'function') content.render();
+                // Inline-SVG-Vorzeichen befüllen
+                document.querySelectorAll('#lernkarteOverlay .vz-sharp').forEach(el => {
+                    el.innerHTML = _inlineVz(_sharpPathD, _SHARP_REF, 8, 13);
+                });
+                document.querySelectorAll('#lernkarteOverlay .vz-flat').forEach(el => {
+                    el.innerHTML = _inlineVz(_flatPathD, _FLAT_REF, 7, 13);
+                });
+                return true;
+            },
+
+            dismissLernkarte() {
+                document.getElementById('lernkarteOverlay').classList.remove('active');
+                if (this._lernkarteFromStart) {
+                    this._lernkarteFromStart = false;
+                    if (this.buildingMode) {
+                        this.generateBuildingTask();
+                    } else {
+                        this.generateChord();
+                    }
+                }
+            },
+
             // ---- Web Audio: Dreiklang abspielen (Piano-ähnlich) ----
             playChord() {
                 // Building-Modus: spiele ab was der User gebaut hat
@@ -6524,6 +7357,11 @@
                     !document.getElementById('quickStartScreen').classList.contains('active');
 
                 if (inExercise) {
+                    // Lernkarte anzeigen statt altem Hilfe-Modal
+                    const currentSub = quickStart.currentOptions[quickStart.currentOptions.length - 1];
+                    if (currentSub && this.showLernkarte(currentSub, false)) return;
+
+                    // Fallback: altes Hilfe-Modal (falls keine Lernkarte vorhanden)
                     const level = quickStart.currentLevel;
                     const opts = quickStart.currentOptions;
                     const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
