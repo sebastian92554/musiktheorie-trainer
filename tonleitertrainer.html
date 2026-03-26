@@ -3090,6 +3090,12 @@
                 if (isCorrect) {
                     this.isRetry = false;
                     document.getElementById('headerRetryHint').classList.remove('active');
+                    // War das die letzte Frage? → Success zeigen
+                    if (!this.fallbackActive && this.questionsAnswered >= this.totalQuestions) {
+                        this.updateQuizOverlay();
+                        setTimeout(() => this.showSuccess(), 1500);
+                        return;
+                    }
                 }
                 // Bei erneutem Fehler: isRetry bleibt true, Aufgabe wird nochmal wiederholt
                 this.updateQuizOverlay();
@@ -3107,11 +3113,14 @@
             }
 
             if (!this.fallbackActive) {
-                if (this.questionsAnswered >= this.totalQuestions) {
-                    this.isRetry = false;
-                    document.getElementById('headerRetryHint').classList.remove('active');
+                if (this.questionsAnswered >= this.totalQuestions && isCorrect) {
                     this.updateQuizOverlay();
                     setTimeout(() => this.showSuccess(), 1500);
+                    return;
+                }
+                if (this.questionsAnswered >= this.totalQuestions && !isCorrect) {
+                    // Letzte Frage falsch → Wiederholung erzwingen
+                    this.updateQuizOverlay();
                     return;
                 }
             }

@@ -5819,8 +5819,9 @@
                     feedbackEl.className = 'feedback correct';
                     feedbackEl.innerHTML = `✓ Perfekt! Du hast <strong>${note1.name}</strong> und <strong>${note2.name}</strong> gefunden!`;
 
+                    const wasRetry = quickStart.isRetry;
                     quickStart.handleAnswer(true);
-                    tracking.trackQuestion(true);
+                    if (!wasRetry) tracking.trackQuestion(true);
 
                     this.validationState.keyboard = true;
                     this.renderKeyboard();
@@ -5910,16 +5911,20 @@
                     
                     // Quick-Start Modus? Nur handleAnswer, kein Score-Update
                     if (this.quickStartMode) {
+                        const wasRetry = quickStart.isRetry;
                         quickStart.handleAnswer(true);
-                        tracking.trackQuestion(true);
+                        if (!wasRetry) tracking.trackQuestion(true);
                     } else {
                         // Freies Üben: Score aktualisieren
-                        this.score.correct++;
-                        this.score.total++;
-                        tracking.trackQuestion(true);
+                        if (!this.freeRetry) {
+                            this.score.correct++;
+                            this.score.total++;
+                            tracking.trackQuestion(true);
+                        }
+                        this.setFreeRetry(false);
                         this.updateScore();
                     }
-                    
+
                     // NICHT bei letzter Frage weiter (showSuccess übernimmt)
                     const ddQuizComplete = this.quickStartMode && quickStart.questionsAnswered >= quickStart.totalQuestions;
                     if (!ddQuizComplete) {
@@ -5935,12 +5940,15 @@
 
                     // Quick-Start Modus? Nur handleAnswer, kein Score-Update
                     if (this.quickStartMode) {
+                        const wasRetry = quickStart.isRetry;
                         quickStart.handleAnswer(false);
-                        tracking.trackQuestion(false);
+                        if (!wasRetry) tracking.trackQuestion(false);
                     } else {
                         // Freies Üben: Score aktualisieren
-                        this.score.total++;
-                        tracking.trackQuestion(false);
+                        if (!this.freeRetry) {
+                            this.score.total++;
+                            tracking.trackQuestion(false);
+                        }
                         this.updateScore();
                     }
                     
@@ -5984,8 +5992,9 @@
                     semitonesInputStatus.textContent = '✓';
                     
                     // Quick-Start Handler (kein Score-Update wie im DT)
+                    const wasRetry = quickStart.isRetry;
                     quickStart.handleAnswer(true);
-                    tracking.trackQuestion(true);
+                    if (!wasRetry) tracking.trackQuestion(true);
 
                     // NICHT bei letzter Frage weiter (showSuccess übernimmt)
                     if (quickStart.questionsAnswered >= quickStart.totalQuestions) return;
@@ -6001,14 +6010,15 @@
                 } else {
                     feedbackEl.className = 'feedback incorrect';
                     feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>Halbtonschritte: <span style="color:#ef4444;">✗</span>`;
-                    
+
                     semitonesInput.classList.add('input-validated-incorrect');
                     semitonesInputStatus.className = 'input-status-icon incorrect';
                     semitonesInputStatus.textContent = '✗';
-                    
+
                     // Quick-Start Handler (kein Score-Update wie im DT)
+                    const wasRetry2 = quickStart.isRetry;
                     quickStart.handleAnswer(false);
-                    tracking.trackQuestion(false);
+                    if (!wasRetry2) tracking.trackQuestion(false);
                     
                     // Feld zurücksetzen für neuen Versuch, Aufgabe bleibt
                     setTimeout(() => {
