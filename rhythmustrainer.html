@@ -2834,15 +2834,23 @@
                 const subSkillLabel = subs[Math.max(0, subIdx)] ? subs[Math.max(0, subIdx)].label : '';
                 label.textContent = subLabel + ' ' + nodeName + ' – ' + subSkillLabel + ' — ' + this.questionsAnswered + '/' + this.totalQuestions;
                 
-                const taskTexts = {
-                    einsteiger: 'Notenwerte addieren',
-                    taktarten: 'Taktart erkennen',
-                    fortgeschrittener: 'Zählzeiten bestimmen',
-                    profi: 'Rhythmussprache sprechen',
-                    notenwert_bilden: 'Fehlenden Wert ergänzen',
-                    rhythmusdiktat: 'Rhythmusdiktat'
-                };
-                task.textContent = taskTexts[this.currentLevel] || '';
+                // Spezifische Aufgabenstellung aus Lernkarte holen
+                const lernkarteKey = app.getLernkarteKey(highestOpt);
+                const lernkarte = app.lernkartenContent ? app.lernkartenContent[lernkarteKey] : null;
+                if (lernkarte && lernkarte.title) {
+                    const parts = lernkarte.title.split(' — ');
+                    task.textContent = parts.length > 1 ? parts[1] : lernkarte.title;
+                } else {
+                    const taskTexts = {
+                        einsteiger: 'Notenwerte addieren',
+                        taktarten: 'Taktart erkennen',
+                        fortgeschrittener: 'Zählzeiten bestimmen',
+                        profi: 'Rhythmussprache sprechen',
+                        notenwert_bilden: 'Fehlenden Wert ergänzen',
+                        rhythmusdiktat: 'Rhythmusdiktat'
+                    };
+                    task.textContent = taskTexts[this.currentLevel] || '';
+                }
 
                 // Update progress bars
                 const pct = this.totalQuestions > 0 ? (this.questionsAnswered / this.totalQuestions) * 100 : 0;
@@ -3790,12 +3798,13 @@ Gerät:
                     'quarter': 'quarter',
                     'eighth': 'eighth',
                     'sixteenth': 'sixteenth',
+                    'whole-rest': 'wholeRest',
                     'half-rest': 'halfRest',
                     'quarter-rest': 'quarterRest',
                     'eighth-rest': 'eighthRest',
                     'sixteenth-rest': 'sixteenthRest'
                 };
-                
+
                 // Sonderbehandlung für zusammengesetzte Typen
                 if (type.startsWith('dotted-')) {
                     return this.renderDottedLegendSymbol(type, width, height);

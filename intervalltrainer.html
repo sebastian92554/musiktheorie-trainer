@@ -2787,10 +2787,15 @@
                 const mastered = this.progress[this.currentLevel].mastered;
                 const subs = this.nodeSubSkills[Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel)];
                 const subIds = subs.map(s => s.id);
-                const nextUnmastered = subIds.find(opt => !mastered.includes(opt));
 
-                if (nextUnmastered) {
-                    mastered.push(nextUnmastered);
+                // Kaskade: Wer z.B. 3b besteht, kann auch 3a
+                const currentOpts = this.currentOptions || [];
+                const lastOpt = currentOpts[currentOpts.length - 1];
+                for (const opt of subIds) {
+                    if (!mastered.includes(opt)) {
+                        mastered.push(opt);
+                    }
+                    if (opt === lastOpt) break;
                 }
 
                 this.saveProgress();
