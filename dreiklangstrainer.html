@@ -1204,6 +1204,7 @@
             cursor: pointer;
             border-radius: 0.35rem;
             transition: background 0.1s;
+            position: relative;
         }
         .st-sub-skill:hover {
             background: #d1fae5;
@@ -1211,6 +1212,22 @@
         .st-sub-skill.sub-selected {
             background: #d1fae5;
             font-weight: 600;
+        }
+        /* Vertikale Progressionslinie zwischen Dots */
+        .st-sub-skill:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: calc(0.4rem + 6px);
+            top: calc(50% + 7px);
+            width: 2px;
+            height: var(--line-h, calc(100% - 14px));
+            z-index: 2;
+        }
+        .st-sub-skill:not(:last-child).st-sub-done::after {
+            background: #10b981;
+        }
+        .st-sub-skill:not(:last-child):not(.st-sub-done)::after {
+            background: #d1d5db;
         }
         .st-sub-dot {
             width: 14px;
@@ -1222,6 +1239,8 @@
             justify-content: center;
             flex-shrink: 0;
             font-size: 0.5rem;
+            position: relative;
+            z-index: 1;
         }
         .st-sub-dot.done {
             background: #10b981;
@@ -1232,7 +1251,7 @@
             border-color: #10b981;
             background: white;
         }
-        .st-sub-dot.current::after {
+        .st-sub-dot.current::before {
             content: '';
             width: 6px;
             height: 6px;
@@ -2342,7 +2361,8 @@
                             const starsHtml = isDone && starCount > 0
                                 ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
                                 : '';
-                            return `<div class="st-sub-skill" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
+                            const doneClass = isDone ? ' st-sub-done' : '';
+                            return `<div class="st-sub-skill${doneClass}" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
                                 <div class="${dotClass}">${dotContent}</div>
                                 <span>${sub.label}</span>
                                 ${starsHtml}
@@ -2406,6 +2426,20 @@
                 node.classList.add('selected');
                 wrapper.classList.add('expanded');
                 this.selectedNode = nodeId;
+
+                // Progressionslinien: exakte Höhen berechnen (nach Layout)
+                requestAnimationFrame(() => {
+                    const container = document.getElementById('stSubs-' + nodeId);
+                    if (!container) return;
+                    const items = [...container.querySelectorAll('.st-sub-skill')];
+                    for (let i = 0; i < items.length - 1; i++) {
+                        const dot = items[i].querySelector('.st-sub-dot');
+                        const nextDot = items[i + 1].querySelector('.st-sub-dot');
+                        if (!dot || !nextDot) continue;
+                        const lineH = nextDot.getBoundingClientRect().top - dot.getBoundingClientRect().bottom;
+                        items[i].style.setProperty('--line-h', Math.max(0, lineH) + 'px');
+                    }
+                });
 
                 // Dot bei empfohlener Sub-Skill auf "current" setzen
                 this._updateSubDotSelection(nodeId);
