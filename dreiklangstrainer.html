@@ -991,7 +991,7 @@
             gap: 0.75rem;
             width: 100%;
         }
-        .st-fork-branches .st-node-wrapper { max-width: 100%; } /* In Fork-Ästen volle Breite der Spalte */
+        .st-fork-branches .st-node-wrapper { max-width: 100%; }
 
         .st-branch-label {
             font-size: 0.6rem;
@@ -1024,25 +1024,6 @@
         .building-tool-btn.active { border-color: #10b981; background: #f0fdf4; color: #10b981; font-weight: 600; }
         .building-tool-btn:hover { border-color: #94a3b8; }
 
-        /* Kompetenz-Trenner zwischen Dreiklänge bilden und Umkehrungen bilden */
-        .st-competency-separator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin: 8px 0;
-            font-size: 0.55rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .st-competency-separator::before,
-        .st-competency-separator::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
-        }
 
         /* Skill-Knoten */
         .st-node {
@@ -1720,7 +1701,7 @@
                                 </div>
                                 <div class="st-sub-skills" id="stSubs-drei6"></div>
                             </div>
-                            <div class="st-competency-separator">Umkehrungen</div>
+                            <div class="st-branch-inner-connector" id="stConn-drei6-drei7"></div>
                             <div class="st-node-wrapper" id="stNode-drei7">
                                 <div class="st-node available" onclick="quickStart.selectNode('drei7')">
                                     <div class="st-node-icon">7</div>
@@ -2318,6 +2299,7 @@
                         'drei2': 'stConn-drei1-drei2',
                         'drei4': 'stConn-drei3-drei4',
                         'drei6': 'stConn-drei5-drei6',
+                        'drei7': 'stConn-drei6-drei7',
                         'drei8': 'stConn-drei7-drei8'
                     };
                     const predecessors = {
@@ -2385,12 +2367,33 @@
                         </div>`;
                 }
 
+                // Kn4 auf Y-Position von Kn7 ausrichten (cached → kein Flicker)
+                this._alignNode4ToNode7();
+
                 // Auto-select ersten verfügbaren Knoten
                 if (!this.selectedNode && firstAvailableNode) {
                     this.selectNode(firstAvailableNode);
                 } else if (this.selectedNode) {
                     this._updateStartButton();
                 }
+            },
+
+            // Kn4 an Kn7 ausrichten: Connector nur verlängern wenn Kn4 über Kn7 wäre
+            _alignNode4ToNode7() {
+                const conn = document.getElementById('stConn-drei3-drei4');
+                if (!conn) return;
+                requestAnimationFrame(() => {
+                    const node4 = document.getElementById('stNode-drei4');
+                    const node7 = document.getElementById('stNode-drei7');
+                    if (!node4 || !node7) return;
+                    // Auf Standardhöhe zurücksetzen für saubere Messung
+                    conn.style.height = '';
+                    void conn.offsetHeight; // Reflow erzwingen
+                    const offset = node7.getBoundingClientRect().top - node4.getBoundingClientRect().top;
+                    if (offset > 1) {
+                        conn.style.height = (16 + offset) + 'px';
+                    }
+                });
             },
 
             // ---- Skilltree: Knoten auswählen ----
@@ -2407,6 +2410,7 @@
                     this.selectedNode = null;
                     this.selectedSub = null;
                     this._updateStartButton();
+                    this._alignNode4ToNode7();
                     return;
                 }
 
@@ -2424,7 +2428,10 @@
                 // Dot bei empfohlener Sub-Skill auf "current" setzen
                 this._updateSubDotSelection(nodeId);
                 this._updateStartButton();
-                requestAnimationFrame(() => this._drawSubLines(nodeId));
+                requestAnimationFrame(() => {
+                    this._drawSubLines(nodeId);
+                    this._alignNode4ToNode7();
+                });
             },
 
             _drawSubLines(nodeId) {
@@ -4593,7 +4600,7 @@ const _lernkartenContent = {
 
                 // Keyboard-Hint anpassen
                 const kbHint = document.getElementById('keyboardHint');
-                if (kbHint) kbHint.textContent = 'Klicke die 3 Töne';
+                if (kbHint) kbHint.textContent = this.buildingIsKeyboard ? 'Klicke die 3 Töne' : 'Tastaturhilfe';
 
                 // State wiederherstellen
                 this.currentChord = savedChord;

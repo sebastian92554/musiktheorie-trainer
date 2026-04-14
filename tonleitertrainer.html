@@ -3032,6 +3032,7 @@
             this.isActive = true;
             app.buildingTaskCounter = 0;
             app._buildingTypeHistory = [];
+            app._buildingScaleUsage = {};
 
             // Collect options — aus Skilltree-State oder Fallback
             if (optionsFromSkilltree) {
@@ -3929,15 +3930,22 @@
                 else maxVZ = 3;                // 8–10: bis 3 VZ
             }
 
-            // Tonleiter wählen (Dur + Moll), Wiederholung vermeiden
+            // Tonleiter wählen (Dur + Moll), Wiederholung steuern
             const allScales = [...SCALES.dur, ...SCALES.moll].filter(s => s.vorzeichen >= minVZ && s.vorzeichen <= maxVZ);
             let pool = allScales;
-            // Gleiche Tonleiter nicht direkt wiederholen
+            // Gleiche Tonleiter nicht direkt hintereinander
             if (pool.length > 1 && this.currentScale) {
                 const lastKey = this.currentScale.root + '-' + this.currentScale.type;
                 pool = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
                 if (pool.length === 0) pool = allScales;
             }
+            // Max 2× gleiche Tonleiter pro Session (spätere Wiederholung didaktisch sinnvoll)
+            if (!this._buildingScaleUsage) this._buildingScaleUsage = {};
+            const usageLimited = pool.filter(s => {
+                const key = s.root + '-' + s.type;
+                return (this._buildingScaleUsage[key] || 0) < 2;
+            });
+            if (usageLimited.length > 0) pool = usageLimited;
             // Nach 2× gleichem Typ (Dur/Moll) wechseln
             if (!this._buildingTypeHistory) this._buildingTypeHistory = [];
             const lastTypes = this._buildingTypeHistory.slice(-2);
@@ -3946,6 +3954,8 @@
                 if (diffType.length > 0) pool = diffType;
             }
             const scale = pool[Math.floor(Math.random() * pool.length)];
+            const scaleKey = scale.root + '-' + scale.type;
+            this._buildingScaleUsage[scaleKey] = (this._buildingScaleUsage[scaleKey] || 0) + 1;
             this._buildingTypeHistory.push(scale.type);
             if (this._buildingTypeHistory.length > 5) this._buildingTypeHistory.shift();
 
