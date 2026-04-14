@@ -36,7 +36,6 @@
             background: linear-gradient(to bottom right, #ecfeff, #cffafe);
             min-height: 100vh;
             padding: 1rem;
-            overscroll-behavior: none;
         }
 
         @media (max-width: 768px) {
@@ -467,6 +466,15 @@
             background: #f8fafc;
             border-radius: 0.5rem;
             border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        /* Durchgehende Verbindungslinie — wird per JS positioniert */
+        .st-sub-skills .st-sub-line {
+            position: absolute;
+            width: 2px;
+            background: #d1d5db;
+            z-index: 0;
+            pointer-events: none;
         }
         .st-node-wrapper.expanded .st-sub-skills {
             display: block;
@@ -490,34 +498,21 @@
             background: #cffafe;
             font-weight: 600;
         }
-        /* Vertikale Progressionslinie zwischen Dots */
-        .st-sub-skill:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            left: calc(0.35rem + 5px); /* Dot-Mitte: padding-left + halbe Dot-Breite - halbe Linienbreite */
-            top: calc(50% + 6px); /* Dot-Unterkante (zentrierter Dot + halbe Höhe) */
-            width: 2px;
-            height: var(--line-h, calc(100% - 12px));
-            z-index: 2;
-        }
-        .st-sub-skill:not(:last-child).st-sub-done::after {
-            background: #0891b2;
-        }
-        .st-sub-skill:not(:last-child):not(.st-sub-done)::after {
-            background: #d1d5db;
-        }
         .st-sub-dot {
-            width: 12px;
-            height: 12px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             border: 2px solid #d1d5db;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 0.5rem;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #6b7280;
             position: relative;
-            z-index: 1;
+            z-index: 2;
+            background: #f8fafc;
         }
         .st-sub-dot.done {
             background: #0891b2;
@@ -527,13 +522,7 @@
         .st-sub-dot.current {
             border-color: #0891b2;
             background: white;
-        }
-        .st-sub-dot.current::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #0891b2;
+            color: #0891b2;
         }
         .st-sub-stars {
             margin-left: auto;
@@ -1358,11 +1347,6 @@
             color: #6b7280;
             margin-top: 2px;
         }
-        .header-exercise-hint {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 1px;
-        }
         .header-progress-dual {
             position: relative;
             height: 6px;
@@ -2097,7 +2081,6 @@
                 <div class="header-exercise-info" id="headerExerciseInfo">
                     <div class="header-exercise-label" id="headerExerciseLabel"></div>
                     <div class="header-exercise-task" id="headerExerciseTask"></div>
-                    <div class="header-exercise-hint" id="headerExerciseHint"></div>
                     <div class="header-progress-dual">
                         <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
                         <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
@@ -2670,18 +2653,24 @@
                 const scores = this.progress[level].scores || {};
                 const subsContainer = document.getElementById('stSubs-' + nodeId);
                 if (subsContainer) {
+                    const nodeNum = nodeId.replace(/\D/g, '');
                     subsContainer.innerHTML = subs.map((sub, idx) => {
                         const isDone = mastered.includes(sub.id);
                         const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
                         const dotClass = isDone ? 'st-sub-dot done' : (isCurrent ? 'st-sub-dot current' : 'st-sub-dot');
-                        const dotContent = isDone ? '✓' : '';
+                        const subLabel = nodeNum + String.fromCharCode(97 + idx);
+                        const dotContent = isDone ? '✓' : subLabel;
+                        // Farbliche Progression: zunehmend dunkler je weiter fortgeschritten
+                        const t = subs.length > 1 ? idx / (subs.length - 1) : 0;
+                        const borderLightness = Math.round(82 - t * 30); // 82% → 52%
+                        const progressColor = `hsl(192, 50%, ${borderLightness}%)`;
+                        const progressStyle = isDone ? '' : ` style="border-color: ${progressColor};"`;
                         const starCount = scores[sub.id] || 0;
                         const starsHtml = isDone && starCount > 0
                             ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
                             : '';
-                        const doneClass = isDone ? ' st-sub-done' : '';
-                        return `<div class="st-sub-skill${doneClass}" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
-                            <div class="${dotClass}">${dotContent}</div>
+                        return `<div class="st-sub-skill" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
+                            <div class="${dotClass}"${progressStyle}>${dotContent}</div>
                             <span>${sub.label}</span>
                             ${starsHtml}
                         </div>`;
@@ -2756,22 +2745,56 @@
             wrapper.classList.add('expanded');
             this.selectedNode = nodeId;
 
-            // Progressionslinien: exakte Höhen berechnen (nach Layout)
-            requestAnimationFrame(() => {
-                const container = document.getElementById('stSubs-' + nodeId);
-                if (!container) return;
-                const items = [...container.querySelectorAll('.st-sub-skill')];
-                for (let i = 0; i < items.length - 1; i++) {
-                    const dot = items[i].querySelector('.st-sub-dot');
-                    const nextDot = items[i + 1].querySelector('.st-sub-dot');
-                    if (!dot || !nextDot) continue;
-                    const lineH = nextDot.getBoundingClientRect().top - dot.getBoundingClientRect().bottom;
-                    items[i].style.setProperty('--line-h', Math.max(0, lineH) + 'px');
-                }
-            });
-
             this._updateSubDotSelection(nodeId);
             this._updateStartButton();
+            // Linien zeichnen nachdem Container sichtbar ist
+            requestAnimationFrame(() => this._drawSubLines(nodeId));
+        },
+
+        // Verbindungslinien zwischen Sub-Dots zeichnen (braucht sichtbaren Container)
+        _drawSubLines(nodeId) {
+            const subsContainer = document.getElementById('stSubs-' + nodeId);
+            if (!subsContainer) return;
+            const dots = subsContainer.querySelectorAll('.st-sub-dot');
+            // Alte Linie entfernen
+            const oldLine = subsContainer.querySelector('.st-sub-line');
+            if (oldLine) oldLine.remove();
+            if (dots.length < 2) return;
+
+            const first = dots[0];
+            const last = dots[dots.length - 1];
+            const containerRect = subsContainer.getBoundingClientRect();
+            const firstRect = first.getBoundingClientRect();
+            const lastRect = last.getBoundingClientRect();
+            if (firstRect.height === 0) return; // Noch nicht sichtbar
+
+            const lineLeft = firstRect.left + firstRect.width / 2 - containerRect.left;
+            const lineTop = firstRect.top + firstRect.height / 2 - containerRect.top;
+            const lineBottom = lastRect.top + lastRect.height / 2 - containerRect.top;
+
+            const line = document.createElement('div');
+            line.className = 'st-sub-line';
+            line.style.left = lineLeft + 'px';
+            line.style.top = lineTop + 'px';
+            line.style.height = (lineBottom - lineTop) + 'px';
+            line.style.transform = 'translateX(-50%)';
+
+            // Farbe: mastered-Abschnitt teal, Rest grau
+            const level = this.nodeToLevel[nodeId];
+            const mastered = this.progress[level] ? this.progress[level].mastered || [] : [];
+            const masteredCount = mastered.length;
+            const totalDots = dots.length;
+            if (masteredCount > 0 && masteredCount < totalDots) {
+                const masteredDot = dots[masteredCount - 1];
+                const masteredRect = masteredDot.getBoundingClientRect();
+                const masteredY = masteredRect.top + masteredRect.height / 2 - containerRect.top;
+                const pct = ((masteredY - lineTop) / (lineBottom - lineTop)) * 100;
+                line.style.background = `linear-gradient(to bottom, #0891b2 ${pct}%, #d1d5db ${pct}%)`;
+            } else if (masteredCount >= totalDots) {
+                line.style.background = '#0891b2';
+            }
+
+            subsContainer.appendChild(line);
         },
 
         // ---- Skilltree: Sub-Skill auswählen ----
@@ -3115,43 +3138,6 @@
             label.textContent = `${subLabel} ${subName || nodeName} — ${this.questionsAnswered}/${this.totalQuestions}`;
             task.textContent = this.fallbackActive ? 'Markiere die Halbtonschritte!' : (taskTexts[this.currentLevel] || '');
 
-            // Kompetenz-Hinweis (dritte Zeile)
-            const hint = document.getElementById('headerExerciseHint');
-            if (hint) {
-                const hintTexts = {
-                    // ton1: Einsteiger
-                    'einsteiger_basis': 'Erkenne Ganzton- und Halbtonschritte zwischen Stammtönen',
-                    'einsteiger_vorzeichen': 'Jetzt auch mit Vorzeichen (♯ und ♭)',
-                    'einsteiger_noaudio': 'Erkenne die Schritte ohne Hörbeispiel',
-                    // ton2: Aufsteiger
-                    'aufsteiger_basis': 'Finde alle Halbtonschritte in der Tonleiter',
-                    'aufsteiger_stufenpaare': 'Wähle die richtigen Stufenpaare aus',
-                    'aufsteiger_mehr_tonarten': 'Erweiterte Tonarten mit mehr Vorzeichen',
-                    'aufsteiger_noaudio': 'Finde die Halbtonschritte ohne Hörbeispiel',
-                    // ton3: Profi
-                    'profi_muster_lernen': 'Bestimme das Tongeschlecht (Dur / Moll / Andere)',
-                    'profi_muster_erkennen': 'Finde HT-Stufen und benenne die Tonleiter',
-                    'profi_alles': 'Alle Aufgabentypen gemischt',
-                    'profi_ohne_hilfe': 'Ohne Klaviatur — nur im Kopf',
-                    'profi_noaudio': 'Bestimme die Tonleiter rein visuell',
-                    // ton4: Bilden
-                    'bilden_tastatur_einfach': 'Finde die fehlenden Töne auf der Tastatur · bis 3 VZ',
-                    'bilden_schreiben_einfach': 'Schreibe die Noten ins Liniensystem · bis 3 VZ',
-                    'bilden_tastatur_schwer': 'Tastatur mit 4–6 Vorzeichen · nur Grundton gegeben',
-                    'bilden_schreiben_schwer': 'Schreibe Tonleitern mit 4–6 Vorzeichen',
-                    'bilden_noaudio': 'Bilde die Tonleiter ohne Hörbeispiel',
-                    // ton5: Meister
-                    'meister_aussenkr': 'Dur-Tonarten im Quintenzirkel + Merksätze',
-                    'meister_innenkr': 'Moll-Tonarten und ihre Dur-Parallelen',
-                    'meister_vorz_ableitung': 'Leite Vorzeichen systematisch ab',
-                    'meister_enharmonisch': 'Enharmonische Verwechslungen erkennen',
-                    'meister_verwandte': 'Verwandte Tonarten bestimmen',
-                    'meister_symmetrien': 'Tritonus, Dreiecke und Raute im Quintenzirkel'
-                };
-                const hintKey = this.currentLevel + '_' + highestOpt;
-                hint.textContent = hintTexts[hintKey] || '';
-            }
-
             // Dual-Bar: Hintergrund = Gesamtfortschritt (rot bei Fehlern), Vordergrund = nur richtige
             const totalPct = (this.questionsAnswered / this.totalQuestions) * 100;
             const correctPct = (this.questionsCorrect / this.totalQuestions) * 100;
@@ -3317,11 +3303,11 @@
         },
 
         getOptionsForLevel(level) {
-            if (level === 'einsteiger') return ['basis', 'vorzeichen', 'noaudio'];
-            if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten', 'noaudio'];
-            if (level === 'bilden') return ['tastatur_einfach', 'schreiben_einfach', 'tastatur_schwer', 'schreiben_schwer', 'noaudio'];
+            if (level === 'einsteiger') return ['basis', 'vorzeichen'];
+            if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten'];
+            if (level === 'bilden') return ['tastatur_einfach', 'tastatur_schwer', 'schreiben_einfach', 'schreiben_schwer', 'noaudio'];
             if (level === 'meister') return ['aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'verwandte', 'symmetrien'];
-            return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe', 'noaudio'];  // profi
+            return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe'];  // profi
         },
 
         getNextStepText() {
@@ -3907,13 +3893,6 @@
         buildingGhostNote: null,        // {noteName, octave, x} Hover-Preview
         buildingTaskCounter: 0,         // Zählt Aufgaben für Lücken-Progression
 
-        // ---- Staff-Layout (Touch-abhängig) ----
-        _staffLayout() {
-            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            const isTouch = hasTouch && window.innerWidth < 1366;
-            return isTouch ? { startX: 165, spacing: 65 } : { startX: 185, spacing: 52 };
-        },
-
         // ---- Init / Configure ----
         init() {
             tracking.init();
@@ -4159,30 +4138,46 @@
             else this.buildingUserSelections.push(midi);
             this.renderBuildingKeyboard();
             this.drawStaff(); // Update staff to show user notes
+
         },
 
         checkBuildingKeyboard() {
             if (this.inputLocked) return;
+            if (!this._checkInputComplete()) return;
+            this.inputLocked = true;
 
+            // Erwartete Intervallstruktur (Halbtonabstände) der Tonleiter
             const scaleMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
             const expectedMissing = scaleMidis.filter((m, i) => !this.buildingGivenIndices.includes(i)).sort((a, b) => a - b);
-
-            // Vollständigkeitscheck: alle fehlenden Töne müssen eingegeben sein
-            if (this.buildingUserSelections.length < expectedMissing.length) {
-                this.showFeedback(false, '⚠️ Gib erst alle fehlenden Töne ein.');
-                setTimeout(() => this.hideFeedback(), 2000);
-                return;
+            const expectedIntervals = [];
+            for (let i = 1; i < scaleMidis.length; i++) {
+                expectedIntervals.push(scaleMidis[i] - scaleMidis[i - 1]);
             }
 
-            this.inputLocked = true;
+            // Vollständige Tonleiter rekonstruieren: gegebene + user-Töne
+            const fullMidis = new Array(8);
+            this.buildingGivenIndices.forEach(i => { fullMidis[i] = scaleMidis[i]; });
             const userSorted = [...this.buildingUserSelections].sort((a, b) => a - b);
-            const correct = expectedMissing.length === userSorted.length && expectedMissing.every((m, i) => m === userSorted[i]);
+            let uIdx = 0;
+            for (let i = 0; i < 8; i++) {
+                if (fullMidis[i] === undefined) {
+                    fullMidis[i] = userSorted[uIdx++] !== undefined ? userSorted[uIdx - 1] : -1;
+                }
+            }
 
-            // State vor Änderung merken (für handleAnswer-Guard)
-            const isFirstAttempt = !this.freeRetry;
+            // Lagenunabhängig: Intervallstruktur vergleichen + Konsistenz (aufsteigend)
+            let correct = userSorted.length === scaleMidis.filter((m, i) => !this.buildingGivenIndices.includes(i)).length;
+            if (correct) {
+                const userIntervals = [];
+                for (let i = 1; i < fullMidis.length; i++) {
+                    userIntervals.push(fullMidis[i] - fullMidis[i - 1]);
+                }
+                correct = userIntervals.length === expectedIntervals.length &&
+                    userIntervals.every((v, i) => v === expectedIntervals[i]);
+            }
 
             // Score (nur beim ersten Versuch)
-            if (isFirstAttempt) {
+            if (!this.freeRetry) {
                 this.score.total++;
                 if (correct) this.score.correct++;
                 this.updateScoreDisplay();
@@ -4211,7 +4206,7 @@
                 this.showFeedback(false, '⚠️ <strong>Prüfe nochmal</strong> — nicht alle Töne stimmen.');
             }
 
-            if (quickStart.isActive && isFirstAttempt) {
+            if (quickStart.isActive) {
                 quickStart.handleAnswer(correct);
             }
 
@@ -4247,15 +4242,14 @@
             const rect = svg.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const vb = svg.viewBox.baseVal;
             return {
-                x: (clientX - rect.left) / rect.width * vb.width + vb.x,
-                y: (clientY - rect.top) / rect.height * vb.height + vb.y
+                x: (clientX - rect.left) / rect.width * 600,
+                y: (clientY - rect.top) / rect.height * 320
             };
         },
 
         _staffNearestSlot(svgX) {
-            const { startX, spacing } = this._staffLayout();
+            const startX = 185, spacing = 52;
             let nearest = 0, minDist = Infinity;
             for (let i = 0; i < 8; i++) {
                 const d = Math.abs(svgX - (startX + i * spacing));
@@ -4285,29 +4279,32 @@
 
         // ---- Staff-Building: Event-Handler ----
         _staffBuildingHover(e) {
-            // Nur Touch-Tracking für Platzierung (kein Ghost-Preview)
-            if (this.inputLocked) return;
+            if (this.inputLocked) {
+                this.buildingGhostNote = null;
+                return;
+            }
             const coords = this._staffSvgCoords(e);
             const slot = this._staffNearestSlot(coords.x);
-            if (slot === -1) { this._lastTouchCoords = null; return; }
+            if (slot === -1) { this.buildingGhostNote = null; this.drawStaff(); return; }
 
-            const { startX, spacing } = this._staffLayout();
+            const startX = 185, spacing = 52;
             const slotX = startX + slot * spacing;
             const info = this._staffYToNoteInfo(coords.y);
-            this._lastTouchCoords = { ...info, x: slotX };
+            this.buildingGhostNote = { ...info, x: slotX };
+            this.drawStaff();
         },
 
         _staffBuildingPlace(e) {
             if (this.inputLocked) return;
-            const { startX, spacing } = this._staffLayout();
+            const startX = 185, spacing = 52;
             let noteName, octave, slotX;
 
-            // Touch-End: use last tracked position
-            if (e.type === 'touchend' && this._lastTouchCoords) {
-                noteName = this._lastTouchCoords.noteName;
-                octave = this._lastTouchCoords.octave;
-                slotX = this._lastTouchCoords.x;
-                this._lastTouchCoords = null;
+            // Touch-End: use last ghost position
+            if (e.type === 'touchend' && this.buildingGhostNote) {
+                noteName = this.buildingGhostNote.noteName;
+                octave = this.buildingGhostNote.octave;
+                slotX = this.buildingGhostNote.x;
+                this.buildingGhostNote = null;
             } else {
                 const coords = this._staffSvgCoords(e);
                 const slot = this._staffNearestSlot(coords.x);
@@ -4325,6 +4322,7 @@
                 this.buildingStaffNotes.push({ noteName, octave, x: slotX });
             }
             this.drawStaff();
+
         },
 
         // ---- Staff-Building: Interaktivität aktivieren/deaktivieren ----
@@ -4333,10 +4331,10 @@
             svg.classList.add('staff-interactive');
             svg.onmousedown = (e) => this._staffBuildingPlace(e);
             svg.onmousemove = (e) => this._staffBuildingHover(e);
-            svg.onmouseleave = () => { this._lastTouchCoords = null; };
+            svg.onmouseleave = () => { this.buildingGhostNote = null; this.drawStaff(); };
             svg.ontouchstart = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
             svg.ontouchmove = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
-            svg.ontouchend = (e) => { e.preventDefault(); this._staffBuildingPlace(e); this._lastTouchCoords = null; };
+            svg.ontouchend = (e) => { e.preventDefault(); this._staffBuildingPlace(e); this.buildingGhostNote = null; };
         },
 
         _disableStaffBuilding() {
@@ -4353,14 +4351,34 @@
         // ---- Staff-Building: Validierung ----
         checkBuildingStaff() {
             if (this.inputLocked) return;
+            if (!this._checkInputComplete()) return;
             this.inputLocked = true;
 
             const sortedPlaced = [...this.buildingStaffNotes].sort((a, b) => a.x - b.x);
             let correct = false;
             if (sortedPlaced.length === 8) {
-                correct = sortedPlaced.every((n, i) =>
-                    n.noteName === this.currentScale.notes[i] && n.octave === this.currentScale.octaves[i]
-                );
+                // Notennamen müssen stimmen
+                const namesMatch = sortedPlaced.every((n, i) => n.noteName === this.currentScale.notes[i]);
+                // Oktaven müssen konsistent aufsteigen (gleich oder +1 pro Schritt)
+                let octavesConsistent = true;
+                for (let i = 1; i < sortedPlaced.length; i++) {
+                    const diff = sortedPlaced[i].octave - sortedPlaced[i - 1].octave;
+                    const semiDiff = noteToMidi(sortedPlaced[i].noteName, sortedPlaced[i].octave) -
+                                     noteToMidi(sortedPlaced[i - 1].noteName, sortedPlaced[i - 1].octave);
+                    if (diff < 0 || diff > 1 || semiDiff < 0) { octavesConsistent = false; break; }
+                }
+                // Intervallstruktur muss zur Tonleiter passen
+                let intervalsMatch = true;
+                if (namesMatch && octavesConsistent) {
+                    const expectedMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
+                    for (let i = 1; i < 8; i++) {
+                        const expInterval = expectedMidis[i] - expectedMidis[i - 1];
+                        const userInterval = noteToMidi(sortedPlaced[i].noteName, sortedPlaced[i].octave) -
+                                             noteToMidi(sortedPlaced[i - 1].noteName, sortedPlaced[i - 1].octave);
+                        if (expInterval !== userInterval) { intervalsMatch = false; break; }
+                    }
+                }
+                correct = namesMatch && octavesConsistent && intervalsMatch;
             }
 
             if (!this.freeRetry) {
@@ -4579,6 +4597,7 @@
                     }, 200);
                 }
             }
+
         },
 
         // ---- Generate New Task ----
@@ -5468,17 +5487,11 @@
             const useBass = this.useBassClef;
             const staffLines = [260, 240, 220, 200, 180];
 
-            // ViewBox dynamisch anpassen für Touch-Spacing
-            const { startX: layoutStartX, spacing: layoutSpacing } = this._staffLayout();
-            const staffEndX = Math.max(590, layoutStartX + 7 * layoutSpacing + 20);
-            const vbWidth = staffEndX - 20 + 20; // viewBox startet bei x=20
-            svg.setAttribute('viewBox', `20 130 ${vbWidth} 200`);
-
             let svgContent = '';
 
             // Staff lines
             staffLines.forEach(ly => {
-                svgContent += `<line x1="80" y1="${ly}" x2="${staffEndX}" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+                svgContent += `<line x1="80" y1="${ly}" x2="590" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
             });
 
             // Clef (SVG paths for consistent cross-device rendering)
@@ -5489,7 +5502,8 @@
             }
 
             if (this.currentStage === 'bilden') {
-                const { startX, spacing } = this._staffLayout();
+                const startX = 185;
+                const spacing = 52;
                 const scaleMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
                 const highestOpt = quickStart.isActive ? quickStart.currentOptions[quickStart.currentOptions.length - 1] : 'tastatur_einfach';
                 const isKeyboard = (highestOpt === 'tastatur_einfach' || highestOpt === 'tastatur_schwer');
@@ -5501,49 +5515,29 @@
                             svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], startX + i * spacing, baseY, '#3b82f6');
                         }
                     }
-                    // Stammton-basiertes Mapping: jede User-MIDI wird ihrem nächsten Skalenslot zugeordnet (1:1)
-                    const usesFlats = this.currentScale.notes.some(n => n === 'B' || n === 'Es' || n === 'As' || n === 'Des' || n === 'Ges');
-                    const sharpNames = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','B','H'];
-                    const flatNames  = ['C','Des','D','Es','E','F','Ges','G','As','A','B','H'];
-                    const freeSlots = [];
-                    for (let i = 0; i < 8; i++) {
-                        if (!this.buildingGivenIndices.includes(i)) freeSlots.push(i);
-                    }
-                    // Paarung berechnen: sortierte Selections → nächster freier Slot (greedy, 1:1)
-                    const sortedSel = [...this.buildingUserSelections].sort((a, b) => a - b);
-                    const usedSlots = new Set();
-                    const slotAssignments = []; // {userMidi, slot}
-                    for (const userMidi of sortedSel) {
-                        let bestSlot = -1, bestDist = Infinity;
-                        for (const slot of freeSlots) {
-                            if (usedSlots.has(slot)) continue;
-                            const dist = Math.abs(userMidi - scaleMidis[slot]);
-                            if (dist < bestDist) { bestDist = dist; bestSlot = slot; }
-                        }
-                        if (bestSlot === -1) continue;
-                        usedSlots.add(bestSlot);
-                        slotAssignments.push({ userMidi, slot: bestSlot });
-                    }
-                    for (const { userMidi, slot } of slotAssignments) {
-                        const x = startX + slot * spacing;
-                        if (userMidi === scaleMidis[slot]) {
-                            svgContent += this.drawNoteAt(this.currentScale.notes[slot], this.currentScale.octaves[slot], x, baseY, '#0891b2');
-                        } else {
-                            const semitone = userMidi % 12;
-                            const octave = Math.floor(userMidi / 12) - 1;
-                            const noteName = usesFlats ? flatNames[semitone] : sharpNames[semitone];
-                            svgContent += this.drawNoteAt(noteName, octave, x, baseY, '#0891b2');
-                        }
-                    }
-                    // Slot-Markers für fehlende Positionen (ohne User-Eingabe und ohne gegebene Noten)
+                    const sortedSelections = [...this.buildingUserSelections].sort((a, b) => a - b);
+                    let slotIdx = 0;
                     for (let i = 0; i < 8; i++) {
                         if (this.buildingGivenIndices.includes(i)) continue;
-                        if (usedSlots.has(i)) continue;
-                        const x = startX + i * spacing;
-                        svgContent += `<circle cx="${x}" cy="${baseY + 30}" r="4" fill="#d1d5db"/>`;
+                        if (slotIdx < sortedSelections.length) {
+                            const userMidi = sortedSelections[slotIdx];
+                            const expectedMidi = scaleMidis[i];
+                            if (userMidi === expectedMidi) {
+                                svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], startX + i * spacing, baseY, '#0891b2');
+                            } else {
+                                const usesFlats = this.currentScale.notes.some(n => n === 'B' || n === 'Es' || n === 'As' || n === 'Des' || n === 'Ges');
+                                const semitone = userMidi % 12;
+                                const octave = Math.floor(userMidi / 12) - 1;
+                                const sharpNames = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','B','H'];
+                                const flatNames  = ['C','Des','D','Es','E','F','Ges','G','As','A','B','H'];
+                                const noteName = usesFlats ? flatNames[semitone] : sharpNames[semitone];
+                                svgContent += this.drawNoteAt(noteName, octave, startX + i * spacing, baseY, '#0891b2');
+                            }
+                            slotIdx++;
+                        }
                     }
                 } else {
-                    // STAFF-Modus: platzierte Noten + Slot-Markers
+                    // STAFF-Modus: platzierte Noten + Ghost-Note + Slot-Markers
                     this.buildingStaffNotes.forEach(n => {
                         svgContent += this.drawNoteAt(n.noteName, n.octave, n.x, baseY, '#000');
                     });
@@ -5554,6 +5548,11 @@
                         if (!this.buildingStaffNotes.find(n => Math.abs(n.x - x) < 10)) {
                             svgContent += `<circle cx="${x}" cy="${baseY + 30}" r="4" fill="#d1d5db"/>`;
                         }
+                    }
+
+                    // Ghost-Note (Hover-Preview, halbtransparent)
+                    if (this.buildingGhostNote) {
+                        svgContent += this.drawNoteAt(this.buildingGhostNote.noteName, this.buildingGhostNote.octave, this.buildingGhostNote.x, baseY, 'rgba(8,145,178,0.45)');
                     }
                 }
 
@@ -5568,7 +5567,8 @@
                 svgContent += this.drawNoteAt(this.currentScale.notes[i+1], this.currentScale.octaves[i+1], 300, baseY);
             } else {
                 // Draw 8 notes
-                const { startX, spacing } = this._staffLayout();
+                const startX = 185;
+                const spacing = 52;
 
                 // muster_lernen: Halbtonschritt-Noten und Ganztonschritt-Noten farbig markieren
                 const isMusterLernen = (this.currentStage === 'profi' && quickStart.isActive && quickStart.profiMode === 'muster_lernen');
@@ -6241,12 +6241,7 @@
                 body: `<p>Jetzt bestimmst du zusätzlich den <strong>Namen</strong> der Tonleiter.</p>
                         <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">D-Dur</div>
                         <div class="lk-visual" id="lkVisualDDur3b"></div>
-                        <div style="font-weight:600;text-align:center;color:#155e75;margin:12px 0 4px">d-Moll</div>
-                        <div class="lk-visual" id="lkVisualDMoll3b"></div>
-                        <div class="lk-rule"><strong>Schritt 1:</strong> HT-Positionen finden → Tongeschlecht bestimmen.<br>
-                        Dur: HT bei Stufe 3/4 und 7/8.<br>
-                        Moll: HT bei Stufe 2/3 und 5/6.<br>
-                        <strong>Schritt 2:</strong> Grundton ablesen → Name = Grundton + Tongeschlecht (z.B. „D-Dur" oder „d-Moll").</div>
+                        <div class="lk-rule"><strong>Schritt 1:</strong> HT-Positionen finden → Tongeschlecht bestimmen.<br><strong>Schritt 2:</strong> Grundton ablesen → Name = Grundton + Tongeschlecht (z.B. „D-Dur").</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die HT-Stufen UND benenne die Tonleiter.</div>`,
                 render() {
                     document.getElementById('lkVisualDDur3b').innerHTML =
@@ -6257,15 +6252,6 @@
                         this.renderLernkarteTastatur({
                             numOctaves: 2, keyRange: [1, 8], leftPad: 40, keyWidth: 29,
                             stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
-                        });
-                    document.getElementById('lkVisualDMoll3b').innerHTML =
-                        this.renderLernkarteStaff([
-                            {label:'D', pos:-1}, {label:'E', pos:0}, {label:'F', pos:1}, {label:'G', pos:2},
-                            {label:'A', pos:3}, {label:'B', pos:4, accidental:'flat'}, {label:'C', pos:5}, {label:'D', pos:6}
-                        ], { hideLabels: true }) +
-                        this.renderLernkarteTastatur({
-                            numOctaves: 2, keyRange: [1, 8], leftPad: 40, keyWidth: 29,
-                            stepBrackets: ['GT','HT','GT','GT','HT','GT','GT']
                         });
                 }
             },
@@ -6393,7 +6379,6 @@
                             </div>
                             <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Wähle ein Werkzeug, dann klicke ins Notensystem. Gleiche Note erneut klicken = löschen.</div>
                         </div>
-                        <div class="lk-rule"><strong>Regel:</strong> In <strong>Dur</strong> liegen die Halbtonschritte zwischen <strong>Stufe 3–4</strong> und <strong>7–8</strong> (GT–GT–<strong>HT</strong>–GT–GT–GT–<strong>HT</strong>). In <strong>Moll</strong> zwischen <strong>Stufe 2–3</strong> und <strong>5–6</strong> (GT–<strong>HT</strong>–GT–GT–<strong>HT</strong>–GT–GT).</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Arbeite dich Schritt für Schritt aufwärts — jede nächste Stufe liegt genau eine Position höher. Vergiss nicht: Wenn ein Ton ein ♯ oder ♭ braucht, wähle <em>zuerst</em> das Werkzeug, dann klicke.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe alle 8 Töne der Tonleiter ins leere Notensystem. Nutze die Werkzeuge für Vorzeichen.</div>`
             },
@@ -6734,6 +6719,38 @@
             }
         },
 
+        // Prüft ob Eingabe vollständig ist, zeigt Feedback wenn nicht
+        _checkInputComplete() {
+            if (this.currentStage === 'bilden') {
+                const needed = 8 - (this.buildingGivenIndices ? this.buildingGivenIndices.length : 0);
+                const current = (this.buildingStaffNotes && this.buildingStaffNotes.length > 0)
+                    ? this.buildingStaffNotes.length
+                    : (this.buildingUserSelections ? this.buildingUserSelections.length : 0);
+                if (current < needed) {
+                    const remaining = needed - current;
+                    this.showInfoFeedback(`Noch ${remaining} ${remaining === 1 ? 'Ton' : 'Töne'} auswählen`);
+                    setTimeout(() => this.hideFeedback(), 2000);
+                    return false;
+                }
+            } else if (this.currentStage === 'aufsteiger') {
+                const hasInput = this.stepPairSelections
+                    ? this.stepPairSelections.some(v => v)
+                    : (this.stepMarkerSelections ? this.stepMarkerSelections.some(v => v) : false);
+                if (!hasInput) {
+                    this.showInfoFeedback('Erst eine Auswahl treffen');
+                    setTimeout(() => this.hideFeedback(), 2000);
+                    return false;
+                }
+            } else if (this.currentStage === 'profi' && quickStart.fallbackActive) {
+                if (!this.stepMarkerSelections || !this.stepMarkerSelections.some(v => v)) {
+                    this.showInfoFeedback('Erst Halbtonschritte markieren');
+                    setTimeout(() => this.hideFeedback(), 2000);
+                    return false;
+                }
+            }
+            return true;
+        },
+
         // Aufsteiger: toggle step pair selection (1.-2., 2.-3., etc.)
         toggleStepPair(index) {
             if (this.inputLocked) return;
@@ -6743,6 +6760,7 @@
             if (btn) btn.classList.toggle('selected', this.stepPairSelections[index]);
             // Markiere die zugehörigen Noten auf dem Notenblatt
             this.highlightStepPairNotes();
+
         },
 
         // Markiere Notenpaare auf dem Staff entsprechend der Stufenpaar-Auswahl
@@ -6753,7 +6771,8 @@
             if (!svgEl) return;
 
             const baseY = 260;
-            const { startX, spacing } = this._staffLayout();
+            const startX = 185;
+            const spacing = 52;
             const useBass = this.useBassClef;
 
             for (let pair = 0; pair < 7; pair++) {
@@ -6793,6 +6812,7 @@
             this.stepMarkerSelections[scaleIndex] = !this.stepMarkerSelections[scaleIndex];
             this.renderKeyboard();
             this.highlightSelectedNotes();
+
         },
 
         // Highlight selected notes on the staff (Aufsteiger/Fallback only)
@@ -6807,7 +6827,8 @@
             if (isEinsteiger) return; // No highlights in Einsteiger
 
             const baseY = 260;
-            const { startX, spacing } = this._staffLayout();
+            const startX = 185;
+            const spacing = 52;
             const useBass = this.useBassClef;
 
             for (let i = 0; i < 8; i++) {
@@ -6966,6 +6987,7 @@
         // ---- Aufsteiger Basis: Keyboard-Klick Prüfung ----
         checkAufsteigerKeyboard() {
             if (this.inputLocked) return;
+            if (!this._checkInputComplete()) return;
             this.inputLocked = true;
 
             const halfSteps = this.currentScale.halfSteps;
@@ -7043,6 +7065,7 @@
         checkAufsteiger() {
             if (this.inputLocked) return;
             if (!this.stepPairSelections) return;
+            if (!this._checkInputComplete()) return;
             this.inputLocked = true;
 
             const halfSteps = this.currentScale.halfSteps; // e.g. [2, 6] for Dur
@@ -7388,6 +7411,7 @@
 
         checkFallback() {
             if (this.inputLocked) return;
+            if (!this._checkInputComplete()) return;
             this.inputLocked = true;
 
             const halfSteps = this.currentScale.halfSteps;
@@ -7861,18 +7885,7 @@ Gerät:
         if (window.innerWidth !== lastResizeWidth || window.innerHeight !== lastResizeHeight) {
             lastResizeWidth = window.innerWidth;
             lastResizeHeight = window.innerHeight;
-            if (app.currentStage === 'bilden') {
-                // Building-Modus: eigene Tastatur-Render-Funktion verwenden
-                const highestOpt = quickStart.isActive ? quickStart.currentOptions[quickStart.currentOptions.length - 1] : 'tastatur_einfach';
-                const isKeyboard = (highestOpt === 'tastatur_einfach' || highestOpt === 'tastatur_schwer');
-                if (isKeyboard) {
-                    app.renderBuildingKeyboard();
-                } else if (app.showKeyboard) {
-                    app.renderKeyboard();
-                }
-            } else if (app.showKeyboard) {
-                app.renderKeyboard();
-            }
+            if (app.showKeyboard) app.renderKeyboard();
         }
     });
 

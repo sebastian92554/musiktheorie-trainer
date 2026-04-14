@@ -1127,6 +1127,14 @@
             background: #f8fafc;
             border-radius: 0.5rem;
             border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .st-sub-skills .st-sub-line {
+            position: absolute;
+            width: 2px;
+            background: #d1d5db;
+            z-index: 0;
+            pointer-events: none;
         }
         .st-node-wrapper.expanded .st-sub-skills {
             display: block;
@@ -1134,9 +1142,9 @@
         .st-sub-skill {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.35rem 0.4rem;
-            font-size: 0.75rem;
+            gap: 0.4rem;
+            padding: 0.3rem 0.35rem;
+            font-size: 0.7rem;
             color: #475569;
             cursor: pointer;
             border-radius: 0.35rem;
@@ -1150,34 +1158,21 @@
             background: #f3e8ff;
             font-weight: 600;
         }
-        /* Vertikale Progressionslinie zwischen Dots */
-        .st-sub-skill:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            left: calc(0.4rem + 6px);
-            top: calc(50% + 7px);
-            width: 2px;
-            height: var(--line-h, calc(100% - 14px));
-            z-index: 2;
-        }
-        .st-sub-skill:not(:last-child).st-sub-done::after {
-            background: #8b5cf6;
-        }
-        .st-sub-skill:not(:last-child):not(.st-sub-done)::after {
-            background: #d1d5db;
-        }
         .st-sub-dot {
-            width: 14px;
-            height: 14px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             border: 2px solid #d1d5db;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 0.5rem;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #6b7280;
             position: relative;
-            z-index: 1;
+            z-index: 2;
+            background: #f8fafc;
         }
         .st-sub-dot.done {
             background: #8b5cf6;
@@ -1187,13 +1182,7 @@
         .st-sub-dot.current {
             border-color: #8b5cf6;
             background: white;
-        }
-        .st-sub-dot.current::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #8b5cf6;
+            color: #8b5cf6;
         }
         .st-sub-stars {
             margin-left: auto;
@@ -2321,22 +2310,27 @@
                     const scores = this.progress[level].scores || {};
                     const subsContainer = document.getElementById('stSubs-' + nodeId);
                     if (subsContainer) {
-                        subsContainer.innerHTML = subs.map((sub, idx) => {
-                            const isDone = mastered.includes(sub.id);
-                            const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
-                            const dotClass = isDone ? 'st-sub-dot done' : (isCurrent ? 'st-sub-dot current' : 'st-sub-dot');
-                            const dotContent = isDone ? '✓' : '';
-                            const starCount = scores[sub.id] || 0;
-                            const starsHtml = isDone && starCount > 0
-                                ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
-                                : '';
-                            const doneClass = isDone ? ' st-sub-done' : '';
-                            return `<div class="st-sub-skill${doneClass}" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
-                                <div class="${dotClass}">${dotContent}</div>
-                                <span>${sub.label}</span>
-                                ${starsHtml}
-                            </div>`;
-                        }).join('');
+                        const nodeNum = nodeId.replace(/\D/g, '');
+                    subsContainer.innerHTML = subs.map((sub, idx) => {
+                        const isDone = mastered.includes(sub.id);
+                        const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
+                        const dotClass = isDone ? 'st-sub-dot done' : (isCurrent ? 'st-sub-dot current' : 'st-sub-dot');
+                        const subLabel = nodeNum + String.fromCharCode(97 + idx);
+                        const dotContent = isDone ? '✓' : subLabel;
+                        const t = subs.length > 1 ? idx / (subs.length - 1) : 0;
+                        const borderLightness = Math.round(82 - t * 30);
+                        const progressColor = `hsl(263, 50%, ${borderLightness}%)`;
+                        const progressStyle = isDone ? '' : ` style="border-color: ${progressColor};"`;
+                        const starCount = scores[sub.id] || 0;
+                        const starsHtml = isDone && starCount > 0
+                            ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
+                            : '';
+                        return `<div class="st-sub-skill" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
+                            <div class="${dotClass}"${progressStyle}>${dotContent}</div>
+                            <span>${sub.label}</span>
+                            ${starsHtml}
+                        </div>`;
+                    }).join('');
                     }
                 });
 
@@ -2396,22 +2390,47 @@
                 wrapper.classList.add('expanded');
                 this.selectedNode = nodeId;
 
-                // Progressionslinien: exakte Höhen berechnen (nach Layout)
-                requestAnimationFrame(() => {
-                    const container = document.getElementById('stSubs-' + nodeId);
-                    if (!container) return;
-                    const items = [...container.querySelectorAll('.st-sub-skill')];
-                    for (let i = 0; i < items.length - 1; i++) {
-                        const dot = items[i].querySelector('.st-sub-dot');
-                        const nextDot = items[i + 1].querySelector('.st-sub-dot');
-                        if (!dot || !nextDot) continue;
-                        const lineH = nextDot.getBoundingClientRect().top - dot.getBoundingClientRect().bottom;
-                        items[i].style.setProperty('--line-h', Math.max(0, lineH) + 'px');
-                    }
-                });
-
                 this._updateSubDotSelection(nodeId);
                 this._updateStartButton();
+                requestAnimationFrame(() => this._drawSubLines(nodeId));
+            },
+
+            _drawSubLines(nodeId) {
+                const subsContainer = document.getElementById('stSubs-' + nodeId);
+                if (!subsContainer) return;
+                const dots = subsContainer.querySelectorAll('.st-sub-dot');
+                const oldLine = subsContainer.querySelector('.st-sub-line');
+                if (oldLine) oldLine.remove();
+                if (dots.length < 2) return;
+                const first = dots[0];
+                const last = dots[dots.length - 1];
+                const containerRect = subsContainer.getBoundingClientRect();
+                const firstRect = first.getBoundingClientRect();
+                const lastRect = last.getBoundingClientRect();
+                if (firstRect.height === 0) return;
+                const lineLeft = firstRect.left + firstRect.width / 2 - containerRect.left;
+                const lineTop = firstRect.top + firstRect.height / 2 - containerRect.top;
+                const lineBottom = lastRect.top + lastRect.height / 2 - containerRect.top;
+                const line = document.createElement('div');
+                line.className = 'st-sub-line';
+                line.style.left = lineLeft + 'px';
+                line.style.top = lineTop + 'px';
+                line.style.height = (lineBottom - lineTop) + 'px';
+                line.style.transform = 'translateX(-50%)';
+                const level = this.nodeToLevel[nodeId];
+                const mastered = this.progress[level] ? this.progress[level].mastered || [] : [];
+                const masteredCount = mastered.length;
+                const totalDots = dots.length;
+                if (masteredCount > 0 && masteredCount < totalDots) {
+                    const masteredDot = dots[masteredCount - 1];
+                    const masteredRect = masteredDot.getBoundingClientRect();
+                    const masteredY = masteredRect.top + masteredRect.height / 2 - containerRect.top;
+                    const pct = ((masteredY - lineTop) / (lineBottom - lineTop)) * 100;
+                    line.style.background = `linear-gradient(to bottom, #8b5cf6 ${pct}%, #d1d5db ${pct}%)`;
+                } else if (masteredCount >= totalDots) {
+                    line.style.background = '#8b5cf6';
+                }
+                subsContainer.appendChild(line);
             },
 
             // ---- Skilltree: Sub-Skill auswählen ----
@@ -2484,7 +2503,6 @@
                     const isDone = mastered.includes(subs[idx].id);
                     if (isDone) return;
                     dot.classList.remove('current');
-                    dot.style.cssText = '';
                     if (idx === activeIdx) {
                         dot.classList.add('current');
                     }
@@ -2868,15 +2886,23 @@
                 const subSkillLabel = subs[Math.max(0, subIdx)] ? subs[Math.max(0, subIdx)].label : '';
                 label.textContent = subLabel + ' ' + nodeName + ' – ' + subSkillLabel + ' — ' + this.questionsAnswered + '/' + this.totalQuestions;
                 
-                const taskTexts = {
-                    einsteiger: 'Notenwerte addieren',
-                    taktarten: 'Taktart erkennen',
-                    fortgeschrittener: 'Zählzeiten bestimmen',
-                    profi: 'Rhythmussprache sprechen',
-                    notenwert_bilden: 'Fehlenden Wert ergänzen',
-                    rhythmusdiktat: 'Rhythmusdiktat'
-                };
-                task.textContent = taskTexts[this.currentLevel] || '';
+                // Spezifische Aufgabenstellung aus Lernkarte holen
+                const lernkarteKey = app.getLernkarteKey(highestOpt);
+                const lernkarte = app.lernkartenContent ? app.lernkartenContent[lernkarteKey] : null;
+                if (lernkarte && lernkarte.title) {
+                    const parts = lernkarte.title.split(' — ');
+                    task.textContent = parts.length > 1 ? parts[1] : lernkarte.title;
+                } else {
+                    const taskTexts = {
+                        einsteiger: 'Notenwerte addieren',
+                        taktarten: 'Taktart erkennen',
+                        fortgeschrittener: 'Zählzeiten bestimmen',
+                        profi: 'Rhythmussprache sprechen',
+                        notenwert_bilden: 'Fehlenden Wert ergänzen',
+                        rhythmusdiktat: 'Rhythmusdiktat'
+                    };
+                    task.textContent = taskTexts[this.currentLevel] || '';
+                }
 
                 // Update progress bars
                 const pct = this.totalQuestions > 0 ? (this.questionsAnswered / this.totalQuestions) * 100 : 0;
@@ -3824,12 +3850,13 @@ Gerät:
                     'quarter': 'quarter',
                     'eighth': 'eighth',
                     'sixteenth': 'sixteenth',
+                    'whole-rest': 'wholeRest',
                     'half-rest': 'halfRest',
                     'quarter-rest': 'quarterRest',
                     'eighth-rest': 'eighthRest',
                     'sixteenth-rest': 'sixteenthRest'
                 };
-                
+
                 // Sonderbehandlung für zusammengesetzte Typen
                 if (type.startsWith('dotted-')) {
                     return this.renderDottedLegendSymbol(type, width, height);
