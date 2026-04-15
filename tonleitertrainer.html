@@ -64,6 +64,27 @@
             }
         }
 
+        /* ---- Aufgabenstellung ---- */
+        .task-instruction {
+            background: #ecfeff;
+            border: 1px solid #a5f3fc;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            display: none;
+        }
+        .task-instruction.active { display: block; }
+        .task-instruction-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #155e75;
+        }
+        @media (max-width: 768px) {
+            .task-instruction { padding: 8px 12px; }
+            .task-instruction-text { font-size: 1rem; }
+        }
+
         @media (min-width: 769px) and (max-height: 900px) {
             .card {
                 padding: 0.4rem;
@@ -720,12 +741,15 @@
         .staff-card {
             text-align: center;
             padding: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.3rem;
         }
 
         #staffSvg {
             max-width: 100%;
-            display: block;
-            margin: 0 auto;
+            min-width: 0;
         }
 
         /* Keyboard (IT-Pattern) */
@@ -2152,6 +2176,11 @@
             </div>
         </div>
 
+        <!-- Aufgabenstellung -->
+        <div class="task-instruction" id="taskInstruction">
+            <div class="task-instruction-text" id="taskInstructionText"></div>
+        </div>
+
         <!-- Score Display (nur im freien Modus sichtbar) -->
         <div class="card" id="scoreCard">
             <div class="score-display" id="scoreDisplay">
@@ -2182,15 +2211,22 @@
             ⚠️ Markiere die Halbtonschritte dieser Tonleiter, um weiterzumachen!
         </div>
 
-        <!-- Task Description + Audio -->
-        <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-            <div id="taskDescription" style="text-align:center; padding:6px 10px; font-size:0.9rem; color:#6b7280; font-weight:500;"></div>
-            <div id="audioControls" style="display: none;">
+        <!-- (Audio Controls sind jetzt direkt in der Staff Card) -->
+
+        <!-- Responsive Wrapper for Landscape Grid -->
+        <div class="main-content-wrapper">
+
+        <!-- Staff Card -->
+        <div class="card staff-card" id="staffCard">
+            <svg id="staffSvg" width="620" height="200" viewBox="20 130 600 200" style="flex: 0 1 auto; min-width: 0;"></svg>
+            <div id="audioControls" style="display: none; flex: 0 0 auto;">
                 <button type="button" id="playScaleBtn" onclick="app.playScale()"
                     title="Tonleiter anhören"
-                    style="background: none; border: none; cursor: pointer; padding: 2px;
-                           opacity: 0.5; transition: opacity 0.15s;"
-                    onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'">
+                    style="background: #f0fdfa; border: 2px solid #99f6e4; border-radius: 50%;
+                           cursor: pointer; padding: 8px; width: 40px; height: 40px;
+                           display: flex; align-items: center; justify-content: center;
+                           opacity: 0.7; transition: opacity 0.15s, background 0.15s;"
+                    onmouseenter="this.style.opacity='1';this.style.background='#ccfbf1'" onmouseleave="this.style.opacity='0.7';this.style.background='#f0fdfa'">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
                          stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -2199,14 +2235,6 @@
                     </svg>
                 </button>
             </div>
-        </div>
-
-        <!-- Responsive Wrapper for Landscape Grid -->
-        <div class="main-content-wrapper">
-
-        <!-- Staff Card -->
-        <div class="card staff-card" id="staffCard">
-            <svg id="staffSvg" width="620" height="200" viewBox="20 130 600 200"></svg>
         </div>
 
         <!-- Step Markers (Aufsteiger) -->
@@ -3304,10 +3332,20 @@
         },
 
         // ---- Screen Management ----
+        // ---- Aufgabenstellung ----
+        showTaskInstruction(text) {
+            document.getElementById('taskInstructionText').innerHTML = text;
+            document.getElementById('taskInstruction').classList.add('active');
+        },
+        hideTaskInstruction() {
+            document.getElementById('taskInstruction').classList.remove('active');
+        },
+
         showQuickStart() {
             document.getElementById('quickStartScreen').classList.add('active');
             document.getElementById('successScreen').classList.remove('active');
             document.getElementById('originalApp').classList.remove('active');
+            this.hideTaskInstruction();
             this.isActive = false;
         },
 
@@ -3346,6 +3384,7 @@
             if (audioControls) audioControls.style.display = '';
 
             app.generateNewTask();
+            this.showTaskInstruction('Ganzton- oder Halbtonschritt? Wähle die richtige Antwort.');
         },
 
         backToStart() {
@@ -3530,15 +3569,6 @@
             // Sub-Skill-Label für Meister (z.B. "Außenkreis + Merksätze")
             const meisterSubName = (this.currentLevel === 'meister' && subs && subIdx >= 0) ? subs[subIdx].label : '';
 
-            const taskTexts = {
-                einsteiger: 'Ganzton oder Halbton?',
-                aufsteiger: 'Wähle die Halbtonschritt-Paare!',
-                profi: this.profiMode === 'muster_erkennen' ? 'Wähle HS-Stufen & benenne die Tonleiter!' :
-                       this.profiMode === 'alles' ? 'Benenne die Tonleiter!' : 'Welche Tonart?',
-                bilden: 'Bilde die Tonleiter!',
-                meister: 'Quintenzirkel-Aufgabe'
-            };
-
             const label = document.getElementById('headerExerciseLabel');
             const task = document.getElementById('headerExerciseTask');
             const segContainer = document.getElementById('headerProgressSegments');
@@ -3546,7 +3576,7 @@
             // Sub-Skill-Name im Label anzeigen (konsistent mit Skilltree)
             const subName = (subs && subIdx >= 0) ? subs[subIdx].label : '';
             label.textContent = `${subLabel} ${subName || nodeName} — ${this.questionsAnswered}/${this.totalQuestions}`;
-            task.textContent = this.fallbackActive ? 'Markiere die Halbtonschritte!' : (taskTexts[this.currentLevel] || '');
+            task.textContent = '';
 
             // Dual-Bar: Hintergrund = Gesamtfortschritt (rot bei Fehlern), Vordergrund = nur richtige
             const totalPct = (this.questionsAnswered / this.totalQuestions) * 100;
@@ -4553,6 +4583,7 @@
 
             // Bestimme Modus anhand des höchsten aktiven Sub-Skills (highestOption bereits oben deklariert)
             const isKeyboard = (highestOption === 'tastatur_einfach' || highestOption === 'tastatur_schwer');
+            this.buildingIsKeyboard = isKeyboard;
             if (isKeyboard) {
                 if (this.buildingTaskCounter <= 3) {
                     // Viel Hilfe: Grundton + Oktave + 3 zufällige
@@ -5037,7 +5068,7 @@
 
             // Nicht-Meister: QZ-Card ausblenden, Staff/Input einblenden
             qzCard.style.display = 'none';
-            if (staffCard) staffCard.style.display = '';
+            if (staffCard) staffCard.style.display = '';  /* CSS default = flex */
             inputCard.style.display = '';
 
             // Keyboard
@@ -5422,33 +5453,37 @@
         },
 
         updateTaskDescription() {
-            const el = document.getElementById('taskDescription');
-            if (!el) return;
+            let text = '';
             if (this.currentStage === 'einsteiger') {
-                el.textContent = '🎵 Ganzton oder Halbton?';
+                text = 'Ganzton- oder Halbtonschritt? Wähle die richtige Antwort.';
             } else if (this.currentStage === 'aufsteiger') {
-                el.textContent = 'Markiere die Halbtonschritte! (Dur, Moll und andere Modi)';
+                const isStufenpaare = quickStart.isActive && quickStart.currentOptions && quickStart.currentOptions.includes('stufenpaare');
+                if (isStufenpaare) {
+                    text = 'Welche Stufen bilden Halbtonschritte? Markiere die Paare mithilfe der Auswahlbuttons.';
+                } else {
+                    text = 'Wo liegen die Halbtonschritte? Markiere sie auf der Tastatur!';
+                }
             } else if (this.currentStage === 'profi') {
                 if (quickStart.fallbackActive) {
-                    el.textContent = '⚠️ Markiere die Halbtonschritte auf der Tastatur!';
+                    text = 'Markiere die Halbtonschritte auf der Tastatur!';
                 } else if (quickStart.profiMode === 'muster_lernen') {
-                    el.textContent = '🎯 Welche Tonart? Schau dir die markierten Halbtonschritte an!';
+                    text = 'Schau dir die markierten Halbtonschritte an. Welches Tongeschlecht ist das?';
                 } else if (quickStart.profiMode === 'muster_erkennen') {
-                    el.textContent = '🎯 Markiere die Halbtonschritte und benenne die Tonleiter!';
+                    text = 'Markiere die Halbtonschritte mithilfe der Auswahlbuttons und benenne die Tonleiter!';
                 } else {
-                    el.textContent = '🎯 Benenne die Tonleiter! (Dur, Moll oder Kein Dur/Moll)';
+                    text = 'Welche Tonleiter ist das? Benenne sie!';
                 }
             } else if (this.currentStage === 'bilden') {
-                const given = this.buildingGivenIndices.length;
-                if (given > 1) {
-                    el.textContent = `🎹 Ergänze die fehlenden Töne der ${this.currentScale.displayName}-Tonleiter!`;
-                } else if (given === 1) {
-                    el.textContent = `🎹 Bilde die ${this.currentScale.displayName}-Tonleiter auf!`;
+                if (this.buildingIsKeyboard) {
+                    text = 'Welche Töne fehlen in der Tonleiter? Klicke die richtigen Tasten.';
                 } else {
-                    el.textContent = `✏️ Schreibe die ${this.currentScale.displayName}-Tonleiter ins Notensystem!`;
+                    text = `Schreibe die ${this.currentScale.displayName}-Tonleiter ins Notensystem!`;
                 }
             } else if (this.currentStage === 'meister') {
-                el.textContent = '';
+                text = '';
+            }
+            if (text) {
+                quickStart.showTaskInstruction(text);
             }
         },
 
@@ -5602,8 +5637,8 @@
             if (oldNextBtn) oldNextBtn.remove();
             this.inputLocked = false;
 
-            qEl.innerHTML = this._buildQzVisual(question.subSkillId) + '<div class="qz-question-text">' +
-                question.question.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+            qEl.innerHTML = this._buildQzVisual(question.subSkillId);
+            quickStart.showTaskInstruction(question.question);
 
             if (question.type === 'buttons') {
                 iEl.innerHTML = question.options.map(opt =>
@@ -6360,6 +6395,7 @@
             const key = this.getLernkarteKey(subSkillId);
             const content = this.lernkartenContent[key];
             if (!content) return false;
+            quickStart.hideTaskInstruction();
             this._lernkarteFromStart = !!fromStart;
             if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
             document.getElementById('lernkarteTitle').textContent = content.title;
@@ -7384,6 +7420,13 @@
             if (kbCard) {
                 kbCard.classList.toggle('keyboard-input', isClickableMode);
                 kbCard.classList.toggle('keyboard-viewonly', !isClickableMode);
+                // Klickbare Tastatur vor Input, Tastaturhilfe nach Input
+                const inputCard = document.getElementById('inputCard');
+                if (isClickableMode) {
+                    kbCard.parentNode.insertBefore(kbCard, inputCard);
+                } else {
+                    inputCard.parentNode.insertBefore(inputCard, kbCard);
+                }
             }
         },
 
