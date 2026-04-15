@@ -71,6 +71,26 @@
             }
         }
 
+        .task-instruction {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            display: none;
+        }
+        .task-instruction.active { display: block; }
+        .task-instruction-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #7c2d12;
+        }
+        @media (max-width: 768px) {
+            .task-instruction { padding: 8px 12px; }
+            .task-instruction-text { font-size: 1rem; }
+        }
+
         .header {
             display: flex;
             flex-wrap: wrap;
@@ -1889,19 +1909,28 @@
             <div class="free-retry-hint" id="freeRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
         </div>
 
+        <div class="task-instruction" id="taskInstruction">
+            <div class="task-instruction-text" id="taskInstructionText"></div>
+        </div>
+
         <!-- Staff & Keyboard Wrapper für Landscape Layout -->
         <div class="staff-and-keyboard-wrapper">
             <!-- Staff -->
             <div class="card staff-card">
-                <div class="text-center">
+                <div class="text-center" id="staffBadges" style="display:none;">
                     <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
                     <span class="clef-badge" id="displayBadge" style="background: #ddd6fe; color: #5b21b6;">Harmonisch</span>
                 </div>
                 <div style="display: flex; align-items: center; justify-content: center; gap: 0;">
                     <div id="staffContainer" style="flex: 0 1 auto;"></div>
                     <div id="audioControls" style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: -4px;">
-                        <button type="button" id="playIntervalBtn" onclick="app.playInterval()" title="Intervall anhören" style="background: none; border: none; cursor: pointer; padding: 2px; opacity: 0.5; transition: opacity 0.15s;">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <button type="button" id="playIntervalBtn" onclick="app.playInterval()" title="Intervall anhören"
+                            style="background: #fff7ed; border: 2px solid #fed7aa; border-radius: 50%;
+                                   cursor: pointer; padding: 8px; width: 40px; height: 40px;
+                                   display: flex; align-items: center; justify-content: center;
+                                   opacity: 0.7; transition: opacity 0.15s, background 0.15s;"
+                            onmouseenter="this.style.opacity='1';this.style.background='#ffedd5'" onmouseleave="this.style.opacity='0.7';this.style.background='#fff7ed'">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
                                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
@@ -2870,12 +2899,21 @@
                 this.saveProgress();
             },
 
+            showTaskInstruction(text) {
+                document.getElementById('taskInstructionText').innerHTML = text;
+                document.getElementById('taskInstruction').classList.add('active');
+            },
+            hideTaskInstruction() {
+                document.getElementById('taskInstruction').classList.remove('active');
+            },
+
             // ---- Screen Management ----
             showQuickStart() {
                 document.getElementById('quickStartScreen').classList.add('active');
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('originalApp').classList.remove('active');
                 this.isActive = false;
+                this.hideTaskInstruction();
             },
 
             showFreeMode() {
@@ -2921,9 +2959,19 @@
                 document.getElementById('appTitle').textContent = 'Freies Üben';
                 document.getElementById('headerExerciseInfo').classList.remove('active');
                 document.getElementById('headerResetBtn').classList.remove('active');
+                // Badges im freien Üben separat steuern
+                const badges = document.getElementById('staffBadges');
+                const clefBadge = document.getElementById('clefBadge');
+                const displayBadge = document.getElementById('displayBadge');
+                const showClef = (app.settings.clef === 'both');
+                const showDisplay = false; // Freies Üben: kein Display-Toggle
+                if (clefBadge) clefBadge.style.display = showClef ? '' : 'none';
+                if (displayBadge) displayBadge.style.display = showDisplay ? '' : 'none';
+                if (badges) badges.style.display = (showClef || showDisplay) ? '' : 'none';
 
                 app.score = { correct: 0, total: 0 };
                 app.updateScore();
+                this.showTaskInstruction('Welches Intervall ist das? Wähle die richtige Antwort.');
                 app.generateInterval();
             },
 
@@ -3063,6 +3111,16 @@
                 if (playBtn) playBtn.style.display = (isNoAudio || isMeister) ? 'none' : '';
                 if (audioToggle) audioToggle.style.display = (level === 'experte' && !isNoAudio) ? '' : 'none';
 
+                // Badges separat ein-/ausblenden
+                const badges = document.getElementById('staffBadges');
+                const clefBadge = document.getElementById('clefBadge');
+                const displayBadge = document.getElementById('displayBadge');
+                const hasBothClefs = options.includes('bothclefs');
+                const hasDisplayToggle = (level === 'experte' && !isNoAudio);
+                if (clefBadge) clefBadge.style.display = hasBothClefs ? '' : 'none';
+                if (displayBadge) displayBadge.style.display = hasDisplayToggle ? '' : 'none';
+                if (badges) badges.style.display = (hasBothClefs || hasDisplayToggle) ? '' : 'none';
+
                 // Keyboard-View-Only Modus standardmäßig deaktivieren
                 const keyboardContainer = document.getElementById('keyboardContainer');
                 if (keyboardContainer) keyboardContainer.classList.remove('keyboard-view-only');
@@ -3169,24 +3227,51 @@
                 const subLabel = `${nodeIdx}${subLetter}`;
                 const subSkillLabel = subs[Math.max(0, subIdx)] ? subs[Math.max(0, subIdx)].label : '';
 
-                const taskTexts = {
-                    einsteiger: 'Welches Intervall ist das?',
-                    aufsteiger: 'Finde die Töne auf der Tastatur!',
-                    profi: 'Wie viele Halbtonschritte?',
-                    meister: 'Feinbestimmung lernen',
-                    experte: 'Bestimme das Intervall genau!'
-                };
-
                 const label = document.getElementById('headerExerciseLabel');
                 const task = document.getElementById('headerExerciseTask');
 
                 label.textContent = `${subLabel} ${nodeName} – ${subSkillLabel} — ${this.questionsAnswered}/${this.totalQuestions}`;
-                task.textContent = taskTexts[this.currentLevel] || '';
+                task.textContent = '';
+
+                this.updateTaskDescription();
 
                 const totalPct = (this.questionsAnswered / this.totalQuestions) * 100;
                 const correctPct = (this.questionsCorrect / this.totalQuestions) * 100;
                 document.getElementById('headerProgressTotal').style.width = totalPct + '%';
                 document.getElementById('headerProgressCorrect').style.width = correctPct + '%';
+            },
+
+            updateTaskDescription() {
+                const level = this.currentLevel;
+                const opts = this.currentOptions || [];
+                let text = '';
+
+                if (level === 'einsteiger') {
+                    if (opts.includes('nohelp')) {
+                        text = 'Welches Intervall ist das? Gib den Namen ein.';
+                    } else {
+                        text = 'Welches Intervall ist das? Wähle die richtige Antwort.';
+                    }
+                } else if (level === 'aufsteiger') {
+                    text = 'Welche Töne sind das auf der Tastatur? Klicke die richtigen Tasten.';
+                } else if (level === 'profi') {
+                    text = 'Wie viele Halbtonschritte hat das Intervall? Gib die Zahl ein.';
+                } else if (level === 'meister') {
+                    // int4: Text wird dynamisch in generateInt4Task() gesetzt
+                    return;
+                } else if (level === 'experte') {
+                    text = 'Bestimme das Intervall genau! Wähle Qualität und Größe.';
+                } else if (level === 'bilden_tastatur') {
+                    // Text wird dynamisch in setupInput() gesetzt
+                    return;
+                } else if (level === 'bilden_staff') {
+                    // Text wird dynamisch in setupInput() gesetzt
+                    return;
+                }
+
+                if (text) {
+                    this.showTaskInstruction(text);
+                }
             },
 
             // ---- Handle Answer ----
@@ -3844,11 +3929,14 @@
                                 style="padding:6px 14px;border:2px solid #d1d5db;border-radius:8px;background:white;cursor:pointer;font-size:0.85rem;transition:all 0.15s;">♭ Be</button>
                         </div>`;
                     }
+                    if (task) {
+                        if (app.buildingIsKeyboard) {
+                            quickStart.showTaskInstruction(`Bilde eine ${task.interval.name} aufwärts von ${task.startNote.name}! Klicke die richtige Taste.`);
+                        } else {
+                            quickStart.showTaskInstruction(`Bilde eine ${task.interval.name} aufwärts von ${task.startNote.name}! Schreibe die Note ins Notensystem.`);
+                        }
+                    }
                     inputCard.innerHTML = `
-                        <div class="int4-task-area" style="margin-bottom:12px;">
-                            <div class="int4-ht">Bilde: ${task ? task.interval.name : ''}</div>
-                            <div class="int4-rahmen">aufwärts von <strong>${task ? task.startNote.name : ''}</strong></div>
-                        </div>
                         ${toolsHTML}
                         <div class="input-buttons">
                             <button type="button" onclick="app.checkAnswer()" class="btn-primary"
@@ -3930,7 +4018,6 @@
                     if (currentSubSkill === 'komplement') {
                         // 2-Feld-Eingabe: HT + Intervallname
                         inputCard.innerHTML = `
-                            <div id="int4TaskArea" class="int4-task-area"></div>
                             <div class="input-row">
                                 <div class="input-group">
                                     <label for="semitonesInput">Halbtonschritte</label>
@@ -3951,7 +4038,6 @@
                     } else if (currentSubSkill === 'augdim') {
                         // Disambiguierung: HT + Rahmenintervall → Feinbestimmung
                         inputCard.innerHTML = `
-                            <div id="int4TaskArea" class="int4-task-area"></div>
                             <div class="input-row">
                                 <div class="input-group">
                                     <label for="intervalInput">Feinbestimmung</label>
@@ -3965,7 +4051,6 @@
                     } else {
                         // rein, grossklein, alles: Bidirektional (HT↔Name)
                         inputCard.innerHTML = `
-                            <div id="int4TaskArea" class="int4-task-area"></div>
                             <div class="input-row">
                                 <div class="input-group">
                                     <label for="intervalInput" id="int4InputLabel">Intervallname</label>
@@ -4580,6 +4665,7 @@
                 const key = this.getLernkarteKey(subSkillId);
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
+                quickStart.hideTaskInstruction();
                 this._lernkarteFromStart = !!fromStart;
                 if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
@@ -4824,6 +4910,7 @@
                 // Nur beim Levelstart die erste Aufgabe generieren, nicht bei Hilfe-Aufruf
                 if (this._lernkarteFromStart) {
                     this._lernkarteFromStart = false;
+                    quickStart.updateTaskDescription();
                     if (this.settings.feinbestimmungLernen) {
                         this.generateInt4Task();
                     } else {
@@ -5767,12 +5854,7 @@
                             answerHT: komplement.ht,
                             answerLabel: komplement.label
                         };
-                        const taskArea = document.getElementById('int4TaskArea');
-                        if (taskArea) {
-                            const fullLabel = source.label;
-                            taskArea.innerHTML = `<div class="int4-ht">${fullLabel} (${source.ht} HS)</div>
-                                <div class="int4-rahmen">Wie heißt das Komplementärintervall? Gib HS-Zahl und Intervallname ein.</div>`;
-                        }
+                        quickStart.showTaskInstruction(`Du siehst eine ${source.label} (${source.ht} HS). Wie heißt das Komplementärintervall? Gib HS-Zahl und Intervallname ein.`);
                         // Inputs zurücksetzen
                         const si = document.getElementById('semitonesInput'); if (si) si.value = '';
                         const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
@@ -5800,12 +5882,7 @@
                         answer: answer,
                         answerLabel: answer.label
                     };
-                    const taskArea = document.getElementById('int4TaskArea');
-                    if (taskArea) {
-                        taskArea.innerHTML = `<div class="int4-ht">${pair.ht} Halbtonschritte</div>
-                            <div class="int4-rahmen">Rahmenintervall: <strong>${rahmen}</strong></div>
-                            <div style="font-size:0.9rem;color:#6b7280;margin-top:4px">Wie lautet die Feinbestimmung?</div>`;
-                    }
+                    quickStart.showTaskInstruction(`Das Intervall hat ${pair.ht} Halbtonschritte. Das Rahmenintervall ist eine ${rahmen}. Wie lautet die Feinbestimmung?`);
                     const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
                     return;
                 } else if (currentSub === 'alles') {
@@ -5840,18 +5917,15 @@
                         interval: chosen
                     };
 
-                    const taskArea = document.getElementById('int4TaskArea');
                     const label = document.getElementById('int4InputLabel');
                     const input = document.getElementById('intervalInput');
 
                     if (direction === 'htToName') {
-                        if (taskArea) taskArea.innerHTML = `<div class="int4-ht">${chosen.ht} Halbtonschritte</div>
-                            <div class="int4-rahmen">Wie heißt das Intervall mit ${chosen.ht} Halbtonschritten?</div>`;
+                        quickStart.showTaskInstruction(`Das Intervall hat ${chosen.ht} Halbtonschritte. Wie heißt es? Gib den Intervallnamen ein.`);
                         if (label) label.textContent = 'Intervallname';
                         if (input) { input.placeholder = 'z.B. reine Quinte, r5'; input.type = 'text'; input.value = ''; }
                     } else {
-                        if (taskArea) taskArea.innerHTML = `<div class="int4-ht">${chosen.label}</div>
-                            <div class="int4-rahmen">Wie viele Halbtonschritte hat eine ${chosen.label}?</div>`;
+                        quickStart.showTaskInstruction(`Das Intervall ist eine ${chosen.label}. Wie viele Halbtonschritte hat es? Gib die Zahl ein.`);
                         if (label) label.textContent = 'Halbtonschritte';
                         if (input) { input.placeholder = 'z.B. 7'; input.type = 'number'; input.min = '0'; input.max = '12'; input.value = ''; }
                     }
@@ -6008,12 +6082,12 @@
                     }, 600);
                 } else {
                     // Fehlerfeedback — Aufgabe bleibt (User korrigiert)
-                    const feedbackEl = document.getElementById('int4TaskArea');
+                    const feedbackEl = document.getElementById('inputCard');
                     if (feedbackEl && feedback) {
                         const existingFB = feedbackEl.querySelector('.int4-feedback');
                         if (existingFB) existingFB.remove();
-                        feedbackEl.insertAdjacentHTML('beforeend',
-                            `<div class="int4-feedback" style="margin-top:8px;color:#dc2626;font-size:0.88rem;font-weight:500">⚠️ Prüfe nochmal. ${feedback}</div>`);
+                        feedbackEl.insertAdjacentHTML('afterbegin',
+                            `<div class="int4-feedback" style="margin-bottom:8px;color:#dc2626;font-size:0.88rem;font-weight:500">⚠️ Prüfe nochmal. ${feedback}</div>`);
                     }
                     // Eingabefelder leeren für neuen Versuch
                     const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
@@ -6419,6 +6493,15 @@
                 if (kbCard) {
                     kbCard.classList.toggle('keyboard-input', isClickable);
                     kbCard.classList.toggle('keyboard-viewonly', !isClickable);
+                    // Klickbare Tastatur vor Input, Tastaturhilfe nach Input
+                    const inputCardEl = document.querySelector('.input-card');
+                    if (inputCardEl && kbCard.parentNode === inputCardEl.parentNode) {
+                        if (isClickable) {
+                            kbCard.parentNode.insertBefore(kbCard, inputCardEl);
+                        } else {
+                            inputCardEl.parentNode.insertBefore(inputCardEl, kbCard);
+                        }
+                    }
                 }
                 if (kbHint) {
                     kbHint.textContent = isClickable
@@ -6908,6 +6991,11 @@
                 if (kbCard) {
                     kbCard.classList.remove('keyboard-viewonly');
                     kbCard.classList.add('keyboard-input');
+                    // Klickbare Tastatur vor Input
+                    const inputCardEl = document.querySelector('.input-card');
+                    if (inputCardEl && kbCard.parentNode === inputCardEl.parentNode) {
+                        kbCard.parentNode.insertBefore(kbCard, inputCardEl);
+                    }
                 }
             },
 
@@ -7082,7 +7170,11 @@
                         this.buildingSelectedKey = null;
                         this.buildingStaffNote = null;
                         if (fb) fb.classList.add('hidden');
-                        this._renderBuildingKeyboard();
+                        if (this.buildingIsKeyboard) {
+                            this._renderBuildingKeyboard();
+                        } else {
+                            this.renderKeyboard();
+                        }
                         this.drawStaff();
                     }, 1500);
                 }
