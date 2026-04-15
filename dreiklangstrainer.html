@@ -210,13 +210,20 @@
 
         .clef-badge {
             display: inline-block;
-            background: #d1fae5;
-            color: #7c2d12;
             padding: 0.15rem 0.5rem;
             border-radius: 9999px;
             font-weight: 600;
             font-size: 0.75rem;
             margin-bottom: 0.25rem;
+            transition: background 0.2s, color 0.2s;
+        }
+        .clef-badge.clef-treble {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .clef-badge.clef-bass {
+            background: #dbeafe;
+            color: #1e40af;
         }
 
         @media (min-width: 769px) and (max-height: 900px) {
@@ -2036,7 +2043,7 @@
                 <div class="card staff-card">
                     <div id="staffTopArea">
                         <div class="text-center" id="staffBadges" style="display:none;">
-                            <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
+                            <span class="clef-badge clef-treble" id="clefBadge">Violinschlüssel</span>
                             <span class="clef-badge" id="displayBadge" style="background: #ddd6fe; color: #5b21b6;">Harmonisch</span>
                         </div>
                     </div>
@@ -3105,7 +3112,7 @@
                 if (staffTopArea) {
                     staffTopArea.innerHTML = `
                         <div class="text-center" id="staffBadges" style="display:none;">
-                            <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
+                            <span class="clef-badge clef-treble" id="clefBadge">Violinschlüssel</span>
                             <span class="clef-badge" id="displayBadge" style="background:#ddd6fe; color:#5b21b6;">Harmonisch</span>
                         </div>
                     `;
@@ -3324,7 +3331,7 @@
                 if (staffTopArea) {
                     staffTopArea.innerHTML = `
                         <div class="text-center" id="staffBadges" style="display:none;">
-                            <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
+                            <span class="clef-badge clef-treble" id="clefBadge">Violinschlüssel</span>
                             <span class="clef-badge" id="displayBadge" style="background:#ddd6fe; color:#5b21b6;">Harmonisch</span>
                         </div>
                     `;
@@ -8134,7 +8141,9 @@ const _lernkartenContent = {
 
             updateUI() {
                 const clefBadge = document.getElementById('clefBadge');
-                clefBadge.textContent = this.currentChord.note1.clef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
+                const isTreble = this.currentChord.note1.clef === 'treble';
+                clefBadge.textContent = isTreble ? 'Violinschlüssel' : 'Bassschlüssel';
+                clefBadge.className = 'clef-badge ' + (isTreble ? 'clef-treble' : 'clef-bass');
 
                 const displayBadge = document.getElementById('displayBadge');
                 displayBadge.textContent = this.currentChord.displayMode === 'harmonic' ? 'Harmonisch' : 'Melodisch';

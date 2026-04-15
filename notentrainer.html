@@ -71,6 +71,26 @@
             }
         }
 
+        .task-instruction {
+            background: #eff6ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            display: none;
+        }
+        .task-instruction.active { display: block; }
+        .task-instruction-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #3730a3;
+        }
+        @media (max-width: 768px) {
+            .task-instruction { padding: 8px 12px; }
+            .task-instruction-text { font-size: 1rem; }
+        }
+
         .header {
             display: flex;
             flex-wrap: wrap;
@@ -668,13 +688,20 @@
 
         .clef-badge {
             display: inline-block;
-            background: #e0e7ff;
-            color: #3730a3;
             padding: 0.15rem 0.5rem;
             border-radius: 9999px;
             font-weight: 600;
             font-size: 0.75rem;
             margin-bottom: 0.25rem;
+            transition: background 0.2s, color 0.2s;
+        }
+        .clef-badge.clef-treble {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .clef-badge.clef-bass {
+            background: #dbeafe;
+            color: #1e40af;
         }
 
         @media (min-width: 769px) and (max-height: 900px) {
@@ -950,7 +977,8 @@
 
         .input-row {
             display: flex;
-            gap: 0.5rem;
+            justify-content: center;
+            gap: 0.75rem;
             align-items: flex-end;
             flex-wrap: wrap;
         }
@@ -961,14 +989,22 @@
             margin-top: 12px;
         }
 
+        .keyboard-status:empty {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .input-row {
                 flex-direction: column;
-                align-items: stretch;
+                align-items: center;
+            }
+
+            .input-row .input-group {
+                width: 100%;
+                max-width: 320px;
             }
 
             .input-row button {
-                align-self: flex-start;
                 margin-top: 0.5rem;
                 height: 42px;
             }
@@ -1129,6 +1165,9 @@
         }
         .keyboard-card.keyboard-viewonly {
             opacity: 0.85;
+        }
+        .keyboard-card.keyboard-viewonly .keyboard-hint {
+            display: none;
         }
 
         /* ============================================= */
@@ -1667,22 +1706,33 @@
         </div>
 
         <!-- Staff & Keyboard Wrapper -->
+        <div class="task-instruction" id="taskInstruction">
+            <div class="task-instruction-text" id="taskInstructionText"></div>
+        </div>
+
         <div class="staff-and-keyboard-wrapper">
             <!-- Staff -->
             <div class="card staff-card">
-                <div class="text-center" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <span class="clef-badge" id="clefBadge">Violinschlüssel</span>
-                    <button type="button" id="audioPlayBtn" onclick="app.playFeedbackTone()" title="Ton abspielen"
-                        style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 50%; opacity: 0.6; transition: opacity 0.2s;"
-                        onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.6'">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
-                        </svg>
-                    </button>
+                <div class="text-center" id="staffBadges" style="display:none;">
+                    <span class="clef-badge clef-treble" id="clefBadge">Violinschlüssel</span>
                 </div>
-                <div id="buildingTaskDescription" style="display:none; text-align:center; padding:6px 10px; font-size:0.9rem; color:#6b7280; font-weight:500;"></div>
-                <div id="staffContainer"></div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0;">
+                    <div id="staffContainer" style="flex: 0 1 auto;"></div>
+                    <div id="audioControls" style="flex: 0 0 auto;">
+                        <button type="button" id="audioPlayBtn" onclick="app.playFeedbackTone()" title="Ton abspielen"
+                            style="background: #eff6ff; border: 2px solid #c7d2fe; border-radius: 50%;
+                                   cursor: pointer; padding: 8px; width: 40px; height: 40px;
+                                   display: flex; align-items: center; justify-content: center;
+                                   opacity: 0.7; transition: opacity 0.15s, background 0.15s;"
+                            onmouseenter="this.style.opacity='1';this.style.background='#e0e7ff'" onmouseleave="this.style.opacity='0.7';this.style.background='#eff6ff'">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Keyboard -->
@@ -1694,7 +1744,7 @@
             <!-- Input (dynamisch per setupInput) -->
             <div class="card input-card">
                 <div id="inputCard"><!-- Wird dynamisch befüllt --></div>
-                <div class="keyboard-status" id="keyboardStatus"></div>
+                <div class="keyboard-status" id="keyboardStatus" style="display:none;"></div>
                 <div class="feedback hidden" id="feedback"></div>
             </div>
         </div>
@@ -2724,11 +2774,20 @@
             },
 
             // ---- Screen Management ----
+            showTaskInstruction(text) {
+                document.getElementById('taskInstructionText').innerHTML = text;
+                document.getElementById('taskInstruction').classList.add('active');
+            },
+            hideTaskInstruction() {
+                document.getElementById('taskInstruction').classList.remove('active');
+            },
+
             showQuickStart() {
                 document.getElementById('quickStartScreen').classList.add('active');
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('originalApp').classList.remove('active');
                 this.isActive = false;
+                this.hideTaskInstruction();
             },
 
             showFreeMode() {
@@ -2750,6 +2809,9 @@
                 document.getElementById('appTitle').textContent = 'Freies Üben';
                 document.getElementById('headerExerciseInfo').classList.remove('active');
                 document.getElementById('headerResetBtn').classList.remove('active');
+                // Badges: nur bei both
+                const badges = document.getElementById('staffBadges');
+                if (badges) badges.style.display = 'none';
 
                 document.getElementById('clefSelect').value = 'treble';
                 document.getElementById('useAccidentals').checked = false;
@@ -2873,13 +2935,13 @@
                 if (level === 'einsteiger') {
                     app.settings.clef = 'treble';
                     app.settings.requireKeyboard = false;
-                    app.settings.showCMarker = true;
+                    app.settings.showCMarker = false;
                     if (keyboardHint) keyboardHint.textContent = 'Tastaturhilfe';
 
                 } else if (level === 'aufsteiger') {
                     app.settings.clef = 'bass';
                     app.settings.requireKeyboard = false;
-                    app.settings.showCMarker = true;
+                    app.settings.showCMarker = false;
                     if (keyboardHint) keyboardHint.textContent = 'Tastaturhilfe';
 
                 } else if (level === 'profi') {
@@ -2913,6 +2975,10 @@
                 document.getElementById('clefSelect').value = app.settings.clef;
                 document.getElementById('requireKeyboard').checked = app.settings.requireKeyboard;
                 document.getElementById('showCMarker').checked = app.settings.showCMarker;
+
+                // Clef-Badge nur bei both einblenden
+                const badges = document.getElementById('staffBadges');
+                if (badges) badges.style.display = (app.settings.clef === 'both') ? '' : 'none';
 
                 app.score = { correct: 0, total: 0 };
                 app.freeRetry = false;
@@ -2973,15 +3039,6 @@
                     'noten4': 'Violin (Bilden)', 'noten5': 'Bass (Bilden)', 'noten6': 'Beide (Bilden)'
                 };
                 const nodeName = nodeNames[nodeId] || '';
-                const taskTexts = {
-                    einsteiger: 'Wie heißt diese Note?',
-                    aufsteiger: 'Wie heißt diese Note?',
-                    profi: 'Finde die Note auf der Tastatur!',
-                    bild_violin: 'Platziere die Note im Notensystem',
-                    bild_bass: 'Platziere die Note im Notensystem',
-                    bild_beide: 'Platziere die Note im Notensystem'
-                };
-
                 // Teilkompetenz-Kürzel (z.B. "1a", "2b")
                 const subs = this.nodeSubSkills[nodeId];
                 const highestOpt = this.currentOptions.filter(o => o !== 'basis').pop() || this.currentOptions[0];
@@ -2994,7 +3051,7 @@
                 const task = document.getElementById('headerExerciseTask');
 
                 label.textContent = `${subLabel} ${nodeName} – ${subSkillLabel} — ${this.questionsAnswered}/${this.totalQuestions}`;
-                task.textContent = taskTexts[this.currentLevel] || '';
+                task.textContent = '';
 
                 const totalPct = (this.questionsAnswered / this.totalQuestions) * 100;
                 const correctPct = (this.questionsCorrect / this.totalQuestions) * 100;
@@ -3512,7 +3569,6 @@
 
                     inputCard.innerHTML = `
                         <div class="input-group">
-                            <label for="noteInput" id="noteInputLabel">Wie heißt diese Note?<span id="octaveHint"></span></label>
                             <div class="input-row">
                                 <div class="input-with-status" id="noteInputWrapper">
                                     <input type="text" id="noteInput" placeholder="z.B. c, fis"
@@ -3535,7 +3591,6 @@
                     // Freies Üben: Textfeld + Button (Oktavlage per Strichnotation)
                     inputCard.innerHTML = `
                         <div class="input-group">
-                            <label for="noteInput" id="noteInputLabel">Wie heißt diese Note?<span id="octaveHint"></span></label>
                             <div class="input-row">
                                 <div class="input-with-status" id="noteInputWrapper">
                                     <input type="text" id="noteInput" placeholder="z.B. c, fis"
@@ -3596,6 +3651,7 @@
                 const key = this.getLernkarteKey(subSkillId);
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
+                quickStart.hideTaskInstruction();
                 this._lernkarteFromStart = !!fromStart;
                 if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
@@ -4627,6 +4683,21 @@
                 this.updateUI();
                 this.drawStaff();
                 this.renderKeyboard();
+
+                // Aufgabenstellung setzen
+                const level = this.quickStartMode || '';
+                if (level === 'profi') {
+                    quickStart.showTaskInstruction('Welche Taste gehört zu dieser Note? Klicke die richtige Taste.');
+                } else if (level === 'einsteiger' || level === 'aufsteiger') {
+                    quickStart.showTaskInstruction('Wie heißt diese Note? Gib den Notennamen ein.');
+                } else if (!level) {
+                    // Freies Üben
+                    if (this.settings.requireKeyboard) {
+                        quickStart.showTaskInstruction('Welche Taste gehört zu dieser Note? Klicke die richtige Taste.');
+                    } else {
+                        quickStart.showTaskInstruction('Wie heißt diese Note? Gib den Notennamen ein.');
+                    }
+                }
             },
 
             // MULTI-INPUT: Reset validation state for new question
@@ -4665,6 +4736,7 @@
                 if (keyboardStatus) {
                     keyboardStatus.className = 'keyboard-status';
                     keyboardStatus.textContent = '';
+                    keyboardStatus.style.display = 'none';
                 }
             },
 
@@ -5369,8 +5441,9 @@
                     if (this.settings.requireKeyboard && this.validationState.keyboard === false) {
                         this.validationState.keyboard = null;
                         this.selectedKey = null;
-                        keyboardStatus.className = 'keyboard-status';  // Hide it
+                        keyboardStatus.className = 'keyboard-status';
                         keyboardStatus.textContent = '';
+                        keyboardStatus.style.display = 'none';
                         this.renderKeyboard();
                     }
                 }
@@ -5594,27 +5667,25 @@
 
             updateUI() {
                 const clefBadge = document.getElementById('clefBadge');
-                clefBadge.textContent = this.currentNote.clef === 'treble' ? 'Violinschlüssel' : 'Bassschlüssel';
+                const isTreble = this.currentNote.clef === 'treble';
+                clefBadge.textContent = isTreble ? 'Violinschlüssel' : 'Bassschlüssel';
+                clefBadge.className = 'clef-badge ' + (isTreble ? 'clef-treble' : 'clef-bass');
                 
                 // Null-safe: Elemente existieren nur in Text-Input-Modi (nicht im Profi)
-                const octaveHint = document.getElementById('octaveHint');
                 const inputHint = document.getElementById('inputHint');
                 const noteInput = document.getElementById('noteInput');
 
-                if (octaveHint && inputHint && noteInput) {
+                if (inputHint && noteInput) {
                     // Quick-Start mit Lagen: Dropdown nutzen, anderen Tipp zeigen
                     if (this.quickStartMode && this.quickStartMode !== 'profi' && quickStart.currentOptions.includes('lagen')) {
-                        octaveHint.textContent = ' (+ Lage im Dropdown)';
                         inputHint.textContent = '💡 Tipp: Wähle die Oktavlage im Dropdown rechts!';
                         inputHint.classList.remove('hidden');
                         noteInput.placeholder = "z.B. c, fis";
                     } else if (this.settings.requireOctave) {
-                        octaveHint.textContent = ' (mit Oktavlage)';
                         inputHint.textContent = 'Tipp: Verwende Striche für Oktaven (z.B. c\', c\'\')';
                         inputHint.classList.remove('hidden');
                         noteInput.placeholder = "z.B. c', fis''";
                     } else {
-                        octaveHint.textContent = '';
                         inputHint.classList.add('hidden');
                         noteInput.placeholder = "z.B. c, fis";
                     }
@@ -5635,6 +5706,15 @@
                 if (keyboardCard) {
                     keyboardCard.classList.toggle('keyboard-input', isClickable);
                     keyboardCard.classList.toggle('keyboard-viewonly', !isClickable);
+                    // Klickbare Tastatur vor Input, Tastaturhilfe nach Input
+                    const inputCardEl = document.querySelector('.input-card');
+                    if (inputCardEl && keyboardCard.parentNode === inputCardEl.parentNode) {
+                        if (isClickable) {
+                            keyboardCard.parentNode.insertBefore(keyboardCard, inputCardEl);
+                        } else {
+                            inputCardEl.parentNode.insertBefore(inputCardEl, keyboardCard);
+                        }
+                    }
                 }
                 if (keyboardHint) {
                     keyboardHint.textContent = isClickable
@@ -5987,6 +6067,11 @@ Gerät:
         // Bei "Beide Schlüssel": Schlüssel pro Aufgabe wechseln
         if (this.settings.clef === 'both') {
             this.useBassClef = Math.random() < 0.5;
+            const clefBadge = document.getElementById('clefBadge');
+            if (clefBadge) {
+                clefBadge.textContent = this.useBassClef ? 'Bassschlüssel' : 'Violinschlüssel';
+                clefBadge.className = 'clef-badge ' + (this.useBassClef ? 'clef-bass' : 'clef-treble');
+            }
         }
 
         // Pool wählen
@@ -6023,11 +6108,7 @@ Gerät:
         const promptText = requireOctave
             ? noteToHelmholtz(note.name, note.oct)
             : noteToHelmholtz(note.name, note.oct).replace(/'+|,+/g, '');
-        const taskEl = document.getElementById('buildingTaskDescription');
-        if (taskEl) {
-            taskEl.style.display = '';
-            taskEl.innerHTML = '✏️ Schreibe <strong>' + promptText + '</strong> ins Notensystem!';
-        }
+        quickStart.showTaskInstruction('Schreibe <strong>' + promptText + '</strong> ins Notensystem!');
 
         this.drawStaff();
         this.setupInput();
@@ -6075,7 +6156,7 @@ Gerät:
     app._staffBuildingHover = function(e) {
         if (this.inputLocked) { this.buildingGhostNote = null; this.drawStaff(); return; }
         const coords = this._staffSvgCoords(e);
-        const slotX = 300;
+        const slotX = 210;
         const info = this._staffYToNoteInfo(coords.y);
         this.buildingGhostNote = { ...info, x: slotX };
         this.drawStaff();
@@ -6084,7 +6165,7 @@ Gerät:
     // ---- Building: Note platzieren ----
     app._staffBuildingPlace = function(e) {
         if (this.inputLocked) return;
-        const slotX = 300;
+        const slotX = 210;
 
         if (e.type === 'touchend' && this.buildingGhostNote) {
             this.buildingStaffNote = { noteName: this.buildingGhostNote.noteName, octave: this.buildingGhostNote.octave, x: slotX };
@@ -6223,19 +6304,19 @@ Gerät:
     app._drawBuildingStaff = function() {
         const baseY = 260;
         const staffLines = [260, 240, 220, 200, 180];
-        const slotX = 300;
+        const slotX = 210;
         const container = document.getElementById('staffContainer');
 
         // SVG-Element einmalig anlegen (nicht bei jedem Render zerstören!)
         let svg = document.getElementById('staffSvg');
         if (!svg) {
-            container.innerHTML = '<svg id="staffSvg" viewBox="20 100 600 250" width="620" height="250" style="max-width:100%;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg"></svg>';
+            container.innerHTML = '<svg id="staffSvg" viewBox="20 100 340 250" width="360" height="250" style="max-width:100%;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg"></svg>';
             svg = document.getElementById('staffSvg');
         }
 
         let svgContent = '';
         staffLines.forEach(ly => {
-            svgContent += `<line x1="80" y1="${ly}" x2="590" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
+            svgContent += `<line x1="80" y1="${ly}" x2="310" y2="${ly}" stroke="#000" stroke-width="1.5"/>`;
         });
 
         // Schlüssel
