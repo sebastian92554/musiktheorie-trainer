@@ -403,6 +403,23 @@
             }
         }
 
+        /* Einheitliche Aufgabenstellung (wie NT/IT/DT/TT) */
+        .task-instruction {
+            background: #faf5ff;
+            border: 1.5px solid #c4b5fd;
+            border-radius: 0.5rem;
+            padding: 10px 14px;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            display: none;
+        }
+        .task-instruction.active { display: block; }
+        .task-instruction-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #4c1d95;
+        }
+
         .text-center {
             text-align: center;
         }
@@ -1829,6 +1846,11 @@
             </div>
         </div>
 
+        <!-- Aufgabenstellung (einheitlich wie NT/IT/DT/TT) -->
+        <div class="task-instruction" id="taskInstruction">
+            <span class="task-instruction-text" id="taskInstructionText"></span>
+        </div>
+
         <!-- Staff Display -->
         <div class="card">
             <!-- Aufgaben-Fokussierung (nur bei Zählzeit-Aufgabe sichtbar) -->
@@ -1838,10 +1860,6 @@
             
             <!-- ADDITIONS-AUFGABE (versteckt wenn nicht aktiv) -->
             <div class="hidden" id="additionTaskContainer" style="padding: 1.5rem;">
-                <div class="text-center" style="margin-bottom: 1.5rem;">
-                    <span class="task-focus-badge">➕ Berechne die Summe der Notenwerte</span>
-                </div>
-                
                 <!-- Noten mit + Zeichen -->
                 <div id="additionDisplay" style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; min-height: 80px;">
                     <!-- Wird dynamisch generiert -->
@@ -1854,7 +1872,7 @@
                         <input
                             type="text"
                             id="additionInput"
-                            placeholder="z.B. 4, 2.5"
+                            placeholder="z.B. 4 oder 2,5"
                             autocomplete="off"
                             inputmode="decimal"
                         />
@@ -1870,14 +1888,27 @@
             </div>
             
             <div class="staff-wrapper" id="staffWrapper">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <div class="time-signature-badge" id="timeSignatureBadge">4/4</div>
-                    <div id="audioControls">
-                        <button type="button" id="playRhythmBtn" onclick="app.playRhythm()" title="Rhythmus anhören" style="background: none; border: none; cursor: pointer; padding: 2px; opacity: 0.5; transition: opacity 0.15s;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <div id="audioControls" style="display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 0.5rem; flex: 1;">
+                        <div id="quizTempoControl" style="display:none; align-items: center; gap: 0.4rem; justify-self: end;">
+                            <span style="font-size: 0.75rem; color: #7c3aed; white-space: nowrap;">Tempo</span>
+                            <input type="range" id="quizTempoSlider" min="40" max="160" value="80" step="5"
+                                oninput="app.tempo = Number(this.value); document.getElementById('quizTempoValue').textContent = this.value; document.getElementById('tempoSlider').value = this.value; document.getElementById('tempoValue').textContent = this.value;"
+                                style="width: 120px; accent-color: #8b5cf6;">
+                            <span style="font-size: 0.8rem; color: #4c1d95; white-space: nowrap; font-weight: 600;" id="quizTempoValue">80</span>
+                            <span style="font-size: 0.7rem; color: #9ca3af;">BPM</span>
+                        </div>
+                        <button type="button" id="playRhythmBtn" onclick="app.playRhythm()" title="Rhythmus anhören"
+                            style="background: #faf5ff; border: 2px solid #c4b5fd; border-radius: 50%;
+                                   width: 40px; height: 40px; cursor: pointer; padding: 0;
+                                   display: flex; align-items: center; justify-content: center;
+                                   opacity: 0.7; transition: opacity 0.15s, background 0.15s;
+                                   justify-self: start;"
+                            onmouseenter="this.style.opacity='1';this.style.background='#ede9fe'" onmouseleave="this.style.opacity='0.7';this.style.background='#faf5ff'">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
                             </svg>
                         </button>
                     </div>
@@ -2573,6 +2604,15 @@
                 };
             },
             
+            // ---- Aufgabenstellung Helpers ----
+            showTaskInstruction(text) {
+                document.getElementById('taskInstructionText').innerHTML = text;
+                document.getElementById('taskInstruction').classList.add('active');
+            },
+            hideTaskInstruction() {
+                document.getElementById('taskInstruction').classList.remove('active');
+            },
+
             // Screen Management
             showQuickStart() {
                 document.getElementById('quickStartScreen').classList.add('active');
@@ -2586,6 +2626,9 @@
                 if (tsBtn) tsBtn.classList.add('hidden');
                 const tsBadge = document.getElementById('timeSignatureBadge');
                 if (tsBadge) tsBadge.style.display = '';
+                this.hideTaskInstruction();
+                const quizTempo = document.getElementById('quizTempoControl');
+                if (quizTempo) quizTempo.style.display = 'none';
                 this.isActive = false;
             },
 
@@ -2623,13 +2666,16 @@
                 app.settings.showCountingTimes = document.getElementById('showCountingTimes').checked;
 
                 document.getElementById('appTitle').textContent = 'Freies Üben';
+                this.hideTaskInstruction();
+                const quizTempo = document.getElementById('quizTempoControl');
+                if (quizTempo) quizTempo.style.display = 'none';
 
                 // Audio im Freien Üben: verfügbar bei Zählzeiten/Rhythmussprache
                 app.noAudio = false;
                 const playBtn = document.getElementById('playRhythmBtn');
                 const audioControls = document.getElementById('audioControls');
                 if (playBtn) playBtn.style.display = '';
-                if (audioControls) audioControls.style.display = '';
+                if (audioControls) audioControls.style.display = 'grid';
 
                 // Aufgabe generieren
                 app.updateSettings();
@@ -3199,7 +3245,10 @@
                 const playBtn = document.getElementById('playRhythmBtn');
                 const audioControls = document.getElementById('audioControls');
                 if (playBtn) playBtn.style.display = app.noAudio ? 'none' : '';
-                if (audioControls) audioControls.style.display = app.noAudio ? 'none' : '';
+                if (audioControls) audioControls.style.display = app.noAudio ? 'none' : 'grid';
+                // Tempo-Regler im Quiz einblenden wenn Audio aktiv
+                const quizTempo = document.getElementById('quizTempoControl');
+                if (quizTempo) quizTempo.style.display = app.noAudio ? 'none' : 'flex';
 
                 // HILFEN AUS OPTION
                 if (options.includes('hilfen_aus')) {
@@ -3291,23 +3340,7 @@
                 const subSkillLabel = subs[Math.max(0, subIdx)] ? subs[Math.max(0, subIdx)].label : '';
                 label.textContent = subLabel + ' ' + nodeName + ' – ' + subSkillLabel + ' — ' + this.questionsAnswered + '/' + this.totalQuestions;
                 
-                // Spezifische Aufgabenstellung aus Lernkarte holen
-                const lernkarteKey = app.getLernkarteKey(highestOpt);
-                const lernkarte = app.lernkartenContent ? app.lernkartenContent[lernkarteKey] : null;
-                if (lernkarte && lernkarte.title) {
-                    const parts = lernkarte.title.split(' — ');
-                    task.textContent = parts.length > 1 ? parts[1] : lernkarte.title;
-                } else {
-                    const taskTexts = {
-                        einsteiger: 'Notenwerte addieren',
-                        taktarten: 'Taktart erkennen',
-                        fortgeschrittener: 'Zählzeiten bestimmen',
-                        profi: 'Rhythmussprache sprechen',
-                        notenwert_bilden: 'Fehlenden Wert ergänzen',
-                        rhythmusdiktat: 'Rhythmusdiktat'
-                    };
-                    task.textContent = taskTexts[this.currentLevel] || '';
-                }
+                task.textContent = '';
 
                 // Update progress bars
                 const pct = this.totalQuestions > 0 ? (this.questionsAnswered / this.totalQuestions) * 100 : 0;
@@ -4671,7 +4704,7 @@ Gerät:
                     const audioControls = document.getElementById('audioControls');
                     const tempoControl = document.getElementById('tempoControl');
                     if (playBtn) playBtn.style.display = this.noAudio ? 'none' : '';
-                    if (audioControls) audioControls.style.display = this.noAudio ? 'none' : '';
+                    if (audioControls) audioControls.style.display = this.noAudio ? 'none' : 'grid';
                     if (tempoControl) tempoControl.style.display = this.noAudio ? 'none' : '';
                 }
                 // Im QuickStart: Settings werden von configureApp gesetzt, nicht vom DOM
@@ -4737,7 +4770,6 @@ Gerät:
                 // Toggle Input Card + Task Focus visibility
                 const inputCard = document.getElementById('inputCard');
                 const taskFocusText = document.getElementById('taskFocusText');
-                const taskFocusBadge = document.getElementById('taskFocusBadge');
                 const inputLabel = document.getElementById('inputLabel');
                 const inputHint = document.getElementById('inputHint');
                 const startInput = document.getElementById('startCountingInput');
@@ -4748,44 +4780,43 @@ Gerät:
                 // Taktart-Buttons immer erstmal verstecken
                 if (tsButtonCont) tsButtonCont.classList.add('hidden');
 
+                // taskFocusText immer verstecken (ersetzt durch taskInstruction-Wrapper)
+                taskFocusText.classList.add('hidden');
+
                 if (this.settings.taskType === 'note-addition') {
                     // Addition-Modus: Zeige Addition-Container, verstecke Staff
                     inputCard.classList.add('hidden');
-                    taskFocusText.classList.add('hidden');
                     staffWrapper.classList.add('hidden');
                     additionContainer.classList.remove('hidden');
+                    quickStart.showTaskInstruction('Berechne die Summe der Notenwerte. Gib das Ergebnis in Vierteln ein.');
                 } else if (this.settings.taskType === 'counting-time') {
                     inputCard.classList.remove('hidden');
-                    taskFocusText.classList.remove('hidden');
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
-                    taskFocusBadge.textContent = '🎯 Auf welcher Zählzeit ist diese Note?';
+                    quickStart.showTaskInstruction('Auf welcher Zählzeit beginnt die markierte Note? Gib die Zählzeit ein.');
                     inputLabel.textContent = 'Start-Zählzeit der markierten Note:';
                     inputHint.textContent = 'Beispiele: "1", "2 und", "3 e", "4 te"';
                     startInput.placeholder = 'z.B. 1, 2 und, 3 e, ...';
                 } else if (this.settings.taskType === 'rhythm-syllable') {
                     inputCard.classList.remove('hidden');
-                    taskFocusText.classList.remove('hidden');
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
-                    taskFocusBadge.textContent = '🎯 Welche Rhythmussilbe hat diese Note?';
+                    quickStart.showTaskInstruction('Welche Rhythmussilbe hat die markierte Note? Gib die Silbe ein.');
                     inputLabel.textContent = 'Rhythmussilbe der markierten Note:';
                     inputHint.textContent = 'Mögliche Silben: "du" (Grundschlag), "dei" (und), "te" (e/te)';
                     startInput.placeholder = 'du, dei oder te';
                 } else if (this.settings.taskType === 'time-signature-id') {
                     // Taktarten-Erkennung
                     inputCard.classList.add('hidden');
-                    taskFocusText.classList.remove('hidden');
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
-                    taskFocusBadge.textContent = '🎯 Welche Taktart hat dieser Rhythmus?';
+                    quickStart.showTaskInstruction('Welche Taktart hat dieser Rhythmus? Wähle die richtige Taktart.');
                 } else if (this.settings.taskType === 'gap-fill') {
                     // Fehlenden Wert ergänzen
                     inputCard.classList.add('hidden');
-                    taskFocusText.classList.remove('hidden');
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
-                    taskFocusBadge.textContent = '🎯 Welcher Notenwert fehlt im Takt?';
+                    quickStart.showTaskInstruction('Welcher Notenwert fehlt im Takt? Wähle den richtigen Wert.');
                     // Hilfen AUS (Raster + Zählzeiten verraten die Lösung)
                     showCountingTimesCheckbox.checked = false;
                     showCountingTimesCheckbox.disabled = true;
@@ -4800,10 +4831,9 @@ Gerät:
                 } else if (this.settings.taskType === 'dictation') {
                     // Rhythmusdiktat
                     inputCard.classList.add('hidden');
-                    taskFocusText.classList.remove('hidden');
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
-                    taskFocusBadge.textContent = '🎯 Welchen Rhythmus hörst du?';
+                    quickStart.showTaskInstruction('Welchen Rhythmus hörst du? Setze die Noten in der richtigen Reihenfolge.');
                     showCountingTimesCheckbox.checked = false;
                     showCountingTimesCheckbox.disabled = true;
                     showRhythmSyllablesCheckbox.checked = false;
@@ -4817,9 +4847,9 @@ Gerät:
                 } else {
                     // View-Modus
                     inputCard.classList.add('hidden');
-                    taskFocusText.classList.add('hidden');
                     staffWrapper.classList.remove('hidden');
                     additionContainer.classList.add('hidden');
+                    quickStart.hideTaskInstruction();
                 }
 
                 // Legend cards removed - now integrated into help menu
@@ -5378,6 +5408,10 @@ Gerät:
             
             // Generiert Addition-Aufgabe
             generateAdditionTask() {
+                // Container-Visibility garantieren (Staff weg, Addition sichtbar)
+                document.getElementById('staffWrapper').classList.add('hidden');
+                document.getElementById('additionTaskContainer').classList.remove('hidden');
+                document.getElementById('inputCard').classList.add('hidden');
                 const availableNotes = this.getAvailableNotesForAddition();
                 const summandCount = this.getAdditionSummandCount();
                 
@@ -6847,8 +6881,7 @@ Gerät:
                     const markedType = bar.notes[markedIndex]?.type || '';
                     const isRest = this.noteValues[markedType]?.isRest || false;
                     const label = isRest ? 'Pause' : 'Note';
-                    const badge = document.getElementById('taskFocusBadge');
-                    if (badge) badge.textContent = `🎯 Auf welcher Zählzeit ist diese ${label}?`;
+                    quickStart.showTaskInstruction(`Auf welcher Zählzeit beginnt diese ${label}? Gib die Zählzeit ein.`);
                     const inputLabel = document.getElementById('inputLabel');
                     if (inputLabel) inputLabel.textContent = `Start-Zählzeit der markierten ${label}:`;
                 } else if (params.taskType === 'rhythm-syllable') {
@@ -8413,7 +8446,7 @@ Gerät:
                 const userAnswer = parseFloat(userInput);
 
                 if (isNaN(userAnswer)) {
-                    feedback.textContent = '❓ Bitte eine Zahl eingeben (z.B. 3.5 oder 3,5)';
+                    feedback.textContent = '❓ Bitte eine Zahl eingeben (z.B. 4 oder 2,5)';
                     feedback.className = 'feedback incorrect';
                     feedback.classList.remove('hidden');
                     return;
@@ -8579,6 +8612,7 @@ Gerät:
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
                 document.getElementById('lernkarteOverlay').classList.add('active');
+                quickStart.hideTaskInstruction();
                 if (typeof content.render === 'function') content.render();
                 return true;
             },
@@ -8586,6 +8620,7 @@ Gerät:
                 document.getElementById('lernkarteOverlay').classList.remove('active');
                 if (this._lernkarteFromStart) {
                     this._lernkarteFromStart = false;
+                    app.updateSettings(); // Aufgabenstellung wieder einblenden
                     app.generateNewTask();
                 }
             },
