@@ -482,7 +482,7 @@
 
         /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
         /* Ghost-Note IST der Cursor — System-Cursor ausblenden */
-        #staffSvg.staff-interactive { cursor: none; }
+        #staffSvg.staff-interactive { cursor: none; touch-action: none; -webkit-user-select: none; user-select: none; }
 
         .building-tools { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 0.5rem; }
         .building-tool-btn { padding: 6px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
@@ -6115,16 +6115,19 @@ Gerät:
     };
 
     // ---- Building: Staff-Koordinaten ----
+    // Nutzt getScreenCTM() für korrekte Transformation Screen → viewBox-Koordinaten
+    // (berücksichtigt viewBox-Offset, Skalierung und Letterboxing automatisch)
     app._staffSvgCoords = function(e) {
         const svg = document.getElementById('staffSvg');
         if (!svg) return { x: 0, y: 0 };
-        const rect = svg.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-            x: (clientX - rect.left) / rect.width * 600,
-            y: (clientY - rect.top) / rect.height * 320
-        };
+        const pt = svg.createSVGPoint();
+        const src = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+        pt.x = src.clientX;
+        pt.y = src.clientY;
+        const ctm = svg.getScreenCTM();
+        if (!ctm) return { x: 0, y: 0 };
+        const svgPt = pt.matrixTransform(ctm.inverse());
+        return { x: svgPt.x, y: svgPt.y };
     };
 
     // ---- Building: Y→Note ----
@@ -6189,13 +6192,32 @@ Gerät:
         svg.classList.add('staff-interactive');
         if (this.buildingActiveTool === 'sharp') svg.classList.add('tool-sharp');
         else if (this.buildingActiveTool === 'flat') svg.classList.add('tool-flat');
-        svg.onmousedown = (e) => this._staffBuildingPlace(e);
-        svg.onmousemove = (e) => this._staffBuildingHover(e);
-        svg.onmouseenter = (e) => this._staffBuildingHover(e);
+        // Mouse: ignoriere kurz nach Touch (iOS synthetisiert mousemove/mousedown nach tap)
+        svg.onmousedown = (e) => {
+            if (this._lastTouchTime && Date.now() - this._lastTouchTime < 500) return;
+            this._staffBuildingPlace(e);
+        };
+        svg.onmousemove = (e) => {
+            if (this._lastTouchTime && Date.now() - this._lastTouchTime < 500) return;
+            this._staffBuildingHover(e);
+        };
+        svg.onmouseenter = (e) => {
+            if (this._lastTouchTime && Date.now() - this._lastTouchTime < 500) return;
+            this._staffBuildingHover(e);
+        };
         svg.onmouseleave = () => { this.buildingGhostNote = null; this.drawStaff(); };
-        svg.ontouchstart = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
-        svg.ontouchmove = (e) => { e.preventDefault(); this._staffBuildingHover(e); };
-        svg.ontouchend = (e) => { e.preventDefault(); this._staffBuildingPlace(e); this.buildingGhostNote = null; };
+        // Touch: addEventListener mit { passive: false } — sonst ignoriert iOS-Safari preventDefault()
+        // Analog zu DT/TT: touchstart platziert direkt die Note (kein Ghost-Umweg)
+        if (!this._touchHandler) {
+            this._touchHandler = (e) => {
+                e.preventDefault();
+                this._lastTouchTime = Date.now();
+                this._staffBuildingPlace(e);
+                this.buildingGhostNote = null;
+                this.drawStaff();
+            };
+        }
+        svg.addEventListener('touchstart', this._touchHandler, { passive: false });
     };
 
     app._disableStaffBuilding = function() {
@@ -6206,9 +6228,9 @@ Gerät:
         svg.onmousemove = null;
         svg.onmouseenter = null;
         svg.onmouseleave = null;
-        svg.ontouchstart = null;
-        svg.ontouchmove = null;
-        svg.ontouchend = null;
+        if (this._touchHandler) {
+            svg.removeEventListener('touchstart', this._touchHandler);
+        }
     };
 
     // ---- Building: Tool wechseln ----
