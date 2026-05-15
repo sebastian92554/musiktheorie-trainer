@@ -1681,128 +1681,353 @@
         // TRACKING SYSTEM v2.0 - Google Sheets
         // Mit Session-Start für zuverlässiges Mobile-Tracking
         // ===================================
-        const tracking = {
+        // ===================================
+        // TRACKER v3 — Append-only Event-Log (kopflos, Pfad B)
+        // ===================================
+        // 4 Events: page_view, quiz_start, quiz_complete, heartbeat.
+        // Kein session_end-Latch, keine Idle-Beendigung. Dauer offline aus
+        // Heartbeats. env: 'dev' via localStorage.musik_tracking_env, sonst 'prod'.
+        const tracker = {
             scriptURL: 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
+            schema: 3,
+            trainer: 'Notentrainer',
             sessionId: null,
             sessionStart: null,
-            questionsAnswered: 0,
-            questionsCorrect: 0,
-            sessionEnded: false,
             lastActivity: null,
-            idleTimeoutMs: 5 * 60 * 1000, // 5 minutes idle timeout
-            idleCheckInterval: null,
+            _inited: false,
+            _hb: null,
+            HEARTBEAT_MS: 90000,
 
-            init() {
-                this.sessionId = this.generateSessionId();
-                this.sessionStart = Date.now();
-                this.lastActivity = Date.now();
-
-                // SOFORT Session-Start senden (für Mobile!)
-                this.sendStartEvent();
-
-                // Mehrere End-Events für bessere Kompatibilität
-                window.addEventListener('pagehide', () => this.endSession());
-                document.addEventListener('visibilitychange', () => {
-                    if (document.visibilityState === 'hidden') this.endSession();
-                });
-                window.addEventListener('beforeunload', () => this.endSession());
-
-                // Track user activity for idle timeout
-                const activityEvents = ['click', 'keydown', 'touchstart', 'scroll'];
-                activityEvents.forEach(evt => {
-                    document.addEventListener(evt, () => {
-                        this.lastActivity = Date.now();
-                    }, { passive: true });
-                });
-
-                // Check for idle timeout every 30 seconds
-                this.idleCheckInterval = setInterval(() => this.checkIdleTimeout(), 30000);
-
-                console.log('📊 Tracking v2.1 initialisiert (mit Session-Timeout), Session:', this.sessionId);
-            },
-
-            checkIdleTimeout() {
-                if (this.sessionEnded) {
-                    if (this.idleCheckInterval) clearInterval(this.idleCheckInterval);
-                    return;
-                }
-                const idleTime = Date.now() - this.lastActivity;
-                if (idleTime >= this.idleTimeoutMs) {
-                    console.log('📊 Session Timeout nach', Math.round(idleTime / 1000), 'Sekunden Inaktivität');
-                    this.endSession('timeout');
+            env() {
+                try {
+                    return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod';
+                } catch (e) {
+                    return 'prod';
                 }
             },
-            
+
             generateSessionId() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             },
-            
-            sendStartEvent() {
-                const data = {
-                    eventType: 'session_start',
-                    sessionId: this.sessionId,
-                    app: 'Notentrainer',
-                    timestamp: new Date().toISOString(),
-                    device: this.getDeviceType(),
-                    referrer: document.referrer || 'direct'
-                };
-                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
-                console.log('📊 Session gestartet:', data);
-            },
-            
-            trackQuestion(isCorrect) {
-                this.questionsAnswered++;
-                if (isCorrect) this.questionsCorrect++;
-            },
-            
-            endSession(reason) {
-                if (this.sessionEnded || !this.sessionStart || !this.scriptURL) return;
-                this.sessionEnded = true;
 
-                if (this.idleCheckInterval) {
-                    clearInterval(this.idleCheckInterval);
-                    this.idleCheckInterval = null;
-                }
-
-                const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
-                const successRate = this.questionsAnswered > 0
-                    ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
-                    : 0;
-
-                const data = {
-                    eventType: 'session_end',
-                    sessionId: this.sessionId,
-                    app: 'Notentrainer',
-                    timestamp: new Date().toISOString(),
-                    duration: duration,
-                    questionsAnswered: this.questionsAnswered,
-                    successRate: successRate,
-                    device: this.getDeviceType(),
-                    referrer: document.referrer || 'direct',
-                    endReason: reason || 'page_close'
-                };
-
-                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
-                console.log('📊 Session beendet:', data);
-            },
-            
             getDeviceType() {
                 const ua = navigator.userAgent.toLowerCase();
                 const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                 const width = window.innerWidth;
-                
-                // Prüfe User-Agent für Tablets
                 const isTablet = /(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i.test(ua);
-                
-                // Prüfe User-Agent für Mobile
                 const isMobile = /mobile|android|iphone|ipod|blackberry|windows phone/i.test(ua);
-                
-                // Kombinierte Logik
                 if (isMobile && !isTablet) return 'mobile';
                 if (isTablet || (hasTouch && width >= 768 && width < 1366)) return 'tablet';
                 return 'desktop';
+            },
+
+            _send(eventType, payload) {
+                if (!this.scriptURL || !this.sessionId) return;
+                const data = {
+                    schema: this.schema,
+                    env: this.env(),
+                    eventType: eventType,
+                    sessionId: this.sessionId,
+                    trainer: this.trainer,
+                    device: this.getDeviceType(),
+                    referrer: document.referrer || 'direct',
+                    ts: new Date().toISOString(),
+                    payload: payload || {}
+                };
+                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+                console.log('📊', eventType, data);
+            },
+
+            init() {
+                if (this._inited) return; // idempotent (wird 2x aufgerufen)
+                this._inited = true;
+                this.sessionId = this.generateSessionId();
+                this.sessionStart = Date.now();
+                this.lastActivity = Date.now();
+
+                this._send('page_view', {});
+
+                this._hb = setInterval(() => this.heartbeat(), this.HEARTBEAT_MS);
+
+                document.addEventListener('visibilitychange', () => this.heartbeat());
+                window.addEventListener('pagehide', () => this.heartbeat());
+                window.addEventListener('beforeunload', () => this.heartbeat());
+
+                const act = ['click', 'keydown', 'touchstart', 'scroll'];
+                act.forEach(evt => document.addEventListener(evt, () => {
+                    this.lastActivity = Date.now();
+                }, { passive: true }));
+
+                console.log('📊 Tracker v3 init, Session:', this.sessionId, 'env:', this.env());
+            },
+
+            heartbeat() {
+                if (!this.sessionStart) return;
+                this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
+            },
+
+            quizStart(p) {
+                this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode });
+            },
+
+            quizComplete(payload) {
+                this._send('quiz_complete', payload);
+            },
+
+            activity() {
+                this.lastActivity = Date.now();
             }
         };
+
+        // ===================================
+        // ErrorTracker — kopflose Fehlerzerlegung (Pfad B, kein UI)
+        // ===================================
+        // Trackt ALLE Antworten des Quiz, zerlegt in Subskill-Dimensionen
+        // (Stammton, VZ, Lage). Reine Datenklasse — keine DOM-/UI-Effekte.
+        class ErrorTracker {
+            constructor() {
+                this.answers = [];
+            }
+
+            reset() {
+                this.answers = [];
+            }
+
+            logAnswer(data) {
+                const correct = data.correctNote || '';
+                const user = data.userInput || '';
+
+                const stammtonCorrect = this._extractStammton(correct);
+                const stammtonUser = this._extractStammton(user);
+                const stammtonOk = stammtonCorrect.toLowerCase() === stammtonUser.toLowerCase();
+
+                const vzCorrect = this._extractVZ(correct);
+                const vzUser = this._extractVZ(user);
+                const hasVZ = vzCorrect !== '';
+                const vzOk = hasVZ ? vzCorrect === vzUser : null;
+
+                const lageActive = data.options?.includes('lagen');
+                const lageOk = lageActive ? data.lageCorrect : null;
+
+                this.answers.push({
+                    isCorrect: data.isCorrect,
+                    correctNote: correct,
+                    userInput: user,
+                    clef: data.clef || 'treble',
+                    octave: data.octave || '',
+                    category: data.category || '',
+                    stammtonOk,
+                    vzOk,
+                    lageOk,
+                    hasVZ
+                });
+            }
+
+            getSubskillPerformance() {
+                if (this.answers.length === 0) return null;
+
+                const result = {
+                    stammtoene: { correct: 0, total: 0 },
+                    vorzeichen: { correct: 0, total: 0 },
+                    lagen: { correct: 0, total: 0 }
+                };
+
+                this.answers.forEach(a => {
+                    result.stammtoene.total++;
+                    if (a.stammtonOk) result.stammtoene.correct++;
+
+                    if (a.hasVZ) {
+                        result.vorzeichen.total++;
+                        if (a.vzOk) result.vorzeichen.correct++;
+                    }
+
+                    if (a.lageOk !== null) {
+                        result.lagen.total++;
+                        if (a.lageOk) result.lagen.correct++;
+                    }
+                });
+
+                for (const key of ['stammtoene', 'vorzeichen', 'lagen']) {
+                    const s = result[key];
+                    s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
+                }
+
+                return result;
+            }
+
+            getWeakestSubskill() {
+                const perf = this.getSubskillPerformance();
+                if (!perf) return null;
+
+                let weakest = null;
+                let lowestPct = 101;
+
+                for (const [key, data] of Object.entries(perf)) {
+                    if (data.pct !== null && data.total >= 2 && data.pct < lowestPct) {
+                        lowestPct = data.pct;
+                        weakest = key;
+                    }
+                }
+
+                return weakest && lowestPct < 80 ? { subskill: weakest, pct: lowestPct } : null;
+            }
+
+            getErrors() {
+                return this.answers.filter(a => !a.isCorrect);
+            }
+
+            getErrorListHelmholtz() {
+                return this.getErrors().map(a => {
+                    if (a.category === 'building_note_falsch' || a.category === 'building_vz_falsch') return null;
+
+                    const clefLabel = a.clef === 'bass' ? 'Bass' : 'Violin';
+                    const correctH = ErrorTracker.toHelmholtz(a.correctNote, a.octave);
+                    const userH = a.userInput ? ErrorTracker.toHelmholtz(a.userInput, a.octave) : '?';
+
+                    return { clef: clefLabel, correct: correctH, user: userH };
+                }).filter(e => e !== null);
+            }
+
+            getTopWeaknesses(n = 3) {
+                const errors = this.getErrors();
+                if (errors.length === 0) return [];
+                const counts = {};
+                errors.forEach(e => counts[e.category] = (counts[e.category] || 0) + 1);
+                return Object.entries(counts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, n)
+                    .map(([cat, count]) => ({
+                        category: cat,
+                        count,
+                        percentage: Math.round(count / errors.length * 100),
+                        label: ErrorTracker.categoryLabels[cat] || cat
+                    }));
+            }
+
+            // Erkennt spezifische Fehlermuster (kopflos, Inline-Texte — keine TutorLib-Abhängigkeit)
+            getErrorPatterns() {
+                const errors = this.getErrors();
+                if (errors.length < 2) return [];
+
+                const patterns = [];
+                const stammtonReihe = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+
+                const bassErrors = errors.filter(e =>
+                    e.clef === 'bass' && !e.stammtonOk
+                );
+                if (bassErrors.length >= 3) {
+                    const diffs = bassErrors.map(e => {
+                        const uIdx = stammtonReihe.indexOf(this._extractStammton(e.userInput).toUpperCase());
+                        const cIdx = stammtonReihe.indexOf(this._extractStammton(e.correctNote).toUpperCase());
+                        if (uIdx < 0 || cIdx < 0) return null;
+                        return ((uIdx - cIdx) + 7) % 7;
+                    }).filter(d => d !== null);
+
+                    const terzCount = diffs.filter(d => d === 2).length;
+                    if (terzCount >= Math.ceil(diffs.length * 0.6)) {
+                        patterns.push({ type: 'bass_als_violin', label: 'Du liest den Bassschlüssel wie einen Violinschlüssel', hint: 'Im Bassschlüssel liegt jede Note zwei Stammtöne tiefer als im Violinschlüssel. Die 2. Linie von unten ist H (nicht D).' });
+                    }
+                }
+
+                const vzErrors = errors.filter(e => e.stammtonOk && e.hasVZ && !e.vzOk);
+                if (vzErrors.length >= 2) {
+                    let kreuzBeCount = 0;
+                    vzErrors.forEach(e => {
+                        const vzCorrect = this._extractVZ(e.correctNote);
+                        const vzUser = this._extractVZ(e.userInput);
+                        const isKreuz = (v) => v === 'is';
+                        const isBe = (v) => v === 'es' || v === 'as' || v === 'b';
+                        if ((isKreuz(vzCorrect) && isBe(vzUser)) || (isBe(vzCorrect) && isKreuz(vzUser))) {
+                            kreuzBeCount++;
+                        }
+                    });
+                    if (kreuzBeCount >= 2) {
+                        patterns.push({ type: 'kreuz_be_verwechselt', label: 'Du verwechselst Kreuz- und Be-Vorzeichen', hint: 'Kreuz (is) erhöht den Ton um einen Halbton, Be (es) erniedrigt ihn. Beispiel: Fis ist höher als F, Fes ist tiefer als F.' });
+                    }
+                }
+
+                const nameErrors = errors.filter(e => !e.stammtonOk);
+                if (nameErrors.length >= 3) {
+                    const neighborCount = nameErrors.filter(e => {
+                        const uIdx = stammtonReihe.indexOf(this._extractStammton(e.userInput).toUpperCase());
+                        const cIdx = stammtonReihe.indexOf(this._extractStammton(e.correctNote).toUpperCase());
+                        return uIdx >= 0 && cIdx >= 0 && Math.abs(uIdx - cIdx) === 1;
+                    }).length;
+                    if (neighborCount >= 2) {
+                        patterns.push({ type: 'stammton_nachbar', label: 'Du verwechselst benachbarte Stammtöne', hint: 'Zähle die Stammtonreihe C-D-E-F-G-A-H von einer Referenzlinie aus.' });
+                    }
+                }
+
+                return patterns;
+            }
+
+            getErrorPattern() {
+                const patterns = this.getErrorPatterns();
+                return patterns.length > 0 ? patterns[0] : null;
+            }
+
+            _extractStammton(note) {
+                if (!note) return '';
+                const n = String(note);
+                if (n === 'B' || n === 'b') return 'H';
+                if (n === 'As' || n === 'as') return 'A';
+                if (n === 'Es' || n === 'es') return 'E';
+                return n.charAt(0).toUpperCase();
+            }
+
+            _extractVZ(note) {
+                if (!note) return '';
+                const n = String(note);
+                if (n === 'B' || n === 'b') return 'es';
+                if (n === 'As' || n === 'as') return 'es';
+                if (n === 'Es' || n === 'es') return 'es';
+                if (n.includes('is')) return 'is';
+                if (n.includes('es')) return 'es';
+                return '';
+            }
+
+            static toHelmholtz(noteName, octave) {
+                if (!noteName) return '?';
+                const n = String(noteName);
+                const octaveMarks = {
+                    'kontra': ',',
+                    'gross': '',
+                    'klein': '',
+                    'eingestrichen': "'",
+                    'zweigestrichen': "''",
+                    'dreigestrichen': "'''"
+                };
+                const isGross = octave === 'gross' || octave === 'kontra';
+                let display = isGross ? n.toUpperCase() : n.toLowerCase();
+                if (octave === 'kontra') display += ',';
+                else if (octaveMarks[octave]) display += octaveMarks[octave];
+                return display;
+            }
+        }
+
+        ErrorTracker.categoryLabels = {
+            notennamen_verwechselt: 'Notennamen verwechselt',
+            oktavlage_falsch: 'Oktavlage falsch',
+            vorzeichen_nicht_erkannt: 'Vorzeichen nicht erkannt',
+            hilfslinien_falsch: 'Hilfslinien falsch gelesen',
+            bassschluessel_fehler: 'Bassschlüssel-Fehler',
+            tastenfehler: 'Falsche Taste auf der Klaviatur',
+            building_taste_falsch: 'Falsche Taste beim Bilden',
+            building_note_falsch: 'Note falsch platziert',
+            building_vz_falsch: 'Vorzeichen beim Bilden falsch'
+        };
+
+        ErrorTracker.tutorialLinks = {
+            bassschluessel: { url: '#', title: 'Bassschlüssel lesen lernen' },
+            stammtoene: { url: '#', title: 'Stammtonreihe merken' },
+            vorzeichen: { url: '#', title: 'Vorzeichen erkennen' },
+            hilfslinien: { url: '#', title: 'Hilfslinien richtig zählen' },
+            oktavlagen: { url: '#', title: 'Oktavlagen verstehen' },
+            notensystem: { url: '#', title: 'Noten im Notensystem schreiben' },
+            klaviatur: { url: '#', title: 'Noten auf der Klaviatur finden' }
+        };
+
+        const errorTracker = new ErrorTracker();
 
         // ===================================
         // QUICK-START SYSTEM (1:1 von DT)
@@ -2272,6 +2497,15 @@
                 }
 
                 this.totalQuestions = 10;
+                this._quizStartTs = Date.now();
+                try {
+                    errorTracker.reset();
+                    tracker.quizStart({
+                        level: this.currentLevel,
+                        subskill: (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis',
+                        mode: (this.currentLevel || '').startsWith('bild_') ? 'bilden' : 'erkennen'
+                    });
+                } catch (e) {}
 
                 document.getElementById('quickStartScreen').classList.remove('active');
                 document.getElementById('successScreen').classList.remove('active');
@@ -2493,6 +2727,28 @@
                 const percentage = Math.round((this.questionsCorrect / this.questionsAnswered) * 100);
                 const scoreText = `${this.questionsCorrect} von ${this.questionsAnswered} richtig (${percentage}%)`;
 
+                // Tracker v3: quiz_complete (Funnel + kopflose GF-Zerlegung als payload)
+                try {
+                    const _gfMode = (this.currentLevel || '').startsWith('bild_') ? 'bilden' : 'erkennen';
+                    const _gfInput = _gfMode === 'bilden' ? 'notensystem'
+                        : this.currentLevel === 'profi' ? 'tastatur' : 'dropdown';
+                    tracker.quizComplete({
+                        level: this.currentLevel,
+                        subskill: (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis',
+                        mode: _gfMode,
+                        inputType: _gfInput,
+                        audioUsed: !(this.currentOptions || []).includes('noaudio'),
+                        answered: this.questionsAnswered,
+                        correct: this.questionsCorrect,
+                        pct: percentage,
+                        retryCount: Math.max(0, this.questionsAnswered - this.questionsCorrect),
+                        lockCase: false,
+                        durationMs: Date.now() - (this._quizStartTs || Date.now()),
+                        dims: errorTracker.getSubskillPerformance(),
+                        patterns: errorTracker.getErrorPatterns().map(p => p.type)
+                    });
+                } catch (e) {}
+
                 let emoji, title, stars;
                 if (percentage === 100) {
                     emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
@@ -2681,7 +2937,7 @@
             },
 
             init() {
-                tracking.init(); // TRACKING INITIALISIEREN
+                tracker.init(); // TRACKING INITIALISIEREN
                 this.setupInput(); // Dynamisches Input-Rendering
                 this.generateNote();
                 this.renderKeyboard();
@@ -4488,7 +4744,8 @@
                     
                     // Count score only on first successful completion
                     if (isFirstCheck) {
-                        tracking.trackQuestion(true);
+                        tracker.activity();
+                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect }); } catch (e) {} }
 
                         // QUICK-START: Nur handleAnswer, KEIN Score-Update
                         if (this.quickStartMode) {
@@ -4536,7 +4793,8 @@
                     
                     // Count as failure ONLY on first check
                     if (isFirstCheck) {
-                        tracking.trackQuestion(false);
+                        tracker.activity();
+                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect }); } catch (e) {} }
 
                         // QUICK-START: Nur handleAnswer, KEIN Score-Update
                         if (this.quickStartMode) {
@@ -4673,7 +4931,7 @@
 
                     // Tracking und Quick-Start
                     if (isFirstCheck) {
-                        tracking.trackQuestion(true);
+                        tracker.activity();
                         if (this.quickStartMode) {
                             quickStart.handleAnswer(true);
                         } else {
@@ -4710,7 +4968,7 @@
                 } else {
                     // Tracking und Quick-Start
                     if (isFirstCheck) {
-                        tracking.trackQuestion(false);
+                        tracker.activity();
                         if (this.quickStartMode) {
                             quickStart.handleAnswer(false);
                         } else {
@@ -5080,7 +5338,7 @@ Gerät:
             quickStart.init();
             
             // App initialisieren (aber nicht starten - Quick-Start steuert das)
-            tracking.init();
+            tracker.init();
             app.renderKeyboard();
 
             // Event Listeners werden jetzt in _attachInputListeners() registriert
