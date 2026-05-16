@@ -5300,8 +5300,33 @@ Gerät:
                     return this.generateGapFillTask();
                 }
 
-                // Zufälligen Kandidaten wählen
-                const gapIndex = candidates[Math.floor(Math.random() * candidates.length)];
+                // Lösungs-Verteilung balancieren (nur Quiz): Lücken-Notenwert
+                // least-served je Typ + harte Obergrenze (≤50% von totalQuestions),
+                // damit "immer denselben Wert" das Quiz (Bestehen ≥80%) nicht
+                // bestehen kann. Freies Üben bleibt unverändert zufällig.
+                let gapIndex;
+                if (quickStart.isActive) {
+                    if (quickStart.questionsAnswered === 0) quickStart._gapServed = {};
+                    const served = quickStart._gapServed || (quickStart._gapServed = {});
+                    const cap = Math.ceil(0.5 * (quickStart.totalQuestions || 10));
+                    const byVal = {};
+                    candidates.forEach(idx => {
+                        const v = this.noteValues[bar.notes[idx].type].value;
+                        (byVal[v] = byVal[v] || []).push(idx);
+                    });
+                    let vals = Object.keys(byVal);
+                    const underCap = vals.filter(v => (served[v] || 0) < cap);
+                    if (underCap.length) vals = underCap;
+                    const minServed = Math.min.apply(null, vals.map(v => served[v] || 0));
+                    const least = vals.filter(v => (served[v] || 0) === minServed);
+                    const pickVal = least[Math.floor(Math.random() * least.length)];
+                    const pool = byVal[pickVal];
+                    gapIndex = pool[Math.floor(Math.random() * pool.length)];
+                    served[pickVal] = (served[pickVal] || 0) + 1;
+                } else {
+                    // Freies Üben: unverändert zufällig
+                    gapIndex = candidates[Math.floor(Math.random() * candidates.length)];
+                }
                 const removedNote = { ...bar.notes[gapIndex] };
 
                 // Lücke einsetzen
