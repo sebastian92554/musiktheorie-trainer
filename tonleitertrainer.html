@@ -3188,6 +3188,15 @@
 
             // Regulärer Versuch
             this.questionsAnswered++;
+            // GF-Dims: nur sauber Zerlegbares — meister=Quintenzirkel-Frage
+            // (ganze Frage = quintenzirkelOk). profi grundton/tongeschlecht
+            // nicht trennbar (TT-Recognition fragmentiert) → Phase-1c.
+            try {
+                errorTracker.logAnswer({
+                    isCorrect: isCorrect,
+                    quintenzirkelOk: (this.currentLevel === 'meister') ? isCorrect : null
+                });
+            } catch (e) {}
             if (isCorrect) {
                 this.questionsCorrect++;
             } else {
