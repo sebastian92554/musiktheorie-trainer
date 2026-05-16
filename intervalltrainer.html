@@ -2029,7 +2029,7 @@
             constructor() { this.answers = []; }
             reset() { this.answers = []; }
 
-            // d: { isCorrect, anzahlOk, qualOk, hsOk }
+            // d: { isCorrect, anzahlOk, qualOk, hsOk, tastaturOk }
             // Jedes *Ok = true/false (geprüft) ODER null/undefined (nicht
             // geprüft in diesem Handler/Subskill → zählt für die Dim nicht).
             // Jeder Handler übergibt die Booleans, die er ohnehin berechnet.
@@ -2039,7 +2039,8 @@
                     isCorrect: !!d.isCorrect,
                     anzahlOk: b(d.anzahlOk),
                     qualOk: b(d.qualOk),
-                    hsOk: b(d.hsOk)
+                    hsOk: b(d.hsOk),
+                    tastaturOk: b(d.tastaturOk)
                 });
             }
 
@@ -2048,14 +2049,16 @@
                 const r = {
                     anzahl: { correct: 0, total: 0 },
                     qualitaet: { correct: 0, total: 0 },
-                    halbtonschritte: { correct: 0, total: 0 }
+                    halbtonschritte: { correct: 0, total: 0 },
+                    tastatur: { correct: 0, total: 0 }
                 };
                 this.answers.forEach(a => {
                     if (a.anzahlOk !== null) { r.anzahl.total++; if (a.anzahlOk) r.anzahl.correct++; }
                     if (a.qualOk !== null) { r.qualitaet.total++; if (a.qualOk) r.qualitaet.correct++; }
                     if (a.hsOk !== null) { r.halbtonschritte.total++; if (a.hsOk) r.halbtonschritte.correct++; }
+                    if (a.tastaturOk !== null) { r.tastatur.total++; if (a.tastaturOk) r.tastatur.correct++; }
                 });
-                for (const k of ['anzahl', 'qualitaet', 'halbtonschritte']) {
+                for (const k of ['anzahl', 'qualitaet', 'halbtonschritte', 'tastatur']) {
                     const s = r[k];
                     s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
                 }
@@ -6065,7 +6068,7 @@
                 const correctSize = this.currentInterval.size;
                 const isCorrect = parseInt(selectedValue) === correctSize;
                 if (this.quickStartMode && !quickStart.isRetry) {
-                    try { errorTracker.logAnswer({ isCorrect, anzahlOk: isCorrect }); } catch (e) {}
+                    try { errorTracker.logAnswer({ isCorrect, anzahlOk: isCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
                 }
 
                 feedbackEl.classList.remove('hidden');
@@ -6146,7 +6149,7 @@
                 const intervalName = this.getIntervalName(this.currentInterval.size);
                 const isCorrect = (inputSemitones === correctSemitones);
                 if (this.quickStartMode && !quickStart.isRetry) {
-                    try { errorTracker.logAnswer({ isCorrect, hsOk: isCorrect }); } catch (e) {}
+                    try { errorTracker.logAnswer({ isCorrect, hsOk: isCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
                 }
 
                 feedbackEl.classList.remove('hidden');
@@ -7013,7 +7016,8 @@
                             isCorrect: allCorrect,
                             anzahlOk: (inputSize === correctSize),
                             qualOk: isFeinbestimmungActive ? (inputQuality === correctQuality) : null,
-                            hsOk: semitonesRequired ? (this.validationState.semitones === true) : null
+                            hsOk: semitonesRequired ? (this.validationState.semitones === true) : null,
+                            tastaturOk: this.settings.requireKeyboard ? (this.validationState.keyboard === true) : null
                         });
                     } catch (e) {}
                 }
