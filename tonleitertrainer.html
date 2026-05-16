@@ -2336,7 +2336,7 @@
         constructor() { this.answers = []; }
         reset() { this.answers = []; }
 
-        // d: { isCorrect, grundtonOk, tongeschlechtOk, quintenzirkelOk }
+        // d: { isCorrect, grundtonOk, tongeschlechtOk, quintenzirkelOk, hsOk }
         // Jedes *Ok = true/false (geprüft) ODER null/undefined (nicht
         // geprüft in diesem Stage → zählt für die Dim nicht).
         logAnswer(d) {
@@ -2345,7 +2345,8 @@
                 isCorrect: !!d.isCorrect,
                 grundtonOk: b(d.grundtonOk),
                 tongeschlechtOk: b(d.tongeschlechtOk),
-                quintenzirkelOk: b(d.quintenzirkelOk)
+                quintenzirkelOk: b(d.quintenzirkelOk),
+                hsOk: b(d.hsOk)
             });
         }
 
@@ -2354,14 +2355,16 @@
             const r = {
                 grundton: { correct: 0, total: 0 },
                 tongeschlecht: { correct: 0, total: 0 },
-                quintenzirkel: { correct: 0, total: 0 }
+                quintenzirkel: { correct: 0, total: 0 },
+                halbtonschritte: { correct: 0, total: 0 }
             };
             this.answers.forEach(a => {
                 if (a.grundtonOk !== null) { r.grundton.total++; if (a.grundtonOk) r.grundton.correct++; }
                 if (a.tongeschlechtOk !== null) { r.tongeschlecht.total++; if (a.tongeschlechtOk) r.tongeschlecht.correct++; }
                 if (a.quintenzirkelOk !== null) { r.quintenzirkel.total++; if (a.quintenzirkelOk) r.quintenzirkel.correct++; }
+                if (a.hsOk !== null) { r.halbtonschritte.total++; if (a.hsOk) r.halbtonschritte.correct++; }
             });
-            for (const k of ['grundton', 'tongeschlecht', 'quintenzirkel']) {
+            for (const k of ['grundton', 'tongeschlecht', 'quintenzirkel', 'halbtonschritte']) {
                 const s = r[k];
                 s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
             }
@@ -3034,6 +3037,7 @@
         start(level, optionsFromSkilltree) {
             this.currentLevel = level;
             this.questionsAnswered = 0;
+            this._lastAspects = null;  // GF-Carrier: stale Kontext-Reste verwerfen
             QUINTENZIRKEL.resetRecent();
             this.questionsCorrect = 0;
             this.isRetry = false;
@@ -3188,13 +3192,19 @@
 
             // Regulärer Versuch
             this.questionsAnswered++;
-            // GF-Dims: nur sauber Zerlegbares — meister=Quintenzirkel-Frage
-            // (ganze Frage = quintenzirkelOk). profi grundton/tongeschlecht
-            // nicht trennbar (TT-Recognition fragmentiert) → Phase-1c.
+            // GF-Dims: quintenzirkelOk direkt (meister=ganze Frage).
+            // grundton/tongeschlecht/hs liefern die verstreuten Prüf-
+            // funktionen via quickStart._lastAspects (Carrier, hier
+            // konsumiert + geleert). Nicht gesetzt → null → zählt nicht.
             try {
+                const _asp = this._lastAspects || {};
+                this._lastAspects = null;
                 errorTracker.logAnswer({
                     isCorrect: isCorrect,
-                    quintenzirkelOk: (this.currentLevel === 'meister') ? isCorrect : null
+                    quintenzirkelOk: (this.currentLevel === 'meister') ? isCorrect : null,
+                    grundtonOk: (_asp.grundtonOk !== undefined) ? _asp.grundtonOk : null,
+                    tongeschlechtOk: (_asp.tongeschlechtOk !== undefined) ? _asp.tongeschlechtOk : null,
+                    hsOk: (_asp.hsOk !== undefined) ? _asp.hsOk : null
                 });
             } catch (e) {}
             if (isCorrect) {
@@ -7070,6 +7080,8 @@
                 }
             }
 
+            quickStart._lastAspects = { hsOk: allCorrect };  // T3 (HS-Markierung)
+
             // Visuelles Feedback auf Tasten
             const allKeys = document.querySelectorAll('.white-key, .black-key');
             allKeys.forEach(keyEl => {
@@ -7170,6 +7182,7 @@
             }
 
             if (quickStart.isActive && !quickStart.fallbackActive) {
+                quickStart._lastAspects = { hsOk: allCorrect };  // T3 (Stufenpaare)
                 quickStart.handleAnswer(allCorrect);
             }
 
@@ -7217,6 +7230,12 @@
             } else {
                 isCorrect = (parsed.root === this.currentScale.root && parsed.type === this.currentScale.type);
             }
+
+            // GF: Wurzel (T1) und Modus/Other (T2) separat — hier sauber trennbar
+            quickStart._lastAspects = {
+                grundtonOk: (parsed.type === '_Other') ? null : (parsed.root === this.currentScale.root),
+                tongeschlechtOk: (parsed.type === '_Other') ? isKirchentonart : (parsed.type === this.currentScale.type)
+            };
 
             if (!this.freeRetry) {
                 this.score.total++;
@@ -7275,6 +7294,9 @@
             } else {
                 isCorrect = (answer === correctType);
             }
+
+            // GF: ganze Frage = Tongeschlecht-Urteil (T2)
+            quickStart._lastAspects = { tongeschlechtOk: isCorrect };
 
             if (!this.freeRetry) {
                 this.score.total++;
