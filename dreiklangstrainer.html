@@ -2143,6 +2143,53 @@
         };
 
         // ===================================
+        // ErrorTracker DT — kopflose Fehlerzerlegung (Pfad B, kein UI)
+        // ===================================
+        // Dims: grundton (Root) · akkordtyp (Dur/Moll/…) · umkehrung
+        // (Stellung). Reine Datenklasse — keine DOM-/UI-Effekte.
+        class ErrorTracker {
+            constructor() { this.answers = []; }
+            reset() { this.answers = []; }
+
+            // d: { isCorrect, grundtonOk, akkordtypOk, umkehrungOk }
+            // Jedes *Ok = true/false (geprüft) ODER null/undefined (nicht
+            // geprüft in diesem Modus → zählt für die Dim nicht).
+            logAnswer(d) {
+                const b = v => (v === null || v === undefined) ? null : !!v;
+                this.answers.push({
+                    isCorrect: !!d.isCorrect,
+                    grundtonOk: b(d.grundtonOk),
+                    akkordtypOk: b(d.akkordtypOk),
+                    umkehrungOk: b(d.umkehrungOk)
+                });
+            }
+
+            getSubskillPerformance() {
+                if (this.answers.length === 0) return null;
+                const r = {
+                    grundton: { correct: 0, total: 0 },
+                    akkordtyp: { correct: 0, total: 0 },
+                    umkehrung: { correct: 0, total: 0 }
+                };
+                this.answers.forEach(a => {
+                    if (a.grundtonOk !== null) { r.grundton.total++; if (a.grundtonOk) r.grundton.correct++; }
+                    if (a.akkordtypOk !== null) { r.akkordtyp.total++; if (a.akkordtypOk) r.akkordtyp.correct++; }
+                    if (a.umkehrungOk !== null) { r.umkehrung.total++; if (a.umkehrungOk) r.umkehrung.correct++; }
+                });
+                for (const k of ['grundton', 'akkordtyp', 'umkehrung']) {
+                    const s = r[k];
+                    s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
+                }
+                return r;
+            }
+
+            getErrors() { return this.answers.filter(a => !a.isCorrect); }
+            getErrorPatterns() { return []; } // DT-Muster: Phase-1c-Backlog
+            getErrorPattern() { return null; }
+        }
+        const errorTracker = new ErrorTracker();
+
+        // ===================================
         // QUICK-START SYSTEM
         // ===================================
         var quickStart = {
@@ -2765,6 +2812,7 @@
                 this.totalQuestions = 10;
                 this._quizStartTs = Date.now();
                 try {
+                    errorTracker.reset();
                     tracker.quizStart({
                         level: this.currentLevel,
                         subskill: (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis',
@@ -3056,7 +3104,9 @@
                         pct: percentage,
                         retryCount: Math.max(0, this.questionsAnswered - this.questionsCorrect),
                         lockCase: false,
-                        durationMs: Date.now() - (this._quizStartTs || Date.now())
+                        durationMs: Date.now() - (this._quizStartTs || Date.now()),
+                        dims: errorTracker.getSubskillPerformance(),
+                        patterns: errorTracker.getErrorPatterns()
                     });
                 } catch (e) {}
 
