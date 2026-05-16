@@ -7249,6 +7249,9 @@ const _lernkartenContent = {
                     const typeCorrect = (typeVal === correctType);
 
                     isCorrect = rootCorrect && typeCorrect;
+                    if (this.quickStartMode && !quickStart.isRetry) {
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect }); } catch (e) {}
+                    }
 
                     if (isCorrect) {
                         rootInput.disabled = true;
@@ -7320,6 +7323,9 @@ const _lernkartenContent = {
                     const typeCorrect = (typeVal === correctType);
 
                     isCorrect = inversionCorrect && rootCorrect && typeCorrect;
+                    if (this.quickStartMode && !quickStart.isRetry) {
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, umkehrungOk: inversionCorrect }); } catch (e) {}
+                    }
 
                     if (isCorrect) {
                         invSelect.disabled = true;
