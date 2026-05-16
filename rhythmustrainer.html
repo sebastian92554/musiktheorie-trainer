@@ -5168,6 +5168,13 @@ Gerät:
                     if (!this.freeRetry) {
                         this.score.total++;
                         if (isCorrect) this.score.correct++;
+                        try {
+                            const _m = { 'note-addition': 'notenwerteOk', 'counting-time': 'zaehlzeitOk', 'rhythm-syllable': 'rhythmusspracheOk', 'time-signature-id': 'taktartOk', 'gap-fill': 'notentypOk' };
+                            const _p = { isCorrect: isCorrect };
+                            const _d = _m[this.settings.taskType];
+                            if (_d) _p[_d] = isCorrect;
+                            errorTracker.logAnswer(_p);
+                        } catch (e) {}
                     }
                     this.hasBeenChecked = true;
                     this.updateScoreDisplay();
