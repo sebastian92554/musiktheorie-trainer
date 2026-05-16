@@ -2062,6 +2062,59 @@
         };
 
         // ===================================
+        // ErrorTracker RT — kopflose Fehlerzerlegung (Pfad B, kein UI)
+        // ===================================
+        // Dims (taskType→Dim 1:1): notenwerte · zaehlzeit ·
+        // rhythmussprache · taktart · notentyp. Reine Datenklasse.
+        class ErrorTracker {
+            constructor() { this.answers = []; }
+            reset() { this.answers = []; }
+
+            // d: { isCorrect, notenwerteOk, zaehlzeitOk, rhythmusspracheOk,
+            //      taktartOk, notentypOk } — *Ok = true/false ODER null
+            logAnswer(d) {
+                const b = v => (v === null || v === undefined) ? null : !!v;
+                this.answers.push({
+                    isCorrect: !!d.isCorrect,
+                    notenwerteOk: b(d.notenwerteOk),
+                    zaehlzeitOk: b(d.zaehlzeitOk),
+                    rhythmusspracheOk: b(d.rhythmusspracheOk),
+                    taktartOk: b(d.taktartOk),
+                    notentypOk: b(d.notentypOk)
+                });
+            }
+
+            getSubskillPerformance() {
+                if (this.answers.length === 0) return null;
+                const r = {
+                    notenwerte: { correct: 0, total: 0 },
+                    zaehlzeit: { correct: 0, total: 0 },
+                    rhythmussprache: { correct: 0, total: 0 },
+                    taktart: { correct: 0, total: 0 },
+                    notentyp: { correct: 0, total: 0 }
+                };
+                const K = [['notenwerteOk', 'notenwerte'], ['zaehlzeitOk', 'zaehlzeit'],
+                    ['rhythmusspracheOk', 'rhythmussprache'], ['taktartOk', 'taktart'],
+                    ['notentypOk', 'notentyp']];
+                this.answers.forEach(a => {
+                    K.forEach(([ok, dim]) => {
+                        if (a[ok] !== null) { r[dim].total++; if (a[ok]) r[dim].correct++; }
+                    });
+                });
+                for (const k of ['notenwerte', 'zaehlzeit', 'rhythmussprache', 'taktart', 'notentyp']) {
+                    const s = r[k];
+                    s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
+                }
+                return r;
+            }
+
+            getErrors() { return this.answers.filter(a => !a.isCorrect); }
+            getErrorPatterns() { return []; } // RT-Muster: Phase-1c-Backlog
+            getErrorPattern() { return null; }
+        }
+        const errorTracker = new ErrorTracker();
+
+        // ===================================
         // QUICK-START SYSTEM (SKILLTREE)
         // ===================================
         var quickStart = {
@@ -2602,6 +2655,7 @@
 
                 this._quizStartTs = Date.now();
                 try {
+                    errorTracker.reset();
                     tracker.quizStart({
                         level: this.currentLevel,
                         subskill: (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis',
@@ -3090,7 +3144,9 @@
                         pct: percentage,
                         retryCount: Math.max(0, this.questionsAnswered - this.questionsCorrect),
                         lockCase: false,
-                        durationMs: Date.now() - (this._quizStartTs || Date.now())
+                        durationMs: Date.now() - (this._quizStartTs || Date.now()),
+                        dims: errorTracker.getSubskillPerformance(),
+                        patterns: errorTracker.getErrorPatterns()
                     });
                 } catch (e) {}
 
@@ -7709,6 +7765,13 @@ Gerät:
                     if (!this.freeRetry) {
                         this.score.total++;
                         tracker.activity(); // Tracking
+                        try {
+                            const _m = { 'note-addition': 'notenwerteOk', 'counting-time': 'zaehlzeitOk', 'rhythm-syllable': 'rhythmusspracheOk', 'time-signature-id': 'taktartOk', 'gap-fill': 'notentypOk' };
+                            const _p = { isCorrect: isCorrect };
+                            const _d = _m[this.settings.taskType];
+                            if (_d) _p[_d] = isCorrect;
+                            errorTracker.logAnswer(_p);
+                        } catch (e) {}
                         if (isCorrect) {
                             this.score.correct++;
                         }
@@ -7819,6 +7882,13 @@ Gerät:
                     if (!this.freeRetry) {
                         this.score.total++;
                         tracker.activity(); // Tracking
+                        try {
+                            const _m = { 'note-addition': 'notenwerteOk', 'counting-time': 'zaehlzeitOk', 'rhythm-syllable': 'rhythmusspracheOk', 'time-signature-id': 'taktartOk', 'gap-fill': 'notentypOk' };
+                            const _p = { isCorrect: isCorrect };
+                            const _d = _m[this.settings.taskType];
+                            if (_d) _p[_d] = isCorrect;
+                            errorTracker.logAnswer(_p);
+                        } catch (e) {}
                         if (isCorrect) {
                             this.score.correct++;
                         }
