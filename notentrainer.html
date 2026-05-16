@@ -1682,11 +1682,12 @@
         // Mit Session-Start für zuverlässiges Mobile-Tracking
         // ===================================
         // ===================================
-        // TRACKER v3 — Append-only Event-Log (kopflos, Pfad B)
+        // TRACKER v3.1 — Append-only Event-Log (kopflos, Pfad B)
         // ===================================
-        // 4 Events: page_view, quiz_start, quiz_complete, heartbeat.
-        // Kein session_end-Latch, keine Idle-Beendigung. Dauer offline aus
-        // Heartbeats. env: 'dev' via localStorage.musik_tracking_env, sonst 'prod'.
+        // 4 Events + node_select/card_view. Kein session_end-Latch.
+        // §10 Heartbeat-Tuning: Früh-Backoff (20/45/90s→Cap 300s),
+        // Idle-Keepalive, visibilitychange-Coalesce, kein beforeunload.
+        // env: 'dev' via localStorage.musik_tracking_env, sonst 'prod'.
         const tracker = {
             scriptURL: 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
             schema: 3,
@@ -1695,8 +1696,12 @@
             sessionStart: null,
             lastActivity: null,
             _inited: false,
-            _hb: null,
-            HEARTBEAT_MS: 90000,
+            _lastBeacon: 0,
+            _hbStep: 0,
+            HB_SCHEDULE: [20000, 45000, 90000],
+            HB_CAP: 300000,
+            HB_COALESCE: 30000,
+            HB_IDLE_SKIP: 15000,
 
             env() {
                 try {
@@ -1735,7 +1740,22 @@
                     payload: payload || {}
                 };
                 navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+                this._lastBeacon = Date.now();
                 console.log('📊', eventType, data);
+            },
+
+            _scheduleHb() {
+                const d = this._hbStep < this.HB_SCHEDULE.length ? this.HB_SCHEDULE[this._hbStep] : this.HB_CAP;
+                this._hbStep++;
+                setTimeout(() => { this._hbTick(); this._scheduleHb(); }, d);
+            },
+            _hbTick() {
+                if (!this.sessionStart) return;
+                if (Date.now() - this._lastBeacon < this.HB_IDLE_SKIP) return;
+                this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
+            },
+            _hbFlush() {
+                if (this.sessionStart) this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
             },
 
             init() {
@@ -1746,37 +1766,26 @@
                 this.lastActivity = Date.now();
 
                 this._send('page_view', {});
+                this._scheduleHb();
 
-                this._hb = setInterval(() => this.heartbeat(), this.HEARTBEAT_MS);
-
-                document.addEventListener('visibilitychange', () => this.heartbeat());
-                window.addEventListener('pagehide', () => this.heartbeat());
-                window.addEventListener('beforeunload', () => this.heartbeat());
+                document.addEventListener('visibilitychange', () => {
+                    if (Date.now() - this._lastBeacon >= this.HB_COALESCE) this._hbFlush();
+                });
+                window.addEventListener('pagehide', () => this._hbFlush());
 
                 const act = ['click', 'keydown', 'touchstart', 'scroll'];
                 act.forEach(evt => document.addEventListener(evt, () => {
                     this.lastActivity = Date.now();
                 }, { passive: true }));
 
-                console.log('📊 Tracker v3 init, Session:', this.sessionId, 'env:', this.env());
+                console.log('📊 Tracker v3.1 init, Session:', this.sessionId, 'env:', this.env());
             },
 
-            heartbeat() {
-                if (!this.sessionStart) return;
-                this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
-            },
-
-            quizStart(p) {
-                this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode });
-            },
-
-            quizComplete(payload) {
-                this._send('quiz_complete', payload);
-            },
-
-            activity() {
-                this.lastActivity = Date.now();
-            }
+            quizStart(p) { this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode }); },
+            quizComplete(payload) { this._send('quiz_complete', payload); },
+            nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
+            cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+            activity() { this.lastActivity = Date.now(); }
         };
 
         // ===================================
@@ -2326,6 +2335,10 @@
                 }
 
                 this.selectedSub = { nodeId, index: subIndex };
+                try {
+                    const _ss = (this.nodeSubSkills[nodeId] && this.nodeSubSkills[nodeId][subIndex]) ? this.nodeSubSkills[nodeId][subIndex].id : subIndex;
+                    tracker.nodeSelect({ node: nodeId, subskill: _ss });
+                } catch (e) {}
                 this._updateSubDotSelection(nodeId, subIndex);
                 this._updateStartButton();
             },
@@ -3121,6 +3134,7 @@
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
                 this._lernkarteFromStart = !!fromStart;
+                if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
 
