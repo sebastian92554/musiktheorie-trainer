@@ -2021,6 +2021,57 @@
         };
 
         // ===================================
+        // ErrorTracker IT — kopflose Fehlerzerlegung (Pfad B, kein UI)
+        // ===================================
+        // Dims: anzahl (Intervallgröße/steps) · qualitaet (rein/groß/…) ·
+        // halbtonschritte. Reine Datenklasse — keine DOM-/UI-Effekte.
+        class ErrorTracker {
+            constructor() { this.answers = []; }
+            reset() { this.answers = []; }
+
+            // d: { isCorrect, correctSize, correctQuality, correctSemitones,
+            //      userSize, userQuality, userSemitones,
+            //      semitonesRequired, qualityRequired }
+            logAnswer(d) {
+                const num = v => (v === null || v === undefined || v === '') ? null : Number(v);
+                const anzahlOk = (d.userSize === null || d.userSize === undefined)
+                    ? null : (num(d.userSize) === num(d.correctSize));
+                const qualOk = d.qualityRequired
+                    ? (String(d.userQuality || '') === String(d.correctQuality || '')) : null;
+                const hsOk = d.semitonesRequired
+                    ? (num(d.userSemitones) === num(d.correctSemitones)) : null;
+                this.answers.push({
+                    isCorrect: !!d.isCorrect,
+                    anzahlOk, qualOk, hsOk
+                });
+            }
+
+            getSubskillPerformance() {
+                if (this.answers.length === 0) return null;
+                const r = {
+                    anzahl: { correct: 0, total: 0 },
+                    qualitaet: { correct: 0, total: 0 },
+                    halbtonschritte: { correct: 0, total: 0 }
+                };
+                this.answers.forEach(a => {
+                    if (a.anzahlOk !== null) { r.anzahl.total++; if (a.anzahlOk) r.anzahl.correct++; }
+                    if (a.qualOk !== null) { r.qualitaet.total++; if (a.qualOk) r.qualitaet.correct++; }
+                    if (a.hsOk !== null) { r.halbtonschritte.total++; if (a.hsOk) r.halbtonschritte.correct++; }
+                });
+                for (const k of ['anzahl', 'qualitaet', 'halbtonschritte']) {
+                    const s = r[k];
+                    s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
+                }
+                return r;
+            }
+
+            getErrors() { return this.answers.filter(a => !a.isCorrect); }
+            getErrorPatterns() { return []; } // IT-Muster: Phase-1c-Backlog
+            getErrorPattern() { return null; }
+        }
+        const errorTracker = new ErrorTracker();
+
+        // ===================================
         // QUICK-START SYSTEM
         // ===================================
         var quickStart = {
@@ -2553,6 +2604,7 @@
                 this.totalQuestions = 10;
                 this._quizStartTs = Date.now();
                 try {
+                    errorTracker.reset();
                     tracker.quizStart({
                         level: this.currentLevel,
                         subskill: (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis',
@@ -2822,7 +2874,9 @@
                         pct: percentage,
                         retryCount: Math.max(0, this.questionsAnswered - this.questionsCorrect),
                         lockCase: false,
-                        durationMs: Date.now() - (this._quizStartTs || Date.now())
+                        durationMs: Date.now() - (this._quizStartTs || Date.now()),
+                        dims: errorTracker.getSubskillPerformance(),
+                        patterns: errorTracker.getErrorPatterns()
                     });
                 } catch (e) {}
 
