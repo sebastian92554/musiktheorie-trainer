@@ -1818,6 +1818,10 @@
                 const lageActive = data.options?.includes('lagen');
                 const lageOk = lageActive ? data.lageCorrect : null;
 
+                // TAS (Tastatur-Orientierung): nur bei Tastatur-Pflicht-Task (Kn3)
+                const tastaturActive = !!data.tastaturActive;
+                const tastaturOk = tastaturActive ? (data.tastaturCorrect === true) : null;
+
                 this.answers.push({
                     isCorrect: data.isCorrect,
                     correctNote: correct,
@@ -1828,6 +1832,7 @@
                     stammtonOk,
                     vzOk,
                     lageOk,
+                    tastaturOk,
                     hasVZ
                 });
             }
@@ -1838,7 +1843,8 @@
                 const result = {
                     stammtoene: { correct: 0, total: 0 },
                     vorzeichen: { correct: 0, total: 0 },
-                    lagen: { correct: 0, total: 0 }
+                    lagen: { correct: 0, total: 0 },
+                    tastatur: { correct: 0, total: 0 }
                 };
 
                 this.answers.forEach(a => {
@@ -1854,9 +1860,14 @@
                         result.lagen.total++;
                         if (a.lageOk) result.lagen.correct++;
                     }
+
+                    if (a.tastaturOk !== null) {
+                        result.tastatur.total++;
+                        if (a.tastaturOk) result.tastatur.correct++;
+                    }
                 });
 
-                for (const key of ['stammtoene', 'vorzeichen', 'lagen']) {
+                for (const key of ['stammtoene', 'vorzeichen', 'lagen', 'tastatur']) {
                     const s = result[key];
                     s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
                 }
@@ -4759,7 +4770,7 @@
                     // Count score only on first successful completion
                     if (isFirstCheck) {
                         tracker.activity();
-                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect }); } catch (e) {} }
+                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect, tastaturActive: this.settings.requireKeyboard, tastaturCorrect: this.validationState && this.validationState.keyboard === true }); } catch (e) {} }
 
                         // QUICK-START: Nur handleAnswer, KEIN Score-Update
                         if (this.quickStartMode) {
@@ -4808,7 +4819,7 @@
                     // Count as failure ONLY on first check
                     if (isFirstCheck) {
                         tracker.activity();
-                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect }); } catch (e) {} }
+                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect, tastaturActive: this.settings.requireKeyboard, tastaturCorrect: this.validationState && this.validationState.keyboard === true }); } catch (e) {} }
 
                         // QUICK-START: Nur handleAnswer, KEIN Score-Update
                         if (this.quickStartMode) {
