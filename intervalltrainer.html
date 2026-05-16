@@ -2029,20 +2029,17 @@
             constructor() { this.answers = []; }
             reset() { this.answers = []; }
 
-            // d: { isCorrect, correctSize, correctQuality, correctSemitones,
-            //      userSize, userQuality, userSemitones,
-            //      semitonesRequired, qualityRequired }
+            // d: { isCorrect, anzahlOk, qualOk, hsOk }
+            // Jedes *Ok = true/false (geprüft) ODER null/undefined (nicht
+            // geprüft in diesem Handler/Subskill → zählt für die Dim nicht).
+            // Jeder Handler übergibt die Booleans, die er ohnehin berechnet.
             logAnswer(d) {
-                const num = v => (v === null || v === undefined || v === '') ? null : Number(v);
-                const anzahlOk = (d.userSize === null || d.userSize === undefined)
-                    ? null : (num(d.userSize) === num(d.correctSize));
-                const qualOk = d.qualityRequired
-                    ? (String(d.userQuality || '') === String(d.correctQuality || '')) : null;
-                const hsOk = d.semitonesRequired
-                    ? (num(d.userSemitones) === num(d.correctSemitones)) : null;
+                const b = v => (v === null || v === undefined) ? null : !!v;
                 this.answers.push({
                     isCorrect: !!d.isCorrect,
-                    anzahlOk, qualOk, hsOk
+                    anzahlOk: b(d.anzahlOk),
+                    qualOk: b(d.qualOk),
+                    hsOk: b(d.hsOk)
                 });
             }
 
@@ -6067,7 +6064,10 @@
                 
                 const correctSize = this.currentInterval.size;
                 const isCorrect = parseInt(selectedValue) === correctSize;
-                
+                if (this.quickStartMode && !quickStart.isRetry) {
+                    try { errorTracker.logAnswer({ isCorrect, anzahlOk: isCorrect }); } catch (e) {}
+                }
+
                 feedbackEl.classList.remove('hidden');
                 
                 if (isCorrect) {
@@ -6145,7 +6145,10 @@
                 const correctSemitones = this.currentInterval.semitones;
                 const intervalName = this.getIntervalName(this.currentInterval.size);
                 const isCorrect = (inputSemitones === correctSemitones);
-                
+                if (this.quickStartMode && !quickStart.isRetry) {
+                    try { errorTracker.logAnswer({ isCorrect, hsOk: isCorrect }); } catch (e) {}
+                }
+
                 feedbackEl.classList.remove('hidden');
                 
                 if (isCorrect) {
@@ -7003,7 +7006,18 @@
                 const allCorrect = this.validationState.intervalName === true &&
                     (!semitonesRequired || this.validationState.semitones === true) &&
                     (!this.settings.requireKeyboard || this.validationState.keyboard === true);
-                
+
+                if (isFirstCheck && this.quickStartMode) {
+                    try {
+                        errorTracker.logAnswer({
+                            isCorrect: allCorrect,
+                            anzahlOk: (inputSize === correctSize),
+                            qualOk: isFeinbestimmungActive ? (inputQuality === correctQuality) : null,
+                            hsOk: semitonesRequired ? (this.validationState.semitones === true) : null
+                        });
+                    } catch (e) {}
+                }
+
                 if (allCorrect) {
                     // ALLES RICHTIG!
                     this.validationState.allCorrect = true;
