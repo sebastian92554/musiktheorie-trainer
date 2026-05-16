@@ -2364,6 +2364,10 @@
                 }
 
                 this.selectedSub = { nodeId, index: subIndex };
+                try {
+                    const _ss = (this.nodeSubSkills[nodeId] && this.nodeSubSkills[nodeId][subIndex]) ? this.nodeSubSkills[nodeId][subIndex].id : subIndex;
+                    tracker.nodeSelect({ node: nodeId, subskill: _ss });
+                } catch (e) {}
                 this._updateSubDotSelection(nodeId, subIndex);
                 this._updateStartButton();
             },
@@ -3961,6 +3965,7 @@
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
                 this._lernkarteFromStart = !!fromStart;
+                if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
 
