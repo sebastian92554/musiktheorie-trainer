@@ -1912,94 +1912,112 @@
         // TRACKING SYSTEM v2.0 - Google Sheets
         // Mit Session-Start für zuverlässiges Mobile-Tracking
         // ===================================
-        const tracking = {
+        // ===================================
+        // TRACKER v3.1 — Append-only Event-Log (kopflos, Pfad B)
+        // ===================================
+        // 4 Events + node_select/card_view. Kein session_end-Latch.
+        // §10 Heartbeat-Tuning: Früh-Backoff (20/45/90s→Cap 300s),
+        // Idle-Keepalive, visibilitychange-Coalesce, kein beforeunload.
+        // env: 'dev' via localStorage.musik_tracking_env, sonst 'prod'.
+        const tracker = {
             scriptURL: 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
+            schema: 3,
+            trainer: 'Intervalltrainer',
             sessionId: null,
             sessionStart: null,
-            questionsAnswered: 0,
-            questionsCorrect: 0,
-            sessionEnded: false, // Verhindert mehrfaches Senden
-            
-            init() {
-                this.sessionId = this.generateSessionId();
-                this.sessionStart = Date.now();
-                
-                // SOFORT Session-Start senden (für Mobile!)
-                this.sendStartEvent();
-                
-                // Mehrere End-Events für bessere Kompatibilität
-                window.addEventListener('pagehide', () => this.endSession());
-                document.addEventListener('visibilitychange', () => {
-                    if (document.visibilityState === 'hidden') this.endSession();
-                });
-                window.addEventListener('beforeunload', () => this.endSession());
-                
-                console.log('📊 Tracking v2.0 initialisiert, Session:', this.sessionId);
+            lastActivity: null,
+            _inited: false,
+            _lastBeacon: 0,
+            _hbStep: 0,
+            HB_SCHEDULE: [20000, 45000, 90000],
+            HB_CAP: 300000,
+            HB_COALESCE: 30000,
+            HB_IDLE_SKIP: 15000,
+
+            env() {
+                try {
+                    return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod';
+                } catch (e) {
+                    return 'prod';
+                }
             },
-            
+
             generateSessionId() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             },
-            
-            sendStartEvent() {
-                const data = {
-                    eventType: 'session_start',
-                    sessionId: this.sessionId,
-                    app: 'Intervalltrainer',
-                    timestamp: new Date().toISOString(),
-                    device: this.getDeviceType(),
-                    referrer: document.referrer || 'direct'
-                };
-                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
-                console.log('📊 Session gestartet:', data);
-            },
-            
-            trackQuestion(isCorrect) {
-                this.questionsAnswered++;
-                if (isCorrect) this.questionsCorrect++;
-            },
-            
-            endSession() {
-                if (this.sessionEnded || !this.sessionStart || !this.scriptURL) return;
-                this.sessionEnded = true; // Nur einmal senden
-                
-                const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
-                const successRate = this.questionsAnswered > 0 
-                    ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100) 
-                    : 0;
-                
-                const data = {
-                    eventType: 'session_end',
-                    sessionId: this.sessionId,
-                    app: 'Intervalltrainer',
-                    timestamp: new Date().toISOString(),
-                    duration: duration,
-                    questionsAnswered: this.questionsAnswered,
-                    successRate: successRate,
-                    device: this.getDeviceType(),
-                    referrer: document.referrer || 'direct'
-                };
-                
-                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
-                console.log('📊 Session beendet:', data);
-            },
-            
+
             getDeviceType() {
                 const ua = navigator.userAgent.toLowerCase();
                 const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                 const width = window.innerWidth;
-                
-                // Prüfe User-Agent für Tablets
                 const isTablet = /(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i.test(ua);
-                
-                // Prüfe User-Agent für Mobile
                 const isMobile = /mobile|android|iphone|ipod|blackberry|windows phone/i.test(ua);
-                
-                // Kombinierte Logik
                 if (isMobile && !isTablet) return 'mobile';
                 if (isTablet || (hasTouch && width >= 768 && width < 1366)) return 'tablet';
                 return 'desktop';
-            }
+            },
+
+            _send(eventType, payload) {
+                if (!this.scriptURL || !this.sessionId) return;
+                const data = {
+                    schema: this.schema,
+                    env: this.env(),
+                    eventType: eventType,
+                    sessionId: this.sessionId,
+                    trainer: this.trainer,
+                    device: this.getDeviceType(),
+                    referrer: document.referrer || 'direct',
+                    ts: new Date().toISOString(),
+                    payload: payload || {}
+                };
+                navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+                this._lastBeacon = Date.now();
+                console.log('📊', eventType, data);
+            },
+
+            _scheduleHb() {
+                const d = this._hbStep < this.HB_SCHEDULE.length ? this.HB_SCHEDULE[this._hbStep] : this.HB_CAP;
+                this._hbStep++;
+                setTimeout(() => { this._hbTick(); this._scheduleHb(); }, d);
+            },
+            _hbTick() {
+                if (!this.sessionStart) return;
+                // Idle-Keepalive: überspringen, wenn kürzlich schon ein Beacon ging
+                if (Date.now() - this._lastBeacon < this.HB_IDLE_SKIP) return;
+                this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
+            },
+            _hbFlush() {
+                if (this.sessionStart) this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
+            },
+
+            init() {
+                if (this._inited) return; // idempotent
+                this._inited = true;
+                this.sessionId = this.generateSessionId();
+                this.sessionStart = Date.now();
+                this.lastActivity = Date.now();
+
+                this._send('page_view', {});
+                this._scheduleHb();
+
+                document.addEventListener('visibilitychange', () => {
+                    if (Date.now() - this._lastBeacon >= this.HB_COALESCE) this._hbFlush();
+                });
+                window.addEventListener('pagehide', () => this._hbFlush());
+
+                const act = ['click', 'keydown', 'touchstart', 'scroll'];
+                act.forEach(evt => document.addEventListener(evt, () => {
+                    this.lastActivity = Date.now();
+                }, { passive: true }));
+
+                console.log('📊 Tracker v3.1 init, Session:', this.sessionId, 'env:', this.env());
+            },
+
+            quizStart(p) { this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode }); },
+            quizComplete(payload) { this._send('quiz_complete', payload); },
+            nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
+            cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+            activity() { this.lastActivity = Date.now(); }
         };
 
         // ===================================
@@ -2529,6 +2547,14 @@
                 }
 
                 this.totalQuestions = 10;
+                this._quizStartTs = Date.now();
+                try {
+                    tracker.quizStart({
+                        level: this.currentLevel,
+                        subskill: (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis',
+                        mode: (this.currentLevel || '').startsWith('bilden_') ? 'bilden' : 'erkennen'
+                    });
+                } catch (e) {}
 
                 document.getElementById('quickStartScreen').classList.remove('active');
                 document.getElementById('successScreen').classList.remove('active');
@@ -2773,6 +2799,28 @@
 
                 const percentage = Math.round((this.questionsCorrect / this.questionsAnswered) * 100);
                 const scoreText = `${this.questionsCorrect} von ${this.questionsAnswered} richtig (${percentage}%)`;
+
+                // Tracker v3: quiz_complete (Funnel; GF-Dims folgen mit 5.3-IT)
+                try {
+                    const _m = (this.currentLevel || '').startsWith('bilden_') ? 'bilden' : 'erkennen';
+                    const _sub = (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis';
+                    const _in = this.currentLevel === 'bilden_staff' ? 'notensystem'
+                        : this.currentLevel === 'bilden_tastatur' ? 'tastatur'
+                        : _sub === 'nohelp' ? 'freitext' : 'dropdown';
+                    tracker.quizComplete({
+                        level: this.currentLevel,
+                        subskill: _sub,
+                        mode: _m,
+                        inputType: _in,
+                        audioUsed: !(this.currentOptions || []).includes('noaudio'),
+                        answered: this.questionsAnswered,
+                        correct: this.questionsCorrect,
+                        pct: percentage,
+                        retryCount: Math.max(0, this.questionsAnswered - this.questionsCorrect),
+                        lockCase: false,
+                        durationMs: Date.now() - (this._quizStartTs || Date.now())
+                    });
+                } catch (e) {}
 
                 let emoji, title, stars;
                 if (percentage === 100) {
@@ -3136,7 +3184,7 @@
 
             init() {
                 // Speichere initiale Bildschirmgrößen (ändert sich NICHT bei Tastatur)
-                tracking.init(); // TRACKING INITIALISIEREN
+                tracker.init(); // TRACKING INITIALISIEREN
                 this.keyboardSizes = {
                     width: window.screen.width,
                     height: window.screen.height,
@@ -5879,7 +5927,7 @@
 
                     const wasRetry = quickStart.isRetry;
                     quickStart.handleAnswer(true);
-                    if (!wasRetry) tracking.trackQuestion(true);
+                    if (!wasRetry) tracker.activity();
 
                     this.validationState.keyboard = true;
                     this.renderKeyboard();
@@ -5901,7 +5949,7 @@
                     if (!this.validationState.hasBeenChecked) {
                         this.validationState.hasBeenChecked = true;
                         quickStart.handleAnswer(false);
-                        tracking.trackQuestion(false);
+                        tracker.activity();
                     }
 
                     setTimeout(() => {
@@ -5939,7 +5987,7 @@
                     if (!this.validationState.hasBeenChecked) {
                         this.validationState.hasBeenChecked = true;
                         quickStart.handleAnswer(false);
-                        tracking.trackQuestion(false);
+                        tracker.activity();
                     }
 
                     setTimeout(() => {
@@ -5971,13 +6019,13 @@
                     if (this.quickStartMode) {
                         const wasRetry = quickStart.isRetry;
                         quickStart.handleAnswer(true);
-                        if (!wasRetry) tracking.trackQuestion(true);
+                        if (!wasRetry) tracker.activity();
                     } else {
                         // Freies Üben: Score aktualisieren
                         if (!this.freeRetry) {
                             this.score.correct++;
                             this.score.total++;
-                            tracking.trackQuestion(true);
+                            tracker.activity();
                         }
                         this.setFreeRetry(false);
                         this.updateScore();
@@ -6000,12 +6048,12 @@
                     if (this.quickStartMode) {
                         const wasRetry = quickStart.isRetry;
                         quickStart.handleAnswer(false);
-                        if (!wasRetry) tracking.trackQuestion(false);
+                        if (!wasRetry) tracker.activity();
                     } else {
                         // Freies Üben: Score aktualisieren
                         if (!this.freeRetry) {
                             this.score.total++;
-                            tracking.trackQuestion(false);
+                            tracker.activity();
                         }
                         this.updateScore();
                     }
@@ -6052,7 +6100,7 @@
                     // Quick-Start Handler (kein Score-Update wie im DT)
                     const wasRetry = quickStart.isRetry;
                     quickStart.handleAnswer(true);
-                    if (!wasRetry) tracking.trackQuestion(true);
+                    if (!wasRetry) tracker.activity();
 
                     // NICHT bei letzter Frage weiter (showSuccess übernimmt)
                     if (quickStart.questionsAnswered >= quickStart.totalQuestions) return;
@@ -6076,7 +6124,7 @@
                     // Quick-Start Handler (kein Score-Update wie im DT)
                     const wasRetry2 = quickStart.isRetry;
                     quickStart.handleAnswer(false);
-                    if (!wasRetry2) tracking.trackQuestion(false);
+                    if (!wasRetry2) tracker.activity();
                     
                     // Feld zurücksetzen für neuen Versuch, Aufgabe bleibt
                     setTimeout(() => {
@@ -6521,7 +6569,7 @@
                             if (!this.validationState.hasBeenChecked) {
                                 this.validationState.hasBeenChecked = true;
                                 this.score.total++;
-                                tracking.trackQuestion(false);
+                                tracker.activity();
                                 this.updateScore();
                             }
                         } else if (!this.validationState.keyboard && semitonesAlsoEntered && !semitonesCorrect) {
@@ -6534,7 +6582,7 @@
                             if (!this.validationState.hasBeenChecked) {
                                 this.validationState.hasBeenChecked = true;
                                 this.score.total++;
-                                tracking.trackQuestion(false);
+                                tracker.activity();
                                 this.updateScore();
                             }
                             
@@ -6556,7 +6604,7 @@
                             if (!this.validationState.hasBeenChecked) {
                                 this.validationState.hasBeenChecked = true;
                                 this.score.total++;
-                                tracking.trackQuestion(false);
+                                tracker.activity();
                                 this.updateScore();
                             }
                         }
@@ -6613,7 +6661,7 @@
                         if (!this.validationState.hasBeenChecked) {
                             this.validationState.hasBeenChecked = true;
                             this.score.total++;
-                            tracking.trackQuestion(false);
+                            tracker.activity();
                             this.updateScore();
                         }
                         
@@ -6692,7 +6740,7 @@
                         if (!this.validationState.hasBeenChecked) {
                             this.validationState.hasBeenChecked = true;
                             this.score.total++;
-                            tracking.trackQuestion(false);
+                            tracker.activity();
                             this.updateScore();
                             if (this.quickStartMode) { quickStart.handleAnswer(false); }
                         }
@@ -6726,7 +6774,7 @@
                         if (!this.validationState.hasBeenChecked) {
                             this.validationState.hasBeenChecked = true;
                             this.score.total++;
-                            tracking.trackQuestion(false);
+                            tracker.activity();
                             this.updateScore();
                             if (this.quickStartMode) { quickStart.handleAnswer(false); }
                         }
@@ -6904,7 +6952,7 @@
                     // Score nur bei erster erfolgreicher Bearbeitung zählen
                     if (isFirstCheck) {
                         this.validationState.hasBeenChecked = true;
-                        tracking.trackQuestion(true);
+                        tracker.activity();
 
                         if (!this.quickStartMode) {
                             // Freies Üben: Score aktualisieren
@@ -6947,7 +6995,7 @@
                     // Score nur bei erster Bearbeitung zählen
                     if (isFirstCheck) {
                         this.validationState.hasBeenChecked = true;
-                        tracking.trackQuestion(false);
+                        tracker.activity();
                         
                         // QUICK-START: Nur Antwort melden, KEIN Score-Update
                         if (this.quickStartMode) {
