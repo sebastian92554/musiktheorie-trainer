@@ -2220,58 +2220,33 @@
     // TRACKING SYSTEM v2.2 - Google Sheets
     // Mit Heartbeat für zuverlässiges Tablet-Tracking
     // ===================================
-    const tracking = {
+    // ===================================
+    // TRACKER v3.1 — Append-only Event-Log (kopflos, Pfad B)
+    // ===================================
+    // 4 Events + node_select/card_view. Kein session_end-Latch.
+    // §10 Heartbeat-Tuning: Früh-Backoff (20/45/90s→Cap 300s),
+    // Idle-Keepalive, visibilitychange-Coalesce, kein beforeunload.
+    // env: 'dev' via localStorage.musik_tracking_env, sonst 'prod'.
+    const tracker = {
         scriptURL: 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
+        schema: 3,
+        trainer: 'Tonleitertrainer',
         sessionId: null,
         sessionStart: null,
-        questionsAnswered: 0,
-        questionsCorrect: 0,
-        sessionEnded: false,
         lastActivity: null,
-        idleTimeoutMs: 5 * 60 * 1000, // 5 Minuten Idle-Timeout
-        idleCheckInterval: null,
-        heartbeatInterval: null,
-        heartbeatIntervalMs: 30 * 1000, // Heartbeat alle 30 Sekunden
+        _inited: false,
+        _lastBeacon: 0,
+        _hbStep: 0,
+        HB_SCHEDULE: [20000, 45000, 90000],
+        HB_CAP: 300000,
+        HB_COALESCE: 30000,
+        HB_IDLE_SKIP: 15000,
 
-        init() {
-            this.sessionId = this.generateSessionId();
-            this.sessionStart = Date.now();
-            this.lastActivity = Date.now();
-
-            this.sendStartEvent();
-
-            window.addEventListener('pagehide', () => this.endSession('pagehide'));
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'hidden') this.endSession('visibilitychange');
-            });
-            window.addEventListener('beforeunload', () => this.endSession('beforeunload'));
-
-            // Track user activity for idle timeout
-            const activityEvents = ['click', 'keydown', 'touchstart', 'scroll'];
-            activityEvents.forEach(evt => {
-                document.addEventListener(evt, () => {
-                    this.lastActivity = Date.now();
-                }, { passive: true });
-            });
-
-            // Check for idle timeout every 30 seconds
-            this.idleCheckInterval = setInterval(() => this.checkIdleTimeout(), 30000);
-
-            // Heartbeat: Alle 30 Sekunden aktuelle Daten senden
-            this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), this.heartbeatIntervalMs);
-
-            console.log('📊 Tracking v2.2 initialisiert (mit Heartbeat), Session:', this.sessionId);
-        },
-
-        checkIdleTimeout() {
-            if (this.sessionEnded) {
-                if (this.idleCheckInterval) clearInterval(this.idleCheckInterval);
-                return;
-            }
-            const idleTime = Date.now() - this.lastActivity;
-            if (idleTime >= this.idleTimeoutMs) {
-                console.log('📊 Session Timeout nach', Math.round(idleTime / 1000), 'Sekunden Inaktivität');
-                this.endSession('timeout');
+        env() {
+            try {
+                return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod';
+            } catch (e) {
+                return 'prod';
             }
         },
 
@@ -2279,93 +2254,77 @@
             return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         },
 
-        sendStartEvent() {
-            const data = {
-                eventType: 'session_start',
-                sessionId: this.sessionId,
-                app: 'Tonleitertrainer',
-                timestamp: new Date().toISOString(),
-                device: this.getDeviceType(),
-                referrer: document.referrer || 'direct'
-            };
-            navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
-            console.log('📊 Session gestartet:', data);
-        },
-
-        sendHeartbeat() {
-            if (this.sessionEnded || !this.sessionStart) return;
-
-            const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
-            const successRate = this.questionsAnswered > 0
-                ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
-                : 0;
-
-            const data = {
-                eventType: 'session_heartbeat',
-                sessionId: this.sessionId,
-                app: 'Tonleitertrainer',
-                timestamp: new Date().toISOString(),
-                duration: duration,
-                questionsAnswered: this.questionsAnswered,
-                successRate: successRate,
-                device: this.getDeviceType()
-            };
-
-            navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
-        },
-
-        trackQuestion(isCorrect) {
-            this.questionsAnswered++;
-            if (isCorrect) this.questionsCorrect++;
-        },
-
-        endSession(reason) {
-            if (this.sessionEnded || !this.sessionStart || !this.scriptURL) return;
-            this.sessionEnded = true;
-
-            if (this.idleCheckInterval) {
-                clearInterval(this.idleCheckInterval);
-                this.idleCheckInterval = null;
-            }
-            if (this.heartbeatInterval) {
-                clearInterval(this.heartbeatInterval);
-                this.heartbeatInterval = null;
-            }
-
-            const duration = Math.floor((Date.now() - this.sessionStart) / 1000);
-            const successRate = this.questionsAnswered > 0
-                ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100)
-                : 0;
-
-            const data = {
-                eventType: 'session_end',
-                sessionId: this.sessionId,
-                app: 'Tonleitertrainer',
-                timestamp: new Date().toISOString(),
-                duration: duration,
-                questionsAnswered: this.questionsAnswered,
-                successRate: successRate,
-                device: this.getDeviceType(),
-                referrer: document.referrer || 'direct',
-                endReason: reason || 'page_close'
-            };
-
-            navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
-            console.log('📊 Session beendet:', data);
-        },
-
         getDeviceType() {
             const ua = navigator.userAgent.toLowerCase();
             const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
             const width = window.innerWidth;
-
             const isTablet = /(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i.test(ua);
             const isMobile = /mobile|android|iphone|ipod|blackberry|windows phone/i.test(ua);
-
             if (isMobile && !isTablet) return 'mobile';
             if (isTablet || (hasTouch && width >= 768 && width < 1366)) return 'tablet';
             return 'desktop';
-        }
+        },
+
+        _send(eventType, payload) {
+            if (!this.scriptURL || !this.sessionId) return;
+            const data = {
+                schema: this.schema,
+                env: this.env(),
+                eventType: eventType,
+                sessionId: this.sessionId,
+                trainer: this.trainer,
+                device: this.getDeviceType(),
+                referrer: document.referrer || 'direct',
+                ts: new Date().toISOString(),
+                payload: payload || {}
+            };
+            navigator.sendBeacon(this.scriptURL, JSON.stringify(data));
+            this._lastBeacon = Date.now();
+            console.log('📊', eventType, data);
+        },
+
+        _scheduleHb() {
+            const d = this._hbStep < this.HB_SCHEDULE.length ? this.HB_SCHEDULE[this._hbStep] : this.HB_CAP;
+            this._hbStep++;
+            setTimeout(() => { this._hbTick(); this._scheduleHb(); }, d);
+        },
+        _hbTick() {
+            if (!this.sessionStart) return;
+            if (Date.now() - this._lastBeacon < this.HB_IDLE_SKIP) return;
+            this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
+        },
+        _hbFlush() {
+            if (this.sessionStart) this._send('heartbeat', { sinceStartMs: Date.now() - this.sessionStart });
+        },
+
+        init() {
+            if (this._inited) return; // idempotent
+            this._inited = true;
+            this.sessionId = this.generateSessionId();
+            this.sessionStart = Date.now();
+            this.lastActivity = Date.now();
+
+            this._send('page_view', {});
+            this._scheduleHb();
+
+            document.addEventListener('visibilitychange', () => {
+                if (Date.now() - this._lastBeacon >= this.HB_COALESCE) this._hbFlush();
+            });
+            window.addEventListener('pagehide', () => this._hbFlush());
+
+            const act = ['click', 'keydown', 'touchstart', 'scroll'];
+            act.forEach(evt => document.addEventListener(evt, () => {
+                this.lastActivity = Date.now();
+            }, { passive: true }));
+
+            console.log('📊 Tracker v3.1 init, Session:', this.sessionId, 'env:', this.env());
+        },
+
+        quizStart(p) { this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode }); },
+        quizComplete(payload) { this._send('quiz_complete', payload); },
+        nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
+        cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+        activity() { this.lastActivity = Date.now(); }
     };
 
     // =============================================
@@ -2815,6 +2774,10 @@
             }
 
             this.selectedSub = { nodeId, index: subIndex };
+            try {
+                const _ss = (this.nodeSubSkills[nodeId] && this.nodeSubSkills[nodeId][subIndex]) ? this.nodeSubSkills[nodeId][subIndex].id : subIndex;
+                tracker.nodeSelect({ node: nodeId, subskill: _ss });
+            } catch (e) {}
 
             // Dot zur selektierten Sub-Skill verschieben
             this._updateSubDotSelection(nodeId, subIndex);
@@ -3054,6 +3017,14 @@
             }
 
             this.totalQuestions = 10;
+            this._quizStartTs = Date.now();
+            try {
+                tracker.quizStart({
+                    level: this.currentLevel,
+                    subskill: (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis',
+                    mode: this.currentLevel === 'bilden' ? 'bilden' : 'erkennen'
+                });
+            } catch (e) {}
 
             // Switch screens
             document.getElementById('quickStartScreen').classList.remove('active');
@@ -3199,6 +3170,28 @@
 
             const percentage = Math.round((this.questionsCorrect / this.questionsAnswered) * 100);
             const scoreText = `${this.questionsCorrect} von ${this.questionsAnswered} richtig (${percentage}%)`;
+
+            // Tracker v3: quiz_complete (Funnel; GF-Dims folgen mit 5.3-TT)
+            try {
+                const _sub = (this.currentOptions && this.currentOptions.length) ? this.currentOptions[this.currentOptions.length - 1] : 'basis';
+                const _m = this.currentLevel === 'bilden' ? 'bilden' : 'erkennen';
+                const _in = this.currentLevel === 'bilden'
+                    ? (String(_sub).indexOf('schreiben') === 0 ? 'notensystem' : 'tastatur')
+                    : 'dropdown';
+                tracker.quizComplete({
+                    level: this.currentLevel,
+                    subskill: _sub,
+                    mode: _m,
+                    inputType: _in,
+                    audioUsed: !(this.currentOptions || []).includes('noaudio'),
+                    answered: this.questionsAnswered,
+                    correct: this.questionsCorrect,
+                    pct: percentage,
+                    retryCount: Math.max(0, this.questionsAnswered - this.questionsCorrect),
+                    lockCase: false,
+                    durationMs: Date.now() - (this._quizStartTs || Date.now())
+                });
+            } catch (e) {}
 
             // Determine result (80% zum Bestehen)
             let emoji, title, stars;
@@ -3896,7 +3889,7 @@
 
         // ---- Init / Configure ----
         init() {
-            tracking.init();
+            tracker.init();
         },
 
         // =============================================
@@ -5709,6 +5702,7 @@
             const content = this.lernkartenContent[key];
             if (!content) return false;
             this._lernkarteFromStart = !!fromStart;
+            if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
             document.getElementById('lernkarteTitle').textContent = content.title;
             document.getElementById('lernkarteBody').innerHTML = content.body;
 
@@ -6954,7 +6948,7 @@
             if (!this.freeRetry) {
                 this.score.total++;
                 if (isCorrect) this.score.correct++;
-                tracking.trackQuestion(isCorrect);
+                tracker.activity();
                 this.updateScoreDisplay();
             }
 
@@ -7040,7 +7034,7 @@
             if (!this.freeRetry) {
                 this.score.total++;
                 if (allCorrect) this.score.correct++;
-                tracking.trackQuestion(allCorrect);
+                tracker.activity();
                 this.updateScoreDisplay();
             }
 
@@ -7104,7 +7098,7 @@
             if (!this.freeRetry) {
                 this.score.total++;
                 if (allCorrect) this.score.correct++;
-                tracking.trackQuestion(allCorrect);
+                tracker.activity();
                 this.updateScoreDisplay();
             }
 
@@ -7168,7 +7162,7 @@
             if (!this.freeRetry) {
                 this.score.total++;
                 if (isCorrect) this.score.correct++;
-                tracking.trackQuestion(isCorrect);
+                tracker.activity();
                 this.updateScoreDisplay();
             }
 
@@ -7226,7 +7220,7 @@
             if (!this.freeRetry) {
                 this.score.total++;
                 if (isCorrect) this.score.correct++;
-                tracking.trackQuestion(isCorrect);
+                tracker.activity();
                 this.updateScoreDisplay();
             }
 
@@ -7345,7 +7339,7 @@
             if (!this.freeRetry) {
                 this.score.total++;
                 if (isCorrect) this.score.correct++;
-                tracking.trackQuestion(isCorrect);
+                tracker.activity();
                 this.updateScoreDisplay();
             }
 
