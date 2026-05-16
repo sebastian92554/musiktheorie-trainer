@@ -2151,7 +2151,7 @@
             constructor() { this.answers = []; }
             reset() { this.answers = []; }
 
-            // d: { isCorrect, grundtonOk, akkordtypOk, umkehrungOk }
+            // d: { isCorrect, grundtonOk, akkordtypOk, umkehrungOk, tastaturOk }
             // Jedes *Ok = true/false (geprüft) ODER null/undefined (nicht
             // geprüft in diesem Modus → zählt für die Dim nicht).
             logAnswer(d) {
@@ -2160,7 +2160,8 @@
                     isCorrect: !!d.isCorrect,
                     grundtonOk: b(d.grundtonOk),
                     akkordtypOk: b(d.akkordtypOk),
-                    umkehrungOk: b(d.umkehrungOk)
+                    umkehrungOk: b(d.umkehrungOk),
+                    tastaturOk: b(d.tastaturOk)
                 });
             }
 
@@ -2169,14 +2170,16 @@
                 const r = {
                     grundton: { correct: 0, total: 0 },
                     akkordtyp: { correct: 0, total: 0 },
-                    umkehrung: { correct: 0, total: 0 }
+                    umkehrung: { correct: 0, total: 0 },
+                    tastatur: { correct: 0, total: 0 }
                 };
                 this.answers.forEach(a => {
                     if (a.grundtonOk !== null) { r.grundton.total++; if (a.grundtonOk) r.grundton.correct++; }
                     if (a.akkordtypOk !== null) { r.akkordtyp.total++; if (a.akkordtypOk) r.akkordtyp.correct++; }
                     if (a.umkehrungOk !== null) { r.umkehrung.total++; if (a.umkehrungOk) r.umkehrung.correct++; }
+                    if (a.tastaturOk !== null) { r.tastatur.total++; if (a.tastaturOk) r.tastatur.correct++; }
                 });
-                for (const k of ['grundton', 'akkordtyp', 'umkehrung']) {
+                for (const k of ['grundton', 'akkordtyp', 'umkehrung', 'tastatur']) {
                     const s = r[k];
                     s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
                 }
@@ -7250,7 +7253,7 @@ const _lernkartenContent = {
 
                     isCorrect = rootCorrect && typeCorrect;
                     if (this.quickStartMode && !quickStart.isRetry) {
-                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect }); } catch (e) {}
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
                     }
 
                     if (isCorrect) {
@@ -7324,7 +7327,7 @@ const _lernkartenContent = {
 
                     isCorrect = inversionCorrect && rootCorrect && typeCorrect;
                     if (this.quickStartMode && !quickStart.isRetry) {
-                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, umkehrungOk: inversionCorrect }); } catch (e) {}
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, umkehrungOk: inversionCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
                     }
 
                     if (isCorrect) {
