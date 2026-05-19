@@ -3283,15 +3283,6 @@
                 return '<button class="reco-item" onclick="window.location.href=\'intervalltrainer.html\'">Weiter zum Intervalltrainer</button>';
             },
 
-            // DAG-Walk: tiefste unerfüllte Achse (NT-Spine linear T1→TAS→T4, O-NS parallel).
-            // schwach = total>=2 && pct<50 (Phase-1c-kalibrierbar). null → Variante B.
-            _gfDeepestUnmet(perf) {
-                const weak = a => perf && perf[a] && perf[a].total >= 2 && perf[a].pct != null && perf[a].pct < 50;
-                for (const a of ['T1', 'TAS', 'T4']) if (weak(a)) return a;
-                if (weak('O-NS')) return 'O-NS';
-                return null;
-            },
-
             // Achsen, über die das AKTUELLE Quiz überhaupt eine Aussage machen darf.
             // Pooling bleibt session-weit — aber keine Aussage über einen Skill, den
             // die aktuelle Aufgabe gar nicht prüft (z. B. kein Vorzeichen-Feedback
