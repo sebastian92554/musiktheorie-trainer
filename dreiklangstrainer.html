@@ -2049,6 +2049,10 @@
             sessionId: null,
             sessionStart: null,
             lastActivity: null,
+            // GF Stufe 2: session-skopierter Snapshot je Quiz (Pfad B / DAG-Walk
+            // Stufe 3). Session-only, keine Persistenz (PLAN_GF-Ontologie §5.4,
+            // geteilte Tablets → keine stabile Identität).
+            gfSession: [],
             _inited: false,
             _lastBeacon: 0,
             _hbStep: 0,
@@ -2136,7 +2140,21 @@
             },
 
             quizStart(p) { this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode }); },
-            quizComplete(payload) { this._send('quiz_complete', payload); },
+            quizComplete(payload) { this._snapshotGF(payload); this._send('quiz_complete', payload); },
+            // Snapshot je Quiz für Pfad B / GF-Policy (Stufe 3). Tastatur-Quizze
+            // (dims:null) bewusst ausgelassen — würden Achsen-Aggregat vergiften.
+            // Payload selbst bleibt unangetastet (PLAN_GF-Ontologie §5.5).
+            _snapshotGF(p) {
+                if (!p || !p.dims) return;
+                this.gfSession.push({
+                    ts: Date.now(),
+                    trainer: this.trainer,
+                    level: p.level, subskill: p.subskill,
+                    mode: p.mode, inputType: p.inputType,
+                    dims: p.dims,
+                    patterns: Array.isArray(p.patterns) ? p.patterns.slice() : []
+                });
+            },
             nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
             activity() { this.lastActivity = Date.now(); }
@@ -2191,6 +2209,140 @@
             getErrorPattern() { return null; }
         }
         const errorTracker = new ErrorTracker();
+
+        // ===================================
+        // GF-ONTOLOGIE (Skill-DAG) — zentrale Map trainer.dim → {domäne, achse}
+        // ===================================
+        // Stufe 2: Datenstruktur + Berechnungsregeln abgeleiteter Achsen.
+        // GF-Policy / DAG-Walk = Stufe 3. Identischer Block in allen 5 Trainern.
+        // Reine Datenklasse, kein DOM. Pfad-B-Payload bleibt unangetastet.
+        // Spec: _entwicklung/PLAN_GF-Ontologie.md (vom Nutzer abgenommen 16.05.).
+        const GF_ONTOLOGY = {
+            // Domänen vermischen sich NIE (PLAN_GF-Ontologie §1/§5.1).
+            domains: { T: 'Tonhöhe & Harmonie', R: 'Rhythmus' },
+
+            // Prerequisite-DAG. prereqs = Achsen, die VOR dieser sitzen müssen.
+            // T: T1→TAS · TAS→T4 · TAS→T3 · T4→T3 · T3→T2 · T2→T2b ·
+            //    {T1,T4,T3,T2}→T5 · O-NS parallel.   R: R1→R2→R3→R4→R5.
+            axes: {
+                T1:     { domain: 'T', label: 'Tonbenennung/Grundton',    prereqs: [] },
+                TAS:    { domain: 'T', label: 'Tastatur-Orientierung',    prereqs: ['T1'] },
+                T4:     { domain: 'T', label: 'Vorzeichen/Alteration',    prereqs: ['TAS'] },
+                T3:     { domain: 'T', label: 'Distanz/Größe',            prereqs: ['TAS', 'T4'] },
+                T2:     { domain: 'T', label: 'Typ/Qualität',             prereqs: ['T3'] },
+                T2b:    { domain: 'T', label: 'Struktur/Umkehrung',       prereqs: ['T2'] },
+                T5:     { domain: 'T', label: 'Quintenzirkel',            prereqs: ['T1', 'T4', 'T3', 'T2'] },
+                'O-NS': { domain: 'T', label: 'Notensystem-Orientierung', prereqs: [], derived: true },
+                R1:     { domain: 'R', label: 'Notenwerte',               prereqs: [] },
+                R2:     { domain: 'R', label: 'Pausenwerte',              prereqs: ['R1'], derived: true },
+                R3:     { domain: 'R', label: 'Taktart',                  prereqs: ['R2'] },
+                R4:     { domain: 'R', label: 'Zählzeit',                 prereqs: ['R3'] },
+                R5:     { domain: 'R', label: 'Rhythmussprache',          prereqs: ['R4'] }
+            },
+
+            // Reale, von ErrorTracker.getSubskillPerformance() emittierte
+            // dim-Keys → Achse. local:true = bewusst trainer-lokal, NICHT quer
+            // interpretieren ("Besser keine Dim als eine falsche Dim", §5.3).
+            dimMap: {
+                'Notentrainer.stammtoene':          { axis: 'T1' },
+                'Notentrainer.vorzeichen':          { axis: 'T4' },
+                'Notentrainer.tastatur':            { axis: 'TAS' },
+                'Notentrainer.lagen':               { axis: null, local: true },
+                'Intervalltrainer.anzahl':          { axis: 'T3' },
+                'Intervalltrainer.halbtonschritte': { axis: 'T3' },
+                'Intervalltrainer.qualitaet':       { axis: 'T2' },
+                'Intervalltrainer.tastatur':        { axis: 'TAS' },
+                'Dreiklangstrainer.grundton':       { axis: 'T1' },
+                'Dreiklangstrainer.akkordtyp':      { axis: 'T2' },
+                'Dreiklangstrainer.umkehrung':      { axis: 'T2b' },
+                'Dreiklangstrainer.tastatur':       { axis: 'TAS' },
+                'Tonleitertrainer.grundton':        { axis: 'T1' },
+                'Tonleitertrainer.tongeschlecht':   { axis: 'T2' },
+                'Tonleitertrainer.halbtonschritte': { axis: 'T3' },
+                'Tonleitertrainer.quintenzirkel':   { axis: 'T5' },
+                'Rhythmustrainer.notenwerte':       { axis: 'R1' },
+                'Rhythmustrainer.notentyp':         { axis: 'R1' },
+                'Rhythmustrainer.zaehlzeit':        { axis: 'R4' },
+                'Rhythmustrainer.rhythmussprache':  { axis: 'R5' },
+                'Rhythmustrainer.taktart':          { axis: 'R3' }
+            },
+
+            // trainer.dim → {axis,...} | null. Tastatur-Quizze (dims:null)
+            // werden bereits vom Snapshot-Filter ausgeschlossen.
+            resolve(trainer, dim) {
+                return this.dimMap[trainer + '.' + dim] || null;
+            },
+
+            // Achsen-Performance je Session: gepoolt Σc/Σt über alle Snapshots
+            // (NICHT %-Mittel, §ditto GF_Analyse). Inkl. abgeleiteter Achsen.
+            axisPerformance(snapshots) {
+                const acc = {};
+                const bump = (axis, c, t) => {
+                    if (!axis) return;
+                    if (!acc[axis]) acc[axis] = { correct: 0, total: 0 };
+                    acc[axis].correct += c; acc[axis].total += t;
+                };
+                (snapshots || []).forEach(s => {
+                    if (!s || !s.dims) return;
+                    Object.keys(s.dims).forEach(dim => {
+                        const d = s.dims[dim];
+                        if (!d || !d.total) return;
+                        const m = this.resolve(s.trainer, dim);
+                        if (m && m.axis) bump(m.axis, d.correct, d.total);
+                    });
+                });
+                const ons = this._deriveONS(snapshots, acc);
+                if (ons) acc['O-NS'] = ons;
+                const r2 = this._deriveR2(snapshots);
+                if (r2) acc['R2'] = r2;
+                for (const k in acc) {
+                    const a = acc[k];
+                    a.pct = a.total > 0 ? Math.round(a.correct / a.total * 100) : null;
+                }
+                return acc;
+            },
+
+            // O-NS (abgeleitet, konfidenz-gegatet): Notensystem-Orientierung
+            // hat kein eigenes Quiz. Inferiert aus bilden+notensystem-Snapshots
+            // mit schwacher T1-Leistung, OBWOHL TAS nicht die Ursache ist
+            // (PLAN_GF-Ontologie §3 "abgeleitet"). null = kein klares Signal.
+            _deriveONS(snapshots, acc) {
+                const staff = (snapshots || []).filter(s =>
+                    s && s.dims && s.mode === 'bilden' && s.inputType === 'notensystem');
+                if (!staff.length) return null;
+                let c = 0, t = 0;
+                staff.forEach(s => {
+                    Object.keys(s.dims).forEach(dim => {
+                        const m = this.resolve(s.trainer, dim);
+                        const d = s.dims[dim];
+                        if (m && m.axis === 'T1' && d && d.total) { c += d.correct; t += d.total; }
+                    });
+                });
+                if (!t) return null;
+                const tasOk = acc['TAS']
+                    ? (acc['TAS'].total > 0 && acc['TAS'].correct / acc['TAS'].total >= 0.8)
+                    : true;
+                return tasOk ? { correct: c, total: t, derived: true } : null;
+            },
+
+            // R2 Pausenwerte (abgeleitet): kein sauberes Note-vs-Pause-Signal
+            // pro Antwort → aus 'pausen'-Subskill-GESAMT (R1-artige dims der
+            // pausen-Snapshots) ablesen (PLAN_GF-Ontologie §4).
+            _deriveR2(snapshots) {
+                const p = (snapshots || []).filter(s =>
+                    s && s.dims && s.trainer === 'Rhythmustrainer' && s.subskill === 'pausen');
+                if (!p.length) return null;
+                let c = 0, t = 0;
+                p.forEach(s => {
+                    Object.keys(s.dims).forEach(dim => {
+                        const m = this.resolve(s.trainer, dim);
+                        const d = s.dims[dim];
+                        if (m && m.axis === 'R1' && d && d.total) { c += d.correct; t += d.total; }
+                    });
+                });
+                return t ? { correct: c, total: t, derived: true } : null;
+            }
+        };
 
         // ===================================
         // QUICK-START SYSTEM
