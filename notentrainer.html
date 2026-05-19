@@ -436,10 +436,15 @@
         /* GF Stufe 3 — klickbare Empfehlungsliste (neutral, kein eigenes Farbschema, §4.3) */
         .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
         .success-recos:empty { display: none; }
-        .reco-item { padding: 14px 16px; border-radius: 12px; background: #e5e7eb; color: #374151;
-            border: none; cursor: pointer; font-size: 1rem; font-weight: 600; text-align: left;
-            width: 100%; transition: all 0.2s; }
-        .reco-item:hover { background: #d1d5db; }
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #ecfeff; color: #155e75;
+            border: 1px solid #a5f3fc; cursor: pointer; font-size: 1rem; font-weight: 600;
+            text-align: left; width: 100%; transition: all 0.2s; }
+        .reco-item:hover { background: #cffafe; border-color: #67e8f9; }
+        /* GF Fehlerliste in B/C — gerahmt, kleiner, eingerückt, klar abgesetzt (nicht grau) */
+        .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
+            background: #fff; border: 1px solid #99f6e4; border-radius: 8px;
+            font-size: 0.85rem; color: #374151; text-align: left; }
+        .gf-errlist li { margin: 3px 0; line-height: 1.4; }
 
         /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
         /* Ghost-Note IST der Cursor — System-Cursor ausblenden */
@@ -2249,6 +2254,16 @@
             }
         };
 
+        // Oktav-Lagen: interner Key → Anzeige-Label (Dropdown + Lagen-Feedback)
+        const OCTAVE_LABELS = {
+            kontra: 'Kontra-Oktave',
+            gross: 'große Oktave',
+            klein: 'kleine Oktave',
+            eingestrichen: 'eingestrichene Oktave',
+            zweigestrichen: 'zweigestrichene Oktave',
+            dreigestrichen: 'dreigestrichene Oktave'
+        };
+
         // ===================================
         // QUICK-START SYSTEM (1:1 von DT)
         // ===================================
@@ -2838,8 +2853,8 @@
                     }
 
                     octaveDropdown.innerHTML = '<option value="" disabled selected>Lage wählen...</option>' +
-                        octaveOptions.map(opt => 
-                            `<option value="${opt}">${opt}</option>`
+                        octaveOptions.map(opt =>
+                            `<option value="${opt}">${OCTAVE_LABELS[opt] || opt}</option>`
                         ).join('');
                 } else {
                     octaveDropdown.style.display = 'none';
@@ -3002,7 +3017,7 @@
                         _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
                         _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
                     }
-                    _rec.innerHTML = this._gfForwardItem(tier);
+                    _rec.innerHTML = this._gfForwardItem();
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
                         + '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 } else {
@@ -3022,9 +3037,9 @@
                     let errs = [];
                     try { errs = errorTracker.getErrorListHelmholtz(); } catch (e) {}
                     if (errs.length) {
-                        html += '<p>' + errs.slice(0, 5).map(function (e) {
-                            return e.clef + ': ' + e.correct + ' → du hast ' + e.user + ' eingegeben';
-                        }).join('<br>') + '</p>';
+                        html += '<ul class="gf-errlist">' + errs.slice(0, 5).map(function (e) {
+                            return '<li>' + e.clef + ': ' + e.correct + ' → du hast ' + e.user + ' eingegeben</li>';
+                        }).join('') + '</ul>';
                     }
                     let pats = [];
                     try { pats = errorTracker.getErrorPatterns(); } catch (e) {}
@@ -3135,29 +3150,47 @@
                 return trainerDone ? 'trainer' : 'node';
             },
 
-            // Forward-Item (klickbarer Direkt-Starter) je Meilenstein-Stufe
-            _gfForwardItem(tier) {
-                if (tier === 'trainer') {
-                    return '<button class="reco-item" onclick="window.location.href=\'intervalltrainer.html\'">Weiter zum Intervalltrainer</button>';
-                }
-                if (tier === 'node') {
-                    const order = ['noten1', 'noten2', 'noten3', 'noten4', 'noten5', 'noten6'];
-                    for (const nd of order) {
-                        const L = this.nodeToLevel[nd];
-                        const mm = (this.progress[L] && this.progress[L].mastered) || [];
-                        if (!this.getOptionsForLevel(L).every(o => mm.includes(o))) {
-                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'basis\')">Weiter: ' + (GF_NT.nodeName[nd] || L) + '</button>';
-                        }
-                    }
-                    return '';
-                }
+            // Forward-Item: IMMER der nächste offene Subskill in der Progression
+            // (Branch-bewusst). Label = Knoten + Subskill (eindeutig). Meilenstein-
+            // Stufe steuert nur Titel/Text, NICHT das Ziel.
+            _nodeOf(level) {
+                return Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === level);
+            },
+            _gfFwdBtn(level, csv, label) {
+                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\''
+                    + level + '\',\'' + csv + '\')">Weiter: ' + label + '</button>';
+            },
+            _gfForwardItem() {
+                // 1) nächster offener Subskill im AKTUELLEN Knoten
                 const lvl = this.currentLevel;
                 const opts = this.getOptionsForLevel(lvl);
                 const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
                 const nx = opts.find(o => !m.includes(o));
-                if (!nx) return '';
-                const csv = opts.slice(0, opts.indexOf(nx) + 1).join(',');
-                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + csv + '\')">Weiter: ' + (GF_NT.subLabel[nx] || nx) + '</button>';
+                if (nx) {
+                    const node = this._nodeOf(lvl);
+                    const csv = opts.slice(0, opts.indexOf(nx) + 1).join(',');
+                    return this._gfFwdBtn(lvl, csv,
+                        (GF_NT.nodeName[node] || lvl) + ' – ' + (GF_NT.subLabel[nx] || nx));
+                }
+                // 2) Knoten komplett → nächster Knoten in derselben Branch, dann andere Branch
+                const erk = ['noten1', 'noten2', 'noten3'], bild = ['noten4', 'noten5', 'noten6'];
+                const cur = this._nodeOf(lvl);
+                const sameBranch = erk.includes(cur) ? erk : bild;
+                const otherBranch = sameBranch === erk ? bild : erk;
+                const ordered = sameBranch.slice(sameBranch.indexOf(cur) + 1).concat(otherBranch);
+                for (const nn of ordered) {
+                    const nl = this.nodeToLevel[nn];
+                    const mm = (this.progress[nl] && this.progress[nl].mastered) || [];
+                    const o2 = this.getOptionsForLevel(nl);
+                    const open = o2.find(o => !mm.includes(o));
+                    if (open) {
+                        const csv2 = o2.slice(0, o2.indexOf(open) + 1).join(',');
+                        return this._gfFwdBtn(nl, csv2,
+                            (GF_NT.nodeName[nn] || nl) + ' – ' + (GF_NT.subLabel[open] || open));
+                    }
+                }
+                // 3) gesamter Trainer fertig → Cross-App
+                return '<button class="reco-item" onclick="window.location.href=\'intervalltrainer.html\'">Weiter zum Intervalltrainer</button>';
             },
 
             // DAG-Walk: tiefste unerfüllte Achse (NT-Spine linear T1→TAS→T4, O-NS parallel).
@@ -5137,7 +5170,7 @@
                             errors.push(`Notenname falsch (richtig: ${this.currentNote.name})`);
                         }
                         if (this.validationState.qsOctaveCorrect === false) {
-                            errors.push(`Lage falsch (richtig: ${this.currentNote.octave})`);
+                            errors.push(`Lage falsch (richtig: ${OCTAVE_LABELS[this.currentNote.octave] || this.currentNote.octave})`);
                         }
                     } else {
                         // Standard-Feedback
