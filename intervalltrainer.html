@@ -869,6 +869,11 @@
             margin: 0 auto;
             text-align: center;
             padding: 60px 20px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .success-container h2 {
@@ -935,6 +940,18 @@
         .success-buttons .btn-next:hover {
             background: #c2410c;
         }
+        /* GF Stufe 3 (IT) — Pfad-A-Feedback (Orange-Akzent, sonst = NT-Muster) */
+        .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
+        .success-recos:empty { display: none; }
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #9a3412;
+            border: 2px solid #ea580c; cursor: pointer; font-size: 1rem; font-weight: 600;
+            text-align: left; width: 100%; transition: all 0.2s; }
+        .reco-item::before { content: '\2192\00a0'; font-weight: 700; }
+        .reco-item:hover { background: #ea580c; color: #fff; }
+        .gf-axis { background: #fff; border: 1px solid #fdba74; border-left: 4px solid #ea580c;
+            border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
+        .gf-axis strong { color: #9a3412; font-size: 0.95rem; }
+        .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
 
         /* Quick Start Container */
         /* ===== SKILLTREE STYLES (Orange) ===== */
@@ -1634,16 +1651,13 @@
     <!-- Success Screen (nach 10 Fragen, Tonleitertrainer-Pattern) -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
-            <div style="font-size: 4rem; margin-bottom: 20px;" id="successEmoji">🎉</div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
 
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
             <p id="successScore" style="font-size: 1.5rem; color: #4b5563; margin: 20px 0;">8 von 10 richtig (80%)</p>
 
-            <div class="success-stats" id="successMessage">
-                <p><strong>💡 Nächster Schritt:</strong></p>
-                <p id="successNextStep">Probiere die nächste Option!</p>
-            </div>
+            <div class="success-stats" id="successMessage"></div>
+            <div class="success-recos" id="successRecos"></div>
 
             <div class="success-buttons" id="successButtons">
                 <!-- Buttons werden dynamisch eingefügt -->
@@ -1940,7 +1954,10 @@
 
             env() {
                 try {
-                    return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod';
+                    if (localStorage.getItem('musik_tracking_env') === 'dev') return 'dev';
+                    var __h = (location.hostname || '');
+                    if (location.protocol === 'file:' || __h === 'localhost' || __h === '127.0.0.1' || __h === '::1' || __h === '' || /\.local$/.test(__h) || /^192\.168\./.test(__h) || /^10\./.test(__h) || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(__h)) return 'dev';
+                    return 'prod';
                 } catch (e) {
                     return 'prod';
                 }
@@ -1963,6 +1980,9 @@
 
             _send(eventType, payload) {
                 if (!this.scriptURL || !this.sessionId) return;
+                // Lokales/Test-Tracking sendet NICHT (env=dev via Host-Autoerkennung).
+                // Opt-in für bewusste Pipeline-Tests: localStorage.musik_tracking_send='1'.
+                if (this.env() === 'dev') { try { if (localStorage.getItem('musik_tracking_send') !== '1') return; } catch (e) { return; } }
                 const data = {
                     schema: this.schema,
                     env: this.env(),
@@ -2058,7 +2078,9 @@
                     anzahlOk: b(d.anzahlOk),
                     qualOk: b(d.qualOk),
                     hsOk: b(d.hsOk),
-                    tastaturOk: b(d.tastaturOk)
+                    tastaturOk: b(d.tastaturOk),
+                    notensystemOk: b(d.onsOk),
+                    vorzeichenOk: b(d.vorzeichenOk)
                 });
             }
 
@@ -2068,15 +2090,19 @@
                     anzahl: { correct: 0, total: 0 },
                     qualitaet: { correct: 0, total: 0 },
                     halbtonschritte: { correct: 0, total: 0 },
-                    tastatur: { correct: 0, total: 0 }
+                    tastatur: { correct: 0, total: 0 },
+                    notensystem: { correct: 0, total: 0 },
+                    vorzeichen: { correct: 0, total: 0 }
                 };
                 this.answers.forEach(a => {
                     if (a.anzahlOk !== null) { r.anzahl.total++; if (a.anzahlOk) r.anzahl.correct++; }
                     if (a.qualOk !== null) { r.qualitaet.total++; if (a.qualOk) r.qualitaet.correct++; }
                     if (a.hsOk !== null) { r.halbtonschritte.total++; if (a.hsOk) r.halbtonschritte.correct++; }
                     if (a.tastaturOk !== null) { r.tastatur.total++; if (a.tastaturOk) r.tastatur.correct++; }
+                    if (a.notensystemOk !== null) { r.notensystem.total++; if (a.notensystemOk) r.notensystem.correct++; }
+                    if (a.vorzeichenOk !== null) { r.vorzeichen.total++; if (a.vorzeichenOk) r.vorzeichen.correct++; }
                 });
-                for (const k of ['anzahl', 'qualitaet', 'halbtonschritte', 'tastatur']) {
+                for (const k of ['anzahl', 'qualitaet', 'halbtonschritte', 'tastatur', 'notensystem', 'vorzeichen']) {
                     const s = r[k];
                     s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
                 }
@@ -2220,6 +2246,92 @@
                     });
                 });
                 return t ? { correct: c, total: t, derived: true } : null;
+            }
+        };
+
+        // ===================================
+        // GF Stufe 3 — IT-lokale Texte + Achsen→Quiz-Ziel (Pfad A)
+        // ===================================
+        // IT-LOKALE Anzeige-Achsen (feiner als GF_ONTOLOGY, das anzahl+hs zu T3
+        // bündelt): vorz · ons · tas · hs · anzahl · qual. Trainer-lokal bleibt
+        // lokal (PLAN_GF-Ontologie §5.3) — GF_ONTOLOGY/Pfad-B unangetastet.
+        // DAG-Kette (order): t1 → vorz → ons → tas → hs → anzahl → qual. Die
+        // schwache, TIEFER liegende Achse wird zuerst (= primäre Ursache)
+        // genannt. t1 (Stammtöne/Tonbenennung, abgeleitet aus ons∧tas beide
+        // schwach) ist die fundamentalste Voraussetzung — wer die Notennamen
+        // selbst nicht kann, wird per Cross-Trainer-Reco an den Notentrainer
+        // verwiesen (IT kann Stammtöne nicht trainieren). Counterpart-Paar:
+        // anzahl↔qual (Größe vs. Qualität). Wording = finalisiertes NT-Muster
+        // (gehedgt, positiv-additiv, kein ex-negativo).
+        const GF_IT = {
+            nodeName: {
+                einsteiger: 'Intervalle: Grundlagen', aufsteiger: 'Intervalle: Tastatur & Vorzeichen',
+                profi: 'Halbtonschritte zählen', meister: 'Intervall-Qualität',
+                experte: 'Bestimmung (gemischt)', bilden_tastatur: 'Intervalle bilden (Tastatur)',
+                bilden_staff: 'Intervalle bilden (Notensystem)'
+            },
+            // Reihenfolge = Prerequisite-Tiefe (fundamentalste zuerst). O-NS
+            // (Notensystem lesen) liegt vor TAS (erst lesen, dann greifen).
+            order: ['t1', 'vorz', 'ons', 'tas', 'hs', 'anzahl', 'qual'],
+            axis: {
+                t1: {
+                    name: 'Tonbenennung (Stammtöne)',
+                    why: 'die Notennamen (Stammtöne) noch nicht sicher sitzen',
+                    tip: 'Das ist die Grundlage von allem — übe zuerst das sichere Benennen der Stammtöne im Notentrainer.',
+                    counter: null,
+                    cta: 'Zum Notentrainer',
+                    href: 'notentrainer.html'
+                },
+                ons: {
+                    name: 'Notensystem-Orientierung',
+                    why: 'das Ablesen der Töne aus dem Notensystem noch nicht sicher ist',
+                    tip: 'Übe das sichere Lesen der Notennamen im Notensystem.',
+                    counter: null,
+                    cta: 'Notenlesen üben',
+                    target: function () { return { level: 'aufsteiger', options: ['basis'] }; }
+                },
+                tas: {
+                    name: 'Tastatur-Orientierung',
+                    why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
+                    tip: 'Sie ist die Grundlage, um die Töne sicher zu finden und Intervalle zu greifen.',
+                    counter: null,
+                    cta: 'Tastatur üben',
+                    target: function () { return { level: 'aufsteiger', options: ['basis'] }; }
+                },
+                vorz: {
+                    name: 'Vorzeichen',
+                    why: 'das Vorzeichen (♯/♭) noch nicht sicher gesetzt wird',
+                    tip: 'Achte gezielt darauf, ob ein Ton durch ♯ oder ♭ verändert ist.',
+                    counter: null,
+                    cta: 'Vorzeichen üben',
+                    target: function () { return { level: 'aufsteiger', options: ['augdim'] }; }
+                },
+                hs: {
+                    name: 'Halbtonschritte zählen',
+                    why: 'das Abzählen der Halbtonschritte noch nicht sicher sitzt',
+                    tip: 'Zähle die Schritte zwischen den Tönen, nicht die Tasten selbst — sonst zählst du leicht einen zu viel.',
+                    counter: null,
+                    cta: 'Halbtonschritte üben',
+                    target: function () { return { level: 'profi', options: ['basis'] }; }
+                },
+                anzahl: {
+                    name: 'Intervallgröße / Grobname',
+                    why: 'der Grobname der Intervallgröße (Sekunde, Terz, …) noch nicht sicher sitzt',
+                    tip: 'Es kann aber auch sein, dass die Intervallgröße noch nicht sicher abgezählt wird. Übe beides: das Benennen und das Abzählen der Intervallgröße.',
+                    alt: 'die Intervallgröße noch nicht sicher benannt wird',
+                    counter: 'qual',
+                    cta: 'Intervallgröße üben',
+                    target: function () { return { level: 'einsteiger', options: ['basis'] }; }
+                },
+                qual: {
+                    name: 'Intervallqualität (rein/groß/klein/…)',
+                    why: 'die Qualität (rein, groß, klein, übermäßig, vermindert) noch unsicher ist',
+                    tip: 'Übe gezielt das Bestimmen der Qualität bei bekannter Größe.',
+                    alt: 'die Intervallqualität noch nicht sicher bestimmt wird',
+                    counter: 'anzahl',
+                    cta: 'Qualität üben',
+                    target: function () { return { level: 'experte', options: ['basis'] }; }
+                }
             }
         };
 
@@ -3032,52 +3144,85 @@
                     });
                 } catch (e) {}
 
-                let emoji, title, stars;
-                if (percentage === 100) {
-                    emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
-                } else if (percentage >= 90) {
-                    emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
-                } else if (percentage >= 80) {
-                    emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
-                } else {
-                    emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
-                }
-
-                document.getElementById('successEmoji').textContent = emoji;
-                document.getElementById('successTitle').textContent = title;
-                document.getElementById('successStars').textContent = stars;
+                // ── GF Stufe 3 (Pfad A): Variantenwahl + Render (= NT-Muster) ──
+                const _t = document.getElementById('successTitle');
+                const _stars = document.getElementById('successStars');
+                const _msg = document.getElementById('successMessage');
+                const _rec = document.getElementById('successRecos');
+                const _btn = document.getElementById('successButtons');
+                _msg.style.display = 'block';
                 document.getElementById('successScore').textContent = scoreText;
 
-                const passed = percentage >= 80;
-
-                if (passed) {
+                if (percentage >= 80) {
                     const starCount = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
                     this._saveSubSkillScore(starCount);
-
                     this.markCurrentOptionAsMastered();
-                    const nextStep = this.getNextStepText();
-                    document.getElementById('successNextStep').textContent = nextStep;
-
-                    // Prüfe ob alle Optionen des aktuellen Knotens gemeistert sind
-                    const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
-                    const allOptions = this.nodeSubSkills[nodeId].map(s => s.id);
-                    const mastered = this.progress[this.currentLevel].mastered;
-                    const allDone = allOptions.every(opt => mastered.includes(opt));
-                    if (allDone) {
-                        document.getElementById('successNextStep').innerHTML =
-                            'Alle Kompetenzen in diesem Knoten gemeistert! 🎉<br><br>💡 <strong>Tipp:</strong> Im „Freien Üben" kannst du alle Optionen kombinieren!';
+                    _stars.textContent = '⭐'.repeat(starCount);
+                    const tier = this._gfMilestoneTier();
+                    if (tier === 'trainer') {
+                        _t.textContent = 'Intervalltrainer abgeschlossen!';
+                        _msg.innerHTML = '<p>Alle Kompetenzen des Intervalltrainers gemeistert. Starke Leistung.</p>';
+                    } else if (tier === 'node') {
+                        _t.textContent = (GF_IT.nodeName[this.currentLevel] || 'Kompetenz') + ' gemeistert!';
+                        _msg.innerHTML = '<p>Diese ganze Kompetenz sitzt jetzt — nicht nur eine Teilaufgabe. Weiter so.</p>';
+                    } else {
+                        _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
+                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
                     }
+                    _rec.innerHTML = this._gfForwardItem(tier);
+                    _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
+                        + '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 } else {
-                    document.getElementById('successNextStep').textContent = 'Probiere es noch einmal!';
+                    const perf = this._gfDimPerf();
+                    const scope = this._gfAxesInScope();
+                    // order = Prerequisite-Tiefe → die schwache, TIEFER liegende
+                    // Achse landet auf idx 0 (= primäre Ursache, DAG-Walk).
+                    const weakAxes = GF_IT.order.filter(function (a) {
+                        return scope.indexOf(a) !== -1 && perf[a] && perf[a].total >= 2
+                            && perf[a].pct != null && perf[a].pct < 80 && GF_IT.axis[a];
+                    });
+                    _stars.textContent = '';
+                    _t.textContent = 'Noch nicht ganz';
+                    let html = '';
+                    if (weakAxes.length) {
+                        html += weakAxes.map(function (a, idx) {
+                            const ax = GF_IT.axis[a];
+                            let s;
+                            if (idx === 0) {
+                                s = 'Es liegt vermutlich daran, dass ' + ax.why + '.';
+                                const c = ax.counter;
+                                if (c && GF_IT.axis[c] && GF_IT.axis[c].alt
+                                    && perf[c] && perf[c].total >= 2
+                                    && perf[c].pct != null && perf[c].pct < 80
+                                    && weakAxes.indexOf(c) === -1) {
+                                    s += ' Aber es könnte auch daran liegen, dass ' + GF_IT.axis[c].alt + '.';
+                                }
+                                s += ' ' + ax.tip;
+                            } else {
+                                s = 'Möglich ist außerdem, dass ' + ax.why + '. ' + ax.tip;
+                            }
+                            return '<div class="gf-axis"><p>' + s + '</p></div>';
+                        }).join('');
+                    } else {
+                        html += '<p>Noch nicht bestanden — wiederhol die Übung.</p>';
+                    }
+                    _msg.innerHTML = html;
+                    let recos = '';
+                    weakAxes.forEach(function (a) {
+                        const ax = GF_IT.axis[a];
+                        if (!ax) return;
+                        if (ax.href) {
+                            // Cross-Trainer-Eskalation (t1 → Notentrainer)
+                            recos += '<button class="reco-item" onclick="window.location.href=\'' + ax.href + '\'">' + ax.cta + '</button>';
+                            return;
+                        }
+                        const tg = ax.target(quickStart.currentLevel);
+                        recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
+                    });
+                    recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                    _rec.innerHTML = recos;
+                    _btn.innerHTML = '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 }
-
-                document.getElementById('successMessage').style.display = passed || !passed ? 'block' : 'none';
-
-                const buttonsDiv = document.getElementById('successButtons');
-                buttonsDiv.innerHTML = `
-                    <button class="btn-retry" onclick="quickStart.retry()">🔄 Nochmal</button>
-                    <button class="btn-next" onclick="quickStart.backToStart()">🏠 Zur Übersicht</button>
-                `;
 
                 document.getElementById('originalApp').classList.remove('active');
                 document.getElementById('successScreen').classList.add('active');
@@ -3114,6 +3259,115 @@
 
             retry() {
                 this.start(this.currentLevel, [...this.currentOptions]);
+            },
+
+            // GF Stufe 3 — direkter Quiz-Start (kein Skilltree-Umweg)
+            goToRecommendedLevel(level, optsCsv) {
+                this.start(level, optsCsv ? String(optsCsv).split(',') : ['basis']);
+            },
+
+            // dim-Key (errorTracker) → IT-lokale Anzeige-Achse.
+            _gfDimAxisMap: { anzahl: 'anzahl', halbtonschritte: 'hs', qualitaet: 'qual', tastatur: 'tas', notensystem: 'ons', vorzeichen: 'vorz' },
+
+            // Scope = Anzeige-Achsen, die das AKTUELLE Quiz tatsächlich gemessen
+            // hat (dim.total>0 im aktuellen errorTracker). Keine Aussage über
+            // einen Skill, den dieses Quiz nicht prüft (Scope-Regel).
+            _gfAxesInScope() {
+                const map = this._gfDimAxisMap;
+                const sc = [];
+                let d = null;
+                try { d = errorTracker.getSubskillPerformance(); } catch (e) {}
+                if (!d) return sc;
+                Object.keys(map).forEach(function (k) {
+                    if (d[k] && d[k].total > 0 && sc.indexOf(map[k]) === -1) sc.push(map[k]);
+                });
+                // t1 (Stammtöne, abgeleitet) ist in Scope, sobald das Quiz die
+                // Tonidentität prüft (ons oder tas) — dort kann fehlende
+                // Stammton-Sicherheit als tiefste Ursache greifen.
+                if ((sc.indexOf('ons') !== -1 || sc.indexOf('tas') !== -1) && sc.indexOf('t1') === -1) sc.push('t1');
+                return sc;
+            },
+
+            // Session-gepoolte Performance je IT-lokaler Anzeige-Achse: Σc/Σt
+            // über alle Intervalltrainer-Snapshots dieser Session. Feiner als
+            // GF_ONTOLOGY (das anzahl+hs zu T3 bündelt) — trainer-lokal bleibt
+            // lokal (PLAN_GF-Ontologie §5.3), GF_ONTOLOGY bleibt unangetastet.
+            _gfDimPerf() {
+                const map = this._gfDimAxisMap;
+                const acc = {
+                    ons: { correct: 0, total: 0 }, tas: { correct: 0, total: 0 },
+                    vorz: { correct: 0, total: 0 }, hs: { correct: 0, total: 0 },
+                    anzahl: { correct: 0, total: 0 }, qual: { correct: 0, total: 0 }
+                };
+                let snaps = [];
+                try { snaps = (tracker && tracker.gfSession) || []; } catch (e) {}
+                snaps.forEach(function (s) {
+                    if (!s || s.trainer !== 'Intervalltrainer' || !s.dims) return;
+                    Object.keys(s.dims).forEach(function (dim) {
+                        const ax = map[dim], dd = s.dims[dim];
+                        if (!ax || !dd || !dd.total) return;
+                        acc[ax].correct += dd.correct; acc[ax].total += dd.total;
+                    });
+                });
+                Object.keys(acc).forEach(function (k) {
+                    const a = acc[k];
+                    a.pct = a.total > 0 ? Math.round(a.correct / a.total * 100) : null;
+                });
+                // t1 (Stammtöne) abgeleitet: schwach genau dann, wenn die
+                // Tonidentität in BEIDEN Modalitäten scheitert — ons UND tas
+                // je gemessen (total≥2) und beide pct<80. Gepoolt ergibt das
+                // ebenfalls pct<80 (gewichtetes Mittel zweier Werte <80).
+                // Sonst kein Signal (total 0 / pct null → nie als schwach).
+                const _o = acc.ons, _t = acc.tas;
+                if (_o.total >= 2 && _t.total >= 2 && _o.pct != null && _t.pct != null && _o.pct < 80 && _t.pct < 80) {
+                    acc.t1 = { correct: _o.correct + _t.correct, total: _o.total + _t.total };
+                    acc.t1.pct = Math.round(acc.t1.correct / acc.t1.total * 100);
+                } else {
+                    acc.t1 = { correct: 0, total: 0, pct: null };
+                }
+                return acc;
+            },
+
+            // Meilenstein-Stufe: subskill | node | trainer
+            _gfMilestoneTier() {
+                const lvl = this.currentLevel;
+                const node = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === lvl);
+                const subs = (this.nodeSubSkills[node] || []).map(s => s.id);
+                const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+                const nodeDone = subs.length > 0 && subs.every(o => m.includes(o));
+                if (!nodeDone) return 'subskill';
+                const trainerDone = Object.keys(this.nodeToLevel).every(nd => {
+                    const L = this.nodeToLevel[nd];
+                    const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                    return (this.nodeSubSkills[nd] || []).map(s => s.id).every(o => mm.includes(o));
+                });
+                return trainerDone ? 'trainer' : 'node';
+            },
+
+            // Forward-Item (klickbarer Direkt-Starter) je Meilenstein-Stufe
+            _gfForwardItem(tier) {
+                if (tier === 'trainer') {
+                    return '<button class="reco-item" onclick="window.location.href=\'tonleitertrainer.html\'">Weiter zum Tonleitertrainer</button>';
+                }
+                const order = Object.keys(this.nodeToLevel);
+                if (tier === 'node') {
+                    for (const nd of order) {
+                        const L = this.nodeToLevel[nd];
+                        const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                        const subs = (this.nodeSubSkills[nd] || []);
+                        const open = subs.find(s => !mm.includes(s.id));
+                        if (open) {
+                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open.id + '\')">Weiter: ' + (GF_IT.nodeName[L] || L) + ' – ' + open.label + '</button>';
+                        }
+                    }
+                    return '';
+                }
+                const lvl = this.currentLevel;
+                const node = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === lvl);
+                const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+                const nx = (this.nodeSubSkills[node] || []).find(s => !m.includes(s.id));
+                if (!nx) return '';
+                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx.id + '\')">Weiter: ' + (GF_IT.nodeName[lvl] || lvl) + ' – ' + nx.label + '</button>';
             },
 
             confirmReset() {
@@ -5483,6 +5737,9 @@
 
                 let isCorrect = false;
                 let feedback = '';
+                // GF: getrennte Achsen-Signale (anzahl=Größe, qual=Qualität,
+                // hs=Halbtöne). null = von dieser Aufgabe nicht geprüft.
+                let _aOk = null, _qOk = null, _hOk = null;
 
                 if (task.type === 'bidirektional') {
                     const input = document.getElementById('intervalInput');
@@ -5501,10 +5758,13 @@
                         const parsed = parseInput(input.value);
                         isCorrect = parsed && parsed.quality === task.interval.quality &&
                             parsed.size === task.interval.size;
+                        _aOk = !!(parsed && parsed.size === task.interval.size);
+                        _qOk = !!(parsed && parsed.quality === task.interval.quality);
                         feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.label}`;
                     } else {
                         const val = parseInt(input.value.trim());
                         isCorrect = val === task.interval.ht;
+                        _hOk = isCorrect;
                         feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.ht} HS`;
                     }
 
@@ -5531,6 +5791,9 @@
                     const parsed = parseInput(nameInput.value);
                     const nameCorrect = parsed && parsed.quality === task.answer.quality && parsed.size === task.answer.size;
                     isCorrect = htCorrect && nameCorrect;
+                    _hOk = htCorrect;
+                    _aOk = !!(parsed && parsed.size === task.answer.size);
+                    _qOk = !!(parsed && parsed.quality === task.answer.quality);
 
                     htInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
                     htInput.classList.add(htCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
@@ -5550,6 +5813,8 @@
 
                     const parsed = parseInput(input.value);
                     isCorrect = parsed && parsed.quality === task.answer.quality && parsed.size === task.answer.size;
+                    _aOk = !!(parsed && parsed.size === task.answer.size);
+                    _qOk = !!(parsed && parsed.quality === task.answer.quality);
                     feedback = isCorrect ? '' : `Richtig wäre: ${task.answerLabel}`;
 
                     input.classList.remove('input-validated-correct', 'input-validated-incorrect');
@@ -5565,6 +5830,9 @@
                         quickStart.questionsAnswered++;
                         if (isCorrect) quickStart.questionsCorrect++;
                         quickStart.updateQuizOverlay();
+                    }
+                    if (this.quickStartMode && !quickStart.isRetry) {
+                        try { errorTracker.logAnswer({ isCorrect, anzahlOk: _aOk, qualOk: _qOk, hsOk: _hOk }); } catch (e) {}
                     }
                 }
                 this.validationState.allCorrect = isCorrect;
@@ -6130,6 +6398,13 @@
                 const distanceMatch = selectedDistance === expectedDistance;
                 const isCorrect = pcsMatch && distanceMatch;
 
+                // GF: O-NS = Tonidentitäten richtig aus Notation gelesen (pcsMatch).
+                // TAS nur werten, wenn Töne erkannt (sonst keine Dim statt falscher
+                // Dim, NT-Prinzip). Einmal je Aufgabe (Erst-Check, kein Retry).
+                if (this.quickStartMode && !quickStart.isRetry && !this.validationState.hasBeenChecked) {
+                    try { errorTracker.logAnswer({ isCorrect, onsOk: pcsMatch, tastaturOk: pcsMatch ? distanceMatch : null }); } catch (e) {}
+                }
+
                 feedbackEl.classList.remove('hidden');
 
                 if (isCorrect) {
@@ -6588,10 +6863,34 @@
                     const octDiff = this.buildingSelectedKey.oct - task.startNote.oct;
                     const actualSteps = (octDiff * 7 + selPos - startPos) + 1;
                     correct = midiOk && actualSteps === task.interval.steps;
+                    // GF int6: TAS=richtige Linie/Oktave, hs=richtige Größe,
+                    // vorzeichen=Zielton mit ♯/♭ → exakt richtig? (sonst keine Dim)
+                    const _tgtPos = this._getStaffPos(task.targetNote.name);
+                    const _letterOk = (selPos === _tgtPos && this.buildingSelectedKey.oct === task.targetNote.oct);
+                    const _sizeOk = (actualSteps === task.interval.steps);
+                    const _tn = task.targetNote.name;
+                    const _hasVz = (_tn.indexOf('is') !== -1 || _tn.indexOf('es') !== -1 || _tn === 'As' || _tn === 'Es' || _tn === 'B');
+                    if (this.quickStartMode && !quickStart.isRetry) {
+                        try { errorTracker.logAnswer({ isCorrect: correct, tastaturOk: _letterOk, hsOk: _sizeOk, vorzeichenOk: _hasVz ? midiOk : null }); } catch (e) {}
+                    }
                 } else {
                     if (!this.buildingStaffNote) return;
                     correct = (this.buildingStaffNote.noteName === task.targetNote.name &&
                                this.buildingStaffNote.octave === task.targetNote.oct);
+                    // GF int7: O-NS=richtige Linie/Oktave, hs=richtige Größe,
+                    // vorzeichen=Zielton mit ♯/♭ → exakt richtig? (sonst keine Dim)
+                    const _pPos = this._getStaffPos(this.buildingStaffNote.noteName);
+                    const _tPos = this._getStaffPos(task.targetNote.name);
+                    const _sPos = this._getStaffPos(task.startNote.name);
+                    const _octD = this.buildingStaffNote.octave - task.startNote.oct;
+                    const _aSteps = (_octD * 7 + _pPos - _sPos) + 1;
+                    const _letterOk = (_pPos === _tPos && this.buildingStaffNote.octave === task.targetNote.oct);
+                    const _sizeOk = (_aSteps === task.interval.steps);
+                    const _tn = task.targetNote.name;
+                    const _hasVz = (_tn.indexOf('is') !== -1 || _tn.indexOf('es') !== -1 || _tn === 'As' || _tn === 'Es' || _tn === 'B');
+                    if (this.quickStartMode && !quickStart.isRetry) {
+                        try { errorTracker.logAnswer({ isCorrect: correct, onsOk: _letterOk, hsOk: _sizeOk, vorzeichenOk: _hasVz ? correct : null }); } catch (e) {}
+                    }
                 }
 
                 this.inputLocked = true;

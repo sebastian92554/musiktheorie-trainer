@@ -1726,7 +1726,10 @@
 
             env() {
                 try {
-                    return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod';
+                    if (localStorage.getItem('musik_tracking_env') === 'dev') return 'dev';
+                    var __h = (location.hostname || '');
+                    if (location.protocol === 'file:' || __h === 'localhost' || __h === '127.0.0.1' || __h === '::1' || __h === '' || /\.local$/.test(__h) || /^192\.168\./.test(__h) || /^10\./.test(__h) || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(__h)) return 'dev';
+                    return 'prod';
                 } catch (e) {
                     return 'prod';
                 }
@@ -1749,6 +1752,9 @@
 
             _send(eventType, payload) {
                 if (!this.scriptURL || !this.sessionId) return;
+                // Lokales/Test-Tracking sendet NICHT (env=dev via Host-Autoerkennung).
+                // Opt-in für bewusste Pipeline-Tests: localStorage.musik_tracking_send='1'.
+                if (this.env() === 'dev') { try { if (localStorage.getItem('musik_tracking_send') !== '1') return; } catch (e) { return; } }
                 const data = {
                     schema: this.schema,
                     env: this.env(),
@@ -1868,7 +1874,8 @@
                     vzOk,
                     lageOk,
                     tastaturOk,
-                    hasVZ
+                    hasVZ,
+                    tasOnly: !!data.tasOnly
                 });
             }
 
@@ -1883,12 +1890,16 @@
                 };
 
                 this.answers.forEach(a => {
-                    result.stammtoene.total++;
-                    if (a.stammtonOk) result.stammtoene.correct++;
+                    // TAS-Only (Kn3-Tastatur): zählt NUR auf TAS, nicht auf
+                    // Stammton (T1) / Vorzeichen (T4) — würde sonst T1 vergiften.
+                    if (!a.tasOnly) {
+                        result.stammtoene.total++;
+                        if (a.stammtonOk) result.stammtoene.correct++;
 
-                    if (a.hasVZ) {
-                        result.vorzeichen.total++;
-                        if (a.vzOk) result.vorzeichen.correct++;
+                        if (a.hasVZ) {
+                            result.vorzeichen.total++;
+                            if (a.vzOk) result.vorzeichen.correct++;
+                        }
                     }
 
                     if (a.lageOk !== null) {
@@ -1933,7 +1944,7 @@
 
             getErrorListHelmholtz() {
                 return this.getErrors().map(a => {
-                    if (a.category === 'building_note_falsch' || a.category === 'building_vz_falsch') return null;
+                    if (a.tasOnly || a.category === 'building_note_falsch' || a.category === 'building_vz_falsch') return null;
 
                     const clefLabel = a.clef === 'bass' ? 'Bass' : 'Violin';
                     const correctH = ErrorTracker.toHelmholtz(a.correctNote, a.octave);
@@ -3130,6 +3141,7 @@
                                 // Ankertöne-Spekulation (Cross-Inferenz-Pflicht).
                                 if (c && GF_NT.axis[c] && GF_NT.axis[c].alt
                                     && perf[c] && perf[c].total >= 2
+                                    && perf[c].pct != null && perf[c].pct < 80
                                     && weakAxes.indexOf(c) === -1) {
                                     s += ' Aber es könnte auch daran liegen, dass ' + GF_NT.axis[c].alt + '.';
                                 }
@@ -3145,16 +3157,13 @@
                     _msg.innerHTML = html;
 
                     let recos = '';
-                    // Pro schwacher Achse EIN Reco-Button (dedupliziert nach Ziel),
-                    // dann Lernkarte-Wiederholen.
-                    const _seenTg = {};
+                    // Pro schwacher Achse EIN Reco-Button (weakAxes sind eindeutige
+                    // Achsen → keine Ziel-Dedup; sonst verschwindet z. B. der
+                    // O-NS-Button, wenn T1 zufällig dasselbe Quizziel hat).
                     weakAxes.forEach(function (a) {
                         const ax = GF_NT.axis[a];
                         if (!ax) return;
                         const tg = ax.target(quickStart.currentLevel);
-                        const key = tg.level + '|' + tg.options.join(',');
-                        if (_seenTg[key]) return;
-                        _seenTg[key] = 1;
                         recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
                     });
                     recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
@@ -3307,7 +3316,7 @@
                 const sc = ['T1']; // Notenlesen/-benennen steckt in jeder NT-Notenaufgabe
                 if (lvl.indexOf('bild_') === 0) sc.push('O-NS');
                 if (opts.indexOf('vorzeichen') !== -1) sc.push('T4');
-                if (this.settings && this.settings.requireKeyboard === true) sc.push('TAS');
+                if (lvl === 'profi' || (this.settings && this.settings.requireKeyboard === true)) sc.push('TAS');
                 return sc;
             },
 
@@ -5387,6 +5396,7 @@
                     if (isFirstCheck) {
                         tracker.activity();
                         if (this.quickStartMode) {
+                            try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: '', clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: 'tastenfehler', tastaturActive: true, tastaturCorrect: true, tasOnly: true }); } catch (e) {}
                             quickStart.handleAnswer(true);
                         } else {
                             if (!this.freeRetry) {
@@ -5424,6 +5434,7 @@
                     if (isFirstCheck) {
                         tracker.activity();
                         if (this.quickStartMode) {
+                            try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: '', clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: 'tastenfehler', tastaturActive: true, tastaturCorrect: false, tasOnly: true }); } catch (e) {}
                             quickStart.handleAnswer(false);
                         } else {
                             if (!this.freeRetry) {

@@ -2063,7 +2063,10 @@
 
             env() {
                 try {
-                    return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod';
+                    if (localStorage.getItem('musik_tracking_env') === 'dev') return 'dev';
+                    var __h = (location.hostname || '');
+                    if (location.protocol === 'file:' || __h === 'localhost' || __h === '127.0.0.1' || __h === '::1' || __h === '' || /\.local$/.test(__h) || /^192\.168\./.test(__h) || /^10\./.test(__h) || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(__h)) return 'dev';
+                    return 'prod';
                 } catch (e) {
                     return 'prod';
                 }
@@ -2086,6 +2089,9 @@
 
             _send(eventType, payload) {
                 if (!this.scriptURL || !this.sessionId) return;
+                // Lokales/Test-Tracking sendet NICHT (env=dev via Host-Autoerkennung).
+                // Opt-in für bewusste Pipeline-Tests: localStorage.musik_tracking_send='1'.
+                if (this.env() === 'dev') { try { if (localStorage.getItem('musik_tracking_send') !== '1') return; } catch (e) { return; } }
                 const data = {
                     schema: this.schema,
                     env: this.env(),
