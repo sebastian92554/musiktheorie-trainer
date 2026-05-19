@@ -436,15 +436,21 @@
         /* GF Stufe 3 — klickbare Empfehlungsliste (neutral, kein eigenes Farbschema, §4.3) */
         .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
         .success-recos:empty { display: none; }
-        .reco-item { padding: 14px 16px; border-radius: 12px; background: #ecfeff; color: #155e75;
-            border: 1px solid #a5f3fc; cursor: pointer; font-size: 1rem; font-weight: 600;
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #0e7490;
+            border: 2px solid #0891b2; cursor: pointer; font-size: 1rem; font-weight: 600;
             text-align: left; width: 100%; transition: all 0.2s; }
-        .reco-item:hover { background: #cffafe; border-color: #67e8f9; }
+        .reco-item::before { content: '\2192\00a0'; font-weight: 700; }
+        .reco-item:hover { background: #0891b2; color: #fff; }
         /* GF Fehlerliste in B/C — gerahmt, kleiner, eingerückt, klar abgesetzt (nicht grau) */
         .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
             background: #fff; border: 1px solid #99f6e4; border-radius: 8px;
             font-size: 0.85rem; color: #374151; text-align: left; }
         .gf-errlist li { margin: 3px 0; line-height: 1.4; }
+        /* GF Analyse — jede Problemstelle als klar getrennter Block (nicht grau) */
+        .gf-axis { background: #fff; border: 1px solid #99f6e4; border-left: 4px solid #0891b2;
+            border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
+        .gf-axis strong { color: #0e7490; font-size: 0.95rem; }
+        .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
 
         /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
         /* Ghost-Note IST der Cursor — System-Cursor ausblenden */
@@ -2228,26 +2234,36 @@
                 lagen: 'Mit Lagen', hilfslinien: 'Mit Hilfslinien' },
             axis: {
                 T1: {
-                    lead: 'Noch nicht ganz — die Notennamen wackeln.',
-                    text: 'Die Notennamen C-D-E-F-G-A-H sitzen noch nicht sicher. Ohne sie ist alles andere Raten.',
+                    name: 'Stammtonreihe (Tonnamen)',
+                    why: 'die Tonnamen der Stammtonreihe C-D-E-F-G-A-H noch nicht sicher sitzen',
+                    tip: 'Übe, jeden Ton sicher zu benennen.',
+                    alt: 'du einzelne Tonnamen der Stammtonreihe noch nicht sicher abrufst',
+                    counter: 'O-NS',
                     cta: 'Notennamen üben',
                     target: function (lvl) { return { level: lvl, options: ['basis'] }; }
                 },
                 TAS: {
-                    lead: 'Noch nicht ganz — die Tastatur-Orientierung fehlt.',
-                    text: 'Du findest die Töne auf der Klaviatur noch nicht sicher. Das ist die Grundlage, um Abstände zu bestimmen — wie viele Halbtonschritte von einem Ton zum nächsten. Ohne sichere Tastatur-Orientierung bleibt jeder Abstand Raten.',
+                    name: 'Tastatur-Orientierung',
+                    why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
+                    tip: 'Sie ist die Grundlage, um Abstände (Halbtonschritte) zu bestimmen.',
+                    counter: null,
                     cta: 'Tastatur üben',
                     target: function () { return { level: 'profi', options: ['basis'] }; }
                 },
                 T4: {
-                    lead: 'Noch nicht ganz — die Vorzeichen sind unklar.',
-                    text: 'Ob eine Note durch ein Vorzeichen verändert ist und wie sie dann heißt, ist noch unsicher. Ein Kreuz erhöht den Ton um einen Halbton — aus C wird Cis. Ein Be senkt ihn — aus C wird Ces. Übe gezielt das Erkennen und Benennen mit Vorzeichen.',
+                    name: 'Vorzeichen',
+                    why: 'die Wirkung der Vorzeichen noch unsicher ist (Kreuz erhöht: C → Cis, Be senkt: C → Ces)',
+                    tip: 'Übe Erkennen und Benennen mit Vorzeichen.',
+                    counter: null,
                     cta: 'Vorzeichen üben',
                     target: function (lvl) { return { level: lvl, options: ['basis', 'vorzeichen'] }; }
                 },
                 'O-NS': {
-                    lead: 'Noch nicht ganz — es scheitert am Notensystem.',
-                    text: 'Die Namen kannst du — es scheitert am Platzieren im Notensystem. Nutze die Ankertöne (z. B. 2. Linie = G im Violinschlüssel).',
+                    name: 'Position im Notensystem (Ankertöne)',
+                    why: 'die Töne über ihre Position im Notensystem noch nicht sicher abgelesen werden',
+                    tip: 'Nutze feste Ankertöne (z. B. 2. Linie = G im Violinschlüssel) und zähl von dort.',
+                    alt: 'du die Ankertöne, von denen du zählst, noch nicht sicher genug einsetzt',
+                    counter: 'T1',
                     cta: 'Notensystem üben',
                     target: function () { return { level: 'bild_violin', options: ['basis'] }; }
                 }
@@ -2263,6 +2279,55 @@
             zweigestrichen: 'zweigestrichene Oktave',
             dreigestrichen: 'dreigestrichene Oktave'
         };
+
+        // GF Stufe 3 — DEV-Preview-Hook (nur bei localStorage.musik_tracking_env==='dev').
+        // Closure-Zugriff auf quickStart/tracker/errorTracker → zeigt Success-Screen
+        // mit realem Forward/Tier + synthetischen Fehlern, non-destruktiv (klont &
+        // stellt progress/gfSession/errorTracker wieder her; keine Persistenz/Beacon).
+        try {
+            if (localStorage.getItem('musik_tracking_env') === 'dev') {
+                window.gfPreview = function (v) {
+                    v = String(v || '').trim(); if (!v) return;
+                    var q = quickStart, T = tracker, E = errorTracker;
+                    var P = JSON.parse(JSON.stringify(q.progress || {}));
+                    var GS = (T.gfSession || []).slice();
+                    var EA = E.answers.slice();
+                    var oSS = q._saveSubSkillScore, oSP = q.saveProgress, oQC = T.quizComplete;
+                    try {
+                        q._saveSubSkillScore = function () {}; q.saveProgress = function () {}; T.quizComplete = function () {};
+                        ['quickStartScreen', 'originalApp', 'successScreen'].forEach(function (id) {
+                            var el = document.getElementById(id); if (el) el.classList.remove('active');
+                        });
+                        var F = ['basis', 'vorzeichen', 'lagen', 'hilfslinien'];
+                        var setM = function (L, a) {
+                            q.progress[L] = q.progress[L] || { mastered: [], attempts: {}, scores: {} };
+                            q.progress[L].mastered = a.slice();
+                        };
+                        var seedErr = function () {
+                            E.reset();
+                            [['C', 'D'], ['G', 'A'], ['E', 'F']].forEach(function (p) {
+                                E.logAnswer({ isCorrect: false, correctNote: p[0], userInput: p[1],
+                                    clef: 'treble', octave: 'eingestrichen',
+                                    options: ['basis', 'vorzeichen', 'lagen'], category: '' });
+                            });
+                        };
+                        if (v === 'A1') { q.currentLevel = 'einsteiger'; q.currentOptions = ['basis']; setM('einsteiger', []); q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; }
+                        else if (v === 'A2') { q.currentLevel = 'einsteiger'; q.currentOptions = F.slice(); setM('einsteiger', ['basis', 'vorzeichen', 'lagen']); q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; }
+                        else if (v === 'A3') { q.currentLevel = 'bild_beide'; q.currentOptions = F.slice(); ['einsteiger', 'aufsteiger', 'profi', 'bild_violin', 'bild_bass', 'bild_beide'].forEach(function (L) { setM(L, F); }); q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; }
+                        else {
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis', 'vorzeichen', 'lagen'];
+                            q.questionsAnswered = 10; q.questionsCorrect = 4; seedErr();
+                            T.gfSession = [{ trainer: 'Notentrainer', level: 'einsteiger', subskill: 'lagen', mode: 'erkennen', inputType: 'dropdown', dims: { stammtoene: { correct: (v === 'C' ? 2 : 8), total: 9 } } }];
+                        }
+                        q.showSuccess();
+                    } finally {
+                        q.progress = P; T.gfSession = GS; E.answers = EA;
+                        q._saveSubSkillScore = oSS; q.saveProgress = oSP; T.quizComplete = oQC;
+                    }
+                };
+                console.log('🛠 gfPreview() aktiv — gfPreview("A1"|"A2"|"A3"|"B"|"C")');
+            }
+        } catch (e) {}
 
         // ===================================
         // QUICK-START SYSTEM (1:1 von DT)
@@ -3024,34 +3089,59 @@
                     // Variante B/C — DAG-Walk über Session-Snapshots (kein Lock v1)
                     let perf = {};
                     try { if (typeof GF_ONTOLOGY !== 'undefined') perf = GF_ONTOLOGY.axisPerformance(tracker.gfSession); } catch (e) {}
-                    const target = this._gfDeepestUnmet(perf);
+                    // Pooling bleibt session-weit; Anzeige NUR über Skills, die das
+                    // aktuelle Quiz prüft (Scope). Wording benennt trennscharf,
+                    // diagnostiziert aber NICHT ("Es hat den Anschein …").
+                    const scope = this._gfAxesInScope();
+                    // "schwach" = unter der Mastery-Bar (80 %), nicht die strenge
+                    // Lock-Schwelle (<50 %, Phase-1c). Sonst bekäme ein Lernender,
+                    // der knapp scheitert (z. B. 60 %), gar keine Führung.
+                    const weakAxes = ['T1', 'TAS', 'T4', 'O-NS'].filter(function (a) {
+                        return scope.indexOf(a) !== -1 && perf[a] && perf[a].total >= 2
+                            && perf[a].pct != null && perf[a].pct < 80 && GF_NT.axis[a];
+                    });
                     _stars.textContent = '';
                     _t.textContent = 'Noch nicht ganz';
 
                     let html = '';
-                    if (target && GF_NT.axis[target]) {
-                        html += '<p><strong>' + GF_NT.axis[target].lead + '</strong></p><p>' + GF_NT.axis[target].text + '</p>';
-                    } else {
-                        html += '<p>Noch nicht bestanden — schau dir an, wo es hakte:</p>';
-                    }
+                    // 1) zuerst die Fehler (kurzer Hinweis + Liste)
                     let errs = [];
                     try { errs = errorTracker.getErrorListHelmholtz(); } catch (e) {}
                     if (errs.length) {
+                        html += '<p>Diese Fehler sind aufgetreten:</p>';
                         html += '<ul class="gf-errlist">' + errs.slice(0, 5).map(function (e) {
-                            return '<li>' + e.clef + ': ' + e.correct + ' → du hast ' + e.user + ' eingegeben</li>';
+                            return '<li>' + e.correct + ' → du hast ' + e.user + ' eingegeben</li>';
                         }).join('') + '</ul>';
                     }
-                    let pats = [];
-                    try { pats = errorTracker.getErrorPatterns(); } catch (e) {}
-                    if (pats.length) {
-                        html += '<p><strong>' + pats[0].label + '.</strong> ' + pats[0].hint + '</p>';
+                    // 2) dann der Kommentar — gehedgte Hypothese, ohne Überschrift,
+                    //    positiv-additiv (keine "nicht an Y"-Aufzählung). Alternative
+                    //    Ursache nur, wenn der Counterpart nicht ohnehin eigener Block.
+                    if (weakAxes.length) {
+                        html += weakAxes.map(function (a, idx) {
+                            const ax = GF_NT.axis[a];
+                            let s;
+                            if (idx === 0) {
+                                s = 'Es liegt vermutlich daran, dass ' + ax.why + '.';
+                                const c = ax.counter;
+                                if (c && GF_NT.axis[c] && GF_NT.axis[c].alt && weakAxes.indexOf(c) === -1) {
+                                    s += ' Aber es könnte auch daran liegen, dass ' + GF_NT.axis[c].alt + '.';
+                                }
+                                s += ' ' + ax.tip;
+                            } else {
+                                s = 'Möglich ist außerdem, dass ' + ax.why + '. ' + ax.tip;
+                            }
+                            return '<div class="gf-axis"><p>' + s + '</p></div>';
+                        }).join('');
+                    } else if (!errs.length) {
+                        html += '<p>Noch nicht bestanden — wiederhol die Übung.</p>';
                     }
                     _msg.innerHTML = html;
 
                     let recos = '';
-                    if (target && GF_NT.axis[target]) {
-                        const tg = GF_NT.axis[target].target(this.currentLevel);
-                        recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + GF_NT.axis[target].cta + '</button>';
+                    const primary = weakAxes[0];
+                    if (primary && GF_NT.axis[primary]) {
+                        const tg = GF_NT.axis[primary].target(this.currentLevel);
+                        recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + GF_NT.axis[primary].cta + '</button>';
                     }
                     recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
                     _rec.innerHTML = recos;
@@ -3200,6 +3290,20 @@
                 for (const a of ['T1', 'TAS', 'T4']) if (weak(a)) return a;
                 if (weak('O-NS')) return 'O-NS';
                 return null;
+            },
+
+            // Achsen, über die das AKTUELLE Quiz überhaupt eine Aussage machen darf.
+            // Pooling bleibt session-weit — aber keine Aussage über einen Skill, den
+            // die aktuelle Aufgabe gar nicht prüft (z. B. kein Vorzeichen-Feedback
+            // in einer reinen Stammton-Aufgabe).
+            _gfAxesInScope() {
+                const opts = this.currentOptions || [];
+                const lvl = this.currentLevel || '';
+                const sc = ['T1']; // Notenlesen/-benennen steckt in jeder NT-Notenaufgabe
+                if (lvl.indexOf('bild_') === 0) sc.push('O-NS');
+                if (opts.indexOf('vorzeichen') !== -1) sc.push('T4');
+                if (this.settings && this.settings.requireKeyboard === true) sc.push('TAS');
+                return sc;
             },
 
             confirmReset() {
