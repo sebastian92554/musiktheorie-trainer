@@ -3123,7 +3123,14 @@
                             if (idx === 0) {
                                 s = 'Es liegt vermutlich daran, dass ' + ax.why + '.';
                                 const c = ax.counter;
-                                if (c && GF_NT.axis[c] && GF_NT.axis[c].alt && weakAxes.indexOf(c) === -1) {
+                                // Counterpart-Zusatz NUR wenn der Counterpart real
+                                // belegt ist (perf[c].total>=2 → tatsächlich erhoben/
+                                // quer-abgeleitet, z. B. O-NS via bilden+TAS-ok) und
+                                // nicht selbst eigener Block. Ohne Evidenz keine
+                                // Ankertöne-Spekulation (Cross-Inferenz-Pflicht).
+                                if (c && GF_NT.axis[c] && GF_NT.axis[c].alt
+                                    && perf[c] && perf[c].total >= 2
+                                    && weakAxes.indexOf(c) === -1) {
                                     s += ' Aber es könnte auch daran liegen, dass ' + GF_NT.axis[c].alt + '.';
                                 }
                                 s += ' ' + ax.tip;
@@ -3138,11 +3145,18 @@
                     _msg.innerHTML = html;
 
                     let recos = '';
-                    const primary = weakAxes[0];
-                    if (primary && GF_NT.axis[primary]) {
-                        const tg = GF_NT.axis[primary].target(this.currentLevel);
-                        recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + GF_NT.axis[primary].cta + '</button>';
-                    }
+                    // Pro schwacher Achse EIN Reco-Button (dedupliziert nach Ziel),
+                    // dann Lernkarte-Wiederholen.
+                    const _seenTg = {};
+                    weakAxes.forEach(function (a) {
+                        const ax = GF_NT.axis[a];
+                        if (!ax) return;
+                        const tg = ax.target(quickStart.currentLevel);
+                        const key = tg.level + '|' + tg.options.join(',');
+                        if (_seenTg[key]) return;
+                        _seenTg[key] = 1;
+                        recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
+                    });
                     recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
                     _rec.innerHTML = recos;
                     _btn.innerHTML = '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
