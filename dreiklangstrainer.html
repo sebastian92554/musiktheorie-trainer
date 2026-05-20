@@ -954,7 +954,7 @@
         }
 
         /* Alle Knoten auf halbe Breite (konsistent mit Fork-Ästen, wie IT) */
-        .st-node-wrapper { width: 100%; }
+        .st-node-wrapper { width: 100%; max-width: 14.375rem; }
 
         /* Verbindungslinien */
         .st-connector {
@@ -971,6 +971,10 @@
         .st-connector.mastered::before {
             background: #10b981;
         }
+        /* Cross-App-Section liegt direkt im .skilltree-card (kein flex-gap).
+           Manuell 4px-Spacing geben → matched die 0.25rem-Gap im .skilltree
+           weiter unten (analog NT/IT/TT-Struktur). */
+        .skilltree-card > .st-connector { margin: 0.25rem 0; }
 
         /* Fork-Struktur (Erkennen / Bilden) */
         .st-fork-stem { display: flex; justify-content: center; height: 14px; }
@@ -1138,7 +1142,6 @@
         /* Cross-App Abhängigkeit */
         .st-cross-app {
             width: 100%;
-            margin-bottom: 0.75rem;
         }
         .st-cross-label {
             font-size: 0.6rem;
@@ -1619,7 +1622,7 @@
                     </div>
                 </div>
                 <div class="st-connector mastered"></div>
-                <div class="st-cross-app" style="margin-bottom: 0.75rem;">
+                <div class="st-cross-app">
                     <span class="st-cross-label" style="background: #fff7ed; color: #ea580c;">Intervalltrainer</span>
                     <div class="st-node mastered" onclick="window.open('intervalltrainer.html', '_self')" style="cursor: pointer; border-color: #ea580c; background: #fff7ed;">
                         <div class="st-node-icon" style="background: #ea580c;">&#10003;</div>
