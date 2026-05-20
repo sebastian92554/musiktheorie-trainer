@@ -423,9 +423,9 @@
         .success-container { max-width: 600px; margin: 0 auto; text-align: center; padding: 60px 20px;
             background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             max-height: 85vh; overflow-y: auto; }
-        .success-container h2 { font-size: 2rem; color: #164e63; margin-bottom: 10px; }
+        .success-container h2 { font-size: 2rem; color: #312e81; margin-bottom: 10px; }
         .level-stars { font-size: 3rem; margin: 20px 0; }
-        .success-stats { background: #f0fdfa; border: 2px solid #99f6e4; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-stats { background: #eef2ff; border: 2px solid #c7d2fe; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .success-stats p { font-size: 1.1rem; color: #374151; margin: 5px 0; }
         .success-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
         .success-buttons button { padding: 12px 24px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
@@ -3170,7 +3170,7 @@
                     });
                     recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
                     _rec.innerHTML = recos;
-                    _btn.innerHTML = '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
+                    _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 }
 
                 document.getElementById('originalApp').classList.remove('active');

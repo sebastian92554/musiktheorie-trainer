@@ -2347,7 +2347,7 @@
                 anzahl: {
                     name: 'Rahmenintervall / Grobname',
                     why: 'der Name des Rahmenintervalls (Sekunde, Terz, …) noch nicht sicher sitzt',
-                    tip: 'Es kann aber auch sein, dass die Tonschritte zwischen den beiden Tönen noch nicht sicher abgezählt werden. Übe beides: das Benennen des Rahmenintervalls und das Abzählen der Tonschritte.',
+                    tip: 'Es kann aber auch sein, dass die Stammtöne (C, D, E, F, G, A, H) zwischen den beiden Tönen noch nicht sicher abgezählt werden. Übe beides: das Benennen des Rahmenintervalls und das Abzählen der Stammtöne.',
                     alt: 'das Rahmenintervall noch nicht sicher benannt wird',
                     counter: 'qual',
                     cta: 'Intervallgröße üben',
@@ -3337,7 +3337,7 @@
                     });
                     recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
                     _rec.innerHTML = recos;
-                    _btn.innerHTML = '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
+                    _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 }
 
                 document.getElementById('originalApp').classList.remove('active');
