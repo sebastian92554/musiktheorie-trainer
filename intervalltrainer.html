@@ -953,7 +953,7 @@
         .gf-axis strong { color: #9a3412; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
         .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
-            background: #fff7ed; border-left: 4px solid #ea580c; border-radius: 0 8px 8px 0; }
+            background: #fff; border: 1px solid #fdba74; border-radius: 8px; text-align: left; }
         .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #9a3412; font-size: 0.9rem; }
 
         /* Quick Start Container */
@@ -2345,10 +2345,10 @@
                     target: function () { return { level: 'profi', options: ['basis'] }; }
                 },
                 anzahl: {
-                    name: 'Intervallgröße / Grobname',
-                    why: 'der Grobname der Intervallgröße (Sekunde, Terz, …) noch nicht sicher sitzt',
-                    tip: 'Es kann aber auch sein, dass die Intervallgröße noch nicht sicher abgezählt wird. Übe beides: das Benennen und das Abzählen der Intervallgröße.',
-                    alt: 'die Intervallgröße noch nicht sicher benannt wird',
+                    name: 'Rahmenintervall / Grobname',
+                    why: 'der Name des Rahmenintervalls (Sekunde, Terz, …) noch nicht sicher sitzt',
+                    tip: 'Es kann aber auch sein, dass die Tonschritte zwischen den beiden Tönen noch nicht sicher abgezählt werden. Übe beides: das Benennen des Rahmenintervalls und das Abzählen der Tonschritte.',
+                    alt: 'das Rahmenintervall noch nicht sicher benannt wird',
                     counter: 'qual',
                     cta: 'Intervallgröße üben',
                     target: function () { return { level: 'einsteiger', options: ['basis'] }; }
@@ -2356,7 +2356,7 @@
                 qual: {
                     name: 'Intervallqualität (rein/groß/klein/…)',
                     why: 'die Qualität (rein, groß, klein, übermäßig, vermindert) noch unsicher ist',
-                    tip: 'Übe gezielt das Bestimmen der Qualität bei bekannter Größe.',
+                    tip: 'Übe gezielt das Bestimmen der Qualität bei bekanntem Rahmenintervall.',
                     alt: 'die Intervallqualität noch nicht sicher bestimmt wird',
                     counter: 'anzahl',
                     cta: 'Qualität üben',
