@@ -2762,6 +2762,70 @@
         }
     };
 
+    // GF Stufe 3 — DEV-Preview-Hook (nur bei localStorage.musik_tracking_env==='dev').
+    // Closure-Zugriff auf quickStart/tracker/errorTracker → zeigt Success-Screen
+    // mit synthetischen Schwächen, non-destruktiv.
+    try {
+        if (localStorage.getItem('musik_tracking_env') === 'dev') {
+            window.gfPreview = function (v) {
+                v = String(v || '').trim(); if (!v) return;
+                var q = quickStart, T = tracker, E = errorTracker;
+                var P = JSON.parse(JSON.stringify(q.progress || {}));
+                var GS = (T.gfSession || []).slice();
+                var EA = E.answers.slice();
+                var sLvl = q.currentLevel, sOpt = (q.currentOptions || []).slice();
+                var sQA = q.questionsAnswered, sQC = q.questionsCorrect, sIA = q.isActive, sRT = q.isRetry;
+                var oSS = q._saveSubSkillScore, oMk = q.markCurrentOptionAsMastered, oSP = q.saveProgress, oQC = T.quizComplete, oSnd = T._send;
+                try {
+                    q._saveSubSkillScore = function () {}; q.markCurrentOptionAsMastered = function () {};
+                    q.saveProgress = function () {}; T.quizComplete = function () {}; T._send = function () {};
+                    q.isActive = true; q.isRetry = false;
+                    ['quickStartScreen', 'originalApp', 'successScreen'].forEach(function (id) {
+                        var el = document.getElementById(id); if (el) el.classList.remove('active');
+                    });
+                    var setM = function (L, a) {
+                        q.progress[L] = q.progress[L] || { mastered: [], attempts: {}, scores: {} };
+                        q.progress[L].mastered = a.slice();
+                    };
+                    if (v === 'A1') {
+                        q.currentLevel = 'einsteiger'; q.currentOptions = ['basis']; setM('einsteiger', []);
+                        q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                    } else if (v === 'A2') {
+                        q.currentLevel = 'einsteiger'; q.currentOptions = ['basis', 'vorzeichen'];
+                        setM('einsteiger', q.getOptionsForLevel('einsteiger'));
+                        q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                    } else if (v === 'A3') {
+                        q.currentLevel = 'meister'; q.currentOptions = ['aussenkr'];
+                        ['einsteiger', 'aufsteiger', 'profi', 'bilden', 'meister'].forEach(function (L) {
+                            setM(L, q.getOptionsForLevel(L) || []);
+                        });
+                        q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                    } else if (v === 'C') {
+                        // tas + hs + vorz schwach (Tastatur-Bau) → vorz primär
+                        q.currentLevel = 'bilden'; q.currentOptions = ['tastatur_einfach'];
+                        setM('bilden', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
+                        E.reset(); for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, tastaturOk: false, hsOk: false, vorzeichenOk: false }); }
+                        T.gfSession = [{ trainer: 'Tonleitertrainer', level: 'bilden', subskill: 'tastatur_einfach', mode: 'bilden', inputType: 'tastatur', dims: { tastatur: { correct: 0, total: 4 }, halbtonschritte: { correct: 0, total: 4 }, vorzeichen: { correct: 0, total: 4 } } }];
+                    } else {
+                        // B (default): grundton + tongeschlecht schwach (profi mix) → grundton primär → Notentrainer
+                        q.currentLevel = 'profi'; q.currentOptions = ['muster_erkennen'];
+                        setM('profi', []); q.questionsAnswered = 10; q.questionsCorrect = 4;
+                        E.reset(); for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, grundtonOk: false, tongeschlechtOk: false }); }
+                        T.gfSession = [{ trainer: 'Tonleitertrainer', level: 'profi', subskill: 'muster_erkennen', mode: 'erkennen', inputType: 'dropdown', dims: { grundton: { correct: 1, total: 5 }, tongeschlecht: { correct: 1, total: 5 } } }];
+                    }
+                    q.showSuccess();
+                } finally {
+                    q.progress = P; T.gfSession = GS; E.answers = EA;
+                    q.currentLevel = sLvl; q.currentOptions = sOpt; q.questionsAnswered = sQA;
+                    q.questionsCorrect = sQC; q.isActive = sIA; q.isRetry = sRT;
+                    q._saveSubSkillScore = oSS; q.markCurrentOptionAsMastered = oMk;
+                    q.saveProgress = oSP; T.quizComplete = oQC; T._send = oSnd;
+                }
+            };
+            console.log('🛠 gfPreview() aktiv — gfPreview("A1"|"A2"|"A3"|"B"|"C")');
+        }
+    } catch (e) {}
+
     // =============================================
     // QUICKSTART SYSTEM
     // =============================================

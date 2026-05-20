@@ -2334,6 +2334,71 @@
             }
         };
 
+        // GF Stufe 3 — DEV-Preview-Hook (nur bei localStorage.musik_tracking_env==='dev').
+        // Closure-Zugriff auf quickStart/tracker/errorTracker → zeigt Success-Screen
+        // mit synthetischen Schwächen, non-destruktiv (klont & stellt progress/
+        // gfSession/errorTracker wieder her; keine Persistenz/Beacon).
+        try {
+            if (localStorage.getItem('musik_tracking_env') === 'dev') {
+                window.gfPreview = function (v) {
+                    v = String(v || '').trim(); if (!v) return;
+                    var q = quickStart, T = tracker, E = errorTracker;
+                    var P = JSON.parse(JSON.stringify(q.progress || {}));
+                    var GS = (T.gfSession || []).slice();
+                    var EA = E.answers.slice();
+                    var sLvl = q.currentLevel, sOpt = (q.currentOptions || []).slice();
+                    var sQA = q.questionsAnswered, sQC = q.questionsCorrect, sIA = q.isActive, sRT = q.isRetry;
+                    var oSS = q._saveSubSkillScore, oMk = q.markCurrentOptionAsMastered, oSP = q.saveProgress, oQC = T.quizComplete, oSnd = T._send;
+                    try {
+                        q._saveSubSkillScore = function () {}; q.markCurrentOptionAsMastered = function () {};
+                        q.saveProgress = function () {}; T.quizComplete = function () {}; T._send = function () {};
+                        q.isActive = true; q.isRetry = false;
+                        ['quickStartScreen', 'originalApp', 'successScreen'].forEach(function (id) {
+                            var el = document.getElementById(id); if (el) el.classList.remove('active');
+                        });
+                        var setM = function (L, a) {
+                            q.progress[L] = q.progress[L] || { mastered: [], attempts: {}, scores: {} };
+                            q.progress[L].mastered = a.slice();
+                        };
+                        if (v === 'A1') {
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis']; setM('einsteiger', []);
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'A2') {
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis', 'extended', 'nohelp'];
+                            setM('einsteiger', ['basis', 'extended', 'nohelp']);
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'A3') {
+                            q.currentLevel = 'experte'; q.currentOptions = ['basis'];
+                            Object.keys(q.nodeToLevel).forEach(function (n) {
+                                setM(q.nodeToLevel[n], (q.nodeSubSkills[n] || []).map(function (s) { return s.id; }));
+                            });
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'C') {
+                            // ons + tas beide schwach → t1 abgeleitet → "Zum Notentrainer"
+                            q.currentLevel = 'aufsteiger'; q.currentOptions = ['basis'];
+                            setM('aufsteiger', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
+                            E.reset(); for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, onsOk: false, tastaturOk: false }); }
+                            T.gfSession = [{ trainer: 'Intervalltrainer', level: 'aufsteiger', subskill: 'basis', mode: 'erkennen', inputType: 'tastatur', dims: { notensystem: { correct: 0, total: 4 }, tastatur: { correct: 0, total: 4 } } }];
+                        } else {
+                            // B (default): anzahl + qual beide schwach (experte mix)
+                            q.currentLevel = 'experte'; q.currentOptions = ['basis'];
+                            setM('experte', []); q.questionsAnswered = 10; q.questionsCorrect = 4;
+                            E.reset(); for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, anzahlOk: false, qualOk: false }); }
+                            T.gfSession = [{ trainer: 'Intervalltrainer', level: 'experte', subskill: 'basis', mode: 'erkennen', inputType: 'dropdown', dims: { anzahl: { correct: 1, total: 5 }, qualitaet: { correct: 1, total: 5 } } }];
+                        }
+                        q.showSuccess();
+                    } finally {
+                        q.progress = P; T.gfSession = GS; E.answers = EA;
+                        q.currentLevel = sLvl; q.currentOptions = sOpt; q.questionsAnswered = sQA;
+                        q.questionsCorrect = sQC; q.isActive = sIA; q.isRetry = sRT;
+                        q._saveSubSkillScore = oSS; q.markCurrentOptionAsMastered = oMk;
+                        q.saveProgress = oSP; T.quizComplete = oQC; T._send = oSnd;
+                    }
+                };
+                console.log('🛠 gfPreview() aktiv — gfPreview("A1"|"A2"|"A3"|"B"|"C")');
+            }
+        } catch (e) {}
+
         // ===================================
         // QUICK-START SYSTEM
         // ===================================
