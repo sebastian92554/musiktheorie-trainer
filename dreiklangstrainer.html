@@ -1364,6 +1364,19 @@
             color: #10b981;
         }
 
+        /* GF Stufe 3 — Pfad-A Feedback (Struktur 1:1 wie NT/IT/TT, DT-Emerald-Palette) */
+        .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
+        .success-recos:empty { display: none; }
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #065f46;
+            border: 2px solid #10b981; cursor: pointer; font-size: 1rem; font-weight: 600;
+            text-align: left; width: 100%; transition: all 0.2s; }
+        .reco-item::before { content: '\2192\00a0'; font-weight: 700; }
+        .reco-item:hover { background: #10b981; color: #fff; }
+        .gf-axis { background: #fff; border: 1px solid #a7f3d0; border-left: 4px solid #10b981;
+            border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
+        .gf-axis strong { color: #065f46; font-size: 0.95rem; }
+        .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
+
         .success-message {
             font-size: 0.95rem;
             color: #047857;
@@ -1760,17 +1773,14 @@
     <!-- Success Screen (nach 10 Fragen) -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
-            <div style="font-size: 4rem; margin-bottom: 20px;" id="successEmoji">🎉</div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
-            
+
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
             <p id="successScore" style="font-size: 1.5rem; color: #4b5563; margin: 20px 0;">8 von 10 richtig (80%)</p>
-            
-            <div class="success-stats" id="successMessage">
-                <p><strong>💡 Nächster Schritt:</strong></p>
-                <p>Nimm jetzt übermäßige Dreiklänge dazu!</p>
-            </div>
-            
+
+            <div class="success-stats" id="successMessage"></div>
+            <div class="success-recos" id="successRecos"></div>
+
             <div id="successButtons" style="margin-top: 30px;">
                 <!-- Buttons werden dynamisch eingefügt -->
             </div>
@@ -2185,7 +2195,9 @@
                     grundtonOk: b(d.grundtonOk),
                     akkordtypOk: b(d.akkordtypOk),
                     umkehrungOk: b(d.umkehrungOk),
-                    tastaturOk: b(d.tastaturOk)
+                    tastaturOk: b(d.tastaturOk),
+                    notensystemOk: b(d.onsOk),
+                    vorzeichenOk: b(d.vorzeichenOk)
                 });
             }
 
@@ -2195,15 +2207,19 @@
                     grundton: { correct: 0, total: 0 },
                     akkordtyp: { correct: 0, total: 0 },
                     umkehrung: { correct: 0, total: 0 },
-                    tastatur: { correct: 0, total: 0 }
+                    tastatur: { correct: 0, total: 0 },
+                    notensystem: { correct: 0, total: 0 },
+                    vorzeichen: { correct: 0, total: 0 }
                 };
                 this.answers.forEach(a => {
                     if (a.grundtonOk !== null) { r.grundton.total++; if (a.grundtonOk) r.grundton.correct++; }
                     if (a.akkordtypOk !== null) { r.akkordtyp.total++; if (a.akkordtypOk) r.akkordtyp.correct++; }
                     if (a.umkehrungOk !== null) { r.umkehrung.total++; if (a.umkehrungOk) r.umkehrung.correct++; }
                     if (a.tastaturOk !== null) { r.tastatur.total++; if (a.tastaturOk) r.tastatur.correct++; }
+                    if (a.notensystemOk !== null) { r.notensystem.total++; if (a.notensystemOk) r.notensystem.correct++; }
+                    if (a.vorzeichenOk !== null) { r.vorzeichen.total++; if (a.vorzeichenOk) r.vorzeichen.correct++; }
                 });
-                for (const k of ['grundton', 'akkordtyp', 'umkehrung', 'tastatur']) {
+                for (const k of ['grundton', 'akkordtyp', 'umkehrung', 'tastatur', 'notensystem', 'vorzeichen']) {
                     const s = r[k];
                     s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
                 }
@@ -2349,6 +2365,147 @@
                 return t ? { correct: c, total: t, derived: true } : null;
             }
         };
+
+        // ===================================
+        // GF Stufe 3 — DT-lokale Texte + Achsen→Quiz-Ziel (Pfad A)
+        // ===================================
+        // IT/NT/TT-Muster: DT-lokale Anzeige-Achsen. Trainer-lokal bleibt
+        // lokal (PLAN_GF-Ontologie §5.3) — GF_ONTOLOGY/Pfad-B unangetastet.
+        // DAG-Kette (order): grundton → vorz → ons → tas → akkordtyp →
+        // umkehrung. Tiefste schwache + In-Scope-Achse = primäre Ursache.
+        // grundton (T1) ist fundamentalste Voraussetzung → Cross-Trainer-Reco
+        // „Zum Notentrainer". Counterpart-Paar: grundton↔akkordtyp. Wording =
+        // NT-Muster (gehedgt, kein ex-negativo, kein Vorgriff).
+        const GF_DT = {
+            nodeName: {
+                einsteiger: 'Dreiklänge: 3 Tasten',
+                aufsteiger: 'Halbtonschritte zum Dreiklang',
+                profi: 'Dreiklang benennen',
+                meister: 'Mit Umkehrung',
+                bilden_key: 'Dreiklang bilden (Tastatur)',
+                bilden_staff: 'Dreiklang bilden (Notensystem)',
+                bilden_umk_key: 'Umkehrung bilden (Tastatur)',
+                bilden_umk_staff: 'Umkehrung bilden (Notensystem)'
+            },
+            order: ['grundton', 'vorz', 'ons', 'tas', 'akkordtyp', 'umkehrung'],
+            axis: {
+                grundton: {
+                    name: 'Grundton des Akkords',
+                    why: 'der Grundton des Akkords noch nicht sicher bestimmt wird',
+                    tip: 'Das ist die Grundlage von allem — übe zuerst das sichere Benennen der Töne im Notentrainer.',
+                    alt: 'der Grundton des Akkords noch nicht sicher bestimmt wird',
+                    counter: 'akkordtyp',
+                    cta: 'Zum Notentrainer',
+                    href: 'notentrainer.html'
+                },
+                vorz: {
+                    name: 'Vorzeichen',
+                    why: 'das Vorzeichen (♯/♭) noch nicht sicher gesetzt wird',
+                    tip: 'Achte gezielt darauf, ob ein Ton durch ♯ oder ♭ verändert ist.',
+                    counter: null,
+                    cta: 'Vorzeichen üben',
+                    target: function () { return { level: 'aufsteiger', options: ['vorzeichen'] }; }
+                },
+                ons: {
+                    name: 'Notensystem-Orientierung',
+                    why: 'das Ablesen und Setzen der Töne im Notensystem noch nicht sicher ist',
+                    tip: 'Übe das sichere Lesen und Setzen der Noten im Notensystem.',
+                    counter: null,
+                    cta: 'Notenlesen üben',
+                    target: function () { return { level: 'bilden_staff', options: ['basis'] }; }
+                },
+                tas: {
+                    name: 'Tastatur-Orientierung',
+                    why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
+                    tip: 'Sie ist die Grundlage, um die Töne sicher zu finden.',
+                    counter: null,
+                    cta: 'Tastatur üben',
+                    target: function () { return { level: 'einsteiger', options: ['basis'] }; }
+                },
+                akkordtyp: {
+                    name: 'Akkordtyp (Dur/Moll/…)',
+                    why: 'der Akkordtyp (Dur, Moll, übermäßig, vermindert) noch unsicher ist',
+                    tip: 'Achte auf die Lage der Terz: groß = Dur, klein = Moll; die Quint verändert sich bei übermäßig/vermindert.',
+                    alt: 'der Akkordtyp noch nicht sicher bestimmt wird',
+                    counter: 'grundton',
+                    cta: 'Akkordtyp üben',
+                    target: function () { return { level: 'profi', options: ['basis'] }; }
+                },
+                umkehrung: {
+                    name: 'Umkehrung',
+                    why: 'die Umkehrung (Grund-/Sext-/Quartsextakkord) noch nicht sicher erkannt wird',
+                    tip: 'Welcher Akkordton liegt unten? Grundton = Grundstellung, Terz = Sextakkord, Quinte = Quartsextakkord.',
+                    counter: null,
+                    cta: 'Umkehrung üben',
+                    target: function () { return { level: 'meister', options: ['basis'] }; }
+                }
+            }
+        };
+
+        // GF Stufe 3 — DEV-Preview-Hook (aktiv bei tracker.env()==='dev').
+        // Greift damit automatisch auf localhost/file:/LAN (Tracking ist dort
+        // ohnehin blockiert) und bei explizitem localStorage.musik_tracking_env='dev'.
+        // Non-destruktiv: klont progress/gfSession/errorTracker; stubt _send/quizComplete.
+        try {
+            if (tracker.env() === 'dev') {
+                window.gfPreview = function (v) {
+                    v = String(v || '').trim(); if (!v) return;
+                    var q = quickStart, T = tracker, E = errorTracker;
+                    var P = JSON.parse(JSON.stringify(q.progress || {}));
+                    var GS = (T.gfSession || []).slice();
+                    var EA = E.answers.slice();
+                    var sLvl = q.currentLevel, sOpt = (q.currentOptions || []).slice();
+                    var sQA = q.questionsAnswered, sQC = q.questionsCorrect, sIA = q.isActive, sRT = q.isRetry, sSk = q.isSkipping;
+                    var oSS = q._saveSubSkillScore, oMk = q.markCurrentOptionAsMastered, oSP = q.saveProgress, oQC = T.quizComplete, oSnd = T._send;
+                    try {
+                        q._saveSubSkillScore = function () {}; q.markCurrentOptionAsMastered = function () {};
+                        q.saveProgress = function () {}; T.quizComplete = function () {}; T._send = function () {};
+                        q.isActive = true; q.isRetry = false; q.isSkipping = false;
+                        ['quickStartScreen', 'originalApp', 'successScreen'].forEach(function (id) {
+                            var el = document.getElementById(id); if (el) el.classList.remove('active');
+                        });
+                        var setM = function (L, a) {
+                            q.progress[L] = q.progress[L] || { mastered: [], attempts: {}, scores: {} };
+                            q.progress[L].mastered = a.slice();
+                        };
+                        if (v === 'A1') {
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis']; setM('einsteiger', []);
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'A2') {
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis', 'vorzeichen', 'range'];
+                            setM('einsteiger', q.getOptionsForLevel('einsteiger') || []);
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'A3') {
+                            q.currentLevel = 'meister'; q.currentOptions = ['basis'];
+                            Object.keys(q.nodeToLevel).forEach(function (n) {
+                                var L = q.nodeToLevel[n]; setM(L, q.getOptionsForLevel(L) || []);
+                            });
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'C') {
+                            // tas + vorz schwach (Bau Tastatur) → vorz primär (DAG)
+                            q.currentLevel = 'bilden_key'; q.currentOptions = ['basis'];
+                            setM('bilden_key', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
+                            E.reset(); for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, tastaturOk: false, vorzeichenOk: false }); }
+                            T.gfSession = [{ trainer: 'Dreiklangstrainer', level: 'bilden_key', subskill: 'basis', mode: 'bilden', inputType: 'tastatur', dims: { tastatur: { correct: 0, total: 4 }, vorzeichen: { correct: 0, total: 4 } } }];
+                        } else {
+                            // B (default): grundton + akkordtyp schwach (profi mix) → grundton primär → Notentrainer
+                            q.currentLevel = 'profi'; q.currentOptions = ['basis'];
+                            setM('profi', []); q.questionsAnswered = 10; q.questionsCorrect = 4;
+                            E.reset(); for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, grundtonOk: false, akkordtypOk: false }); }
+                            T.gfSession = [{ trainer: 'Dreiklangstrainer', level: 'profi', subskill: 'basis', mode: 'erkennen', inputType: 'dropdown', dims: { grundton: { correct: 1, total: 5 }, akkordtyp: { correct: 1, total: 5 } } }];
+                        }
+                        q.showSuccess();
+                    } finally {
+                        q.progress = P; T.gfSession = GS; E.answers = EA;
+                        q.currentLevel = sLvl; q.currentOptions = sOpt; q.questionsAnswered = sQA;
+                        q.questionsCorrect = sQC; q.isActive = sIA; q.isRetry = sRT; q.isSkipping = sSk;
+                        q._saveSubSkillScore = oSS; q.markCurrentOptionAsMastered = oMk;
+                        q.saveProgress = oSP; T.quizComplete = oQC; T._send = oSnd;
+                    }
+                };
+                console.log('🛠 gfPreview() aktiv — gfPreview("A1"|"A2"|"A3"|"B"|"C")');
+            }
+        } catch (e) {}
 
         // ===================================
         // QUICK-START SYSTEM
@@ -3271,45 +3428,90 @@
                     });
                 } catch (e) {}
 
-                let emoji, title, stars;
-                if (percentage === 100) {
-                    emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
-                } else if (percentage >= 90) {
-                    emoji = '★★'; title = this.isSkipping ? 'ÜBERSPRUNGEN!' : 'GESCHAFFT!'; stars = '⭐⭐';
-                } else if (percentage >= 80) {
-                    emoji = this.isSkipping ? '' : '★';
-                    title = this.isSkipping ? 'KNAPP VERFEHLT!' : 'BESTANDEN!';
-                    stars = this.isSkipping ? '' : '⭐';
-                } else {
-                    emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
-                }
-
-                document.getElementById('successEmoji').textContent = emoji;
-                document.getElementById('successTitle').textContent = title;
-                document.getElementById('successStars').textContent = stars;
+                // ── GF Stufe 3 (Pfad A): Variantenwahl + Render (= NT/IT/TT-Muster) ──
+                const _t = document.getElementById('successTitle');
+                const _stars = document.getElementById('successStars');
+                const _msg = document.getElementById('successMessage');
+                const _rec = document.getElementById('successRecos');
+                const _btn = document.getElementById('successButtons');
+                _msg.style.display = 'block';
                 document.getElementById('successScore').textContent = scoreText;
 
-                const passed = percentage >= passThreshold;
-
-                if (passed) {
+                if (percentage >= passThreshold) {
                     const starCount = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
                     this._saveSubSkillScore(starCount);
-
                     this.markCurrentOptionAsMastered();
-                    const nextStep = this.getNextStepText();
-                    document.getElementById('successMessage').innerHTML = `<p><strong>💡 Nächster Schritt:</strong></p><p>${nextStep}</p>`;
-                } else if (this.isSkipping && percentage >= 80) {
-                    // 80-89% beim Überspringen: bestanden für den empfohlenen Sub-Skill, aber nicht für den übersprungenen
-                    document.getElementById('successMessage').innerHTML = '<p><strong>💡 Tipp:</strong></p><p>Zum Überspringen brauchst du 90% (9 von 10). Versuche es nochmal oder übe die empfohlene Stufe!</p>';
+                    _stars.textContent = '⭐'.repeat(starCount);
+                    const tier = this._gfMilestoneTier();
+                    if (tier === 'trainer') {
+                        _t.textContent = 'Dreiklangstrainer abgeschlossen!';
+                        _msg.innerHTML = '<p>Alle Kompetenzen des Dreiklangstrainers gemeistert. Starke Leistung.</p>';
+                    } else if (tier === 'node') {
+                        _t.textContent = (GF_DT.nodeName[this.currentLevel] || 'Kompetenz') + ' gemeistert!';
+                        _msg.innerHTML = '<p>Diese ganze Kompetenz sitzt jetzt — nicht nur eine Teilaufgabe. Weiter so.</p>';
+                    } else if (this.isSkipping) {
+                        _t.textContent = 'ÜBERSPRUNGEN!';
+                        _msg.innerHTML = '<p>Diese Stufe sitzt sicher genug für den Skip.</p>';
+                    } else {
+                        _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
+                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
+                    }
+                    _rec.innerHTML = this._gfForwardItem(tier);
+                    _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
+                        + '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 } else {
-                    document.getElementById('successMessage').innerHTML = '<p><strong>💡 Tipp:</strong></p><p>Probiere es noch einmal!</p>';
+                    const perf = this._gfDimPerf();
+                    const scope = this._gfAxesInScope();
+                    // order = Prerequisite-Tiefe → die schwache, TIEFER liegende
+                    // Achse landet auf idx 0 (= primäre Ursache, DAG-Walk).
+                    const weakAxes = GF_DT.order.filter(function (a) {
+                        return scope.indexOf(a) !== -1 && perf[a] && perf[a].total >= 2
+                            && perf[a].pct != null && perf[a].pct < 80 && GF_DT.axis[a];
+                    });
+                    _stars.textContent = '';
+                    _t.textContent = this.isSkipping ? 'Knapp verfehlt' : 'Noch nicht ganz';
+                    let html = '';
+                    if (this.isSkipping && percentage >= 80) {
+                        html += '<p style="color:#6b7280;font-size:0.9rem;margin-bottom:8px;">Zum Überspringen brauchst du 90 %.</p>';
+                    }
+                    if (weakAxes.length) {
+                        html += weakAxes.map(function (a, idx) {
+                            const ax = GF_DT.axis[a];
+                            let s;
+                            if (idx === 0) {
+                                s = 'Es liegt vermutlich daran, dass ' + ax.why + '.';
+                                const c = ax.counter;
+                                if (c && GF_DT.axis[c] && GF_DT.axis[c].alt
+                                    && perf[c] && perf[c].total >= 2
+                                    && perf[c].pct != null && perf[c].pct < 80
+                                    && weakAxes.indexOf(c) === -1) {
+                                    s += ' Aber es könnte auch daran liegen, dass ' + GF_DT.axis[c].alt + '.';
+                                }
+                                s += ' ' + ax.tip;
+                            } else {
+                                s = 'Möglich ist außerdem, dass ' + ax.why + '. ' + ax.tip;
+                            }
+                            return '<div class="gf-axis"><p>' + s + '</p></div>';
+                        }).join('');
+                    } else {
+                        html += '<p>Noch nicht bestanden — wiederhol die Übung.</p>';
+                    }
+                    _msg.innerHTML = html;
+                    let recos = '';
+                    weakAxes.forEach(function (a) {
+                        const ax = GF_DT.axis[a];
+                        if (!ax) return;
+                        if (ax.href) {
+                            recos += '<button class="reco-item" onclick="window.location.href=\'' + ax.href + '\'">' + ax.cta + '</button>';
+                            return;
+                        }
+                        const tg = ax.target(quickStart.currentLevel);
+                        recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
+                    });
+                    recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                    _rec.innerHTML = recos;
+                    _btn.innerHTML = '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 }
-
-                const buttonsDiv = document.getElementById('successButtons');
-                buttonsDiv.innerHTML = `
-                    <button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>
-                    <button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>
-                `;
 
                 document.getElementById('originalApp').classList.remove('active');
                 document.getElementById('successScreen').classList.add('active');
@@ -3369,6 +3571,103 @@
 
             retry() {
                 this.start(this.currentLevel, [...this.currentOptions]);
+            },
+
+            // GF Stufe 3 — direkter Quiz-Start (kein Skilltree-Umweg)
+            goToRecommendedLevel(level, optsCsv) {
+                this.start(level, optsCsv ? String(optsCsv).split(',') : ['basis']);
+            },
+
+            // dim-Key (errorTracker) → DT-lokale Anzeige-Achse.
+            _gfDimAxisMap: {
+                grundton: 'grundton', akkordtyp: 'akkordtyp', umkehrung: 'umkehrung',
+                tastatur: 'tas', notensystem: 'ons', vorzeichen: 'vorz'
+            },
+
+            // Scope = Anzeige-Achsen, die das AKTUELLE Quiz tatsächlich gemessen
+            // hat. Keine Aussage über einen Skill, den dieses Quiz nicht prüft.
+            _gfAxesInScope() {
+                const map = this._gfDimAxisMap;
+                const sc = [];
+                let d = null;
+                try { d = errorTracker.getSubskillPerformance(); } catch (e) {}
+                if (!d) return sc;
+                Object.keys(map).forEach(function (k) {
+                    if (d[k] && d[k].total > 0 && sc.indexOf(map[k]) === -1) sc.push(map[k]);
+                });
+                return sc;
+            },
+
+            // Session-gepoolte Performance je DT-lokaler Anzeige-Achse: Σc/Σt
+            // über alle Dreiklangstrainer-Snapshots. Trainer-lokal (§5.3),
+            // GF_ONTOLOGY bleibt unangetastet.
+            _gfDimPerf() {
+                const map = this._gfDimAxisMap;
+                const acc = {
+                    grundton: { correct: 0, total: 0 }, vorz: { correct: 0, total: 0 },
+                    ons: { correct: 0, total: 0 }, tas: { correct: 0, total: 0 },
+                    akkordtyp: { correct: 0, total: 0 }, umkehrung: { correct: 0, total: 0 }
+                };
+                let snaps = [];
+                try { snaps = (tracker && tracker.gfSession) || []; } catch (e) {}
+                snaps.forEach(function (s) {
+                    if (!s || s.trainer !== 'Dreiklangstrainer' || !s.dims) return;
+                    Object.keys(s.dims).forEach(function (dim) {
+                        const ax = map[dim], dd = s.dims[dim];
+                        if (!ax || !dd || !dd.total) return;
+                        acc[ax].correct += dd.correct; acc[ax].total += dd.total;
+                    });
+                });
+                Object.keys(acc).forEach(function (k) {
+                    const a = acc[k];
+                    a.pct = a.total > 0 ? Math.round(a.correct / a.total * 100) : null;
+                });
+                return acc;
+            },
+
+            // Meilenstein-Stufe: subskill | node | trainer
+            _gfMilestoneTier() {
+                const lvl = this.currentLevel;
+                const subs = this.getOptionsForLevel(lvl) || [];
+                const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+                const nodeDone = subs.length > 0 && subs.every(o => m.includes(o));
+                if (!nodeDone) return 'subskill';
+                const trainerDone = Object.keys(this.nodeToLevel).every(nd => {
+                    const L = this.nodeToLevel[nd];
+                    const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                    return (this.getOptionsForLevel(L) || []).every(o => mm.includes(o));
+                });
+                return trainerDone ? 'trainer' : 'node';
+            },
+
+            // Forward-Item (klickbarer Direkt-Starter) je Meilenstein-Stufe
+            _gfForwardItem(tier) {
+                if (tier === 'trainer') {
+                    return '<button class="reco-item" onclick="window.location.href=\'rhythmustrainer.html\'">Weiter zum Rhythmustrainer</button>';
+                }
+                const order = Object.keys(this.nodeToLevel);
+                const subLabel = (nd, id) => {
+                    const arr = (this.nodeSubSkills[nd] || []);
+                    const hit = arr.find(s => s.id === id);
+                    return hit ? hit.label : id;
+                };
+                if (tier === 'node') {
+                    for (const nd of order) {
+                        const L = this.nodeToLevel[nd];
+                        const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                        const open = (this.getOptionsForLevel(L) || []).find(o => !mm.includes(o));
+                        if (open) {
+                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + (GF_DT.nodeName[L] || L) + ' – ' + subLabel(nd, open) + '</button>';
+                        }
+                    }
+                    return '';
+                }
+                const lvl = this.currentLevel;
+                const node = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === lvl);
+                const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+                const nx = (this.getOptionsForLevel(lvl) || []).find(o => !m.includes(o));
+                if (!nx) return '';
+                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + (GF_DT.nodeName[lvl] || lvl) + ' – ' + subLabel(node, nx) + '</button>';
             },
 
             backToStart() {
@@ -4808,8 +5107,24 @@ const _lernkartenContent = {
                     }
                 }
 
-                // QuickStart-Integration
+                // QuickStart-Integration + GF drei5-8 (Bau): tas (Tastatur-Bau)
+                // bzw. ons (Staff-Bau) + grundton/akkordtyp + umkehrung (drei7/8) +
+                // vorzeichen (akzidentien-gegatet).
                 if (quickStart.isActive) {
+                    if (!quickStart.isRetry) {
+                        const _hasAcc = (task.targetNotes || []).some(function (n) { return n && n.name && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
+                        try {
+                            errorTracker.logAnswer({
+                                isCorrect: isCorrect,
+                                tastaturOk: this.buildingIsKeyboard ? isCorrect : null,
+                                onsOk: this.buildingIsKeyboard ? null : isCorrect,
+                                grundtonOk: isCorrect,
+                                akkordtypOk: isCorrect,
+                                umkehrungOk: this.buildingIsInversion ? isCorrect : null,
+                                vorzeichenOk: _hasAcc ? isCorrect : null
+                            });
+                        } catch (e) {}
+                    }
                     quickStart.handleAnswer(isCorrect);
                 }
 
@@ -7296,6 +7611,12 @@ const _lernkartenContent = {
 
                     isCorrect = expectedPCs.length === selectedPCs.length &&
                         expectedPCs.every((pc, i) => pc === selectedPCs[i]);
+                    // GF drei1 (Einsteiger, 3 Tasten): tas + vorz (akzidentien-gegatet).
+                    if (this.quickStartMode && !quickStart.isRetry) {
+                        const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
+                        const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
+                        try { errorTracker.logAnswer({ isCorrect, tastaturOk: isCorrect, vorzeichenOk: _hasAcc ? isCorrect : null }); } catch (e) {}
+                    }
 
                     // Hilfsfunktion: MIDI zu Notenname
                     const midiToNoteName = (midi) => {
@@ -7349,6 +7670,14 @@ const _lernkartenContent = {
 
                     const hs1Correct = (parseInt(val1) === correctInterval1);
                     const hs2Correct = (parseInt(val2) === correctInterval2);
+                    // GF drei2 (Aufsteiger, HS-Dropdowns): akkordtyp (HS-Struktur
+                    // bestimmt Dur/Moll/aug/dim) + vorz (akzidentien-gegatet).
+                    if (this.quickStartMode && !quickStart.isRetry) {
+                        const _at = (hs1Correct && hs2Correct);
+                        const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
+                        const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
+                        try { errorTracker.logAnswer({ isCorrect: _at, akkordtypOk: _at, vorzeichenOk: _hasAcc ? _at : null }); } catch (e) {}
+                    }
 
                     if (hs1Correct && hs2Correct) {
                         isCorrect = true;
@@ -7411,7 +7740,9 @@ const _lernkartenContent = {
 
                     isCorrect = rootCorrect && typeCorrect;
                     if (this.quickStartMode && !quickStart.isRetry) {
-                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
+                        const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
+                        const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, vorzeichenOk: _hasAcc ? isCorrect : null }); } catch (e) {}
                     }
 
                     if (isCorrect) {
@@ -7485,7 +7816,9 @@ const _lernkartenContent = {
 
                     isCorrect = inversionCorrect && rootCorrect && typeCorrect;
                     if (this.quickStartMode && !quickStart.isRetry) {
-                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, umkehrungOk: inversionCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
+                        const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
+                        const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, umkehrungOk: inversionCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, vorzeichenOk: _hasAcc ? isCorrect : null }); } catch (e) {}
                     }
 
                     if (isCorrect) {
