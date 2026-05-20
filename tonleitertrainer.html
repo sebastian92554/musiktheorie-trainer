@@ -431,8 +431,7 @@
 
         /* Cross-App Abhängigkeit */
         .st-cross-app {
-            margin-bottom: 0.25rem;
-            width: 100%;
+            margin-bottom: 0.75rem;
         }
         .st-cross-label {
             font-size: 0.6rem;
@@ -661,6 +660,19 @@
             margin-top: 30px;
             flex-wrap: wrap;
         }
+
+        /* GF Stufe 3 — Pfad-A Feedback (Struktur 1:1 wie NT/IT, TT-Cyan-Palette) */
+        .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
+        .success-recos:empty { display: none; }
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #0e7490;
+            border: 2px solid #0891b2; cursor: pointer; font-size: 1rem; font-weight: 600;
+            text-align: left; width: 100%; transition: all 0.2s; }
+        .reco-item::before { content: '\2192\00a0'; font-weight: 700; }
+        .reco-item:hover { background: #0891b2; color: #fff; }
+        .gf-axis { background: #fff; border: 1px solid #99f6e4; border-left: 4px solid #0891b2;
+            border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
+        .gf-axis strong { color: #0e7490; font-size: 0.95rem; }
+        .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
 
         .success-buttons button {
             padding: 12px 24px;
@@ -1938,16 +1950,13 @@
     <!-- ======================== SUCCESS SCREEN ======================== -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
-            <div style="font-size: 4rem; margin-bottom: 20px;" id="successEmoji">🎉</div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
 
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
             <p id="successScore" style="font-size: 1.5rem; color: #4b5563; margin: 20px 0;">8 von 10 richtig (80%)</p>
 
-            <div class="success-stats" id="successMessage">
-                <p><strong>💡 Nächster Schritt:</strong></p>
-                <p id="successNextStep">Probiere die nächste Option!</p>
-            </div>
+            <div class="success-stats" id="successMessage"></div>
+            <div class="success-recos" id="successRecos"></div>
 
             <div class="success-buttons" id="successButtons">
                 <!-- Buttons werden dynamisch eingefügt -->
@@ -2370,7 +2379,11 @@
                 grundtonOk: b(d.grundtonOk),
                 tongeschlechtOk: b(d.tongeschlechtOk),
                 quintenzirkelOk: b(d.quintenzirkelOk),
-                hsOk: b(d.hsOk)
+                hsOk: b(d.hsOk),
+                gthtOk: b(d.gthtOk),
+                tastaturOk: b(d.tastaturOk),
+                notensystemOk: b(d.onsOk),
+                vorzeichenOk: b(d.vorzeichenOk)
             });
         }
 
@@ -2380,15 +2393,23 @@
                 grundton: { correct: 0, total: 0 },
                 tongeschlecht: { correct: 0, total: 0 },
                 quintenzirkel: { correct: 0, total: 0 },
-                halbtonschritte: { correct: 0, total: 0 }
+                halbtonschritte: { correct: 0, total: 0 },
+                gtht: { correct: 0, total: 0 },
+                tastatur: { correct: 0, total: 0 },
+                notensystem: { correct: 0, total: 0 },
+                vorzeichen: { correct: 0, total: 0 }
             };
             this.answers.forEach(a => {
                 if (a.grundtonOk !== null) { r.grundton.total++; if (a.grundtonOk) r.grundton.correct++; }
                 if (a.tongeschlechtOk !== null) { r.tongeschlecht.total++; if (a.tongeschlechtOk) r.tongeschlecht.correct++; }
                 if (a.quintenzirkelOk !== null) { r.quintenzirkel.total++; if (a.quintenzirkelOk) r.quintenzirkel.correct++; }
                 if (a.hsOk !== null) { r.halbtonschritte.total++; if (a.hsOk) r.halbtonschritte.correct++; }
+                if (a.gthtOk !== null) { r.gtht.total++; if (a.gthtOk) r.gtht.correct++; }
+                if (a.tastaturOk !== null) { r.tastatur.total++; if (a.tastaturOk) r.tastatur.correct++; }
+                if (a.notensystemOk !== null) { r.notensystem.total++; if (a.notensystemOk) r.notensystem.correct++; }
+                if (a.vorzeichenOk !== null) { r.vorzeichen.total++; if (a.vorzeichenOk) r.vorzeichen.correct++; }
             });
-            for (const k of ['grundton', 'tongeschlecht', 'quintenzirkel', 'halbtonschritte']) {
+            for (const k of ['grundton', 'tongeschlecht', 'quintenzirkel', 'halbtonschritte', 'gtht', 'tastatur', 'notensystem', 'vorzeichen']) {
                 const s = r[k];
                 s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
             }
@@ -2652,6 +2673,94 @@
         const midi2 = noteToMidi(note2, oct2);
         return Math.abs(midi2 - midi1) === 1;
     }
+
+    // =============================================
+    // GF Stufe 3 — TT-lokale Texte + Achsen→Quiz-Ziel (Pfad A)
+    // =============================================
+    // IT/NT-Muster: TT-lokale Anzeige-Achsen, feiner als GF_ONTOLOGY.
+    // Trainer-lokal bleibt lokal (PLAN_GF-Ontologie §5.3) — GF_ONTOLOGY/
+    // Pfad-B unangetastet. DAG-Kette (order): grundton → vorz → ons → tas →
+    // gtht → hs → tongeschlecht → quintenzirkel. Tiefste schwache + In-Scope-
+    // Achse = primäre Ursache. grundton (Tonbenennung/T1) ist fundamentalste
+    // Voraussetzung → Cross-Trainer-Reco „Zum Notentrainer". Counterpart:
+    // grundton↔tongeschlecht. Wording = NT-Muster (gehedgt, kein ex-negativo,
+    // kein Vorgriff auf spätere Pfadstufen).
+    const GF_TT = {
+        nodeName: {
+            einsteiger: 'Ganzton oder Halbton', aufsteiger: 'Halbtonschritt-Stufen',
+            profi: 'Tonleiter benennen', bilden: 'Tonleiter bilden',
+            meister: 'Quintenzirkel'
+        },
+        order: ['grundton', 'vorz', 'ons', 'tas', 'gtht', 'hs', 'tongeschlecht', 'quintenzirkel'],
+        axis: {
+            grundton: {
+                name: 'Grundton der Tonleiter',
+                why: 'der Grundton der Tonleiter noch nicht sicher bestimmt wird',
+                tip: 'Das ist die Grundlage von allem — übe zuerst das sichere Benennen der Töne im Notentrainer.',
+                alt: 'der Grundton der Tonleiter noch nicht sicher bestimmt wird',
+                counter: 'tongeschlecht',
+                cta: 'Zum Notentrainer',
+                href: 'notentrainer.html'
+            },
+            vorz: {
+                name: 'Vorzeichen',
+                why: 'das Vorzeichen (♯/♭) noch nicht sicher gesetzt wird',
+                tip: 'Achte gezielt darauf, ob ein Ton durch ♯ oder ♭ verändert ist.',
+                counter: null,
+                cta: 'Vorzeichen üben',
+                target: function () { return { level: 'einsteiger', options: ['vorzeichen'] }; }
+            },
+            ons: {
+                name: 'Notensystem-Orientierung',
+                why: 'das Ablesen und Setzen der Töne im Notensystem noch nicht sicher ist',
+                tip: 'Übe das sichere Lesen und Setzen der Noten im Notensystem.',
+                counter: null,
+                cta: 'Notenlesen üben',
+                target: function () { return { level: 'bilden', options: ['schreiben_einfach'] }; }
+            },
+            tas: {
+                name: 'Tastatur-Orientierung',
+                why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
+                tip: 'Sie ist die Grundlage, um die Töne sicher zu finden.',
+                counter: null,
+                cta: 'Tastatur üben',
+                target: function () { return { level: 'bilden', options: ['tastatur_einfach'] }; }
+            },
+            gtht: {
+                name: 'Ganzton/Halbton',
+                why: 'die Unterscheidung von Ganzton und Halbton noch nicht sicher sitzt',
+                tip: 'Ein Halbton ist der kleinste Schritt (z. B. E–F, H–C); jeder andere Schritt ist ein Ganzton.',
+                counter: null,
+                cta: 'Ganzton/Halbton üben',
+                target: function () { return { level: 'einsteiger', options: ['basis'] }; }
+            },
+            hs: {
+                name: 'Halbtonschritt-Stufen',
+                why: 'die Halbtonschritt-Stufen der Tonleiter noch nicht sicher sitzen',
+                tip: 'Präg dir ein, an welchen Stufen die Halbtonschritte liegen (Dur: 3–4 und 7–8).',
+                counter: null,
+                cta: 'HS-Stufen üben',
+                target: function () { return { level: 'aufsteiger', options: ['basis'] }; }
+            },
+            tongeschlecht: {
+                name: 'Tongeschlecht (Dur/Moll/…)',
+                why: 'das Tongeschlecht (Dur, Moll, …) noch unsicher ist',
+                tip: 'Achte auf die charakteristische Terz und die Stufenfolge.',
+                alt: 'das Tongeschlecht noch nicht sicher bestimmt wird',
+                counter: 'grundton',
+                cta: 'Tongeschlecht üben',
+                target: function () { return { level: 'profi', options: ['muster_lernen'] }; }
+            },
+            quintenzirkel: {
+                name: 'Quintenzirkel',
+                why: 'die Lage im Quintenzirkel noch nicht sicher ist',
+                tip: 'Nutze die Merksätze für Außen- und Innenkreis.',
+                counter: null,
+                cta: 'Quintenzirkel üben',
+                target: function () { return { level: 'meister', options: ['aussenkr'] }; }
+            }
+        }
+    };
 
     // =============================================
     // QUICKSTART SYSTEM
@@ -3362,7 +3471,11 @@
                     quintenzirkelOk: (this.currentLevel === 'meister') ? isCorrect : null,
                     grundtonOk: (_asp.grundtonOk !== undefined) ? _asp.grundtonOk : null,
                     tongeschlechtOk: (_asp.tongeschlechtOk !== undefined) ? _asp.tongeschlechtOk : null,
-                    hsOk: (_asp.hsOk !== undefined) ? _asp.hsOk : null
+                    hsOk: (_asp.hsOk !== undefined) ? _asp.hsOk : null,
+                    gthtOk: (_asp.gthtOk !== undefined) ? _asp.gthtOk : null,
+                    tastaturOk: (_asp.tastaturOk !== undefined) ? _asp.tastaturOk : null,
+                    onsOk: (_asp.onsOk !== undefined) ? _asp.onsOk : null,
+                    vorzeichenOk: (_asp.vorzeichenOk !== undefined) ? _asp.vorzeichenOk : null
                 });
             } catch (e) {}
             if (isCorrect) {
@@ -3420,65 +3533,85 @@
                 });
             } catch (e) {}
 
-            // Determine result (80% zum Bestehen)
-            let emoji, title, stars;
-            if (percentage === 100) {
-                emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
-            } else if (percentage >= 90) {
-                emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
-            } else if (percentage >= 80) {
-                emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
-            } else {
-                emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
-            }
-
-            document.getElementById('successEmoji').textContent = emoji;
-            document.getElementById('successTitle').textContent = title;
-            document.getElementById('successStars').textContent = stars;
+            // ── GF Stufe 3 (Pfad A): Variantenwahl + Render (= NT/IT-Muster) ──
+            const _t = document.getElementById('successTitle');
+            const _stars = document.getElementById('successStars');
+            const _msg = document.getElementById('successMessage');
+            const _rec = document.getElementById('successRecos');
+            const _btn = document.getElementById('successButtons');
+            _msg.style.display = 'block';
             document.getElementById('successScore').textContent = scoreText;
 
-            // Save progress if passed (80% = 8/10)
-            const passed = percentage >= 80;
-
-            if (passed) {
-                // Sterne-Score für diese Teilkompetenz speichern
-                const stars = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
-                this._saveSubSkillScore(stars);
-
+            if (percentage >= 80) {
+                const starCount = percentage === 100 ? 3 : percentage >= 90 ? 2 : 1;
+                this._saveSubSkillScore(starCount);
                 this.markCurrentOptionAsMastered();
-                const nextStep = this.getNextStepText();
-                document.getElementById('successNextStep').textContent = nextStep;
-
-                // Check if all profi options are mastered → hint about Freies Üben + Bassschlüssel
-                if (this.currentLevel === 'profi') {
-                    const allProfiOptions = this.getOptionsForLevel('profi');
-                    const profiMastered = this.progress.profi.mastered;
-                    const allDone = allProfiOptions.every(opt => profiMastered.includes(opt));
-                    if (allDone) {
-                        document.getElementById('successNextStep').innerHTML =
-                            'Alle Kompetenzen gemeistert! 🎉<br><br>💡 <strong>Tipp:</strong> Im „Freien Üben" kannst du den Bassschlüssel aktivieren und noch mehr üben!';
-                    }
+                _stars.textContent = '⭐'.repeat(starCount);
+                const tier = this._gfMilestoneTier();
+                if (tier === 'trainer') {
+                    _t.textContent = 'Tonleitertrainer abgeschlossen!';
+                    _msg.innerHTML = '<p>Alle Kompetenzen des Tonleitertrainers gemeistert. Starke Leistung.</p>';
+                } else if (tier === 'node') {
+                    _t.textContent = (GF_TT.nodeName[this.currentLevel] || 'Kompetenz') + ' gemeistert!';
+                    _msg.innerHTML = '<p>Diese ganze Kompetenz sitzt jetzt — nicht nur eine Teilaufgabe. Weiter so.</p>';
+                } else {
+                    _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
+                    _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
                 }
-                // Check if all meister options are mastered
-                if (this.currentLevel === 'meister') {
-                    const allMeisterOptions = this.getOptionsForLevel('meister');
-                    const meisterMastered = this.progress.meister.mastered;
-                    const allDone = allMeisterOptions.every(opt => meisterMastered.includes(opt));
-                    if (allDone) {
-                        document.getElementById('successNextStep').innerHTML =
-                            'Alle Kompetenzen gemeistert! 🎉<br><br>Du beherrschst den Quintenzirkel vollständig!';
-                    }
-                }
+                _rec.innerHTML = this._gfForwardItem(tier);
+                _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
+                    + '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
             } else {
-                document.getElementById('successNextStep').textContent = 'Probiere es noch einmal!';
+                const perf = this._gfDimPerf();
+                const scope = this._gfAxesInScope();
+                // order = Prerequisite-Tiefe → die schwache, TIEFER liegende
+                // Achse landet auf idx 0 (= primäre Ursache, DAG-Walk).
+                const weakAxes = GF_TT.order.filter(function (a) {
+                    return scope.indexOf(a) !== -1 && perf[a] && perf[a].total >= 2
+                        && perf[a].pct != null && perf[a].pct < 80 && GF_TT.axis[a];
+                });
+                _stars.textContent = '';
+                _t.textContent = 'Noch nicht ganz';
+                let html = '';
+                if (weakAxes.length) {
+                    html += weakAxes.map(function (a, idx) {
+                        const ax = GF_TT.axis[a];
+                        let s;
+                        if (idx === 0) {
+                            s = 'Es liegt vermutlich daran, dass ' + ax.why + '.';
+                            const c = ax.counter;
+                            if (c && GF_TT.axis[c] && GF_TT.axis[c].alt
+                                && perf[c] && perf[c].total >= 2
+                                && perf[c].pct != null && perf[c].pct < 80
+                                && weakAxes.indexOf(c) === -1) {
+                                s += ' Aber es könnte auch daran liegen, dass ' + GF_TT.axis[c].alt + '.';
+                            }
+                            s += ' ' + ax.tip;
+                        } else {
+                            s = 'Möglich ist außerdem, dass ' + ax.why + '. ' + ax.tip;
+                        }
+                        return '<div class="gf-axis"><p>' + s + '</p></div>';
+                    }).join('');
+                } else {
+                    html += '<p>Noch nicht bestanden — wiederhol die Übung.</p>';
+                }
+                _msg.innerHTML = html;
+                let recos = '';
+                weakAxes.forEach(function (a) {
+                    const ax = GF_TT.axis[a];
+                    if (!ax) return;
+                    if (ax.href) {
+                        // Cross-Trainer-Eskalation (grundton → Notentrainer)
+                        recos += '<button class="reco-item" onclick="window.location.href=\'' + ax.href + '\'">' + ax.cta + '</button>';
+                        return;
+                    }
+                    const tg = ax.target(quickStart.currentLevel);
+                    recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
+                });
+                recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                _rec.innerHTML = recos;
+                _btn.innerHTML = '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
             }
-
-            // Buttons
-            const buttonsDiv = document.getElementById('successButtons');
-            buttonsDiv.innerHTML = `
-                <button class="btn-retry" onclick="quickStart.retry()">🔄 Nochmal</button>
-                <button class="btn-next" onclick="quickStart.backToStart()">🏠 Zur Übersicht</button>
-            `;
 
             document.getElementById('originalApp').classList.remove('active');
             document.getElementById('successScreen').classList.add('active');
@@ -3572,6 +3705,105 @@
 
         retry() {
             this.start(this.currentLevel, [...this.currentOptions]);
+        },
+
+        // GF Stufe 3 — direkter Quiz-Start (kein Skilltree-Umweg)
+        goToRecommendedLevel(level, optsCsv) {
+            this.start(level, optsCsv ? String(optsCsv).split(',') : ['basis']);
+        },
+
+        // dim-Key (errorTracker) → TT-lokale Anzeige-Achse.
+        _gfDimAxisMap: {
+            grundton: 'grundton', tongeschlecht: 'tongeschlecht', quintenzirkel: 'quintenzirkel',
+            halbtonschritte: 'hs', gtht: 'gtht', tastatur: 'tas', notensystem: 'ons', vorzeichen: 'vorz'
+        },
+
+        // Scope = Anzeige-Achsen, die das AKTUELLE Quiz tatsächlich gemessen
+        // hat (dim.total>0 im aktuellen errorTracker). Keine Aussage über
+        // einen Skill, den dieses Quiz nicht prüft (Scope-Regel).
+        _gfAxesInScope() {
+            const map = this._gfDimAxisMap;
+            const sc = [];
+            let d = null;
+            try { d = errorTracker.getSubskillPerformance(); } catch (e) {}
+            if (!d) return sc;
+            Object.keys(map).forEach(function (k) {
+                if (d[k] && d[k].total > 0 && sc.indexOf(map[k]) === -1) sc.push(map[k]);
+            });
+            return sc;
+        },
+
+        // Session-gepoolte Performance je TT-lokaler Anzeige-Achse: Σc/Σt
+        // über alle Tonleitertrainer-Snapshots dieser Session. Trainer-lokal
+        // bleibt lokal (§5.3), GF_ONTOLOGY bleibt unangetastet.
+        _gfDimPerf() {
+            const map = this._gfDimAxisMap;
+            const acc = {
+                grundton: { correct: 0, total: 0 }, vorz: { correct: 0, total: 0 },
+                ons: { correct: 0, total: 0 }, tas: { correct: 0, total: 0 },
+                gtht: { correct: 0, total: 0 }, hs: { correct: 0, total: 0 },
+                tongeschlecht: { correct: 0, total: 0 }, quintenzirkel: { correct: 0, total: 0 }
+            };
+            let snaps = [];
+            try { snaps = (tracker && tracker.gfSession) || []; } catch (e) {}
+            snaps.forEach(function (s) {
+                if (!s || s.trainer !== 'Tonleitertrainer' || !s.dims) return;
+                Object.keys(s.dims).forEach(function (dim) {
+                    const ax = map[dim], dd = s.dims[dim];
+                    if (!ax || !dd || !dd.total) return;
+                    acc[ax].correct += dd.correct; acc[ax].total += dd.total;
+                });
+            });
+            Object.keys(acc).forEach(function (k) {
+                const a = acc[k];
+                a.pct = a.total > 0 ? Math.round(a.correct / a.total * 100) : null;
+            });
+            return acc;
+        },
+
+        // Meilenstein-Stufe: subskill | node | trainer
+        _gfMilestoneTier() {
+            const lvl = this.currentLevel;
+            const subs = this.getOptionsForLevel(lvl) || [];
+            const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+            const nodeDone = subs.length > 0 && subs.every(o => m.includes(o));
+            if (!nodeDone) return 'subskill';
+            const trainerDone = Object.keys(this.nodeToLevel).every(nd => {
+                const L = this.nodeToLevel[nd];
+                const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                return (this.getOptionsForLevel(L) || []).every(o => mm.includes(o));
+            });
+            return trainerDone ? 'trainer' : 'node';
+        },
+
+        // Forward-Item (klickbarer Direkt-Starter) je Meilenstein-Stufe
+        _gfForwardItem(tier) {
+            if (tier === 'trainer') {
+                return '<button class="reco-item" onclick="window.location.href=\'dreiklangstrainer.html\'">Weiter zum Dreiklangstrainer</button>';
+            }
+            const order = Object.keys(this.nodeToLevel);
+            const subLabel = (nd, id) => {
+                const arr = (this.nodeSubSkills[nd] || []);
+                const hit = arr.find(s => s.id === id);
+                return hit ? hit.label : id;
+            };
+            if (tier === 'node') {
+                for (const nd of order) {
+                    const L = this.nodeToLevel[nd];
+                    const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                    const open = (this.getOptionsForLevel(L) || []).find(o => !mm.includes(o));
+                    if (open) {
+                        return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + (GF_TT.nodeName[L] || L) + ' – ' + subLabel(nd, open) + '</button>';
+                    }
+                }
+                return '';
+            }
+            const lvl = this.currentLevel;
+            const node = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === lvl);
+            const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+            const nx = (this.getOptionsForLevel(lvl) || []).find(o => !m.includes(o));
+            if (!nx) return '';
+            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + (GF_TT.nodeName[lvl] || lvl) + ' – ' + subLabel(node, nx) + '</button>';
         },
 
         // Reset progress for shared devices (Tabletkoffer)
@@ -4436,7 +4668,10 @@
                 this.showFeedback(false, '⚠️ <strong>Prüfe nochmal</strong> — nicht alle Töne stimmen.');
             }
 
+            // GF ton4 (Tastatur-Bau): TAS + HS-Struktur; vorzeichen nur bei
+            // Tonarten MIT Vorzeichen (sonst keine Dim, NT-Prinzip).
             if (quickStart.isActive) {
+                quickStart._lastAspects = { tastaturOk: correct, hsOk: correct, vorzeichenOk: (this.currentScale && this.currentScale.vorzeichen > 0) ? correct : null };
                 quickStart.handleAnswer(correct);
             }
 
@@ -4625,7 +4860,10 @@
                 this.showFeedback(false, '⚠️ <strong>Prüfe nochmal</strong> — nicht alle Töne stimmen.');
             }
 
+            // GF ton4 (Notensystem-Bau): O-NS + HS-Struktur; vorzeichen nur
+            // bei Tonarten MIT Vorzeichen (sonst keine Dim, NT-Prinzip).
             if (quickStart.isActive) {
+                quickStart._lastAspects = { onsOk: correct, hsOk: correct, vorzeichenOk: (this.currentScale && this.currentScale.vorzeichen > 0) ? correct : null };
                 quickStart.handleAnswer(correct);
             }
 
@@ -7195,7 +7433,10 @@
                 this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonschritt: <span style="color:#ef4444;">✗</span> (${n1}→${n2} = ${actuallyHalfStep ? 'Halbton' : 'Ganzton'})`);
             }
 
+            // GF ton1: Ganzton/Halbton-Unterscheidung → eigene Achse `gtht`
+            // (DAG-Vorstufe von hs).
             if (quickStart.isActive) {
+                quickStart._lastAspects = { gthtOk: isCorrect };
                 quickStart.handleAnswer(isCorrect);
             }
 
