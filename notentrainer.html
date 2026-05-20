@@ -2291,12 +2291,14 @@
             dreigestrichen: 'dreigestrichene Oktave'
         };
 
-        // GF Stufe 3 — DEV-Preview-Hook (nur bei localStorage.musik_tracking_env==='dev').
+        // GF Stufe 3 — DEV-Preview-Hook (aktiv bei tracker.env()==='dev').
+        // Greift damit automatisch auf localhost/file:/LAN (Tracking ist dort
+        // ohnehin blockiert) und bei explizitem localStorage.musik_tracking_env='dev'.
         // Closure-Zugriff auf quickStart/tracker/errorTracker → zeigt Success-Screen
         // mit realem Forward/Tier + synthetischen Fehlern, non-destruktiv (klont &
         // stellt progress/gfSession/errorTracker wieder her; keine Persistenz/Beacon).
         try {
-            if (localStorage.getItem('musik_tracking_env') === 'dev') {
+            if (tracker.env() === 'dev') {
                 window.gfPreview = function (v) {
                     v = String(v || '').trim(); if (!v) return;
                     var q = quickStart, T = tracker, E = errorTracker;

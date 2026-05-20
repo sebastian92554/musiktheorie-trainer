@@ -2334,12 +2334,12 @@
             }
         };
 
-        // GF Stufe 3 — DEV-Preview-Hook (nur bei localStorage.musik_tracking_env==='dev').
-        // Closure-Zugriff auf quickStart/tracker/errorTracker → zeigt Success-Screen
-        // mit synthetischen Schwächen, non-destruktiv (klont & stellt progress/
-        // gfSession/errorTracker wieder her; keine Persistenz/Beacon).
+        // GF Stufe 3 — DEV-Preview-Hook (aktiv bei tracker.env()==='dev').
+        // Greift damit automatisch auf localhost/file:/LAN (Tracking ist dort
+        // ohnehin blockiert) und bei explizitem localStorage.musik_tracking_env='dev'.
+        // Non-destruktiv: klont progress/gfSession/errorTracker; stubt _send/quizComplete.
         try {
-            if (localStorage.getItem('musik_tracking_env') === 'dev') {
+            if (tracker.env() === 'dev') {
                 window.gfPreview = function (v) {
                     v = String(v || '').trim(); if (!v) return;
                     var q = quickStart, T = tracker, E = errorTracker;
