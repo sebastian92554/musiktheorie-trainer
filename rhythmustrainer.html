@@ -2334,18 +2334,18 @@
                 zaehlzeit: {
                     name: 'Zählzeit',
                     why: 'das Bestimmen der Zählzeit noch nicht sicher sitzt',
-                    tip: 'Übe das Zählen „1 und 2 und 3 und 4 und" und finde die Note auf der richtigen Zählzeit.',
+                    tip: 'Nutze das Zählraster aus den ersten Quiz-Aufgaben: jede Note startet auf einer bestimmten Zählzeit und verbraucht den Raum ihres Notenwertes, sodass die nächste Note direkt an die nächste freie Zählzeit anschließt.',
                     counter: null,
                     cta: 'Zählzeit üben',
                     target: function () { return { level: 'fortgeschrittener', options: ['basis'] }; }
                 },
                 rhythmussprache: {
                     name: 'Rhythmussprache',
-                    why: 'die Rhythmussprache (ta, ti-ti, …) noch nicht sicher sitzt',
-                    tip: 'Sprich die Silben laut mit: ta für Viertel, ti-ti für Achtel, ti-ri-ti-ri für Sechzehntel.',
+                    why: 'die Rhythmussprache (du, dei, und, te) noch nicht sicher sitzt',
+                    tip: 'Schlag den Grundschlag gleichzeitig mit (z. B. auf den Oberschenkel) und sprich dazu die Silben — dei fällt dabei zwischen den Schlägen (auf das „und"). Ohne mitgeschlagenes Metrum sind es nur Silben, kein Rhythmus.',
                     counter: null,
                     cta: 'Rhythmussprache üben',
-                    target: function () { return { level: 'profi', options: ['8tel'] }; }
+                    target: function () { return { level: 'profi', options: ['basis'] }; }
                 }
             }
         };
@@ -3648,7 +3648,10 @@
                 this.start(level, opts);
             },
 
-            // GF Stufe 3 — dim → RT-lokale Anzeige-Achse (notentyp folgt R1 wie notenwerte)
+            // GF Stufe 3 — dim → RT-lokale Anzeige-Achse. notentyp (gap-fill,
+            // rhy5) wird auf notenwerte gemappt: dieselbe Form↔Wert-Kompetenz
+            // wird in rhy1 und rhy5 zeitgleich trainiert, keine pädagogische
+            // Trennung nötig. Reco führt zu rhy1/basis (natürlicher Re-Learn).
             _gfDimAxisMap: {
                 notenwerte: 'notenwerte', notentyp: 'notenwerte',
                 taktart: 'taktart', zaehlzeit: 'zaehlzeit', rhythmussprache: 'rhythmussprache'
