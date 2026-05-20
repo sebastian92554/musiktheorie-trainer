@@ -952,6 +952,9 @@
             border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
         .gf-axis strong { color: #9a3412; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
+        .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
+            background: #fff7ed; border-left: 4px solid #ea580c; border-radius: 0 8px 8px 0; }
+        .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #9a3412; font-size: 0.9rem; }
 
         /* Quick Start Container */
         /* ===== SKILLTREE STYLES (Orange) ===== */
@@ -2057,6 +2060,25 @@
             activity() { this.lastActivity = Date.now(); }
         };
 
+        // Helmholtz-Helper (IT) — für Fehlerlisten im GF-Screen.
+        // 'eingestrichen' → ¹, 'zweigestrichen' → ², usw.
+        function _itHelmFromName(name, octave) {
+            const lc = (name || '').charAt(0).toLowerCase() + (name || '').slice(1);
+            if (octave === 'kontra' || octave === 'gross') return (name || '');
+            if (octave === 'klein') return lc;
+            if (octave === 'eingestrichen') return lc + '¹';
+            if (octave === 'zweigestrichen') return lc + '²';
+            if (octave === 'dreigestrichen') return lc + '³';
+            return (name || '');
+        }
+        function _itHelmFromPitch(p) {
+            const names = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H'];
+            const pc = ((p % 12) + 12) % 12;
+            const octBucket = Math.floor(p / 12);
+            const octs = ['kontra', 'gross', 'klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+            return _itHelmFromName(names[pc], octs[octBucket] || 'eingestrichen');
+        }
+
         // ===================================
         // ErrorTracker IT — kopflose Fehlerzerlegung (Pfad B, kein UI)
         // ===================================
@@ -2066,10 +2088,11 @@
             constructor() { this.answers = []; }
             reset() { this.answers = []; }
 
-            // d: { isCorrect, anzahlOk, qualOk, hsOk, tastaturOk }
+            // d: { isCorrect, anzahlOk, qualOk, hsOk, tastaturOk, errLine? }
             // Jedes *Ok = true/false (geprüft) ODER null/undefined (nicht
             // geprüft in diesem Handler/Subskill → zählt für die Dim nicht).
-            // Jeder Handler übergibt die Booleans, die er ohnehin berechnet.
+            // errLine = vorformatierte Fehlerzeile für GF-Screen-Liste
+            // (nur bei isCorrect=false relevant, sonst null/undefined).
             logAnswer(d) {
                 const b = v => (v === null || v === undefined) ? null : !!v;
                 this.answers.push({
@@ -2079,8 +2102,16 @@
                     hsOk: b(d.hsOk),
                     tastaturOk: b(d.tastaturOk),
                     notensystemOk: b(d.onsOk),
-                    vorzeichenOk: b(d.vorzeichenOk)
+                    vorzeichenOk: b(d.vorzeichenOk),
+                    errLine: d.errLine || null
                 });
+            }
+
+            // GF-Screen-Fehlerliste: nur falsche Antworten mit errLine.
+            // Bau-Modi (int6/int7) setzen errLine bewusst nicht → werden
+            // automatisch ausgefiltert (analog NTs building_*-Filter).
+            getErrorList() {
+                return this.answers.filter(a => !a.isCorrect && a.errLine).map(a => a.errLine);
             }
 
             getSubskillPerformance() {
@@ -2377,13 +2408,23 @@
                             // ons + tas beide schwach → t1 abgeleitet → "Zum Notentrainer"
                             q.currentLevel = 'aufsteiger'; q.currentOptions = ['basis'];
                             setM('aufsteiger', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
-                            E.reset(); for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, onsOk: false, tastaturOk: false }); }
+                            E.reset();
+                            // Beispiel-Fehlerzeilen für den Preview (analog NTs gfPreview)
+                            var _cErr = ['c¹–g¹ → du hast c¹–a¹ geklickt', 'd¹–a¹ → du hast d¹–h¹ geklickt'];
+                            for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, onsOk: false, tastaturOk: false, errLine: _cErr[i % _cErr.length] }); }
                             T.gfSession = [{ trainer: 'Intervalltrainer', level: 'aufsteiger', subskill: 'basis', mode: 'erkennen', inputType: 'tastatur', dims: { notensystem: { correct: 0, total: 4 }, tastatur: { correct: 0, total: 4 } } }];
                         } else {
                             // B (default): anzahl + qual beide schwach (experte mix)
                             q.currentLevel = 'experte'; q.currentOptions = ['basis'];
                             setM('experte', []); q.questionsAnswered = 10; q.questionsCorrect = 4;
-                            E.reset(); for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, anzahlOk: false, qualOk: false }); }
+                            E.reset();
+                            var _bErr = [
+                                'reine Quinte → du hast große Sexte eingegeben',
+                                'übermäßige Quarte (6 HS) → du hast reine Quinte (7 HS) eingegeben',
+                                'reine Quinte, 7 HS → du hast reine Quarte, 7 HS eingegeben',
+                                'kleine Terz → du hast große Terz eingegeben'
+                            ];
+                            for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, anzahlOk: false, qualOk: false, errLine: _bErr[j % _bErr.length] }); }
                             T.gfSession = [{ trainer: 'Intervalltrainer', level: 'experte', subskill: 'basis', mode: 'erkennen', inputType: 'dropdown', dims: { anzahl: { correct: 1, total: 5 }, qualitaet: { correct: 1, total: 5 } } }];
                         }
                         q.showSuccess();
@@ -3248,6 +3289,17 @@
                     _stars.textContent = '';
                     _t.textContent = 'Noch nicht ganz';
                     let html = '';
+                    // 1) zuerst die konkreten Fehler (NT-Muster: Liste vor Kommentar).
+                    //    Bau-Modi setzen kein errLine → werden automatisch gefiltert.
+                    let _errs = [];
+                    try { _errs = errorTracker.getErrorList(); } catch (e) {}
+                    if (_errs.length) {
+                        html += '<p>Diese Fehler sind aufgetreten:</p>';
+                        html += '<ul class="gf-errlist">' + _errs.slice(0, 5).map(function (e) {
+                            return '<li>' + e + '</li>';
+                        }).join('') + '</ul>';
+                    }
+                    // 2) dann der gehedgte Achsen-Kommentar
                     if (weakAxes.length) {
                         html += weakAxes.map(function (a, idx) {
                             const ax = GF_IT.axis[a];
@@ -5803,7 +5855,7 @@
                 let feedback = '';
                 // GF: getrennte Achsen-Signale (anzahl=Größe, qual=Qualität,
                 // hs=Halbtöne). null = von dieser Aufgabe nicht geprüft.
-                let _aOk = null, _qOk = null, _hOk = null;
+                let _aOk = null, _qOk = null, _hOk = null, _errLine = null;
 
                 if (task.type === 'bidirektional') {
                     const input = document.getElementById('intervalInput');
@@ -5824,11 +5876,13 @@
                             parsed.size === task.interval.size;
                         _aOk = !!(parsed && parsed.size === task.interval.size);
                         _qOk = !!(parsed && parsed.quality === task.interval.quality);
+                        if (!isCorrect) _errLine = task.interval.label + ' → du hast ' + (input.value || '?').trim() + ' eingegeben';
                         feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.label}`;
                     } else {
                         const val = parseInt(input.value.trim());
                         isCorrect = val === task.interval.ht;
                         _hOk = isCorrect;
+                        if (!isCorrect) _errLine = task.interval.ht + ' HS → du hast ' + (isNaN(val) ? (input.value || '?').trim() : val) + ' eingegeben';
                         feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.ht} HS`;
                     }
 
@@ -5858,6 +5912,7 @@
                     _hOk = htCorrect;
                     _aOk = !!(parsed && parsed.size === task.answer.size);
                     _qOk = !!(parsed && parsed.quality === task.answer.quality);
+                    if (!isCorrect) _errLine = task.answerHT + ' HS, ' + task.answerLabel + ' → du hast ' + ((htInput.value || '?').trim()) + ' HS, ' + ((nameInput.value || '?').trim()) + ' eingegeben';
 
                     htInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
                     htInput.classList.add(htCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
@@ -5879,6 +5934,7 @@
                     isCorrect = parsed && parsed.quality === task.answer.quality && parsed.size === task.answer.size;
                     _aOk = !!(parsed && parsed.size === task.answer.size);
                     _qOk = !!(parsed && parsed.quality === task.answer.quality);
+                    if (!isCorrect) _errLine = task.answerLabel + ' → du hast ' + ((input.value || '?').trim()) + ' eingegeben';
                     feedback = isCorrect ? '' : `Richtig wäre: ${task.answerLabel}`;
 
                     input.classList.remove('input-validated-correct', 'input-validated-incorrect');
@@ -5896,7 +5952,7 @@
                         quickStart.updateQuizOverlay();
                     }
                     if (this.quickStartMode && !quickStart.isRetry) {
-                        try { errorTracker.logAnswer({ isCorrect, anzahlOk: _aOk, qualOk: _qOk, hsOk: _hOk }); } catch (e) {}
+                        try { errorTracker.logAnswer({ isCorrect, anzahlOk: _aOk, qualOk: _qOk, hsOk: _hOk, errLine: _errLine }); } catch (e) {}
                     }
                 }
                 this.validationState.allCorrect = isCorrect;
@@ -6466,7 +6522,17 @@
                 // TAS nur werten, wenn Töne erkannt (sonst keine Dim statt falscher
                 // Dim, NT-Prinzip). Einmal je Aufgabe (Erst-Check, kein Retry).
                 if (this.quickStartMode && !quickStart.isRetry && !this.validationState.hasBeenChecked) {
-                    try { errorTracker.logAnswer({ isCorrect, onsOk: pcsMatch, tastaturOk: pcsMatch ? distanceMatch : null }); } catch (e) {}
+                    // errLine: Tonidentitäten zeigen (Helmholtz) wenn pcsMatch=false
+                    // (Töne falsch); bei nur falscher Lage zeigt die UI bereits
+                    // „Richtige Töne, falsche Oktavlage" → keine doppelte Zeile.
+                    let _errLine = null;
+                    if (!isCorrect && !pcsMatch) {
+                        const _t1 = _itHelmFromName(note1.name, note1.octave);
+                        const _t2 = _itHelmFromName(note2.name, note2.octave);
+                        const _u = sortedSelected.map(k => _itHelmFromPitch(k)).join('–');
+                        _errLine = _t1 + '–' + _t2 + ' → du hast ' + _u + ' geklickt';
+                    }
+                    try { errorTracker.logAnswer({ isCorrect, onsOk: pcsMatch, tastaturOk: pcsMatch ? distanceMatch : null, errLine: _errLine }); } catch (e) {}
                 }
 
                 feedbackEl.classList.remove('hidden');
@@ -6559,7 +6625,8 @@
                 const correctSize = this.currentInterval.size;
                 const isCorrect = parseInt(selectedValue) === correctSize;
                 if (this.quickStartMode && !quickStart.isRetry) {
-                    try { errorTracker.logAnswer({ isCorrect, anzahlOk: isCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
+                    const _errLine = !isCorrect ? (this.getIntervalName(correctSize) + ' → du hast ' + this.getIntervalName(parseInt(selectedValue)) + ' gewählt') : null;
+                    try { errorTracker.logAnswer({ isCorrect, anzahlOk: isCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, errLine: _errLine }); } catch (e) {}
                 }
 
                 feedbackEl.classList.remove('hidden');
@@ -6640,7 +6707,8 @@
                 const intervalName = this.getIntervalName(this.currentInterval.size);
                 const isCorrect = (inputSemitones === correctSemitones);
                 if (this.quickStartMode && !quickStart.isRetry) {
-                    try { errorTracker.logAnswer({ isCorrect, hsOk: isCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null }); } catch (e) {}
+                    const _errLine = !isCorrect ? (correctSemitones + ' HS → du hast ' + inputSemitones + ' eingegeben') : null;
+                    try { errorTracker.logAnswer({ isCorrect, hsOk: isCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, errLine: _errLine }); } catch (e) {}
                 }
 
                 feedbackEl.classList.remove('hidden');
@@ -7527,12 +7595,26 @@
 
                 if (isFirstCheck && this.quickStartMode) {
                     try {
+                        // errLine: kombiniere korrektes Intervall (+ ggf. HS) mit
+                        // den Roh-Eingaben des Users (intervalInput, semitonesInput).
+                        let _errLine = null;
+                        if (!allCorrect) {
+                            const _intInp = document.getElementById('intervalInput');
+                            const _semInp = document.getElementById('semitonesInput');
+                            const _corrName = (isFeinbestimmungActive && this.currentInterval && this.currentInterval.label)
+                                ? this.currentInterval.label : this.getIntervalName(correctSize);
+                            const _userName = (_intInp && _intInp.value ? _intInp.value.trim() : '?') || '?';
+                            const _corr = _corrName + (semitonesRequired ? (', ' + correctSemitones + ' HS') : '');
+                            const _user = _userName + (semitonesRequired ? (', ' + (_semInp && _semInp.value ? _semInp.value.trim() : '?') + ' HS') : '');
+                            _errLine = _corr + ' → du hast ' + _user + ' eingegeben';
+                        }
                         errorTracker.logAnswer({
                             isCorrect: allCorrect,
                             anzahlOk: (inputSize === correctSize),
                             qualOk: isFeinbestimmungActive ? (inputQuality === correctQuality) : null,
                             hsOk: semitonesRequired ? (this.validationState.semitones === true) : null,
-                            tastaturOk: this.settings.requireKeyboard ? (this.validationState.keyboard === true) : null
+                            tastaturOk: this.settings.requireKeyboard ? (this.validationState.keyboard === true) : null,
+                            errLine: _errLine
                         });
                     } catch (e) {}
                 }
