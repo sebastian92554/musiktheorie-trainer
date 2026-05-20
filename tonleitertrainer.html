@@ -673,6 +673,9 @@
             border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
         .gf-axis strong { color: #0e7490; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
+        .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
+            background: #fff; border: 1px solid #99f6e4; border-radius: 8px; text-align: left; }
+        .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #0e7490; font-size: 0.9rem; }
 
         .success-buttons button {
             padding: 12px 24px;
@@ -2383,8 +2386,15 @@
                 gthtOk: b(d.gthtOk),
                 tastaturOk: b(d.tastaturOk),
                 notensystemOk: b(d.onsOk),
-                vorzeichenOk: b(d.vorzeichenOk)
+                vorzeichenOk: b(d.vorzeichenOk),
+                errLine: d.errLine || null
             });
+        }
+
+        // GF-Screen-Fehlerliste: nur falsche Antworten mit errLine.
+        // Bau-Modi (ton4) setzen errLine bewusst nicht → werden gefiltert.
+        getErrorList() {
+            return this.answers.filter(a => !a.isCorrect && a.errLine).map(a => a.errLine);
         }
 
         getSubskillPerformance() {
@@ -2805,13 +2815,22 @@
                         // tas + hs + vorz schwach (Tastatur-Bau) → vorz primär
                         q.currentLevel = 'bilden'; q.currentOptions = ['tastatur_einfach'];
                         setM('bilden', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
-                        E.reset(); for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, tastaturOk: false, hsOk: false, vorzeichenOk: false }); }
+                        E.reset();
+                        var _cErr = ['F-Dur → du hast F-Moll geklickt', 'G-Dur → du hast G-Moll geklickt'];
+                        for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, tastaturOk: false, hsOk: false, vorzeichenOk: false, errLine: _cErr[i % _cErr.length] }); }
                         T.gfSession = [{ trainer: 'Tonleitertrainer', level: 'bilden', subskill: 'tastatur_einfach', mode: 'bilden', inputType: 'tastatur', dims: { tastatur: { correct: 0, total: 4 }, halbtonschritte: { correct: 0, total: 4 }, vorzeichen: { correct: 0, total: 4 } } }];
                     } else {
                         // B (default): grundton + tongeschlecht schwach (profi mix) → grundton primär → Notentrainer
                         q.currentLevel = 'profi'; q.currentOptions = ['muster_erkennen'];
                         setM('profi', []); q.questionsAnswered = 10; q.questionsCorrect = 4;
-                        E.reset(); for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, grundtonOk: false, tongeschlechtOk: false }); }
+                        E.reset();
+                        var _bErr = [
+                            'G-Dur → du hast d-Moll eingegeben',
+                            'a-Moll → du hast C-Dur eingegeben',
+                            'D-Dur → du hast G-Dur eingegeben',
+                            'e-Moll → du hast h-Moll eingegeben'
+                        ];
+                        for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, grundtonOk: false, tongeschlechtOk: false, errLine: _bErr[j % _bErr.length] }); }
                         T.gfSession = [{ trainer: 'Tonleitertrainer', level: 'profi', subskill: 'muster_erkennen', mode: 'erkennen', inputType: 'dropdown', dims: { grundton: { correct: 1, total: 5 }, tongeschlecht: { correct: 1, total: 5 } } }];
                     }
                     q.showSuccess();
@@ -3540,7 +3559,8 @@
                     gthtOk: (_asp.gthtOk !== undefined) ? _asp.gthtOk : null,
                     tastaturOk: (_asp.tastaturOk !== undefined) ? _asp.tastaturOk : null,
                     onsOk: (_asp.onsOk !== undefined) ? _asp.onsOk : null,
-                    vorzeichenOk: (_asp.vorzeichenOk !== undefined) ? _asp.vorzeichenOk : null
+                    vorzeichenOk: (_asp.vorzeichenOk !== undefined) ? _asp.vorzeichenOk : null,
+                    errLine: (_asp.errLine !== undefined) ? _asp.errLine : null
                 });
             } catch (e) {}
             if (isCorrect) {
@@ -3638,6 +3658,16 @@
                 _stars.textContent = '';
                 _t.textContent = 'Noch nicht ganz';
                 let html = '';
+                // 1) zuerst die konkreten Fehler (NT-Muster: Liste vor Kommentar).
+                let _errs = [];
+                try { _errs = errorTracker.getErrorList(); } catch (e) {}
+                if (_errs.length) {
+                    html += '<p>Diese Fehler sind aufgetreten:</p>';
+                    html += '<ul class="gf-errlist">' + _errs.slice(0, 5).map(function (e) {
+                        return '<li>' + e + '</li>';
+                    }).join('') + '</ul>';
+                }
+                // 2) dann der gehedgte Achsen-Kommentar
                 if (weakAxes.length) {
                     html += weakAxes.map(function (a, idx) {
                         const ax = GF_TT.axis[a];
@@ -5570,6 +5600,12 @@
             const question = this.currentQzQuestion;
             const isCorrect = QUINTENZIRKEL.checkAnswer(question, answer);
 
+            // GF ton5: errLine als Carrier für Fehlerliste setzen.
+            if (quickStart.isActive && !isCorrect) {
+                const _corr = Array.isArray(question.correct) ? question.correct.join(' / ') : String(question.correct);
+                quickStart._lastAspects = { errLine: _corr + ' → du hast "' + answer + '" eingegeben' };
+            }
+
             if (isCorrect) {
                 input.classList.add('input-correct');
                 input.disabled = true;
@@ -5616,6 +5652,13 @@
                     btn.classList.add('qz-incorrect');
                 }
             });
+
+            // GF ton5: errLine als Carrier für Fehlerliste setzen.
+            if (quickStart.isActive && !isCorrect) {
+                const _corr = Array.isArray(question.correct) ? question.correct.join(', ') : String(question.correct);
+                const _user = selected.length ? selected.join(', ') : '(nichts gewählt)';
+                quickStart._lastAspects = { errLine: _corr + ' → du hast ' + _user + ' gewählt' };
+            }
 
             this._handleQzAnswer(isCorrect);
         },
@@ -7499,9 +7542,12 @@
             }
 
             // GF ton1: Ganzton/Halbton-Unterscheidung → eigene Achse `gtht`
-            // (DAG-Vorstufe von hs).
+            // (DAG-Vorstufe von hs). errLine zeigt das konkrete Tonpaar.
             if (quickStart.isActive) {
-                quickStart._lastAspects = { gthtOk: isCorrect };
+                const _errLine = !isCorrect
+                    ? (n1 + '→' + n2 + ' = ' + (actuallyHalfStep ? 'Halbton' : 'Ganzton') + ' → du hast ' + (answer === 'halbton' ? 'Halbton' : 'Ganzton') + ' gewählt')
+                    : null;
+                quickStart._lastAspects = { gthtOk: isCorrect, errLine: _errLine };
                 quickStart.handleAnswer(isCorrect);
             }
 
@@ -7696,9 +7742,13 @@
             }
 
             // GF: Wurzel (T1) und Modus/Other (T2) separat — hier sauber trennbar
+            const _profiInp = document.getElementById('profiInput');
+            const _userVal = _profiInp ? _profiInp.value.trim() : '?';
+            const _corrName = this.currentScale.displayName || (this.currentScale.root + '-' + this.currentScale.type);
             quickStart._lastAspects = {
                 grundtonOk: (parsed.type === '_Other') ? null : (parsed.root === this.currentScale.root),
-                tongeschlechtOk: (parsed.type === '_Other') ? isKirchentonart : (parsed.type === this.currentScale.type)
+                tongeschlechtOk: (parsed.type === '_Other') ? isKirchentonart : (parsed.type === this.currentScale.type),
+                errLine: !isCorrect ? (_corrName + ' → du hast ' + (_userVal || '?') + ' eingegeben') : null
             };
 
             if (!this.freeRetry) {
@@ -7760,7 +7810,11 @@
             }
 
             // GF: ganze Frage = Tongeschlecht-Urteil (T2)
-            quickStart._lastAspects = { tongeschlechtOk: isCorrect };
+            const _corrType = isKirchentonart ? 'Kein Dur/Moll' : correctType;
+            quickStart._lastAspects = {
+                tongeschlechtOk: isCorrect,
+                errLine: !isCorrect ? (_corrType + ' → du hast ' + answer + ' gewählt') : null
+            };
 
             if (!this.freeRetry) {
                 this.score.total++;

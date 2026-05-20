@@ -1376,6 +1376,9 @@
             border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
         .gf-axis strong { color: #065f46; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
+        .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
+            background: #fff; border: 1px solid #a7f3d0; border-radius: 8px; text-align: left; }
+        .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #065f46; font-size: 0.9rem; }
 
         .success-message {
             font-size: 0.95rem;
@@ -2197,8 +2200,15 @@
                     umkehrungOk: b(d.umkehrungOk),
                     tastaturOk: b(d.tastaturOk),
                     notensystemOk: b(d.onsOk),
-                    vorzeichenOk: b(d.vorzeichenOk)
+                    vorzeichenOk: b(d.vorzeichenOk),
+                    errLine: d.errLine || null
                 });
+            }
+
+            // GF-Screen-Fehlerliste: nur falsche Antworten mit errLine.
+            // Bau-Modi (drei5-8) setzen errLine bewusst nicht → werden gefiltert.
+            getErrorList() {
+                return this.answers.filter(a => !a.isCorrect && a.errLine).map(a => a.errLine);
             }
 
             getSubskillPerformance() {
@@ -2485,13 +2495,22 @@
                             // tas + vorz schwach (Bau Tastatur) → vorz primär (DAG)
                             q.currentLevel = 'bilden_key'; q.currentOptions = ['basis'];
                             setM('bilden_key', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
-                            E.reset(); for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, tastaturOk: false, vorzeichenOk: false }); }
+                            E.reset();
+                            var _cErr = ['C-Dur (C–E–G) → du hast C–Es–G geklickt', 'G-Dur (G–H–D) → du hast G–B–D geklickt'];
+                            for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, tastaturOk: false, vorzeichenOk: false, errLine: _cErr[i % _cErr.length] }); }
                             T.gfSession = [{ trainer: 'Dreiklangstrainer', level: 'bilden_key', subskill: 'basis', mode: 'bilden', inputType: 'tastatur', dims: { tastatur: { correct: 0, total: 4 }, vorzeichen: { correct: 0, total: 4 } } }];
                         } else {
                             // B (default): grundton + akkordtyp schwach (profi mix) → grundton primär → Notentrainer
                             q.currentLevel = 'profi'; q.currentOptions = ['basis'];
                             setM('profi', []); q.questionsAnswered = 10; q.questionsCorrect = 4;
-                            E.reset(); for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, grundtonOk: false, akkordtypOk: false }); }
+                            E.reset();
+                            var _bErr = [
+                                'D-Dur → du hast G-Moll eingegeben',
+                                'F-Dur → du hast F-Moll eingegeben',
+                                'a-Moll → du hast C-Dur eingegeben',
+                                'Es-Dur → du hast E-Moll eingegeben'
+                            ];
+                            for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, grundtonOk: false, akkordtypOk: false, errLine: _bErr[j % _bErr.length] }); }
                             T.gfSession = [{ trainer: 'Dreiklangstrainer', level: 'profi', subskill: 'basis', mode: 'erkennen', inputType: 'dropdown', dims: { grundton: { correct: 1, total: 5 }, akkordtyp: { correct: 1, total: 5 } } }];
                         }
                         q.showSuccess();
@@ -3474,6 +3493,16 @@
                     if (this.isSkipping && percentage >= 80) {
                         html += '<p style="color:#6b7280;font-size:0.9rem;margin-bottom:8px;">Zum Überspringen brauchst du 90 %.</p>';
                     }
+                    // 1) zuerst die konkreten Fehler (NT-Muster: Liste vor Kommentar).
+                    let _errs = [];
+                    try { _errs = errorTracker.getErrorList(); } catch (e) {}
+                    if (_errs.length) {
+                        html += '<p>Diese Fehler sind aufgetreten:</p>';
+                        html += '<ul class="gf-errlist">' + _errs.slice(0, 5).map(function (e) {
+                            return '<li>' + e + '</li>';
+                        }).join('') + '</ul>';
+                    }
+                    // 2) dann der gehedgte Achsen-Kommentar
                     if (weakAxes.length) {
                         html += weakAxes.map(function (a, idx) {
                             const ax = GF_DT.axis[a];
@@ -7615,7 +7644,16 @@ const _lernkartenContent = {
                     if (this.quickStartMode && !quickStart.isRetry) {
                         const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
                         const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
-                        try { errorTracker.logAnswer({ isCorrect, tastaturOk: isCorrect, vorzeichenOk: _hasAcc ? isCorrect : null }); } catch (e) {}
+                        // errLine: Akkordname + 3 Solltöne vs. die gewählten Tonnamen
+                        let _errLine = null;
+                        if (!isCorrect && _cc) {
+                            const _midi2Name = function (m) { const names = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H']; return names[((m % 12) + 12) % 12]; };
+                            const _chord = (_cc.rootNote ? _cc.rootNote.charAt(0).toUpperCase() + _cc.rootNote.slice(1) : '?') + '-' + (_cc.type ? _cc.type.charAt(0).toUpperCase() + _cc.type.slice(1) : '?');
+                            const _sollNames = [_cc.note1, _cc.note2, _cc.note3].map(function (n) { return n && n.name ? n.name : '?'; }).join('–');
+                            const _userNames = this.selectedKeys.slice().sort(function (a, b) { return a - b; }).map(_midi2Name).join('–');
+                            _errLine = _chord + ' (' + _sollNames + ') → du hast ' + _userNames + ' geklickt';
+                        }
+                        try { errorTracker.logAnswer({ isCorrect, tastaturOk: isCorrect, vorzeichenOk: _hasAcc ? isCorrect : null, errLine: _errLine }); } catch (e) {}
                     }
 
                     // Hilfsfunktion: MIDI zu Notenname
@@ -7676,7 +7714,13 @@ const _lernkartenContent = {
                         const _at = (hs1Correct && hs2Correct);
                         const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
                         const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
-                        try { errorTracker.logAnswer({ isCorrect: _at, akkordtypOk: _at, vorzeichenOk: _hasAcc ? _at : null }); } catch (e) {}
+                        // errLine: korrekte HS-Struktur + Akkordname vs. gewählte HS.
+                        let _errLine = null;
+                        if (!_at) {
+                            const _chord = (correctRootNote ? correctRootNote.charAt(0).toUpperCase() + correctRootNote.slice(1) : '?') + '-' + (correctType ? correctType.charAt(0).toUpperCase() + correctType.slice(1) : '?');
+                            _errLine = correctInterval1 + ' + ' + correctInterval2 + ' HS (' + _chord + ') → du hast ' + (val1 || '?') + ' + ' + (val2 || '?') + ' HS gewählt';
+                        }
+                        try { errorTracker.logAnswer({ isCorrect: _at, akkordtypOk: _at, vorzeichenOk: _hasAcc ? _at : null, errLine: _errLine }); } catch (e) {}
                     }
 
                     if (hs1Correct && hs2Correct) {
@@ -7742,7 +7786,14 @@ const _lernkartenContent = {
                     if (this.quickStartMode && !quickStart.isRetry) {
                         const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
                         const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
-                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, vorzeichenOk: _hasAcc ? isCorrect : null }); } catch (e) {}
+                        // errLine: korrekter Akkordname vs. User-Eingabe.
+                        let _errLine = null;
+                        if (!isCorrect) {
+                            const _corrName = (correctRootNote ? correctRootNote.charAt(0).toUpperCase() + correctRootNote.slice(1) : '?') + '-' + (correctType ? correctType.charAt(0).toUpperCase() + correctType.slice(1) : '?');
+                            const _userName = ((rootVal || '?').trim()) + '-' + (typeVal || '?');
+                            _errLine = _corrName + ' → du hast ' + _userName + ' eingegeben';
+                        }
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, vorzeichenOk: _hasAcc ? isCorrect : null, errLine: _errLine }); } catch (e) {}
                     }
 
                     if (isCorrect) {
@@ -7818,7 +7869,17 @@ const _lernkartenContent = {
                     if (this.quickStartMode && !quickStart.isRetry) {
                         const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
                         const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
-                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, umkehrungOk: inversionCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, vorzeichenOk: _hasAcc ? isCorrect : null }); } catch (e) {}
+                        // errLine: korrekter Akkordname + Umkehrung vs. User-Eingabe.
+                        let _errLine = null;
+                        if (!isCorrect) {
+                            const _invLabels = ['Grundstellung', 'Sextakkord', 'Quartsextakkord'];
+                            const _corrName = (correctRootNote ? correctRootNote.charAt(0).toUpperCase() + correctRootNote.slice(1) : '?') + '-' + (correctType ? correctType.charAt(0).toUpperCase() + correctType.slice(1) : '?');
+                            const _corrInv = _invLabels[correctInversion] || ('Umkehrung ' + correctInversion);
+                            const _userInv = _invLabels[parseInt(invVal)] || (invVal !== '' ? ('Umkehrung ' + invVal) : '(keine)');
+                            const _userName = ((rootVal || '?').trim()) + '-' + (typeVal || '?');
+                            _errLine = _corrName + ' ' + _corrInv + ' → du hast ' + _userName + ' ' + _userInv + ' eingegeben';
+                        }
+                        try { errorTracker.logAnswer({ isCorrect, grundtonOk: rootCorrect, akkordtypOk: typeCorrect, umkehrungOk: inversionCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, vorzeichenOk: _hasAcc ? isCorrect : null, errLine: _errLine }); } catch (e) {}
                     }
 
                     if (isCorrect) {
