@@ -1338,6 +1338,22 @@
         }
         .btn-next:hover { background: #e5e7eb; }
 
+        /* GF Stufe 3 — Pfad-A Feedback (Struktur 1:1 wie NT/IT/TT/DT, RT-Purple-Palette) */
+        .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
+        .success-recos:empty { display: none; }
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #6d28d9;
+            border: 2px solid #8b5cf6; cursor: pointer; font-size: 1rem; font-weight: 600;
+            text-align: left; width: 100%; transition: all 0.2s; }
+        .reco-item::before { content: '\2192\00a0'; font-weight: 700; }
+        .reco-item:hover { background: #8b5cf6; color: #fff; }
+        .gf-axis { background: #fff; border: 1px solid #ddd6fe; border-left: 4px solid #8b5cf6;
+            border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
+        .gf-axis strong { color: #6d28d9; font-size: 0.95rem; }
+        .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
+        .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
+            background: #fff; border: 1px solid #ddd6fe; border-radius: 8px; text-align: left; }
+        .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #6d28d9; font-size: 0.9rem; }
+
         /* ---- Lernkarten-Overlay ---- */
         .lernkarte-overlay {
             display: none;
@@ -1591,7 +1607,8 @@
                 <p><strong>💡 Nächster Schritt:</strong></p>
                 <p>Nimm jetzt Achtelnoten dazu!</p>
             </div>
-            
+            <div class="success-recos" id="successRecos"></div>
+
             <div id="successButtons" style="margin-top: 30px;">
                 <!-- Buttons werden dynamisch eingefügt -->
             </div>
@@ -2095,7 +2112,8 @@
             reset() { this.answers = []; }
 
             // d: { isCorrect, notenwerteOk, zaehlzeitOk, rhythmusspracheOk,
-            //      taktartOk, notentypOk } — *Ok = true/false ODER null
+            //      taktartOk, notentypOk, errLine } — *Ok = true/false ODER null
+            // errLine = vorformatierte "korrekt → user"-Zeile für GF-Screen-Fehlerliste.
             logAnswer(d) {
                 const b = v => (v === null || v === undefined) ? null : !!v;
                 this.answers.push({
@@ -2104,8 +2122,14 @@
                     zaehlzeitOk: b(d.zaehlzeitOk),
                     rhythmusspracheOk: b(d.rhythmusspracheOk),
                     taktartOk: b(d.taktartOk),
-                    notentypOk: b(d.notentypOk)
+                    notentypOk: b(d.notentypOk),
+                    errLine: d.errLine || null
                 });
+            }
+
+            // GF-Screen-Fehlerliste: nur falsche Antworten mit errLine.
+            getErrorList() {
+                return this.answers.filter(a => !a.isCorrect && a.errLine).map(a => a.errLine);
             }
 
             getSubskillPerformance() {
@@ -2271,6 +2295,138 @@
                 return t ? { correct: c, total: t, derived: true } : null;
             }
         };
+
+        // ===================================
+        // GF Stufe 3 — Pfad-A Wording (RT-lokal)
+        // ===================================
+        // R-Domäne DAG (PLAN_GF-Ontologie §1): R1 → R2 → R3 → R4 → R5.
+        // RT-lokale Anzeige-Achsen: notenwerte (R1, incl. notentyp), taktart (R3),
+        // zaehlzeit (R4), rhythmussprache (R5). Reine R-Domäne, kein Cross-Trainer.
+        // Wording = NT/TT/DT-Muster: gehedgt, kein ex-negativo, tiefste schwache
+        // Achse zuerst (DAG-Walk = primäre Ursache).
+        const GF_RT = {
+            nodeName: {
+                einsteiger: 'Notenwerte zusammenzählen',
+                taktarten: 'Taktart erkennen',
+                fortgeschrittener: 'Zählzeit bestimmen',
+                profi: 'Rhythmussprache',
+                notenwert_bilden: 'Notenwert bilden',
+                rhythmusdiktat: 'Rhythmusdiktat'
+            },
+            order: ['notenwerte', 'taktart', 'zaehlzeit', 'rhythmussprache'],
+            axis: {
+                notenwerte: {
+                    name: 'Notenwerte',
+                    why: 'die Notenwerte (Ganze, Halbe, Viertel, …) noch nicht sicher sitzen',
+                    tip: 'Übe zuerst das sichere Erkennen und Zusammenzählen der Notenwerte.',
+                    counter: null,
+                    cta: 'Notenwerte üben',
+                    target: function () { return { level: 'einsteiger', options: ['basis'] }; }
+                },
+                taktart: {
+                    name: 'Taktart',
+                    why: 'die Taktart noch nicht sicher bestimmt wird',
+                    tip: 'Zähle die Notenwerte eines Taktes zusammen — daraus ergibt sich die Taktart.',
+                    counter: null,
+                    cta: 'Taktart üben',
+                    target: function () { return { level: 'taktarten', options: ['regelmaessig'] }; }
+                },
+                zaehlzeit: {
+                    name: 'Zählzeit',
+                    why: 'das Bestimmen der Zählzeit noch nicht sicher sitzt',
+                    tip: 'Übe das Zählen „1 und 2 und 3 und 4 und" und finde die Note auf der richtigen Zählzeit.',
+                    counter: null,
+                    cta: 'Zählzeit üben',
+                    target: function () { return { level: 'fortgeschrittener', options: ['basis'] }; }
+                },
+                rhythmussprache: {
+                    name: 'Rhythmussprache',
+                    why: 'die Rhythmussprache (ta, ti-ti, …) noch nicht sicher sitzt',
+                    tip: 'Sprich die Silben laut mit: ta für Viertel, ti-ti für Achtel, ti-ri-ti-ri für Sechzehntel.',
+                    counter: null,
+                    cta: 'Rhythmussprache üben',
+                    target: function () { return { level: 'profi', options: ['8tel'] }; }
+                }
+            }
+        };
+
+        // GF Stufe 3 — DEV-Preview-Hook (aktiv bei tracker.env()==='dev').
+        // Greift damit automatisch auf localhost/file:/LAN (Tracking ist dort
+        // ohnehin blockiert) und bei explizitem localStorage.musik_tracking_env='dev'.
+        // Non-destruktiv: klont progress/gfSession/errorTracker; stubt _send/quizComplete.
+        try {
+            if (tracker.env() === 'dev') {
+                window.gfPreview = function (v) {
+                    v = String(v || '').trim(); if (!v) return;
+                    var q = quickStart, T = tracker, E = errorTracker;
+                    var P = JSON.parse(JSON.stringify(q.progress || {}));
+                    var GS = (T.gfSession || []).slice();
+                    var EA = E.answers.slice();
+                    var sLvl = q.currentLevel, sOpt = (q.currentOptions || []).slice();
+                    var sQA = q.questionsAnswered, sQC = q.questionsCorrect, sIA = q.isActive, sRT = q.isRetry;
+                    var oSP = q.saveProgress, oQC = T.quizComplete, oSnd = T._send;
+                    try {
+                        q.saveProgress = function () {}; T.quizComplete = function () {}; T._send = function () {};
+                        q.isActive = true; q.isRetry = false;
+                        ['quickStartScreen', 'originalApp', 'successScreen'].forEach(function (id) {
+                            var el = document.getElementById(id); if (el) el.classList.remove('active');
+                        });
+                        var setM = function (L, a) {
+                            q.progress[L] = q.progress[L] || { mastered: [], scores: {} };
+                            q.progress[L].mastered = a.slice();
+                        };
+                        var subIds = function (L) {
+                            var nd = Object.keys(q.nodeToLevel).find(function (k) { return q.nodeToLevel[k] === L; });
+                            return (q.nodeSubSkills[nd] || []).map(function (s) { return s.id; });
+                        };
+                        if (v === 'A1') {
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis']; setM('einsteiger', []);
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'A2') {
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis'];
+                            setM('einsteiger', subIds('einsteiger'));
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'A3') {
+                            // notenwert_bilden statt rhythmusdiktat (Dictation-Erstversuche-Logik
+                            // greift sonst und ist im Preview nicht gestubbt).
+                            q.currentLevel = 'notenwert_bilden'; q.currentOptions = ['16tel'];
+                            ['einsteiger', 'taktarten', 'fortgeschrittener', 'profi', 'notenwert_bilden', 'rhythmusdiktat'].forEach(function (L) {
+                                setM(L, subIds(L));
+                            });
+                            q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
+                        } else if (v === 'C') {
+                            // zaehlzeit + rhythmussprache schwach → zaehlzeit primär (tiefer)
+                            q.currentLevel = 'fortgeschrittener'; q.currentOptions = ['basis'];
+                            setM('fortgeschrittener', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
+                            E.reset();
+                            var _cErr = ['1 und 2 → du hast "1 2" eingegeben', '3 und 4 → du hast "3 4" eingegeben'];
+                            for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, zaehlzeitOk: false, errLine: _cErr[i % _cErr.length] }); }
+                            T.gfSession = [{ trainer: 'Rhythmustrainer', level: 'fortgeschrittener', subskill: 'basis', mode: 'erkennen', inputType: 'counting-time', dims: { zaehlzeit: { correct: 1, total: 5 } } }];
+                        } else {
+                            // B (default): notenwerte schwach (Addition) → notenwerte primär
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis'];
+                            setM('einsteiger', []); q.questionsAnswered = 10; q.questionsCorrect = 4;
+                            E.reset();
+                            var _bErr = [
+                                '2.5 → du hast 2 eingegeben',
+                                '1.5 → du hast 1 eingegeben',
+                                '3 → du hast 4 eingegeben',
+                                '0.75 → du hast 0.5 eingegeben'
+                            ];
+                            for (var j = 0; j < 5; j++) { E.logAnswer({ isCorrect: false, notenwerteOk: false, errLine: _bErr[j % _bErr.length] }); }
+                            T.gfSession = [{ trainer: 'Rhythmustrainer', level: 'einsteiger', subskill: 'basis', mode: 'erkennen', inputType: 'note-addition', dims: { notenwerte: { correct: 1, total: 5 } } }];
+                        }
+                        q.showSuccessScreen();
+                    } finally {
+                        q.progress = P; T.gfSession = GS; E.answers = EA;
+                        q.currentLevel = sLvl; q.currentOptions = sOpt; q.questionsAnswered = sQA;
+                        q.questionsCorrect = sQC; q.isActive = sIA; q.isRetry = sRT;
+                        q.saveProgress = oSP; T.quizComplete = oQC; T._send = oSnd;
+                    }
+                };
+                console.log('🛠 gfPreview() aktiv — gfPreview("A1"|"A2"|"A3"|"B"|"C")');
+            }
+        } catch (e) {}
 
         // ===================================
         // QUICK-START SYSTEM (SKILLTREE)
@@ -3386,6 +3542,7 @@
 
             showSuccessMessage(passed, scorePercent, firstTryCorrect) {
                 const messageEl = document.getElementById('successMessage');
+                const recEl = document.getElementById('successRecos');
                 const buttonsEl = document.getElementById('successButtons');
 
                 const nodeId = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
@@ -3396,42 +3553,193 @@
                 const nextUnmastered = subs.find(s => !mastered.includes(s.id));
                 const isDictation = (firstTryCorrect !== null && firstTryCorrect !== undefined);
 
-                if (!passed) {
-                    if (isDictation) {
-                        messageEl.innerHTML = `
-                            <p><strong>💪 Weiter üben!</strong></p>
-                            <p>Zum Bestehen: 5 von 10 auf Anhieb richtig.</p>
-                        `;
+                if (passed) {
+                    // A1/A2/A3 — bestehende Tier-aware Logik beibehalten; Forward-Item ergänzen
+                    if (nextUnmastered) {
+                        if (isDictation && firstTryCorrect < 9) {
+                            messageEl.innerHTML = `
+                                <p><strong>💡 Nächster Schritt:</strong></p>
+                                <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
+                                <p style="font-size:0.8rem;color:#64748b;margin-top:0.3rem;">Für 3 Sterne: 9 von 10 auf Anhieb richtig.</p>
+                            `;
+                        } else {
+                            messageEl.innerHTML = `
+                                <p><strong>💡 Nächster Schritt:</strong></p>
+                                <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
+                            `;
+                        }
                     } else {
-                        messageEl.innerHTML = `
-                            <p><strong>💪 Tipp:</strong></p>
-                            <p>Übe noch etwas, um die 80% zu schaffen!</p>
-                        `;
+                        const tier = this._gfMilestoneTier();
+                        if (tier === 'trainer') {
+                            messageEl.innerHTML = `
+                                <p><strong>🏆 Rhythmustrainer abgeschlossen!</strong></p>
+                                <p>Alle Kompetenzen des Rhythmustrainers gemeistert. Starke Leistung.</p>
+                            `;
+                        } else {
+                            messageEl.innerHTML = `
+                                <p><strong>🏆 GLÜCKWUNSCH!</strong></p>
+                                <p>Du hast ALLE Teilkompetenzen in dieser Stufe gemeistert!</p>
+                            `;
+                        }
                     }
-                } else if (nextUnmastered) {
-                    if (isDictation && firstTryCorrect < 9) {
-                        messageEl.innerHTML = `
-                            <p><strong>💡 Nächster Schritt:</strong></p>
-                            <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
-                            <p style="font-size:0.8rem;color:#64748b;margin-top:0.3rem;">Für 3 Sterne: 9 von 10 auf Anhieb richtig.</p>
-                        `;
-                    } else {
-                        messageEl.innerHTML = `
-                            <p><strong>💡 Nächster Schritt:</strong></p>
-                            <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
-                        `;
-                    }
-                } else {
-                    messageEl.innerHTML = `
-                        <p><strong>🏆 GLÜCKWUNSCH!</strong></p>
-                        <p>Du hast ALLE Teilkompetenzen in dieser Stufe gemeistert!</p>
+                    if (recEl) recEl.innerHTML = this._gfForwardItem(this._gfMilestoneTier());
+                    buttonsEl.innerHTML = `
+                        <button class="btn-retry" onclick="quickStart.retryQuiz()">Nochmal</button>
+                        <button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>
                     `;
-                }
+                } else {
+                    // B/C — GF Stufe 3: Fehlerliste + gehedgter Achsen-Kommentar + graue "Zur Übersicht"
+                    const perf = this._gfDimPerf();
+                    const scope = this._gfAxesInScope();
+                    // DAG-tief zuerst: GF_RT.order liefert primäre Ursache auf idx 0
+                    const weakAxes = GF_RT.order.filter(function (a) {
+                        return scope.indexOf(a) !== -1 && perf[a] && perf[a].total >= 2
+                            && perf[a].pct != null && perf[a].pct < 80 && GF_RT.axis[a];
+                    });
+                    let html = '';
+                    // 1) zuerst die konkreten Fehler (NT/TT-Muster: Liste vor Kommentar)
+                    let _errs = [];
+                    try { _errs = errorTracker.getErrorList(); } catch (e) {}
+                    if (_errs.length) {
+                        html += '<p>Diese Fehler sind aufgetreten:</p>';
+                        html += '<ul class="gf-errlist">' + _errs.slice(0, 5).map(function (e) {
+                            return '<li>' + e + '</li>';
+                        }).join('') + '</ul>';
+                    }
+                    // 2) dann der gehedgte Achsen-Kommentar
+                    if (weakAxes.length) {
+                        html += weakAxes.map(function (a, idx) {
+                            const ax = GF_RT.axis[a];
+                            let s;
+                            if (idx === 0) {
+                                s = 'Es liegt vermutlich daran, dass ' + ax.why + '.';
+                                s += ' ' + ax.tip;
+                            } else {
+                                s = 'Möglich ist außerdem, dass ' + ax.why + '. ' + ax.tip;
+                            }
+                            return '<div class="gf-axis"><p>' + s + '</p></div>';
+                        }).join('');
+                    } else if (isDictation) {
+                        html += '<p><strong>💪 Weiter üben!</strong></p><p>Zum Bestehen: 5 von 10 auf Anhieb richtig.</p>';
+                    } else {
+                        html += '<p><strong>💪 Tipp:</strong></p><p>Übe noch etwas, um die 80% zu schaffen!</p>';
+                    }
+                    messageEl.innerHTML = html;
 
-                buttonsEl.innerHTML = `
-                    <button class="btn-retry" onclick="quickStart.retryQuiz()">Nochmal</button>
-                    <button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>
-                `;
+                    let recos = '';
+                    weakAxes.forEach(function (a) {
+                        const ax = GF_RT.axis[a];
+                        if (!ax) return;
+                        const tg = ax.target(quickStart.currentLevel);
+                        recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
+                    });
+                    recos += '<button class="reco-item" onclick="quickStart.retryQuiz()">Lernkarte lesen und Übung wiederholen</button>';
+                    if (recEl) recEl.innerHTML = recos;
+                    // RT-Buttons sind invers zu NT/IT/TT (analog DT): btn-next ist grau.
+                    buttonsEl.innerHTML = `<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>`;
+                }
+            },
+
+            // Quick-Start „Direkt-Sprung" zu einer Reco (Level + Subskill-Subset).
+            goToRecommendedLevel(level, optionsCsv) {
+                const opts = (optionsCsv || '').split(',').filter(Boolean);
+                document.getElementById('successScreen').classList.remove('active');
+                document.getElementById('successScreen').style.display = 'none';
+                this.start(level, opts);
+            },
+
+            // GF Stufe 3 — dim → RT-lokale Anzeige-Achse (notentyp folgt R1 wie notenwerte)
+            _gfDimAxisMap: {
+                notenwerte: 'notenwerte', notentyp: 'notenwerte',
+                taktart: 'taktart', zaehlzeit: 'zaehlzeit', rhythmussprache: 'rhythmussprache'
+            },
+
+            // Scope = Anzeige-Achsen, die das AKTUELLE Quiz tatsächlich gemessen
+            // hat (dim.total>0 im aktuellen errorTracker). Keine Aussage über
+            // einen Skill, den dieses Quiz nicht prüft (Scope-Regel §5.4).
+            _gfAxesInScope() {
+                const map = this._gfDimAxisMap;
+                const sc = [];
+                let d = null;
+                try { d = errorTracker.getSubskillPerformance(); } catch (e) {}
+                if (!d) return sc;
+                Object.keys(map).forEach(function (k) {
+                    if (d[k] && d[k].total > 0 && sc.indexOf(map[k]) === -1) sc.push(map[k]);
+                });
+                return sc;
+            },
+
+            // Session-gepoolte Performance je RT-lokaler Anzeige-Achse: Σc/Σt
+            // über alle Rhythmustrainer-Snapshots dieser Session.
+            _gfDimPerf() {
+                const map = this._gfDimAxisMap;
+                const acc = {
+                    notenwerte: { correct: 0, total: 0 },
+                    taktart: { correct: 0, total: 0 },
+                    zaehlzeit: { correct: 0, total: 0 },
+                    rhythmussprache: { correct: 0, total: 0 }
+                };
+                let snaps = [];
+                try { snaps = (tracker && tracker.gfSession) || []; } catch (e) {}
+                snaps.forEach(function (s) {
+                    if (!s || s.trainer !== 'Rhythmustrainer' || !s.dims) return;
+                    Object.keys(s.dims).forEach(function (dim) {
+                        const ax = map[dim], dd = s.dims[dim];
+                        if (!ax || !dd || !dd.total) return;
+                        acc[ax].correct += dd.correct; acc[ax].total += dd.total;
+                    });
+                });
+                Object.keys(acc).forEach(function (k) {
+                    const a = acc[k];
+                    a.pct = a.total > 0 ? Math.round(a.correct / a.total * 100) : null;
+                });
+                return acc;
+            },
+
+            // Meilenstein-Stufe: subskill | node | trainer
+            _gfMilestoneTier() {
+                const lvl = this.currentLevel;
+                const nd = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === lvl);
+                const subs = (this.nodeSubSkills[nd] || []).map(s => s.id);
+                const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+                const nodeDone = subs.length > 0 && subs.every(o => m.includes(o));
+                if (!nodeDone) return 'subskill';
+                const trainerDone = Object.keys(this.nodeToLevel).every(_nd => {
+                    const L = this.nodeToLevel[_nd];
+                    const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                    return (this.nodeSubSkills[_nd] || []).every(s => mm.includes(s.id));
+                });
+                return trainerDone ? 'trainer' : 'node';
+            },
+
+            // Forward-Item (klickbarer Direkt-Starter) je Meilenstein-Stufe
+            _gfForwardItem(tier) {
+                if (tier === 'trainer') {
+                    return '<button class="reco-item" onclick="window.location.href=\'index.html\'">Zurück zur Trainer-Übersicht</button>';
+                }
+                const order = Object.keys(this.nodeToLevel);
+                const subLabel = (nd, id) => {
+                    const arr = (this.nodeSubSkills[nd] || []);
+                    const hit = arr.find(s => s.id === id);
+                    return hit ? hit.label : id;
+                };
+                if (tier === 'node') {
+                    for (const nd of order) {
+                        const L = this.nodeToLevel[nd];
+                        const mm = (this.progress[L] && this.progress[L].mastered) || [];
+                        const open = (this.nodeSubSkills[nd] || []).map(s => s.id).find(o => !mm.includes(o));
+                        if (open) {
+                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + (GF_RT.nodeName[L] || L) + ' – ' + subLabel(nd, open) + '</button>';
+                        }
+                    }
+                    return '';
+                }
+                const lvl = this.currentLevel;
+                const node = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === lvl);
+                const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
+                const nx = (this.nodeSubSkills[node] || []).map(s => s.id).find(o => !m.includes(o));
+                if (!nx) return '';
+                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + (GF_RT.nodeName[lvl] || lvl) + ' – ' + subLabel(node, nx) + '</button>';
             },
 
             retryQuiz() {
@@ -5331,6 +5639,7 @@ Gerät:
                             const _p = { isCorrect: isCorrect };
                             const _d = _m[this.settings.taskType];
                             if (_d) _p[_d] = isCorrect;
+                            if (!isCorrect) _p.errLine = correct + ' → du hast ' + selected + ' gewählt';
                             errorTracker.logAnswer(_p);
                         } catch (e) {}
                     }
@@ -5675,6 +5984,13 @@ Gerät:
                     if (!this.freeRetry) {
                         this.score.total++;
                         if (isCorrect) this.score.correct++;
+                        try {
+                            const _correctName = (this.noteValues[correct.type] && this.noteValues[correct.type].name) || correct.type;
+                            const _selectedName = (this.noteValues[selected.type] && this.noteValues[selected.type].name) || selected.type;
+                            const _p = { isCorrect: isCorrect, notentypOk: isCorrect };
+                            if (!isCorrect) _p.errLine = _correctName + ' → du hast ' + _selectedName + ' geklickt';
+                            errorTracker.logAnswer(_p);
+                        } catch (e) {}
                     }
                     this.hasBeenChecked = true;
                     this.updateScoreDisplay();
@@ -7960,6 +8276,12 @@ Gerät:
                             const _p = { isCorrect: isCorrect };
                             const _d = _m[this.settings.taskType];
                             if (_d) _p[_d] = isCorrect;
+                            if (!isCorrect) {
+                                const _correctDisp = isCountingTime
+                                    ? this.currentTask.correctStartCounting
+                                    : this.currentTask.correctRhythmSyllable;
+                                _p.errLine = _correctDisp + ' → du hast "' + startInput.value.trim() + '" eingegeben';
+                            }
                             errorTracker.logAnswer(_p);
                         } catch (e) {}
                         if (isCorrect) {
@@ -8077,6 +8399,7 @@ Gerät:
                             const _p = { isCorrect: isCorrect };
                             const _d = _m[this.settings.taskType];
                             if (_d) _p[_d] = isCorrect;
+                            if (!isCorrect) _p.errLine = correctSum + ' → du hast ' + (isNaN(userAnswer) ? input.value.trim() : userAnswer) + ' eingegeben';
                             errorTracker.logAnswer(_p);
                         } catch (e) {}
                         if (isCorrect) {
