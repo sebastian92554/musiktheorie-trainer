@@ -2396,13 +2396,14 @@
                             });
                             q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
                         } else if (v === 'C') {
-                            // zaehlzeit + rhythmussprache schwach → zaehlzeit primär (tiefer)
+                            // zaehlzeit schwach UND notenwerte schwach (Voraussetzung)
+                            // → DAG-Walk: notenwerte primär (tiefer), zaehlzeit zusätzlich.
                             q.currentLevel = 'fortgeschrittener'; q.currentOptions = ['basis'];
                             setM('fortgeschrittener', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
                             E.reset();
                             var _cErr = ['1 und 2 → du hast "1 2" eingegeben', '3 und 4 → du hast "3 4" eingegeben'];
-                            for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, zaehlzeitOk: false, errLine: _cErr[i % _cErr.length] }); }
-                            T.gfSession = [{ trainer: 'Rhythmustrainer', level: 'fortgeschrittener', subskill: 'basis', mode: 'erkennen', inputType: 'counting-time', dims: { zaehlzeit: { correct: 1, total: 5 } } }];
+                            for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, zaehlzeitOk: false, notenwerteOk: false, errLine: _cErr[i % _cErr.length] }); }
+                            T.gfSession = [{ trainer: 'Rhythmustrainer', level: 'fortgeschrittener', subskill: 'basis', mode: 'erkennen', inputType: 'counting-time', dims: { zaehlzeit: { correct: 1, total: 5 }, notenwerte: { correct: 1, total: 5 } } }];
                         } else {
                             // B (default): notenwerte schwach (Addition) → notenwerte primär
                             q.currentLevel = 'einsteiger'; q.currentOptions = ['basis'];
@@ -8280,6 +8281,14 @@ Gerät:
                             const _p = { isCorrect: isCorrect };
                             const _d = _m[this.settings.taskType];
                             if (_d) _p[_d] = isCorrect;
+                            // Zählzeit + Rhythmussprache haben Notenwerte als Voraussetzung
+                            // (Notenwert bestimmt Position im Zählraster bzw. Silbe).
+                            // Notenwerte deshalb als parallele Fehlerquelle mitloggen —
+                            // GF-Reco zeigt dann ggf. notenwerte als tiefere Ursache.
+                            if (this.settings.taskType === 'counting-time' ||
+                                this.settings.taskType === 'rhythm-syllable') {
+                                _p.notenwerteOk = isCorrect;
+                            }
                             if (!isCorrect) {
                                 const _correctDisp = isCountingTime
                                     ? this.currentTask.correctStartCounting
