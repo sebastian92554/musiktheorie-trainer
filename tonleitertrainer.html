@@ -8150,8 +8150,9 @@
                 return { root: '_other', type: '_Other' };
             }
 
-            // Known roots (lowercase)
-            const allRoots = ['fis', 'cis', 'gis', 'dis', 'ais', 'es', 'as', 'des', 'ges', 'c', 'g', 'd', 'a', 'e', 'f', 'b', 'h'];
+            // Known roots (lowercase). Wichtig: längere Präfixe ZUERST,
+            // damit z. B. „ces" nicht zu „c" + „es..." fehl-geparst wird.
+            const allRoots = ['fis', 'cis', 'gis', 'dis', 'ais', 'ces', 'des', 'ges', 'es', 'as', 'b', 'c', 'g', 'd', 'a', 'e', 'f', 'h'];
 
             // Try to match root at start
             let rawRoot = null;
@@ -8194,8 +8195,15 @@
                 'Mixolydisch': ['G', 'C', 'D'],
                 'Lokrisch': ['H', 'E', 'Fis']
             };
-            const durRoots = ['C', 'G', 'D', 'A', 'E', 'F', 'B', 'Es', 'As'];
-            const mollRoots = ['a', 'e', 'h', 'fis', 'cis', 'd', 'g', 'c', 'f'];
+            // Vollständige enharmonische Dur/Moll-Wurzel-Listen — Format-Erkennung
+            // ist hier ENTKOPPELT vom aktuellen Test-Pool: der Parser akzeptiert
+            // jede musikalisch valide Schreibweise (auch wenn die Tonart nicht
+            // im aktuellen Subskill-Pool vorkommt). Korrekt-Vergleich passiert
+            // danach gegen this.currentScale.root/type.
+            const durRoots = ['C', 'G', 'D', 'A', 'E', 'H', 'Fis', 'Cis', 'Gis', 'Dis', 'Ais',
+                              'F', 'B', 'Es', 'As', 'Des', 'Ges', 'Ces'];
+            const mollRoots = ['a', 'e', 'h', 'fis', 'cis', 'gis', 'dis', 'ais',
+                               'd', 'g', 'c', 'f', 'b', 'es', 'as', 'des', 'ges'];
 
             let root;
             if (type === 'Dur') {
