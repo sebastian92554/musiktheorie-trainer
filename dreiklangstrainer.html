@@ -5824,16 +5824,25 @@ const _lernkartenContent = {
                     let invOctaves = { ...octaves };
 
                     if (this.quickStartMode === 'meister' || this.settings.includeInversions) {
-                        // Anti-Repeat: Nicht dieselbe Umkehrung wie die letzten 2 Male
+                        // Eskalation innerhalb des Quiz: Inversions-Pool wächst
+                        // mit Frage-Nr (Q1-3 nur Grundstellung, Q4-6 + Sextakkord,
+                        // Q7-10 + Quartsextakkord). Pädagogisch: erst Grundform
+                        // sicher, dann Umkehrungen schrittweise dazu.
+                        let allowed = [0, 1, 2];
+                        if (quickStart.isActive) {
+                            const q = quickStart.questionsAnswered;
+                            if (q <= 2) allowed = [0];
+                            else if (q <= 5) allowed = [0, 1];
+                        }
+                        // Varianz: 2-Tier-Anti-Repeat innerhalb des erlaubten Pools
                         const prevInv = this.previousTask ? this.previousTask.inversion : null;
                         const prevPrevInv = this.previousTask ? this.previousTask.prevInversion : null;
+                        let candidates = allowed;
                         if (prevInv !== null && prevInv === prevPrevInv) {
-                            // 2x gleiche Umkehrung → nur aus den anderen beiden wählen
-                            const alternatives = [0, 1, 2].filter(i => i !== prevInv);
-                            inversion = alternatives[Math.floor(Math.random() * alternatives.length)];
-                        } else {
-                            inversion = Math.floor(Math.random() * 3);
+                            const alt = candidates.filter(i => i !== prevInv);
+                            if (alt.length > 0) candidates = alt;
                         }
+                        inversion = candidates[Math.floor(Math.random() * candidates.length)];
 
                         const octaveOrderLoop = ['kontra', 'gross', 'klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
                         const nextOctaveLoop = (oct) => {

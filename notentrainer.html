@@ -4542,8 +4542,12 @@
                         : this.settings.clef;
                     
                     let octaveOptions;
+                    // Eskalation: in Hilfslinien-Subskills (extendedRange) sollen
+                    // die Hilfslinien-Oktaven erst ab Q4 vorkommen. Q1-3 nur
+                    // Standard-Bereich (innerhalb der 5 Linien).
+                    const _earlyQ = quickStart.isActive && quickStart.questionsAnswered <= 2;
                     if (clef === 'treble') {
-                        if (this.settings.extendedRange) {
+                        if (this.settings.extendedRange && !_earlyQ) {
                             // Hilfslinien: klein (unter Notensystem) + Standard-Bereich
                             // Keyboard-Bereich: 24-60, daher kein dreigestrichen (würde 60-71 erzeugen)
                             octaveOptions = ['klein', 'klein', 'eingestrichen', 'zweigestrichen', 'zweigestrichen'];
@@ -4551,7 +4555,7 @@
                             octaveOptions = ['eingestrichen', 'zweigestrichen'];
                         }
                     } else {
-                        if (this.settings.extendedRange) {
+                        if (this.settings.extendedRange && !_earlyQ) {
                             // Hilfslinien: kontra (unter Notensystem) + Standard-Bereich
                             // Keyboard-Bereich: 0-36, daher kein eingestrichen (würde 36-47 erzeugen)
                             octaveOptions = ['kontra', 'kontra', 'gross', 'klein', 'klein'];

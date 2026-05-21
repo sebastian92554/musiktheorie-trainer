@@ -4266,8 +4266,22 @@
                         }
                     }
                     
+                    // Eskalation innerhalb des Quiz: in mixed-Quality-Subskills
+                    // (3+ Qualitäten mit ü/v dabei) sollen die schwereren Qualitäten
+                    // erst später kommen. Q1-3 nur leichte (rein/groß/klein),
+                    // Q4-10 voller Pool inkl. übermäßig/vermindert.
+                    if (quickStart.isActive && possibleQualities.length > 2 &&
+                        possibleQualities.indexOf('übermäßig') !== -1) {
+                        const _qNr = quickStart.questionsAnswered;
+                        if (_qNr <= 2) {
+                            const _filtered = possibleQualities.filter(qq =>
+                                qq !== 'übermäßig' && qq !== 'vermindert');
+                            if (_filtered.length > 0) possibleQualities = _filtered;
+                        }
+                    }
+
                     const quality = possibleQualities[Math.floor(Math.random() * possibleQualities.length)];
-                    
+
                     const targetSemitones = this.semitones[`${quality}-${intervalSize}`];
 
                     // Unlösbare Intervalle bei Tastatur-Modus verhindern:
