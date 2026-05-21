@@ -5644,6 +5644,9 @@ Gerät:
                             const _p = { isCorrect: isCorrect };
                             const _d = _m[this.settings.taskType];
                             if (_d) _p[_d] = isCorrect;
+                            // Taktart-Bestimmung setzt sicheres Zusammenzählen der
+                            // Notenwerte voraus → notenwerte als Foundation mitloggen.
+                            if (this.settings.taskType === 'time-signature-id') _p.notenwerteOk = isCorrect;
                             if (!isCorrect) _p.errLine = correct + ' → du hast ' + selected + ' gewählt';
                             errorTracker.logAnswer(_p);
                         } catch (e) {}
@@ -5992,7 +5995,10 @@ Gerät:
                         try {
                             const _correctName = (this.noteValues[correct.type] && this.noteValues[correct.type].name) || correct.type;
                             const _selectedName = (this.noteValues[selected.type] && this.noteValues[selected.type].name) || selected.type;
-                            const _p = { isCorrect: isCorrect, notentypOk: isCorrect };
+                            // notentyp ist im _gfDimAxisMap auf notenwerte gemappt
+                            // (Form↔Wert-Kompetenz). notenwerte zusätzlich explizit
+                            // mitloggen → Foundation-Signal sichtbar in der Dim selbst.
+                            const _p = { isCorrect: isCorrect, notentypOk: isCorrect, notenwerteOk: isCorrect };
                             if (!isCorrect) _p.errLine = _correctName + ' → du hast ' + _selectedName + ' geklickt';
                             errorTracker.logAnswer(_p);
                         } catch (e) {}
@@ -6248,6 +6254,24 @@ Gerät:
                 if (!this.hasBeenChecked) {
                     this.score.total++;
                     if (isCorrect) this.score.correct++;
+                    // GF Diktat (rhy6): notenwerte als Foundation loggen — User muss
+                    // Notenwerte sicher erkennen, um die richtigen Noten-Buttons zu
+                    // wählen. errLine: erste falsche Position als Beispiel.
+                    try {
+                        let _errLine = null;
+                        if (!isCorrect) {
+                            for (let i = 0; i < totalNotes; i++) {
+                                if (results[i] === 'wrong') {
+                                    const _o = original[i], _u = user[i];
+                                    const _oName = _o && this.noteValues[_o.type] ? this.noteValues[_o.type].name : (_o ? _o.type : '(leer)');
+                                    const _uName = _u && this.noteValues[_u.type] ? this.noteValues[_u.type].name : (_u ? _u.type : '(leer)');
+                                    _errLine = 'Pos ' + (i + 1) + ': ' + _oName + ' → du hast ' + _uName + ' gesetzt';
+                                    break;
+                                }
+                            }
+                        }
+                        errorTracker.logAnswer({ isCorrect: isCorrect, notenwerteOk: isCorrect, errLine: _errLine });
+                    } catch (e) {}
                     this.hasBeenChecked = true;
                     this.updateScoreDisplay();
                 }
