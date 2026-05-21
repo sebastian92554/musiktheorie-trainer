@@ -3045,6 +3045,9 @@
                 // Varianz-History für neuen Level resetten
                 app.recentIntervals = [];
                 app.recentStartNotes = [];
+                app.previousTask = null;
+                // Quiz-weite exakte-Task-Usage: max 2× pro Task-ID pro Quiz
+                app._quizTaskUsage = {};
 
                 // Keyboard-Card sichtbar machen (falls zuvor versteckt)
                 const kbCard = document.getElementById('keyboardCard');
@@ -4329,7 +4332,15 @@
                     };
 
                     const taskId = `${newInterval.note1.name}-${newInterval.note1.octave}-${newInterval.note2.name}-${newInterval.note2.octave}-${newInterval.quality}`;
-                    
+
+                    // Quiz-weite Cap: max 2× pro Task-ID pro 10er-Quiz
+                    if (quickStart.isActive && this._quizTaskUsage &&
+                        (this._quizTaskUsage[taskId] || 0) >= 2) {
+                        attempts++;
+                        if (attempts < 30) continue;
+                        // nach 30 Fehlversuchen Cap aufweichen (Pool zu klein)
+                    }
+
                     if ((intervalSize === 1 || intervalSize === 8) && quality === 'rein') {
                         if (Math.random() < 0.75) {
                             attempts++;
@@ -4379,7 +4390,11 @@
                 } while (attempts < 50);
                 
                 this.currentInterval = newInterval;
-                
+                // Quiz-Usage zählen (Task-ID basiert)
+                if (!this._quizTaskUsage) this._quizTaskUsage = {};
+                const _taskKey = `${newInterval.note1.name}-${newInterval.note1.octave}-${newInterval.note2.name}-${newInterval.note2.octave}-${newInterval.quality}`;
+                this._quizTaskUsage[_taskKey] = (this._quizTaskUsage[_taskKey] || 0) + 1;
+
                 // VARIANZ: Intervallgröße zum History-Array hinzufügen (max. 15 Einträge)
                 this.recentIntervals.push(newInterval.size);
                 if (this.recentIntervals.length > 15) {

@@ -3167,6 +3167,10 @@
                 this.questionsCorrect = 0;
                 this.isRetry = false;
                 this.isActive = true;
+                // Quiz-weite Akkord-Usage zurücksetzen (max 2× pro Akkord-ID/Quiz)
+                app.previousTask = null;
+                app.recentRootNotes = [];
+                app._quizChordUsage = {};
 
                 if (optionsFromSkilltree) {
                     this.currentOptions = [...optionsFromSkilltree];
@@ -5800,6 +5804,20 @@ const _lernkartenContent = {
                     if (this.recentRootNotes.includes(rootNote)) {
                         continue; // Grundton war kürzlich dran → neu würfeln
                     }
+
+                    // Quiz-weite Cap: max 2× pro Akkord-Identität (root+type+inversion)
+                    // pro 10er-Quiz. Inversion ist hier noch unbekannt → vorerst
+                    // nur root+type prüfen, finaler Check nach Inversionswahl unten.
+                    if (quickStart.isActive && this._quizChordUsage) {
+                        const rtKey = rootNote + '-' + chordType;
+                        if ((this._quizChordUsage[rtKey + '-0'] || 0) >= 2 &&
+                            (this._quizChordUsage[rtKey + '-1'] || 0) >= 2 &&
+                            (this._quizChordUsage[rtKey + '-2'] || 0) >= 2) {
+                            // alle 3 Inversionen schon je 2× → diese Akkord-ID
+                            // vermeiden (sofern Pool noch andere bietet).
+                            if (attempts < 30) { attempts++; continue; }
+                        }
+                    }
                     
                     // ===== UMKEHRUNG (im MEISTER-Modus) =====
                     let inversion = 0;
@@ -5900,6 +5918,14 @@ const _lernkartenContent = {
                         }
                     }
 
+                    // Quiz-weite Cap (final): root+type+inversion max 2× im Quiz.
+                    const _chordKey = rootNote + '-' + chordType + '-' + inversion;
+                    if (quickStart.isActive && this._quizChordUsage &&
+                        (this._quizChordUsage[_chordKey] || 0) >= 2) {
+                        if (attempts < 30) { attempts++; continue; }
+                        // nach 30 Fehlversuchen Cap aufweichen (Pool ausgeschöpft).
+                    }
+
                     // Alle Prüfungen erfolgreich! Speichere validChord mit allen Infos
                     validChord = {
                         rootNote: rootNote,
@@ -5915,6 +5941,9 @@ const _lernkartenContent = {
                         finalNotes: finalNotes,
                         finalOctaves: finalOctaves
                     };
+                    // Quiz-Usage zählen
+                    if (!this._quizChordUsage) this._quizChordUsage = {};
+                    this._quizChordUsage[_chordKey] = (this._quizChordUsage[_chordKey] || 0) + 1;
 
                     // History-Buffer aktualisieren
                     this.recentRootNotes.push(rootNote);

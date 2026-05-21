@@ -2815,6 +2815,9 @@
                 this.questionsCorrect = 0;
                 this.isRetry = false;
                 this.isActive = true;
+                // Quiz-weite Noten-Usage zurücksetzen (max 2× pro Noten-ID/Quiz)
+                app.previousNotes = [];
+                app._quizNoteUsage = {};
 
                 if (optionsFromSkilltree) {
                     this.currentOptions = [...optionsFromSkilltree];
@@ -4560,20 +4563,29 @@
                     const octave = octaveOptions[Math.floor(Math.random() * octaveOptions.length)];
                     
                     newNote = { name: noteName, octave, clef };
-                    
+
                     const noteId = `${newNote.name}-${newNote.octave}-${newNote.clef}`;
-                    
+
+                    // Quiz-weite Usage: max 2× pro Noten-ID pro 10er-Quiz.
+                    // Bei aktivem Quiz wird die Note abgelehnt, sobald Cap erreicht.
+                    if (quickStart.isActive && this._quizNoteUsage &&
+                        (this._quizNoteUsage[noteId] || 0) >= 2) {
+                        attempts++;
+                        if (attempts < 30) continue;
+                        // nach 30 Fehlversuchen Cap aufweichen (Fallback)
+                    }
+
                     if (this.previousNotes.length > 0) {
                         const lastNoteId = this.previousNotes[this.previousNotes.length - 1];
-                        
+
                         if (noteId === lastNoteId) {
                             attempts++;
                             continue;
                         }
-                        
+
                         if (this.previousNotes.length >= 2) {
                             const inRecentTwo = this.previousNotes.slice(-2, -1).includes(noteId);
-                            
+
                             if (inRecentTwo) {
                                 if (Math.random() < 0.5) {
                                     attempts++;
@@ -4582,15 +4594,18 @@
                             }
                         }
                     }
-                    
+
                     break;
-                    
+
                 } while (attempts < 50);
                 
                 this.currentNote = newNote;
-                
+
                 const noteId = `${newNote.name}-${newNote.octave}-${newNote.clef}`;
                 this.previousNotes.push(noteId);
+                // Quiz-Usage zählen
+                if (!this._quizNoteUsage) this._quizNoteUsage = {};
+                this._quizNoteUsage[noteId] = (this._quizNoteUsage[noteId] || 0) + 1;
                 if (this.previousNotes.length > 3) {
                     this.previousNotes.shift();
                 }
