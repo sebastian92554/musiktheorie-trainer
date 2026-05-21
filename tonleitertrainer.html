@@ -3427,6 +3427,12 @@
             app.buildingTaskCounter = 0;
             app._buildingTypeHistory = [];
             app._buildingScaleUsage = {};
+            // Quiz-weites Tonleiter-Tracking (Einsteiger/Aufsteiger/Profi):
+            // verhindert, dass dieselbe Tonleiter zu oft im selben 10er-Quiz
+            // gezogen wird (analog _buildingScaleUsage für Bilden).
+            app._quizScaleUsage = {};
+            app._lastTypeHistory = [];
+            app._lastSubTypeHistory = [];
 
             // Collect options — aus Skilltree-State oder Fallback
             if (optionsFromSkilltree) {
@@ -5235,7 +5241,7 @@
                 allScales = scaleData;
             } else {
                 // Balanced selection: Aufsteiger = 2:1 Dur/Moll:Andere, Profi = 2:1
-                const { durMoll, kirchen } = scaleData;
+                let { durMoll, kirchen } = scaleData;
                 if (this.currentStage === 'aufsteiger') {
                     // 2:1 ratio Dur/Moll vs Kirchentonart, then equal mode probability within group
                     if (kirchen.length > 0 && Math.random() < 0.33) {
@@ -5260,6 +5266,23 @@
                         allScales = modeGroups[chosenType];
                     }
                 } else if (this.currentStage === 'profi') {
+                    // VZ-Eskalation innerhalb des Quiz für Subskills mit großem
+                    // Pool (alles, ohne_hilfe, noaudio): Q1-3 max 2 VZ, Q4-7 max
+                    // 4 VZ, Q8-10 voller Pool. Pädagogisch: Einstieg leicht,
+                    // Steigerung im Quizverlauf.
+                    const subsAllowingHighVZ = ['alles', 'ohne_hilfe', 'noaudio'];
+                    const currentSub = quickStart.currentOptions[quickStart.currentOptions.length - 1];
+                    if (subsAllowingHighVZ.indexOf(currentSub) !== -1) {
+                        const q = quickStart.questionsAnswered;
+                        let maxVZ;
+                        if (q <= 2) maxVZ = 2;
+                        else if (q <= 6) maxVZ = 4;
+                        else maxVZ = 7;
+                        const _dm = durMoll.filter(s => s.vorzeichen <= maxVZ);
+                        const _ki = kirchen.filter(s => s.vorzeichen <= maxVZ);
+                        if (_dm.length > 0) durMoll = _dm;
+                        if (_ki.length > 0) kirchen = _ki;
+                    }
                     // Alle Profi-Modi: 2:1 Dur/Moll vs Kirchentonart
                     {
                         if (!this._lastTypeHistory) this._lastTypeHistory = [];
@@ -5298,6 +5321,15 @@
                 pool = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
                 if (pool.length === 0) pool = allScales;
             }
+            // Quiz-weite Tonleiter-Usage: max 2× pro Skala pro 10er-Quiz
+            // (didaktisch: Wiederholung ok, aber nicht überladen). Reset in
+            // quickStart.start(). Fallback wenn dadurch Pool leer.
+            if (!this._quizScaleUsage) this._quizScaleUsage = {};
+            const usageLimited = pool.filter(s => {
+                const key = s.root + '-' + s.type;
+                return (this._quizScaleUsage[key] || 0) < 2;
+            });
+            if (usageLimited.length > 0) pool = usageLimited;
             // After 2× same sub-type in a row, try to pick a different one
             if (!this._lastSubTypeHistory) this._lastSubTypeHistory = [];
             const lastSub2 = this._lastSubTypeHistory.slice(-2);
@@ -5308,6 +5340,9 @@
             scale = useWeighting ? this.weightedRandomScale(pool) : pool[Math.floor(Math.random() * pool.length)];
             this._lastSubTypeHistory.push(scale.type);
             if (this._lastSubTypeHistory.length > 5) this._lastSubTypeHistory.shift();
+            // Usage-Counter aktualisieren
+            const _usageKey = scale.root + '-' + scale.type;
+            this._quizScaleUsage[_usageKey] = (this._quizScaleUsage[_usageKey] || 0) + 1;
 
             // For bass clef in Profi, shift octaves down to fit bass staff (max 1 ledger line)
             let octaves = scale.octaves;
