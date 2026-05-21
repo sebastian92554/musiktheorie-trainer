@@ -66,37 +66,9 @@
   ol.steps { padding-left: 1.25rem; }
   ol.steps li { margin: 0.3rem 0; }
   .muted { color: var(--gray-500); }
-
-  /* PIN-Gate Overlay */
-  #pinGate { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.95);
-    display: flex; align-items: center; justify-content: center; z-index: 9999; }
-  #pinGate.hidden { display: none; }
-  #pinGate .pin-box { background: white; padding: 2rem 2.5rem; border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3); text-align: center; max-width: 320px; }
-  #pinGate h2 { margin: 0 0 0.5rem; color: var(--indigo-dark); font-size: 1.15rem; }
-  #pinGate p { color: var(--gray-500); font-size: 0.85rem; margin: 0 0 1rem; }
-  #pinInput { width: 8rem; padding: 0.6rem; font-size: 1.5rem; letter-spacing: 0.3em;
-    text-align: center; border: 2px solid var(--gray-200); border-radius: 8px; }
-  #pinInput:focus { outline: none; border-color: var(--indigo); }
-  #pinError { color: var(--red-dark); font-size: 0.85rem; margin-top: 0.5rem;
-    min-height: 1.2em; }
 </style>
 </head>
 <body>
-
-<!-- PIN-Frontdoor: blockiert das UI, bis 4-stellige PIN eingegeben wurde.
-     PIN wird lokal in localStorage gespeichert (kein Server-Vergleich) —
-     stoppt zufällige URL-Errater, ist aber kein Auth-System.
-     Echte Endpoint-Sicherheit liegt im SCHOOL_MARKER_TOKEN (Code.gs). -->
-<div id="pinGate">
-  <div class="pin-box">
-    <h2>🔒 Schulsession-Marker</h2>
-    <p>Bitte 4-stellige PIN eingeben.</p>
-    <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" autofocus>
-    <div id="pinError"></div>
-  </div>
-</div>
-
 <div class="container">
 
   <h1>🟢 Schulsession-Marker</h1>
@@ -178,45 +150,11 @@ const SHEET_NAME = 'School_Sessions';
 
 // Pre-shared Token — MUSS identisch sein mit SCHOOL_MARKER_TOKEN in Code.gs.
 // Bei Token-Wechsel hier UND in Code.gs anpassen, dann Apps-Script-Web-App
-// neu deployen.
+// neu deployen. (Echter Schutz gegen Endpoint-Spam; reicht aus, solange
+// die Datei nicht von Suchmaschinen indexiert wird — siehe noindex Meta.)
 const SCHOOL_MARKER_TOKEN = 'mt-2026-k7zQ9pX4vB8nL3cF';
 
-// PIN-Frontdoor: 4-stellige Zahl. Ändere diesen Wert bei Bedarf.
-// Speicherung der erfolgreichen Eingabe: localStorage (Browser-lokal).
-const ADMIN_PIN = '2658';
-
 document.getElementById('endpointPretty').textContent = SCRIPT_URL.substring(0, 60) + '…';
-
-// =====================================================================
-// PIN-Frontdoor (vor allen anderen Funktionen)
-// =====================================================================
-(function () {
-  const gate = document.getElementById('pinGate');
-  const input = document.getElementById('pinInput');
-  const err = document.getElementById('pinError');
-
-  // Bereits freigeschaltet? → Gate direkt verstecken
-  if (localStorage.getItem('schul_admin_unlocked') === '1') {
-    gate.classList.add('hidden');
-    return;
-  }
-
-  function tryUnlock() {
-    if (input.value === ADMIN_PIN) {
-      localStorage.setItem('schul_admin_unlocked', '1');
-      gate.classList.add('hidden');
-    } else if (input.value.length === 4) {
-      err.textContent = '✗ Falsche PIN.';
-      input.value = '';
-      setTimeout(() => { err.textContent = ''; }, 2000);
-    }
-  }
-
-  input.addEventListener('input', tryUnlock);
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') tryUnlock();
-  });
-})();
 
 // =====================================================================
 // Marker senden (Content-Type: text/plain → kein CORS-Preflight)
