@@ -1795,6 +1795,15 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #0e7490; }
+        /* Sprung-Buttons zu früheren Lernkarten (inline, kleiner als
+           der Standard-Lernkarte-Button am Karten-Ende). */
+        .lk-jump-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lernkarte .lk-jump-btn {
+            width: auto; padding: 8px 14px; font-size: 0.85rem;
+            margin-top: 0; background: #fff; color: #0891b2;
+            border: 2px solid #0891b2;
+        }
+        .lernkarte .lk-jump-btn:hover { background: #0891b2; color: #fff; }
         .vz-sharp, .vz-flat {
             display: inline-block;
             vertical-align: middle;
@@ -6877,7 +6886,12 @@
             ton3_alles: {
                 title: 'Alle Tonleitern',
                 body: `<p>Alle bisherigen Aufgabentypen werden jetzt <strong>gemischt</strong>: Tongeschlecht bestimmen, HT-Stufen finden und Tonleiter benennen.</p>
-                        <div class="lk-tip"><strong>Tipp:</strong> Unsicher? Schau dir die Lernkarten der vorherigen Sub-Skills nochmal an (Hilfe-Button).</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Unsicher? Hier kommst du direkt zu den vorherigen Lernkarten:
+                            <div class="lk-jump-row">
+                                <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button>
+                                <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — HT-Stufen + benennen</button>
+                            </div>
+                        </div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Löse alle Aufgabentypen im Mix.</div>`
             },
             ton3_ohne_hilfe: {
