@@ -247,27 +247,32 @@ function parseCsvLine(line) {
 }
 
 async function loadSessions() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-  let rows = [];
+  // Apps-Script-Endpoint statt direkter gviz-Fetch: Google sendet auf
+  // gviz kein Access-Control-Allow-Credentials:true, daher credentials:
+  // 'include' cross-origin geblockt → Catch-Branch („Sheet-Abruf
+  // fehlgeschlagen"). Apps Script hat per SpreadsheetApp Vollzugriff,
+  // der Token-Check schützt gegen Endpoint-Spam.
+  const url = SCRIPT_URL + '?action=list_sessions&token=' + encodeURIComponent(SCHOOL_MARKER_TOKEN) + '&n=200';
+  let data = [];
   try {
-    const r = await fetch(url, { credentials: 'include' });
-    if (r.status !== 200) {
-      document.getElementById('openSessions').innerHTML = '<p class="muted">Sheet noch nicht angelegt. Erster Marker erzeugt es automatisch.</p>';
+    const r = await fetch(url, { method: 'GET', redirect: 'follow' });
+    if (!r.ok) {
+      document.getElementById('openSessions').innerHTML = '<p class="muted">Sheet-Abruf fehlgeschlagen (HTTP ' + r.status + ').</p>';
       document.getElementById('history').innerHTML = '';
       return;
     }
-    const txt = await r.text();
-    rows = txt.split('\n').filter(Boolean).map(parseCsvLine);
+    const json = await r.json();
+    if (!json.success) {
+      document.getElementById('openSessions').innerHTML = '<p class="muted">Sheet-Abruf abgelehnt: ' + escapeHtml(json.error || 'unbekannt') + '</p>';
+      document.getElementById('history').innerHTML = '';
+      return;
+    }
+    data = Array.isArray(json.rows) ? json.rows : [];
   } catch (e) {
-    document.getElementById('openSessions').innerHTML = '<p class="muted">Sheet-Abruf fehlgeschlagen.</p>';
+    document.getElementById('openSessions').innerHTML = '<p class="muted">Sheet-Abruf fehlgeschlagen: ' + escapeHtml(e.message || String(e)) + '</p>';
     return;
   }
 
-  const header = rows.shift() || [];
-  // Erwartete Spalten: ts, klass, marker, note
-  const data = rows.map(r => ({
-    ts: r[0], klass: r[1], marker: r[2], note: r[3] || ''
-  }));
   // Pro Klasse: offen oder geschlossen?
   const byKlass = {};
   data.forEach(d => {
