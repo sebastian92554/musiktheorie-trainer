@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Anti-Indexierung: Suchmaschinen sollen diese Seite nicht aufnehmen. -->
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="googlebot" content="noindex,nofollow,noarchive">
+<title>Schulsession-Marker — Admin</title>
+<style>
+  :root {
+    --indigo: #4f46e5; --indigo-dark: #3730a3; --indigo-light: #eef2ff;
+    --green: #10b981; --green-dark: #047857;
+    --red: #ef4444; --red-dark: #b91c1c;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-500: #6b7280; --gray-700: #374151; --gray-900: #111827;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--gray-50); color: var(--gray-900); margin: 0; padding: 1rem; }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 0.25rem; color: var(--indigo-dark); }
+  .subtitle { color: var(--gray-500); font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .card { background: white; border-radius: 12px; padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); margin-bottom: 1rem; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 0.75rem; color: var(--gray-700); }
+  .row { display: flex; gap: 0.5rem; align-items: stretch; flex-wrap: wrap; }
+  input[type=text] { flex: 1; min-width: 120px; padding: 0.6rem 0.75rem;
+    font-size: 1rem; border: 2px solid var(--gray-200); border-radius: 8px; }
+  input[type=text]:focus { outline: none; border-color: var(--indigo); }
+  button { padding: 0.6rem 1rem; font-size: 0.95rem; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+  .btn-start { background: var(--green); color: white; }
+  .btn-start:hover { background: var(--green-dark); }
+  .btn-end   { background: var(--red); color: white; }
+  .btn-end:hover { background: var(--red-dark); }
+  .btn-copy  { background: var(--indigo); color: white; font-size: 0.85rem;
+    padding: 0.4rem 0.85rem; }
+  .btn-copy:hover { background: var(--indigo-dark); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+  .btn-secondary:hover { background: var(--gray-200); }
+
+  .status { padding: 0.6rem 0.85rem; border-radius: 8px; margin-top: 0.75rem;
+    font-size: 0.9rem; display: none; }
+  .status.ok      { background: #d1fae5; color: #064e3b; display: block; }
+  .status.err     { background: #fee2e2; color: #7f1d1d; display: block; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--gray-100); }
+  th { background: var(--gray-50); color: var(--gray-700); font-weight: 600; }
+  td.marker-start { color: var(--green-dark); font-weight: 600; }
+  td.marker-end   { color: var(--red-dark); }
+  td.marker-auto  { color: var(--gray-500); font-style: italic; }
+
+  .open-badge { display: inline-block; padding: 2px 8px; background: #fef3c7;
+    color: #78350f; border-radius: 4px; font-size: 0.75rem; margin-left: 0.5rem; }
+
+  .bm-block { background: var(--gray-50); padding: 0.75rem; border-radius: 8px;
+    font-family: ui-monospace, 'Cascadia Code', monospace; font-size: 0.7rem;
+    word-break: break-all; max-height: 80px; overflow: auto; margin-bottom: 0.5rem;
+    border: 1px solid var(--gray-200); }
+  .help { font-size: 0.8rem; color: var(--gray-500); line-height: 1.5; margin-top: 0.5rem; }
+  .help code { background: var(--gray-100); padding: 1px 4px; border-radius: 3px;
+    font-family: ui-monospace, monospace; font-size: 0.85em; }
+  ol.steps { padding-left: 1.25rem; }
+  ol.steps li { margin: 0.3rem 0; }
+  .muted { color: var(--gray-500); }
+
+  /* PIN-Gate Overlay */
+  #pinGate { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.95);
+    display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  #pinGate.hidden { display: none; }
+  #pinGate .pin-box { background: white; padding: 2rem 2.5rem; border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3); text-align: center; max-width: 320px; }
+  #pinGate h2 { margin: 0 0 0.5rem; color: var(--indigo-dark); font-size: 1.15rem; }
+  #pinGate p { color: var(--gray-500); font-size: 0.85rem; margin: 0 0 1rem; }
+  #pinInput { width: 8rem; padding: 0.6rem; font-size: 1.5rem; letter-spacing: 0.3em;
+    text-align: center; border: 2px solid var(--gray-200); border-radius: 8px; }
+  #pinInput:focus { outline: none; border-color: var(--indigo); }
+  #pinError { color: var(--red-dark); font-size: 0.85rem; margin-top: 0.5rem;
+    min-height: 1.2em; }
+</style>
+</head>
+<body>
+
+<!-- PIN-Frontdoor: blockiert das UI, bis 4-stellige PIN eingegeben wurde.
+     PIN wird lokal in localStorage gespeichert (kein Server-Vergleich) —
+     stoppt zufällige URL-Errater, ist aber kein Auth-System.
+     Echte Endpoint-Sicherheit liegt im SCHOOL_MARKER_TOKEN (Code.gs). -->
+<div id="pinGate">
+  <div class="pin-box">
+    <h2>🔒 Schulsession-Marker</h2>
+    <p>Bitte 4-stellige PIN eingeben.</p>
+    <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" autofocus>
+    <div id="pinError"></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <h1>🟢 Schulsession-Marker</h1>
+  <p class="subtitle">Markert ein 90-Min-Zeitfenster pro Klasse im Tracking-Sheet.
+    Auto-End nach 90 Min greift automatisch — keine zweite Aktion nötig.</p>
+
+  <!-- Aktion -->
+  <div class="card">
+    <h2>Session starten oder beenden</h2>
+    <div class="row">
+      <input type="text" id="klassInput" placeholder="Klasse (z. B. 6a)" autocomplete="off">
+      <button class="btn-start" id="btnStart">🟢 Start</button>
+      <button class="btn-end" id="btnEnd">🔴 Ende</button>
+    </div>
+    <div class="status" id="status"></div>
+    <p class="help">
+      „Ende" beendet immer die <strong>letzte offene Session der eingegebenen Klasse</strong>.
+      Ohne Klasse: beendet die zuletzt offene Session überhaupt.
+    </p>
+  </div>
+
+  <!-- Offene Sessions -->
+  <div class="card">
+    <h2>Offene Sessions <span id="openCount" class="muted"></span></h2>
+    <div id="openSessions">
+      <p class="muted">Laden…</p>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <h2>Verlauf (letzte 20 Marker)</h2>
+    <div id="history">
+      <p class="muted">Laden…</p>
+    </div>
+    <button class="btn-secondary" id="btnReload" style="margin-top: 0.75rem;">↻ Neu laden</button>
+  </div>
+
+  <!-- Bookmarklets -->
+  <div class="card">
+    <h2>Bookmarklets (einmal einrichten, dann 1 Klick)</h2>
+    <p class="help">
+      Damit kannst du eine Schulsession mit einem einzigen Klick in der
+      Lesezeichenleiste starten/beenden — ohne diese Seite öffnen zu müssen.
+    </p>
+    <ol class="steps">
+      <li>Lesezeichenleiste sichtbar machen (<code>Cmd-Shift-B</code> in Chrome).</li>
+      <li>Den Knopf <strong>„📋 START kopieren"</strong> drücken.</li>
+      <li>Rechtsklick in die Lesezeichenleiste → <em>Lesezeichen hinzufügen</em>.</li>
+      <li>Name: <code>🟢 SCHUL-START</code>, URL: einfügen (Cmd-V) → Speichern.</li>
+      <li>Wiederholen mit <strong>„📋 ENDE kopieren"</strong> → <code>🔴 SCHUL-ENDE</code>.</li>
+    </ol>
+
+    <div style="margin-top: 1rem;">
+      <strong>🟢 START</strong>
+      <div class="bm-block" id="bmStart"></div>
+      <button class="btn-copy" data-copy="bmStart">📋 START kopieren</button>
+    </div>
+    <div style="margin-top: 1rem;">
+      <strong>🔴 ENDE</strong>
+      <div class="bm-block" id="bmEnd"></div>
+      <button class="btn-copy" data-copy="bmEnd">📋 ENDE kopieren</button>
+    </div>
+  </div>
+
+  <p class="muted" style="text-align:center; font-size: 0.75rem;">
+    Endpoint: <code id="endpointPretty"></code><br>
+    Sheet: <code>School_Sessions</code> · Auto-End nach 90 Min
+  </p>
+</div>
+
+<script>
+// =====================================================================
+// Konfiguration — gleicher Endpoint wie Trainer-Tracking
+// =====================================================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec';
+const SHEET_ID   = '1W7lLRY7qiu-7QWiJFTba-Ax-MiaGMVshnkWrgB2UaQM';
+const SHEET_NAME = 'School_Sessions';
+
+// Pre-shared Token — MUSS identisch sein mit SCHOOL_MARKER_TOKEN in Code.gs.
+// Bei Token-Wechsel hier UND in Code.gs anpassen, dann Apps-Script-Web-App
+// neu deployen.
+const SCHOOL_MARKER_TOKEN = 'mt-2026-k7zQ9pX4vB8nL3cF';
+
+// PIN-Frontdoor: 4-stellige Zahl. Ändere diesen Wert bei Bedarf.
+// Speicherung der erfolgreichen Eingabe: localStorage (Browser-lokal).
+const ADMIN_PIN = '2658';
+
+document.getElementById('endpointPretty').textContent = SCRIPT_URL.substring(0, 60) + '…';
+
+// =====================================================================
+// PIN-Frontdoor (vor allen anderen Funktionen)
+// =====================================================================
+(function () {
+  const gate = document.getElementById('pinGate');
+  const input = document.getElementById('pinInput');
+  const err = document.getElementById('pinError');
+
+  // Bereits freigeschaltet? → Gate direkt verstecken
+  if (localStorage.getItem('schul_admin_unlocked') === '1') {
+    gate.classList.add('hidden');
+    return;
+  }
+
+  function tryUnlock() {
+    if (input.value === ADMIN_PIN) {
+      localStorage.setItem('schul_admin_unlocked', '1');
+      gate.classList.add('hidden');
+    } else if (input.value.length === 4) {
+      err.textContent = '✗ Falsche PIN.';
+      input.value = '';
+      setTimeout(() => { err.textContent = ''; }, 2000);
+    }
+  }
+
+  input.addEventListener('input', tryUnlock);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryUnlock();
+  });
+})();
+
+// =====================================================================
+// Marker senden (Content-Type: text/plain → kein CORS-Preflight)
+// =====================================================================
+async function sendMarker(marker, klass) {
+  const payload = {
+    type: 'session_marker',
+    token: SCHOOL_MARKER_TOKEN, // verifiziert serverseitig in Code.gs
+    marker: marker,             // 'start' | 'end'
+    klass: String(klass || '').trim(),
+    ts: new Date().toISOString(),
+    note: ''
+  };
+  try {
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      redirect: 'follow'
+    });
+    const txt = await r.text();
+    let ok = false;
+    try { ok = JSON.parse(txt).success === true; } catch (e) {}
+    return { ok, raw: txt };
+  } catch (e) {
+    return { ok: false, raw: 'Netzwerkfehler: ' + e.message };
+  }
+}
+
+function showStatus(msg, isErr) {
+  const el = document.getElementById('status');
+  el.className = 'status ' + (isErr ? 'err' : 'ok');
+  el.textContent = msg;
+  setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+// =====================================================================
+// UI: Start/End-Buttons
+// =====================================================================
+document.getElementById('btnStart').addEventListener('click', async () => {
+  const klass = document.getElementById('klassInput').value.trim();
+  if (!klass) { showStatus('Bitte Klasse eingeben (z. B. 6a).', true); return; }
+  localStorage.setItem('lastKlass', klass);
+  showStatus('Sende START-Marker für ' + klass + '…');
+  const r = await sendMarker('start', klass);
+  if (r.ok) {
+    showStatus('✓ Session "' + klass + '" gestartet um ' + nowHHMM() + ' Uhr. Auto-End nach 90 Min.');
+    setTimeout(loadSessions, 1500);
+  } else {
+    showStatus('Fehler: ' + r.raw, true);
+  }
+});
+
+document.getElementById('btnEnd').addEventListener('click', async () => {
+  const klass = document.getElementById('klassInput').value.trim();
+  showStatus('Sende ENDE-Marker' + (klass ? ' für ' + klass : '') + '…');
+  const r = await sendMarker('end', klass);
+  if (r.ok) {
+    showStatus('✓ ENDE-Marker gesetzt' + (klass ? ' für ' + klass : '') + '.');
+    setTimeout(loadSessions, 1500);
+  } else {
+    showStatus('Fehler: ' + r.raw, true);
+  }
+});
+
+document.getElementById('btnReload').addEventListener('click', loadSessions);
+
+function nowHHMM() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+// =====================================================================
+// Live-View: Sheet via gviz auslesen (CSV-Parsing, keine Auth nötig
+// wenn du im Browser eingeloggt bist)
+// =====================================================================
+function parseCsvLine(line) {
+  // simple CSV parser für "a","b","c"
+  const out = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; continue; }
+    if (c === ',' && !inQ) { out.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+
+async function loadSessions() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  let rows = [];
+  try {
+    const r = await fetch(url, { credentials: 'include' });
+    if (r.status !== 200) {
+      document.getElementById('openSessions').innerHTML = '<p class="muted">Sheet noch nicht angelegt. Erster Marker erzeugt es automatisch.</p>';
+      document.getElementById('history').innerHTML = '';
+      return;
+    }
+    const txt = await r.text();
+    rows = txt.split('\n').filter(Boolean).map(parseCsvLine);
+  } catch (e) {
+    document.getElementById('openSessions').innerHTML = '<p class="muted">Sheet-Abruf fehlgeschlagen.</p>';
+    return;
+  }
+
+  const header = rows.shift() || [];
+  // Erwartete Spalten: ts, klass, marker, note
+  const data = rows.map(r => ({
+    ts: r[0], klass: r[1], marker: r[2], note: r[3] || ''
+  }));
+  // Pro Klasse: offen oder geschlossen?
+  const byKlass = {};
+  data.forEach(d => {
+    if (!byKlass[d.klass]) byKlass[d.klass] = [];
+    byKlass[d.klass].push(d);
+  });
+  const openList = [];
+  Object.keys(byKlass).forEach(klass => {
+    const events = byKlass[klass].slice().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+    let openStart = null;
+    events.forEach(e => {
+      if (e.marker === 'start') openStart = e;
+      else if (e.marker === 'end' || e.marker === 'auto_end_90min') openStart = null;
+    });
+    if (openStart) openList.push({ klass, start: openStart.ts });
+  });
+
+  // Offene Sessions rendern
+  const openEl = document.getElementById('openSessions');
+  document.getElementById('openCount').textContent = openList.length ? '(' + openList.length + ')' : '';
+  if (!openList.length) {
+    openEl.innerHTML = '<p class="muted">Keine offene Session.</p>';
+  } else {
+    const now = Date.now();
+    openEl.innerHTML = '<table><thead><tr><th>Klasse</th><th>Start</th><th>läuft seit</th></tr></thead><tbody>' +
+      openList.map(o => {
+        const ts = new Date(o.start);
+        const minAgo = Math.round((now - ts.getTime()) / 60000);
+        const min90 = 90;
+        const remain = Math.max(0, min90 - minAgo);
+        return `<tr>
+          <td><strong>${escapeHtml(o.klass)}</strong><span class="open-badge">offen</span></td>
+          <td>${ts.toLocaleString('de-DE')}</td>
+          <td>${minAgo} Min · noch ${remain} Min bis Auto-End</td>
+        </tr>`;
+      }).join('') +
+      '</tbody></table>';
+  }
+
+  // History: letzte 20
+  const hist = data.slice(-20).reverse();
+  const histEl = document.getElementById('history');
+  if (!hist.length) {
+    histEl.innerHTML = '<p class="muted">Noch keine Marker.</p>';
+  } else {
+    histEl.innerHTML = '<table><thead><tr><th>Zeit</th><th>Klasse</th><th>Marker</th><th>Note</th></tr></thead><tbody>' +
+      hist.map(h => {
+        const cls = h.marker === 'start' ? 'marker-start'
+                  : (h.marker === 'end' ? 'marker-end' : 'marker-auto');
+        return `<tr>
+          <td>${new Date(h.ts).toLocaleString('de-DE')}</td>
+          <td>${escapeHtml(h.klass)}</td>
+          <td class="${cls}">${escapeHtml(h.marker)}</td>
+          <td>${escapeHtml(h.note)}</td>
+        </tr>`;
+      }).join('') +
+      '</tbody></table>';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// Lade beim Start + alle 30 s
+window.addEventListener('DOMContentLoaded', () => {
+  const last = localStorage.getItem('lastKlass');
+  if (last) document.getElementById('klassInput').value = last;
+  loadSessions();
+  setInterval(loadSessions, 30000);
+  buildBookmarklets();
+});
+
+// =====================================================================
+// Bookmarklet-Generator
+// =====================================================================
+function buildBookmarklet(marker) {
+  // Minified JS: prompt klass + POST marker (inkl. token)
+  const js = `(function(){var k=prompt('Klasse?',localStorage.getItem('schul_klass')||'');if(!k)return;k=k.trim();if('${marker}'==='start')localStorage.setItem('schul_klass',k);fetch('${SCRIPT_URL}',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},mode:'cors',redirect:'follow',body:JSON.stringify({type:'session_marker',token:'${SCHOOL_MARKER_TOKEN}',marker:'${marker}',klass:k,ts:new Date().toISOString()})}).then(function(r){return r.text()}).then(function(t){alert('Marker ${marker} für '+k+' gesendet.\\n\\n'+t.substring(0,200))}).catch(function(e){alert('Fehler: '+e.message)})})();`;
+  return 'javascript:' + encodeURIComponent(js);
+}
+
+function buildBookmarklets() {
+  document.getElementById('bmStart').textContent = buildBookmarklet('start');
+  document.getElementById('bmEnd').textContent = buildBookmarklet('end');
+}
+
+document.querySelectorAll('.btn-copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const id = btn.dataset.copy;
+    const text = document.getElementById(id).textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      const orig = btn.textContent;
+      btn.textContent = '✓ Kopiert';
+      setTimeout(() => btn.textContent = orig, 1500);
+    } catch (e) {
+      // Fallback: Select-Box
+      const r = document.createRange();
+      r.selectNodeContents(document.getElementById(id));
+      const s = window.getSelection();
+      s.removeAllRanges(); s.addRange(r);
+      btn.textContent = '↑ markiert — Cmd-C zum Kopieren';
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /_admin.html
+Disallow: /_admin
 
 Sitemap: https://musiktheorie-trainer.de/sitemap.xml
