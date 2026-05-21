@@ -6102,26 +6102,48 @@
                             svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], startX + i * spacing, baseY, '#3b82f6');
                         }
                     }
-                    const sortedSelections = [...this.buildingUserSelections].sort((a, b) => a - b);
-                    let slotIdx = 0;
+                    // Stammton-basiertes Mapping: jede User-MIDI wird ihrem nächsten
+                    // Skalen-Slot zugeordnet (Greedy, 1:1). Wiederhergestellt aus
+                    // Pre-301b15d-Stand — wahrt die Stammton-Slot-Orientierung
+                    // (Reihenfolge der Klicks egal, Slot bestimmt sich aus MIDI-Nähe).
+                    const usesFlats = this.currentScale.notes.some(n => n === 'B' || n === 'Es' || n === 'As' || n === 'Des' || n === 'Ges');
+                    const sharpNames = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','B','H'];
+                    const flatNames  = ['C','Des','D','Es','E','F','Ges','G','As','A','B','H'];
+                    const freeSlots = [];
+                    for (let i = 0; i < 8; i++) {
+                        if (!this.buildingGivenIndices.includes(i)) freeSlots.push(i);
+                    }
+                    const sortedSel = [...this.buildingUserSelections].sort((a, b) => a - b);
+                    const usedSlots = new Set();
+                    const slotAssignments = [];
+                    for (const userMidi of sortedSel) {
+                        let bestSlot = -1, bestDist = Infinity;
+                        for (const slot of freeSlots) {
+                            if (usedSlots.has(slot)) continue;
+                            const dist = Math.abs(userMidi - scaleMidis[slot]);
+                            if (dist < bestDist) { bestDist = dist; bestSlot = slot; }
+                        }
+                        if (bestSlot === -1) continue;
+                        usedSlots.add(bestSlot);
+                        slotAssignments.push({ userMidi, slot: bestSlot });
+                    }
+                    for (const { userMidi, slot } of slotAssignments) {
+                        const x = startX + slot * spacing;
+                        if (userMidi === scaleMidis[slot]) {
+                            svgContent += this.drawNoteAt(this.currentScale.notes[slot], this.currentScale.octaves[slot], x, baseY, '#0891b2');
+                        } else {
+                            const semitone = userMidi % 12;
+                            const octave = Math.floor(userMidi / 12) - 1;
+                            const noteName = usesFlats ? flatNames[semitone] : sharpNames[semitone];
+                            svgContent += this.drawNoteAt(noteName, octave, x, baseY, '#0891b2');
+                        }
+                    }
+                    // Slot-Markers für noch unbesetzte freie Slots (graue Punkte als Orientierung)
                     for (let i = 0; i < 8; i++) {
                         if (this.buildingGivenIndices.includes(i)) continue;
-                        if (slotIdx < sortedSelections.length) {
-                            const userMidi = sortedSelections[slotIdx];
-                            const expectedMidi = scaleMidis[i];
-                            if (userMidi === expectedMidi) {
-                                svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], startX + i * spacing, baseY, '#0891b2');
-                            } else {
-                                const usesFlats = this.currentScale.notes.some(n => n === 'B' || n === 'Es' || n === 'As' || n === 'Des' || n === 'Ges');
-                                const semitone = userMidi % 12;
-                                const octave = Math.floor(userMidi / 12) - 1;
-                                const sharpNames = ['C','Cis','D','Dis','E','F','Fis','G','Gis','A','B','H'];
-                                const flatNames  = ['C','Des','D','Es','E','F','Ges','G','As','A','B','H'];
-                                const noteName = usesFlats ? flatNames[semitone] : sharpNames[semitone];
-                                svgContent += this.drawNoteAt(noteName, octave, startX + i * spacing, baseY, '#0891b2');
-                            }
-                            slotIdx++;
-                        }
+                        if (usedSlots.has(i)) continue;
+                        const x = startX + i * spacing;
+                        svgContent += `<circle cx="${x}" cy="${baseY + 30}" r="4" fill="#d1d5db"/>`;
                     }
                 } else {
                     // STAFF-Modus: platzierte Noten + Ghost-Note + Slot-Markers
