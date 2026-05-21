@@ -2213,6 +2213,7 @@
                     tastaturOk: b(d.tastaturOk),
                     notensystemOk: b(d.onsOk),
                     vorzeichenOk: b(d.vorzeichenOk),
+                    halbtonschritteOk: b(d.hsOk),
                     errLine: d.errLine || null
                 });
             }
@@ -2231,7 +2232,8 @@
                     umkehrung: { correct: 0, total: 0 },
                     tastatur: { correct: 0, total: 0 },
                     notensystem: { correct: 0, total: 0 },
-                    vorzeichen: { correct: 0, total: 0 }
+                    vorzeichen: { correct: 0, total: 0 },
+                    halbtonschritte: { correct: 0, total: 0 }
                 };
                 this.answers.forEach(a => {
                     if (a.grundtonOk !== null) { r.grundton.total++; if (a.grundtonOk) r.grundton.correct++; }
@@ -2240,8 +2242,9 @@
                     if (a.tastaturOk !== null) { r.tastatur.total++; if (a.tastaturOk) r.tastatur.correct++; }
                     if (a.notensystemOk !== null) { r.notensystem.total++; if (a.notensystemOk) r.notensystem.correct++; }
                     if (a.vorzeichenOk !== null) { r.vorzeichen.total++; if (a.vorzeichenOk) r.vorzeichen.correct++; }
+                    if (a.halbtonschritteOk !== null) { r.halbtonschritte.total++; if (a.halbtonschritteOk) r.halbtonschritte.correct++; }
                 });
-                for (const k of ['grundton', 'akkordtyp', 'umkehrung', 'tastatur', 'notensystem', 'vorzeichen']) {
+                for (const k of ['grundton', 'akkordtyp', 'umkehrung', 'tastatur', 'notensystem', 'vorzeichen', 'halbtonschritte']) {
                     const s = r[k];
                     s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
                 }
@@ -2300,6 +2303,7 @@
                 'Dreiklangstrainer.akkordtyp':      { axis: 'T2' },
                 'Dreiklangstrainer.umkehrung':      { axis: 'T2b' },
                 'Dreiklangstrainer.tastatur':       { axis: 'TAS' },
+                'Dreiklangstrainer.halbtonschritte': { axis: 'T3' },
                 'Tonleitertrainer.grundton':        { axis: 'T1' },
                 'Tonleitertrainer.tongeschlecht':   { axis: 'T2' },
                 'Tonleitertrainer.halbtonschritte': { axis: 'T3' },
@@ -2409,40 +2413,52 @@
                 bilden_umk_key: 'Umkehrung bilden (Tastatur)',
                 bilden_umk_staff: 'Umkehrung bilden (Notensystem)'
             },
-            order: ['grundton', 'vorz', 'ons', 'tas', 'akkordtyp', 'umkehrung'],
+            order: ['grundton', 'vorz', 'ons', 'tas', 'hs', 'akkordtyp', 'umkehrung'],
             axis: {
+                // Cross-Trainer-Fundamente: grundton/vorz/ons/tas/hs werden
+                // ursprünglich im NT bzw. IT trainiert. Recos verweisen daher
+                // zurück zum jeweiligen Basis-Trainer statt zur DT-internen
+                // „Anwendungs"-Übung.
                 grundton: {
                     name: 'Grundton des Akkords',
                     why: 'der Grundton des Akkords noch nicht sicher bestimmt wird',
                     tip: 'Das ist die Grundlage von allem — übe zuerst das sichere Benennen der Töne im Notentrainer.',
                     alt: 'der Grundton des Akkords noch nicht sicher bestimmt wird',
                     counter: 'akkordtyp',
-                    cta: 'Zum Notentrainer',
+                    cta: 'Stammtöne im Notentrainer üben',
                     href: 'notentrainer.html'
                 },
                 vorz: {
                     name: 'Vorzeichen',
                     why: 'das Vorzeichen (♯/♭) noch nicht sicher gesetzt wird',
-                    tip: 'Achte gezielt darauf, ob ein Ton durch ♯ oder ♭ verändert ist.',
+                    tip: 'Vorzeichen sind eine Grundlage aus dem Notentrainer — übe sie dort gezielt, bevor du zurück in die Dreiklänge gehst.',
                     counter: null,
-                    cta: 'Vorzeichen üben',
-                    target: function () { return { level: 'aufsteiger', options: ['vorzeichen'] }; }
+                    cta: 'Vorzeichen im Notentrainer üben',
+                    href: 'notentrainer.html'
                 },
                 ons: {
                     name: 'Notensystem-Orientierung',
                     why: 'das Ablesen und Setzen der Töne im Notensystem noch nicht sicher ist',
-                    tip: 'Übe das sichere Lesen und Setzen der Noten im Notensystem.',
+                    tip: 'Das Notensystem-Lesen ist eine Grundlage aus dem Notentrainer — übe es dort, bevor du Akkorde im Notensystem bildest.',
                     counter: null,
-                    cta: 'Notenlesen üben',
-                    target: function () { return { level: 'bilden_staff', options: ['basis'] }; }
+                    cta: 'Notensystem im Notentrainer üben',
+                    href: 'notentrainer.html'
                 },
                 tas: {
                     name: 'Tastatur-Orientierung',
                     why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
-                    tip: 'Sie ist die Grundlage, um die Töne sicher zu finden.',
+                    tip: 'Die Tastatur-Orientierung ist eine Grundlage aus dem Notentrainer — übe sie dort, bevor du Akkorde auf der Tastatur baust.',
                     counter: null,
-                    cta: 'Tastatur üben',
-                    target: function () { return { level: 'einsteiger', options: ['basis'] }; }
+                    cta: 'Tastatur im Notentrainer üben',
+                    href: 'notentrainer.html'
+                },
+                hs: {
+                    name: 'Halbtonschritte zählen',
+                    why: 'das Zählen der Halbtonschritte zwischen den Akkordtönen noch nicht sicher sitzt',
+                    tip: 'Halbtonschritte zählen ist eine Grundlage aus dem Intervalltrainer — übe sie dort, bevor du daraus Akkord-Patterns ableitest.',
+                    counter: 'akkordtyp',
+                    cta: 'Halbtonschritte im Intervalltrainer üben',
+                    href: 'intervalltrainer.html'
                 },
                 akkordtyp: {
                     name: 'Akkordtyp (Dur/Moll/…)',
@@ -3622,7 +3638,8 @@
             // dim-Key (errorTracker) → DT-lokale Anzeige-Achse.
             _gfDimAxisMap: {
                 grundton: 'grundton', akkordtyp: 'akkordtyp', umkehrung: 'umkehrung',
-                tastatur: 'tas', notensystem: 'ons', vorzeichen: 'vorz'
+                tastatur: 'tas', notensystem: 'ons', vorzeichen: 'vorz',
+                halbtonschritte: 'hs'
             },
 
             // Scope = Anzeige-Achsen, die das AKTUELLE Quiz tatsächlich gemessen
@@ -3647,6 +3664,7 @@
                 const acc = {
                     grundton: { correct: 0, total: 0 }, vorz: { correct: 0, total: 0 },
                     ons: { correct: 0, total: 0 }, tas: { correct: 0, total: 0 },
+                    hs: { correct: 0, total: 0 },
                     akkordtyp: { correct: 0, total: 0 }, umkehrung: { correct: 0, total: 0 }
                 };
                 let snaps = [];
@@ -5149,11 +5167,24 @@ const _lernkartenContent = {
                 }
 
                 // QuickStart-Integration + GF drei5-8 (Bau): tas (Tastatur-Bau)
-                // bzw. ons (Staff-Bau) + grundton/akkordtyp + umkehrung (drei7/8) +
-                // vorzeichen (akzidentien-gegatet).
+                // bzw. ons (Staff-Bau) + grundton/akkordtyp + umkehrung (drei7/8)
+                // + hs (HS-Distanzen zwischen den 3 gebauten Tönen bilden ein
+                // gültiges Akkord-Pattern) + vorzeichen (akzidentien-gegatet).
                 if (quickStart.isActive) {
                     if (!quickStart.isRetry) {
                         const _hasAcc = (task.targetNotes || []).some(function (n) { return n && n.name && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
+                        // hsOk: 3 PCs erzeugen ein gültiges Akkord-Pattern
+                        // (Dur 4+3, Moll 3+4, aug 4+4, dim 3+3) — Rotationen prüfen.
+                        let _hsOk = false;
+                        if (userMidis && userMidis.length === 3) {
+                            const _pcs = userMidis.map(function (m) { return ((m % 12) + 12) % 12; }).sort(function (a, b) { return a - b; });
+                            const _d1 = _pcs[1] - _pcs[0];
+                            const _d2 = _pcs[2] - _pcs[1];
+                            const _d3 = 12 - _pcs[2] + _pcs[0];
+                            const _rots = [[_d1, _d2], [_d2, _d3], [_d3, _d1]];
+                            const _pats = [[3, 3], [3, 4], [4, 3], [4, 4]];
+                            _hsOk = _rots.some(function (r) { return _pats.some(function (p) { return p[0] === r[0] && p[1] === r[1]; }); });
+                        }
                         try {
                             errorTracker.logAnswer({
                                 isCorrect: isCorrect,
@@ -5162,6 +5193,7 @@ const _lernkartenContent = {
                                 grundtonOk: isCorrect,
                                 akkordtypOk: isCorrect,
                                 umkehrungOk: this.buildingIsInversion ? isCorrect : null,
+                                hsOk: _hsOk,
                                 vorzeichenOk: _hasAcc ? isCorrect : null
                             });
                         } catch (e) {}
@@ -7652,10 +7684,24 @@ const _lernkartenContent = {
 
                     isCorrect = expectedPCs.length === selectedPCs.length &&
                         expectedPCs.every((pc, i) => pc === selectedPCs[i]);
-                    // GF drei1 (Einsteiger, 3 Tasten): tas + vorz (akzidentien-gegatet).
+                    // GF drei1 (Einsteiger, 3 Tasten): tas + hs (HS-Distanzen
+                    // zwischen den geklickten Tasten bilden ein gültiges Akkord-
+                    // Pattern Dur/Moll/aug/dim — typ-unabhängig, in jeder
+                    // Inversion) + vorz (akzidentien-gegatet).
                     if (this.quickStartMode && !quickStart.isRetry) {
                         const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
                         const _hasAcc = _ns.some(function (n) { return n && (n.name.indexOf('is') !== -1 || n.name.indexOf('es') !== -1 || n.name === 'As' || n.name === 'Es' || n.name === 'B'); });
+                        // hsOk: gewählte 3 PCs erzeugen ein gültiges Akkord-Pattern
+                        // (Dur 4+3, Moll 3+4, aug 4+4, dim 3+3) — alle Rotationen prüfen.
+                        let _hsOk = false;
+                        if (selectedPCs.length === 3) {
+                            const _d1 = selectedPCs[1] - selectedPCs[0];
+                            const _d2 = selectedPCs[2] - selectedPCs[1];
+                            const _d3 = 12 - selectedPCs[2] + selectedPCs[0];
+                            const _rots = [[_d1, _d2], [_d2, _d3], [_d3, _d1]];
+                            const _pats = [[3, 3], [3, 4], [4, 3], [4, 4]];
+                            _hsOk = _rots.some(function (r) { return _pats.some(function (p) { return p[0] === r[0] && p[1] === r[1]; }); });
+                        }
                         // errLine: Akkordname + 3 Solltöne vs. die gewählten Tonnamen
                         let _errLine = null;
                         if (!isCorrect && _cc) {
@@ -7665,7 +7711,7 @@ const _lernkartenContent = {
                             const _userNames = this.selectedKeys.slice().sort(function (a, b) { return a - b; }).map(_midi2Name).join('–');
                             _errLine = _chord + ' (' + _sollNames + ') → du hast ' + _userNames + ' geklickt';
                         }
-                        try { errorTracker.logAnswer({ isCorrect, tastaturOk: isCorrect, vorzeichenOk: _hasAcc ? isCorrect : null, errLine: _errLine }); } catch (e) {}
+                        try { errorTracker.logAnswer({ isCorrect, tastaturOk: isCorrect, hsOk: _hsOk, vorzeichenOk: _hasAcc ? isCorrect : null, errLine: _errLine }); } catch (e) {}
                     }
 
                     // Hilfsfunktion: MIDI zu Notenname
@@ -7721,7 +7767,10 @@ const _lernkartenContent = {
                     const hs1Correct = (parseInt(val1) === correctInterval1);
                     const hs2Correct = (parseInt(val2) === correctInterval2);
                     // GF drei2 (Aufsteiger, HS-Dropdowns): akkordtyp (HS-Struktur
-                    // bestimmt Dur/Moll/aug/dim) + vorz (akzidentien-gegatet).
+                    // bestimmt Dur/Moll/aug/dim) + hs (Schüler muss die HS-Zahl
+                    // gedanklich ermitteln, um den richtigen Dropdown-Wert zu
+                    // wählen — Dropdown-Restriktion ändert nichts an dieser
+                    // konzeptuellen Voraussetzung) + vorz (akzidentien-gegatet).
                     if (this.quickStartMode && !quickStart.isRetry) {
                         const _at = (hs1Correct && hs2Correct);
                         const _cc = this.currentChord, _ns = _cc ? [_cc.note1, _cc.note2, _cc.note3] : [];
@@ -7732,7 +7781,7 @@ const _lernkartenContent = {
                             const _chord = (correctRootNote ? correctRootNote.charAt(0).toUpperCase() + correctRootNote.slice(1) : '?') + '-' + (correctType ? correctType.charAt(0).toUpperCase() + correctType.slice(1) : '?');
                             _errLine = correctInterval1 + ' + ' + correctInterval2 + ' HS (' + _chord + ') → du hast ' + (val1 || '?') + ' + ' + (val2 || '?') + ' HS gewählt';
                         }
-                        try { errorTracker.logAnswer({ isCorrect: _at, akkordtypOk: _at, vorzeichenOk: _hasAcc ? _at : null, errLine: _errLine }); } catch (e) {}
+                        try { errorTracker.logAnswer({ isCorrect: _at, akkordtypOk: _at, hsOk: _at, vorzeichenOk: _hasAcc ? _at : null, errLine: _errLine }); } catch (e) {}
                     }
 
                     if (hs1Correct && hs2Correct) {
