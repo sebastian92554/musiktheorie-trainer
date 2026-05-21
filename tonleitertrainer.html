@@ -2712,38 +2712,40 @@
         },
         order: ['grundton', 'vorz', 'ons', 'tas', 'gtht', 'hs', 'tongeschlecht', 'quintenzirkel'],
         axis: {
+            // Cross-Trainer-Fundamente: grundton/vorz/ons/tas werden ursprünglich
+            // im Notentrainer trainiert. Recos verweisen zurück zum NT.
             grundton: {
                 name: 'Grundton der Tonleiter',
                 why: 'der Grundton der Tonleiter noch nicht sicher bestimmt wird',
                 tip: 'Das ist die Grundlage von allem — übe zuerst das sichere Benennen der Töne im Notentrainer.',
                 alt: 'der Grundton der Tonleiter noch nicht sicher bestimmt wird',
                 counter: 'tongeschlecht',
-                cta: 'Zum Notentrainer',
+                cta: 'Stammtöne im Notentrainer üben',
                 href: 'notentrainer.html'
             },
             vorz: {
                 name: 'Vorzeichen',
                 why: 'das Vorzeichen (♯/♭) noch nicht sicher gesetzt wird',
-                tip: 'Achte gezielt darauf, ob ein Ton durch ♯ oder ♭ verändert ist.',
+                tip: 'Vorzeichen sind eine Grundlage aus dem Notentrainer — übe sie dort, bevor du sie auf Tonleitern anwendest.',
                 counter: null,
-                cta: 'Vorzeichen üben',
-                target: function () { return { level: 'einsteiger', options: ['vorzeichen'] }; }
+                cta: 'Vorzeichen im Notentrainer üben',
+                href: 'notentrainer.html'
             },
             ons: {
                 name: 'Notensystem-Orientierung',
                 why: 'das Ablesen und Setzen der Töne im Notensystem noch nicht sicher ist',
-                tip: 'Übe das sichere Lesen und Setzen der Noten im Notensystem.',
+                tip: 'Das Notensystem-Lesen ist eine Grundlage aus dem Notentrainer — übe es dort, bevor du Tonleitern im Notensystem bildest.',
                 counter: null,
-                cta: 'Notenlesen üben',
-                target: function () { return { level: 'bilden', options: ['schreiben_einfach'] }; }
+                cta: 'Notensystem im Notentrainer üben',
+                href: 'notentrainer.html'
             },
             tas: {
                 name: 'Tastatur-Orientierung',
                 why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
-                tip: 'Sie ist die Grundlage, um die Töne sicher zu finden.',
+                tip: 'Die Tastatur-Orientierung ist eine Grundlage aus dem Notentrainer — übe sie dort, bevor du Tonleitern auf der Tastatur baust.',
                 counter: null,
-                cta: 'Tastatur üben',
-                target: function () { return { level: 'bilden', options: ['tastatur_einfach'] }; }
+                cta: 'Tastatur im Notentrainer üben',
+                href: 'notentrainer.html'
             },
             gtht: {
                 name: 'Ganzton/Halbton',

@@ -2313,37 +2313,39 @@
             // (Notensystem lesen) liegt vor TAS (erst lesen, dann greifen).
             order: ['t1', 'vorz', 'ons', 'tas', 'hs', 'anzahl', 'qual'],
             axis: {
+                // Cross-Trainer-Fundamente: t1/vorz/ons/tas werden ursprünglich
+                // im Notentrainer trainiert. Recos verweisen zurück zum NT.
                 t1: {
                     name: 'Tonbenennung (Stammtöne)',
                     why: 'die Notennamen (Stammtöne) noch nicht sicher sitzen',
                     tip: 'Das ist die Grundlage von allem — übe zuerst das sichere Benennen der Stammtöne im Notentrainer.',
                     counter: null,
-                    cta: 'Zum Notentrainer',
+                    cta: 'Stammtöne im Notentrainer üben',
                     href: 'notentrainer.html'
                 },
                 ons: {
                     name: 'Notensystem-Orientierung',
                     why: 'das Ablesen der Töne aus dem Notensystem noch nicht sicher ist',
-                    tip: 'Übe das sichere Lesen der Notennamen im Notensystem.',
+                    tip: 'Das Notensystem-Lesen ist eine Grundlage aus dem Notentrainer — übe es dort, bevor du Intervalle im Notensystem bestimmst.',
                     counter: null,
-                    cta: 'Notenlesen üben',
-                    target: function () { return { level: 'aufsteiger', options: ['basis'] }; }
+                    cta: 'Notensystem im Notentrainer üben',
+                    href: 'notentrainer.html'
                 },
                 tas: {
                     name: 'Tastatur-Orientierung',
                     why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
-                    tip: 'Sie ist die Grundlage, um die Töne sicher zu finden und Intervalle zu greifen.',
+                    tip: 'Die Tastatur-Orientierung ist eine Grundlage aus dem Notentrainer — übe sie dort, bevor du Intervalle greifst.',
                     counter: null,
-                    cta: 'Tastatur üben',
-                    target: function () { return { level: 'aufsteiger', options: ['basis'] }; }
+                    cta: 'Tastatur im Notentrainer üben',
+                    href: 'notentrainer.html'
                 },
                 vorz: {
                     name: 'Vorzeichen',
                     why: 'das Vorzeichen (♯/♭) noch nicht sicher gesetzt wird',
-                    tip: 'Achte gezielt darauf, ob ein Ton durch ♯ oder ♭ verändert ist.',
+                    tip: 'Vorzeichen sind eine Grundlage aus dem Notentrainer — übe sie dort, bevor du sie auf Intervalle anwendest.',
                     counter: null,
-                    cta: 'Vorzeichen üben',
-                    target: function () { return { level: 'aufsteiger', options: ['augdim'] }; }
+                    cta: 'Vorzeichen im Notentrainer üben',
+                    href: 'notentrainer.html'
                 },
                 hs: {
                     name: 'Halbtonschritte zählen',
