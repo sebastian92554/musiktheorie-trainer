@@ -2076,7 +2076,14 @@
                 document.addEventListener('visibilitychange', () => {
                     if (Date.now() - this._lastBeacon >= this.HB_COALESCE) this._hbFlush();
                 });
-                window.addEventListener('pagehide', () => this._hbFlush());
+                window.addEventListener('pagehide', () => {
+                    try {
+                        if (this._lastQuizStart && typeof quickStart !== 'undefined' && quickStart.isActive) {
+                            this.quizAbandon(quickStart.questionsAnswered || 0);
+                        }
+                    } catch (e) {}
+                    this._hbFlush();
+                });
 
                 const act = ['click', 'keydown', 'touchstart', 'scroll'];
                 act.forEach(evt => document.addEventListener(evt, () => {
@@ -2086,8 +2093,27 @@
                 console.log('📊 Tracker v3.1 init, Session:', this.sessionId, 'env:', this.env());
             },
 
-            quizStart(p) { this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode }); },
-            quizComplete(payload) { this._snapshotGF(payload); this._send('quiz_complete', payload); },
+            quizStart(p) {
+                this._lastQuizStart = { ts: Date.now(), level: p.level, subskill: p.subskill, mode: p.mode };
+                this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode });
+            },
+            quizComplete(payload) {
+                this._lastQuizStart = null;
+                this._snapshotGF(payload);
+                this._send('quiz_complete', payload);
+            },
+            quizAbandon(questionIndex) {
+                if (!this._lastQuizStart) return;
+                const ms = Date.now() - this._lastQuizStart.ts;
+                this._send('quiz_abandon', {
+                    level: this._lastQuizStart.level,
+                    subskill: this._lastQuizStart.subskill,
+                    mode: this._lastQuizStart.mode,
+                    questionIndex: questionIndex,
+                    msInQuiz: ms
+                });
+                this._lastQuizStart = null;
+            },
             // Snapshot je Quiz für Pfad B / GF-Policy (Stufe 3). Tastatur-Quizze
             // (dims:null) bewusst ausgelassen — würden Achsen-Aggregat vergiften.
             // Payload selbst bleibt unangetastet (PLAN_GF-Ontologie §5.5).
@@ -2986,6 +3012,9 @@
             },
 
             backToStart() {
+                if (this.isActive) {
+                    try { tracker.quizAbandon(this.questionsAnswered || 0); } catch (e) {}
+                }
                 const lastNode = this.selectedNode;
                 this.selectedNode = null;
                 this.selectedSub = null;
@@ -6611,6 +6640,9 @@
             
             // AUFSTEIGER-ANTWORT PRÜFEN (nur Klaviatur)
             checkAufsteigerAnswer() {
+                // Doppel-Prüfen-Schutz: nach korrekter Antwort blockt allCorrect bis zur nächsten Aufgabe
+                if (this.validationState && this.validationState.allCorrect) return;
+
                 const feedbackEl = document.getElementById('feedback');
 
                 // Prüfe ob 2 Tasten ausgewählt wurden
@@ -6679,6 +6711,7 @@
                     quickStart.handleAnswer(true);
                     if (!wasRetry) tracker.activity();
 
+                    this.validationState.allCorrect = true;
                     this.validationState.keyboard = true;
                     this.renderKeyboard();
 
@@ -6750,14 +6783,18 @@
 
             // DROPDOWN-ANTWORT PRÜFEN (für Einsteiger-Modus)
             checkDropdownAnswer() {
+                // Doppel-Prüfen-Schutz: nach korrekter Antwort blockt allCorrect bis zur nächsten Aufgabe
+                if (this.validationState && this.validationState.allCorrect) return;
+
                 const dropdown = document.getElementById('intervalDropdown');
                 const feedbackEl = document.getElementById('feedback');
                 const selectedValue = dropdown.value;
-                
+
                 if (!selectedValue) return; // Keine Auswahl
-                
+
                 const correctSize = this.currentInterval.size;
                 const isCorrect = parseInt(selectedValue) === correctSize;
+                if (isCorrect) this.validationState.allCorrect = true;
                 if (this.quickStartMode && !quickStart.isRetry) {
                     const _errLine = !isCorrect ? (this.getIntervalName(correctSize) + ' → du hast ' + this.getIntervalName(parseInt(selectedValue)) + ' gewählt') : null;
                     try { errorTracker.logAnswer({ isCorrect, anzahlOk: isCorrect, tastaturOk: this.settings.requireKeyboard ? (this.validationState && this.validationState.keyboard === true) : null, errLine: _errLine }); } catch (e) {}
@@ -6822,11 +6859,14 @@
             
             // PROFI-ANTWORT PRÜFEN (nur Halbtonschritte)
             checkProfiAnswer() {
+                // Doppel-Prüfen-Schutz: nach korrekter Antwort blockt allCorrect bis zur nächsten Aufgabe
+                if (this.validationState && this.validationState.allCorrect) return;
+
                 const semitonesInput = document.getElementById('semitonesInput');
                 const semitonesInputStatus = document.getElementById('semitonesInputStatus');
                 const feedbackEl = document.getElementById('feedback');
                 const semitonesValue = semitonesInput.value.trim();
-                
+
                 // Leere Eingabe
                 if (!semitonesValue) {
                     feedbackEl.classList.remove('hidden');
@@ -6848,13 +6888,14 @@
                 feedbackEl.classList.remove('hidden');
                 
                 if (isCorrect) {
+                    this.validationState.allCorrect = true;
                     feedbackEl.className = 'feedback correct';
                     feedbackEl.innerHTML = `✓ Richtig! <strong>${correctSemitones} Halbtonschritte</strong> = ${intervalName}`;
-                    
+
                     semitonesInput.classList.add('input-validated-correct');
                     semitonesInputStatus.className = 'input-status-icon correct';
                     semitonesInputStatus.textContent = '✓';
-                    
+
                     // Quick-Start Handler (kein Score-Update wie im DT)
                     const wasRetry = quickStart.isRetry;
                     quickStart.handleAnswer(true);
@@ -7665,7 +7706,42 @@
                     setTimeout(() => feedbackEl.classList.add('hidden'), 3000);
                     return;
                 }
-                
+
+                // UX-FIX (Klasse 8a, 22.05.2026): Vorab-Check verhindert vorzeitiges Validieren.
+                // Beschwerde Schülerin: „Eingabefeld bleibt grün und abgehakt, ändert nichts" —
+                // entstand, weil intervalName als richtig markiert wurde (Feld grün+disabled),
+                // während semitones noch leer war. Schüler dachte „fertig", musste aber noch
+                // ein Feld füllen. Lösung: solange ein noch unvalidiertes Feld leer ist, gar
+                // nicht validieren — nur Hint + Fokus auf das leere Feld.
+                if (semitonesRequired && (this.validationState.intervalName === null || this.validationState.semitones === null)) {
+                    const needsName = !userInput && this.validationState.intervalName === null;
+                    const needsHS   = !semitonesValue && this.validationState.semitones === null;
+                    if (needsName && needsHS) {
+                        feedbackEl.classList.remove('hidden');
+                        feedbackEl.className = 'feedback incorrect';
+                        feedbackEl.textContent = '✗ Bitte beide Felder ausfüllen (Intervallname und Halbtonschritte)!';
+                        setTimeout(() => feedbackEl.classList.add('hidden'), 3000);
+                        if (intervalInput) intervalInput.focus();
+                        return;
+                    }
+                    if (needsName) {
+                        feedbackEl.classList.remove('hidden');
+                        feedbackEl.className = 'feedback incorrect';
+                        feedbackEl.textContent = '✗ Bitte auch den Intervallnamen eingeben!';
+                        setTimeout(() => feedbackEl.classList.add('hidden'), 3000);
+                        if (intervalInput) intervalInput.focus();
+                        return;
+                    }
+                    if (needsHS) {
+                        feedbackEl.classList.remove('hidden');
+                        feedbackEl.className = 'feedback incorrect';
+                        feedbackEl.textContent = '✗ Bitte auch die Halbtonschritte eingeben!';
+                        setTimeout(() => feedbackEl.classList.add('hidden'), 3000);
+                        if (semitonesInput) semitonesInput.focus();
+                        return;
+                    }
+                }
+
                 // Prüfe Intervallname (nur wenn noch nicht validiert)
                 if (this.validationState.intervalName === null) {
                     let intervalCorrect;

@@ -2380,7 +2380,14 @@
             document.addEventListener('visibilitychange', () => {
                 if (Date.now() - this._lastBeacon >= this.HB_COALESCE) this._hbFlush();
             });
-            window.addEventListener('pagehide', () => this._hbFlush());
+            window.addEventListener('pagehide', () => {
+                try {
+                    if (this._lastQuizStart && typeof quickStart !== 'undefined' && quickStart.isActive) {
+                        this.quizAbandon(quickStart.questionsAnswered || 0);
+                    }
+                } catch (e) {}
+                this._hbFlush();
+            });
 
             const act = ['click', 'keydown', 'touchstart', 'scroll'];
             act.forEach(evt => document.addEventListener(evt, () => {
@@ -2390,8 +2397,27 @@
             console.log('📊 Tracker v3.1 init, Session:', this.sessionId, 'env:', this.env());
         },
 
-        quizStart(p) { this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode }); },
-        quizComplete(payload) { this._snapshotGF(payload); this._send('quiz_complete', payload); },
+        quizStart(p) {
+            this._lastQuizStart = { ts: Date.now(), level: p.level, subskill: p.subskill, mode: p.mode };
+            this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode });
+        },
+        quizComplete(payload) {
+            this._lastQuizStart = null;
+            this._snapshotGF(payload);
+            this._send('quiz_complete', payload);
+        },
+        quizAbandon(questionIndex) {
+            if (!this._lastQuizStart) return;
+            const ms = Date.now() - this._lastQuizStart.ts;
+            this._send('quiz_abandon', {
+                level: this._lastQuizStart.level,
+                subskill: this._lastQuizStart.subskill,
+                mode: this._lastQuizStart.mode,
+                questionIndex: questionIndex,
+                msInQuiz: ms
+            });
+            this._lastQuizStart = null;
+        },
         // Snapshot je Quiz für Pfad B / GF-Policy (Stufe 3). Tastatur-Quizze
         // (dims:null) bewusst ausgelassen — würden Achsen-Aggregat vergiften.
         // Payload selbst bleibt unangetastet (PLAN_GF-Ontologie §5.5).
@@ -3391,6 +3417,9 @@
         },
 
         backToStart() {
+            if (this.isActive) {
+                try { tracker.quizAbandon(this.questionsAnswered || 0); } catch (e) {}
+            }
             const lastNode = this.selectedNode;
             this.selectedNode = null;
             this.selectedSub = null;
@@ -3475,6 +3504,7 @@
             app._quizScaleUsage = {};
             app._lastTypeHistory = [];
             app._lastSubTypeHistory = [];
+            app._recentScales = [];
 
             // Collect options — aus Skilltree-State oder Fallback
             if (optionsFromSkilltree) {
@@ -3820,11 +3850,15 @@
         },
 
         getOptionsForLevel(level) {
-            if (level === 'einsteiger') return ['basis', 'vorzeichen'];
-            if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten'];
+            // Muss konsistent mit nodeSubSkills (Z. 2942) sein — sonst werden „noaudio"-Subskills
+            // nie gemastert markiert (Befund Schülerin TT 1c 22.05.2026):
+            // markCurrentOptionAsMastered nutzt diese Liste als allOptions, fehlt noaudio
+            // → kein nextUnmastered-Push → Sub-Skill bleibt im Skilltree als „verfügbar" hängen.
+            if (level === 'einsteiger') return ['basis', 'vorzeichen', 'noaudio'];
+            if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten', 'noaudio'];
             if (level === 'bilden') return ['tastatur_einfach', 'tastatur_schwer', 'schreiben_einfach', 'schreiben_schwer', 'noaudio'];
             if (level === 'meister') return ['aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'verwandte', 'symmetrien'];
-            return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe'];  // profi
+            return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe', 'noaudio'];  // profi
         },
 
         getNextStepText() {
@@ -5370,10 +5404,22 @@
             let scale;
             // Avoid same exact scale AND avoid same sub-type (Dur/Moll) 3+ times
             let pool = allScales;
-            if (pool.length > 1 && this.currentScale) {
-                const lastKey = this.currentScale.root + '-' + this.currentScale.type;
-                pool = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
-                if (pool.length === 0) pool = allScales;
+            // VARIANZ: Mehr-Stufen-History (pool-adaptiv) statt nur direkter Vorgänger —
+            // verhindert das vom Schülerfeedback gemeldete „gleiche Tonleitern hintereinander"-Muster.
+            // maxHistory = ⌊pool/2⌋ → mind. ⌈pool/2⌉ Skalen bleiben wählbar.
+            if (!this._recentScales) this._recentScales = [];
+            if (pool.length > 1) {
+                const maxHistory = Math.max(1, Math.floor(allScales.length / 2));
+                const recent = this._recentScales.slice(-maxHistory);
+                const filtered = pool.filter(s => !recent.includes(s.root + '-' + s.type));
+                if (filtered.length > 0) {
+                    pool = filtered;
+                } else if (this.currentScale) {
+                    // Fallback: mindestens den direkten Vorgänger ausschließen
+                    const lastKey = this.currentScale.root + '-' + this.currentScale.type;
+                    const fb = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
+                    if (fb.length > 0) pool = fb;
+                }
             }
             // Quiz-weite Tonleiter-Usage: max 2× pro Skala pro 10er-Quiz
             // (didaktisch: Wiederholung ok, aber nicht überladen). Reset in
@@ -5397,6 +5443,12 @@
             // Usage-Counter aktualisieren
             const _usageKey = scale.root + '-' + scale.type;
             this._quizScaleUsage[_usageKey] = (this._quizScaleUsage[_usageKey] || 0) + 1;
+            // History-Buffer aktualisieren (pool-adaptiv, siehe Anti-Repeat-Block oben)
+            this._recentScales.push(_usageKey);
+            const _maxHist = Math.max(1, Math.floor(allScales.length / 2));
+            if (this._recentScales.length > _maxHist) {
+                this._recentScales = this._recentScales.slice(-_maxHist);
+            }
 
             // For bass clef in Profi, shift octaves down to fit bass staff (max 1 ledger line)
             let octaves = scale.octaves;
@@ -7644,6 +7696,7 @@
             this.setFreeRetry(false);
             this._lastTypeHistory = [];
             this._lastSubTypeHistory = [];
+            this._recentScales = [];
             this.updateScoreDisplay();
 
             // Falls Quiz aktiv: Zähler auf 0 und Header-Info neu aufbauen

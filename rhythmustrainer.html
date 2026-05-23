@@ -2105,7 +2105,14 @@
                 document.addEventListener('visibilitychange', () => {
                     if (Date.now() - this._lastBeacon >= this.HB_COALESCE) this._hbFlush();
                 });
-                window.addEventListener('pagehide', () => this._hbFlush());
+                window.addEventListener('pagehide', () => {
+                    try {
+                        if (this._lastQuizStart && typeof quickStart !== 'undefined' && quickStart.isActive) {
+                            this.quizAbandon(quickStart.questionsAnswered || 0);
+                        }
+                    } catch (e) {}
+                    this._hbFlush();
+                });
 
                 const act = ['click', 'keydown', 'touchstart', 'scroll'];
                 act.forEach(evt => document.addEventListener(evt, () => {
@@ -2115,8 +2122,27 @@
                 console.log('📊 Tracker v3.1 init, Session:', this.sessionId, 'env:', this.env());
             },
 
-            quizStart(p) { this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode }); },
-            quizComplete(payload) { this._snapshotGF(payload); this._send('quiz_complete', payload); },
+            quizStart(p) {
+                this._lastQuizStart = { ts: Date.now(), level: p.level, subskill: p.subskill, mode: p.mode };
+                this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode });
+            },
+            quizComplete(payload) {
+                this._lastQuizStart = null;
+                this._snapshotGF(payload);
+                this._send('quiz_complete', payload);
+            },
+            quizAbandon(questionIndex) {
+                if (!this._lastQuizStart) return;
+                const ms = Date.now() - this._lastQuizStart.ts;
+                this._send('quiz_abandon', {
+                    level: this._lastQuizStart.level,
+                    subskill: this._lastQuizStart.subskill,
+                    mode: this._lastQuizStart.mode,
+                    questionIndex: questionIndex,
+                    msInQuiz: ms
+                });
+                this._lastQuizStart = null;
+            },
             // Snapshot je Quiz für Pfad B / GF-Policy (Stufe 3). Tastatur-Quizze
             // (dims:null) bewusst ausgelassen — würden Achsen-Aggregat vergiften.
             // Payload selbst bleibt unangetastet (PLAN_GF-Ontologie §5.5).
@@ -3788,6 +3814,9 @@
             },
 
             backToStart() {
+                if (this.isActive) {
+                    try { tracker.quizAbandon(this.questionsAnswered || 0); } catch (e) {}
+                }
                 const lastNode = this.selectedNode;
                 this.hideQuizOverlay();
                 document.getElementById('successScreen').classList.remove('active');
