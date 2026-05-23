@@ -495,38 +495,31 @@
         updateLpConnector();
         window.addEventListener('resize', updateLpConnector);
 
-        // Landing Page Tracking
-        // v3 page_view (Funnel-Reichweite) — minimal, eigenständig, defensiv.
-        // landing_click bleibt unverändert.
-        try {
-            const _env = (function () { try { return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod'; } catch (e) { return 'prod'; } })();
-            const _dev = window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1366 ? 'tablet' : 'desktop';
-            navigator.sendBeacon(
-                'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
-                JSON.stringify({
-                    schema: 3, env: _env, eventType: 'page_view',
-                    sessionId: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-                    trainer: 'Landing', device: _dev,
-                    referrer: new URLSearchParams(window.location.search).get('utm_source') || document.referrer || 'direct',
-                    ts: new Date().toISOString(), payload: {}
-                })
-            );
-        } catch (e) {}
+        // Landing Page Tracking — Schema 3, einheitlich für page_view + landing_click.
+        // Beide Events nutzen dieselbe sessionId, damit Klick-Funnel später nachvollziehbar.
+        const _TRACK_URL = 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec';
+        const _env = (function () { try { return localStorage.getItem('musik_tracking_env') === 'dev' ? 'dev' : 'prod'; } catch (e) { return 'prod'; } })();
+        const _dev = window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1366 ? 'tablet' : 'desktop';
+        const _referrer = new URLSearchParams(window.location.search).get('utm_source') || document.referrer || 'direct';
+        const _sid = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
+        function _trackLanding(eventType, trainer, payload) {
+            try {
+                navigator.sendBeacon(_TRACK_URL, JSON.stringify({
+                    schema: 3, env: _env, eventType: eventType,
+                    sessionId: _sid, trainer: trainer, device: _dev,
+                    referrer: _referrer, ts: new Date().toISOString(),
+                    payload: payload || {}
+                }));
+            } catch (e) {}
+        }
+
+        _trackLanding('page_view', 'Landing', {});
 
         document.querySelectorAll('.trainer-card').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
                 const name = this.querySelector('.trainer-name').textContent;
-                const data = {
-                    eventType: 'landing_click',
-                    app: name,
-                    timestamp: new Date().toISOString(),
-                    device: window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1366 ? 'tablet' : 'desktop',
-                    referrer: new URLSearchParams(window.location.search).get('utm_source') || document.referrer || 'direct'
-                };
-                navigator.sendBeacon(
-                    'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec',
-                    JSON.stringify(data)
-                );
+                _trackLanding('landing_click', name, {});
             });
         });
     </script>
