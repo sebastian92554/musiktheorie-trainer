@@ -2130,6 +2130,7 @@
             },
             nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+            cardDismiss(p) { this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart }); },
             activity() { this.lastActivity = Date.now(); }
         };
 
@@ -4706,6 +4707,8 @@
                 if (!content) return false;
                 quickStart.hideTaskInstruction();
                 this._lernkarteFromStart = !!fromStart;
+                this._lernkarteOpenedAt = Date.now();
+                this._lernkarteCurrentId = subSkillId;
                 if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
@@ -4945,6 +4948,17 @@
             },
 
             dismissLernkarte() {
+                // Verweildauer melden (Pflicht-Modal: fromStart=true; freiwilliges Öffnen: false)
+                try {
+                    if (this._lernkarteOpenedAt) {
+                        tracker.cardDismiss({
+                            nodeId: this._lernkarteCurrentId,
+                            ms_visible: Date.now() - this._lernkarteOpenedAt,
+                            fromStart: this._lernkarteFromStart
+                        });
+                    }
+                } catch (e) {}
+                this._lernkarteOpenedAt = null;
                 document.getElementById('lernkarteOverlay').classList.remove('active');
                 // Nur beim Levelstart die erste Aufgabe generieren, nicht bei Hilfe-Aufruf
                 if (this._lernkarteFromStart) {
