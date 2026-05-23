@@ -482,6 +482,11 @@
             border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
         .gf-axis strong { color: #3730a3; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
+        /* Lernkarten-Add-on (PLAN_GF-Lernkartendauer §4): unter Dim-Hints,
+           visuell durch Trennlinie abgesetzt — kein eigenständiger Block. */
+        .gf-card-reminder { margin-top: 12px; padding-top: 10px; border-top: 1px solid #e5e7eb;
+            text-align: left; }
+        .gf-card-reminder p { margin: 0; font-size: 0.88rem; color: #4b5563; line-height: 1.45; }
 
         /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
         /* Ghost-Note IST der Cursor — System-Cursor ausblenden */
@@ -1917,7 +1922,10 @@
             },
             nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
-            cardDismiss(p) { this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart }); },
+            cardDismiss(p) {
+                this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart });
+                this._lastDismiss = { nodeId: p.nodeId, ms: p.ms_visible || 0, ts: Date.now() };
+            },
             activity() { this.lastActivity = Date.now(); }
         };
 
@@ -3263,6 +3271,10 @@
                     } else if (!errs.length) {
                         html += '<p>Noch nicht bestanden — wiederhol die Übung.</p>';
                     }
+                    // Add-on: Lernkarte zu schnell weggeklickt? (PLAN_GF-Lernkartendauer §4)
+                    const _lastSub = (this.currentOptions && this.currentOptions.length)
+                        ? this.currentOptions[this.currentOptions.length - 1] : 'basis';
+                    html += this._cardHintHtml(_lastSub);
                     _msg.innerHTML = html;
 
                     let recos = '';
@@ -3381,6 +3393,27 @@
             _gfFwdBtn(level, csv, label) {
                 return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\''
                     + level + '\',\'' + csv + '\')">Weiter: ' + label + '</button>';
+            },
+            // Lernkarten-Add-on (siehe PLAN_GF-Lernkartendauer §3+§4).
+            // Returnt 'skip' (<2s), 'short' (2-5s) oder null. Match nur, wenn
+            // der letzte Dismiss zum aktuellen Subskill gehört.
+            _cardHintBucket(subSkillId) {
+                const ld = tracker && tracker._lastDismiss;
+                if (!ld || ld.nodeId !== subSkillId) return null;
+                const ms = ld.ms || 0;
+                if (ms < 2000) return 'skip';
+                if (ms < 5000) return 'short';
+                return null;
+            },
+            _cardHintHtml(subSkillId) {
+                const b = this._cardHintBucket(subSkillId);
+                if (b === 'skip') {
+                    return '<div class="gf-card-reminder"><p>Du hast die Lernkarte sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                }
+                if (b === 'short') {
+                    return '<div class="gf-card-reminder"><p>Du hast die Lernkarte nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                }
+                return '';
             },
             _gfForwardItem() {
                 // 1) nächster offener Subskill im AKTUELLEN Knoten
