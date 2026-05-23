@@ -1370,10 +1370,6 @@
             border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
         .gf-axis strong { color: #6d28d9; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
-        /* Lernkarten-Add-on (PLAN_GF-Lernkartendauer §4) */
-        .gf-card-reminder { margin-top: 12px; padding-top: 10px; border-top: 1px solid #e5e7eb;
-            text-align: left; }
-        .gf-card-reminder p { margin: 0; font-size: 0.88rem; color: #4b5563; line-height: 1.45; }
         .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
             background: #fff; border: 1px solid #ddd6fe; border-radius: 8px; text-align: left; }
         .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #6d28d9; font-size: 0.9rem; }
@@ -3787,10 +3783,10 @@
             _cardHintHtml(subSkillId) {
                 const b = this._cardHintBucket(subSkillId);
                 if (b === 'skip') {
-                    return '<div class="gf-card-reminder"><p>Du hast die Lernkarte sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Lernkarte sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 if (b === 'short') {
-                    return '<div class="gf-card-reminder"><p>Du hast die Lernkarte nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Lernkarte nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 return '';
             },
