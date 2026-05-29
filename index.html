@@ -152,23 +152,21 @@
         }
 
         /* ── Lernpfad-Tree ── */
-        .lp-bereich-labels {
+        .lp-fund-col {
+            flex: 1;
+            max-width: 420px;
             display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            max-width: calc(840px + 0.75rem);
-            margin: 0 auto 0.5rem;
+            flex-direction: column;
         }
 
         .lp-bereich-label {
-            flex: 1;
-            max-width: 420px;
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: #94a3b8;
             font-weight: 700;
             padding-left: 0.25rem;
+            margin-bottom: 0.5rem;
         }
 
         .lp-fundament {
@@ -316,15 +314,15 @@
                 width: 100%;
             }
 
-            /* RT (Rhythmik) ist eigenständig → ganz nach oben, ohne Connector.
-               NT führt darunter die melodische Kette NT→IT→TT→DT an. */
-            .lp-fundament .rhythmus {
-                order: -1;
+            /* Spalten (Label + Karte) volle Breite. RT (Rhythmik) ist eigenständig →
+               ganz nach oben, NT führt darunter die melodische Kette NT→IT→TT→DT an. */
+            .lp-fund-col {
+                max-width: 100%;
+                width: 100%;
             }
 
-            /* Labels passen bei Single-Column nicht zur Kartenreihenfolge → weglassen */
-            .lp-bereich-labels {
-                display: none;
+            .rhythmik-col {
+                order: -1;
             }
 
             /* L-Connector SVG wird via JS auf Mobile zur vertikalen Linie */
@@ -341,6 +339,7 @@
             .lp-fork-branches {
                 flex-direction: column;
                 align-items: center;
+                gap: 0;
             }
 
             .lp-branch-col {
@@ -398,28 +397,28 @@
                 Musiktheorie hat zwei Säulen: Melodik und Rhythmik. Der melodische Pfad baut aufeinander auf – wer Dreiklänge bestimmen will, muss erst Intervalle verstehen, und dafür braucht man sicheres Notenlesen. Der Rhythmustrainer steht für sich und kann jederzeit parallel bearbeitet werden.
             </p>
 
-            <!-- Bereich-Labels -->
-            <div class="lp-bereich-labels">
-                <div class="lp-bereich-label">Melodik</div>
-                <div class="lp-bereich-label">Rhythmik</div>
-            </div>
-
-            <!-- Fundament: NT + RT nebeneinander -->
+            <!-- Fundament: NT + RT nebeneinander, je mit Bereich-Label darüber -->
             <div class="lp-fundament">
-                <a href="notentrainer.html" class="trainer-card noten">
+                <div class="lp-fund-col melodik-col">
+                    <div class="lp-bereich-label">Melodik</div>
+                    <a href="notentrainer.html" class="trainer-card noten">
                     <div class="trainer-top">
                         <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="13" rx="2.6" ry="2.0" stroke="none" transform="rotate(-18 12 13)"/></g></svg></div>
                         <div class="trainer-name">Notentrainer</div>
                     </div>
                     <div class="trainer-desc">Noten im Violin- und Bassschlüssel lesen, Position der Töne auf der Tastatur lernen – und selbst in das Notensystem setzen. Stammtöne, Vorzeichen, Lagen und Hilfslinien.</div>
-                </a>
-                <a href="rhythmustrainer.html" class="trainer-card rhythmus">
+                    </a>
+                </div>
+                <div class="lp-fund-col rhythmik-col">
+                    <div class="lp-bereich-label">Rhythmik</div>
+                    <a href="rhythmustrainer.html" class="trainer-card rhythmus">
                     <div class="trainer-top">
                         <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><ellipse cx="5" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 5 17)"/><ellipse cx="11" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 11 17)"/><ellipse cx="17" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 17 17)"/><line x1="7.3" y1="16.3" x2="7.3" y2="7" stroke-width="0.8" fill="none"/><line x1="13.3" y1="16.3" x2="13.3" y2="7" stroke-width="0.8" fill="none"/><line x1="19.3" y1="16.3" x2="19.3" y2="7" stroke-width="0.8" fill="none"/><line x1="7.3" y1="7" x2="19.3" y2="7" stroke-width="1.6" stroke-linecap="butt" fill="none"/><text x="13.3" y="4.8" text-anchor="middle" font-size="4.2" font-weight="700" font-family="sans-serif" fill="currentColor" stroke="none">3</text></g></svg></div>
                         <div class="trainer-name">Rhythmustrainer</div>
                     </div>
                     <div class="trainer-desc">Notenwerte erkennen, Taktarten bestimmen, Rhythmusdiktat lösen – und unvollständige Takte ergänzen.</div>
-                </a>
+                    </a>
+                </div>
             </div>
 
             <!-- L-förmiger Connector: NT → IT -->
