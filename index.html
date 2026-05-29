@@ -290,8 +290,10 @@
             text-decoration: underline;
         }
 
-        /* ── Responsive ── */
-        @media (max-width: 700px) {
+        /* ── Responsive ──
+           Single-Column nur im Portrait. Landscape-Phones (≤700px, quer)
+           übernehmen das 2-Spalten-Tablet-Layout — breit genug dafür. */
+        @media (max-width: 700px) and (orientation: portrait) {
             .site-header h1 {
                 font-size: 1.5rem;
             }
@@ -314,8 +316,15 @@
                 width: 100%;
             }
 
+            /* RT (Rhythmik) ist eigenständig → ganz nach oben, ohne Connector.
+               NT führt darunter die melodische Kette NT→IT→TT→DT an. */
+            .lp-fundament .rhythmus {
+                order: -1;
+            }
+
+            /* Labels passen bei Single-Column nicht zur Kartenreihenfolge → weglassen */
             .lp-bereich-labels {
-                flex-direction: column;
+                display: none;
             }
 
             /* L-Connector SVG wird via JS auf Mobile zur vertikalen Linie */
@@ -339,6 +348,21 @@
                 width: 100%;
             }
 
+            /* TT/DT auf volle Breite wie alle anderen Karten (sonst 420px, linksbündig) */
+            .lp-fork-branches .trainer-card {
+                max-width: 100%;
+                width: 100%;
+            }
+
+            /* Einheitliche Connector-Länge (16px) für NT→IT und IT→TT */
+            .lp-connector-svg {
+                height: 16px;
+            }
+
+            .lp-fork-stem {
+                height: 16px;
+            }
+
             .lp-branch-stub {
                 display: none;
             }
@@ -348,7 +372,7 @@
                 content: '';
                 display: block;
                 width: 2px;
-                height: 12px;
+                height: 16px;
                 background: #94a3b8;
                 margin: 0 auto;
             }
@@ -470,7 +494,7 @@
             if (!svg) return;
             const path = svg.querySelector('path');
             const w = svg.clientWidth;
-            const h = 56;
+            const h = svg.clientHeight || 56;
             const r = 10;
 
             if (w < 500) {
