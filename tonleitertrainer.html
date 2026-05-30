@@ -2344,7 +2344,7 @@
                 sessionId: this.sessionId,
                 trainer: this.trainer,
                 device: this.getDeviceType(),
-                referrer: document.referrer || 'direct',
+                referrer: (() => { const p = new URLSearchParams(location.search); const s = p.get('utm_source'); if (s) { const m = p.get('utm_medium'); return m ? s + '/' + m : s; } return document.referrer || 'direct'; })(),
                 ts: new Date().toISOString(),
                 payload: payload || {}
             };
