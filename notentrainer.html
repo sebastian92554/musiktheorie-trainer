@@ -1964,6 +1964,7 @@
                     userInput: user,
                     clef: data.clef || 'treble',
                     octave: data.octave || '',
+                    userOctave: data.userOctave || '',
                     category: data.category || '',
                     stammtonOk,
                     vzOk,
@@ -2039,11 +2040,11 @@
 
             getErrorListHelmholtz() {
                 return this.getErrors().map(a => {
-                    if (a.tasOnly || a.category === 'building_note_falsch' || a.category === 'building_vz_falsch') return null;
+                    if (a.category === 'building_note_falsch' || a.category === 'building_vz_falsch') return null;
 
                     const clefLabel = a.clef === 'bass' ? 'Bass' : 'Violin';
                     const correctH = ErrorTracker.toHelmholtz(a.correctNote, a.octave);
-                    const userH = a.userInput ? ErrorTracker.toHelmholtz(a.userInput, a.octave) : '?';
+                    const userH = a.userInput ? ErrorTracker.toHelmholtz(a.userInput, a.userOctave || a.octave) : '?';
 
                     return { clef: clefLabel, correct: correctH, user: userH };
                 }).filter(e => e !== null);
@@ -5173,8 +5174,16 @@
                 
                 if (noteName.includes('is')) pitch++;
                 if (noteName.includes('es') || noteName === 'As' || noteName === 'Es' || noteName === 'B') pitch--;
-                
+
                 return pitch;
+            },
+
+            // Umkehrung von getPitchForNote: Pitch (NT-System) → {name, octave}
+            pitchToNote(pitch) {
+                const octaveByIndex = ['kontra', 'gross', 'klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+                const namesByPc = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'Ais', 'H'];
+                const idx = Math.max(0, Math.min(5, Math.floor(pitch / 12)));
+                return { name: namesByPc[((pitch % 12) + 12) % 12], octave: octaveByIndex[idx] };
             },
 
             normalizeNote(note) {
@@ -5546,9 +5555,22 @@
                     this.validationState.hasBeenChecked = true;
                 }
                 
-                // Richtige Taste ermitteln
+                // Richtige Taste ermitteln. Die exakte Oktave (Lage) zählt erst im
+                // Sub-Skill 'lagen' (3c) — davor genügt der richtige Ton in JEDER Oktave.
                 const correctPitch = this.getPitchForNote(this.currentNote.name, this.currentNote.octave);
-                const isCorrect = this.selectedKey === correctPitch;
+                const _pc = p => ((p % 12) + 12) % 12;
+                const pitchClassOk = _pc(this.selectedKey) === _pc(correctPitch);
+                const octaveExact = this.selectedKey === correctPitch;
+                const lagenActive = quickStart.isActive
+                    ? (quickStart.currentOptions || []).includes('lagen')
+                    : this.settings.requireOctave;
+                const isCorrect = lagenActive ? octaveExact : pitchClassOk;
+                // Geklickte Note für GF + Fehlerübersicht (Pitch → Note).
+                // Bei richtiger Pitch-Class denselben Namen wie die Zielnote nutzen
+                // (saubere enharmonische Schreibweise, z. B. Ges statt Fis).
+                const _clicked = this.pitchToNote(this.selectedKey);
+                const _clickedName = pitchClassOk ? this.currentNote.name : _clicked.name;
+                const _clickedOctave = _clicked.octave;
                 
                 // Notenname nach Konvention formatieren
                 const noteName = this.currentNote.name;
@@ -5578,7 +5600,7 @@
                     if (isFirstCheck) {
                         tracker.activity();
                         if (this.quickStartMode) {
-                            try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: '', clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: 'tastenfehler', tastaturActive: true, tastaturCorrect: true, tasOnly: true }); } catch (e) {}
+                            try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: _clickedName, userOctave: _clickedOctave, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: 'tastenfehler', tastaturActive: true, tastaturCorrect: true, lageCorrect: octaveExact, tasOnly: true }); } catch (e) {}
                             quickStart.handleAnswer(true);
                         } else {
                             if (!this.freeRetry) {
@@ -5616,7 +5638,7 @@
                     if (isFirstCheck) {
                         tracker.activity();
                         if (this.quickStartMode) {
-                            try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: '', clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: 'tastenfehler', tastaturActive: true, tastaturCorrect: false, tasOnly: true }); } catch (e) {}
+                            try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: _clickedName, userOctave: _clickedOctave, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: (pitchClassOk ? 'oktavlage_falsch' : 'tastenfehler'), tastaturActive: true, tastaturCorrect: pitchClassOk, lageCorrect: octaveExact, tasOnly: true }); } catch (e) {}
                             quickStart.handleAnswer(false);
                         } else {
                             if (!this.freeRetry) {
