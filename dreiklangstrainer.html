@@ -1241,8 +1241,37 @@
             background: #d1fae5;
         }
         .st-sub-skill.sub-selected {
+            /* Auswahl wird über die Preview-Zeile gezeigt, nicht über die Zeile selbst */
+        }
+        .st-sub-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            margin: 0.1rem 0 0.25rem 2rem;
+            padding: 0.35rem 0.5rem;
             background: #d1fae5;
+            border-radius: 0.35rem;
+        }
+        .st-sub-preview-text {
+            font-size: 0.7rem;
+            color: #475569;
+            line-height: 1.3;
+        }
+        .st-sub-preview-start {
+            margin-left: auto;
+            border: none;
+            border-radius: 0.35rem;
+            background: #10b981;
+            color: #fff;
             font-weight: 600;
+            font-size: 0.68rem;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .st-sub-preview-start:hover {
+            background: #059669;
         }
         .st-sub-dot {
             width: 22px;
@@ -1794,8 +1823,7 @@
                     </div>
                 </div>
 
-                <button class="st-start-btn" id="stStartBtn" onclick="quickStart.startFromSkilltree()">Kompetenz auswählen...</button>
-                <div class="st-help-hint" id="stHelpHint">Klicke auf eine Kompetenz, um sie auszuwählen</div>
+                <div class="st-help-hint" id="stHelpHint">Tippe auf eine Teilkompetenz, um sie direkt zu starten.</div>
 
                 <div style="text-align: center; margin-top: 0.75rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                     <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #10b981; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
@@ -2251,6 +2279,7 @@
                 });
             },
             nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
+            subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
             cardDismiss(p) {
                 this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart });
@@ -2652,52 +2681,52 @@
             // Sub-Skills pro Knoten
             nodeSubSkills: {
                 'drei1': [
-                    { id: 'basis', label: 'Basis (Dur/Moll)' },
-                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
-                    { id: 'range', label: 'Großer Tonumfang' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Finden von Dreiklangstönen auf der Tastatur' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Finden von Dreiklangstönen mit Vorzeichen auf der Tastatur' },
+                    { id: 'range', label: '+ hohe/tiefe Lage', preview: 'Finden von Dreiklangstönen in tiefer oder hoher Lage auf der Tastatur' }
                 ],
                 'drei2': [
-                    { id: 'basis', label: 'Basis (Dur & Moll)' },
-                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
-                    { id: 'augmented', label: 'Übermäßig & vermindert' },
-                    { id: 'range', label: 'Großer Tonumfang' },
-                    { id: 'noaudio', label: 'Ohne Hörbeispiel' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Bestimmen der Halbtonschritte in Dur- und Moll-Dreiklängen' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Bestimmen der Halbtonschritte bei Dreiklängen mit Vorzeichen' },
+                    { id: 'augmented', label: '+ übermäßig & vermindert', preview: 'Bestimmen der Halbtonschritte bei übermäßigen und verminderten Dreiklängen' },
+                    { id: 'range', label: '+ hohe/tiefe Lage', preview: 'Bestimmen der Halbtonschritte in tiefer oder hoher Lage' },
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
                 ],
                 'drei3': [
-                    { id: 'basis', label: 'Basis (Dur & Moll)' },
-                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
-                    { id: 'augmented', label: 'Übermäßig & vermindert' },
-                    { id: 'range', label: 'Großer Tonumfang' },
-                    { id: 'noaudio', label: 'Ohne Hörbeispiel' },
-                    { id: 'doubleAccidentals', label: 'Mit Doppelvorzeichen' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Benennen von Dur- und Moll-Dreiklängen' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Benennen von Dreiklängen mit Vorzeichen' },
+                    { id: 'augmented', label: '+ übermäßig & vermindert', preview: 'Benennen übermäßiger und verminderter Dreiklänge' },
+                    { id: 'range', label: '+ hohe/tiefe Lage', preview: 'Benennen von Dreiklängen in tiefer oder hoher Lage' },
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', preview: 'Benennen von Dreiklängen ohne Hörbeispiel' },
+                    { id: 'doubleAccidentals', label: '+ Doppelvorzeichen', preview: 'Benennen von Dreiklängen mit Doppelvorzeichen' }
                 ],
                 'drei4': [
-                    { id: 'basis', label: 'Basis (Dur & Moll)' },
-                    { id: 'vorzeichen', label: 'Mit Vorzeichen' },
-                    { id: 'augmented', label: 'Übermäßig & vermindert' },
-                    { id: 'range', label: 'Großer Tonumfang' },
-                    { id: 'noaudio', label: 'Ohne Hörbeispiel' },
-                    { id: 'doubleAccidentals', label: 'Mit Doppelvorzeichen' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Erkennen von Stellung und Typ bei Dur- und Moll-Dreiklängen' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Erkennen von Stellung und Typ bei Dreiklängen mit Vorzeichen' },
+                    { id: 'augmented', label: '+ übermäßig & vermindert', preview: 'Erkennen von Stellung und Typ bei übermäßigen und verminderten Dreiklängen' },
+                    { id: 'range', label: '+ hohe/tiefe Lage', preview: 'Erkennen von Stellung und Typ in tiefer oder hoher Lage' },
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', preview: 'Erkennen von Stellung und Typ ohne Hörbeispiel' },
+                    { id: 'doubleAccidentals', label: '+ Doppelvorzeichen', preview: 'Erkennen von Stellung und Typ bei Dreiklängen mit Doppelvorzeichen' }
                 ],
                 'drei5': [
-                    { id: 'basis', label: 'Dur & Moll (einfach)' },
-                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
-                    { id: 'augdim', label: 'Übermäßig & vermindert' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Bauen von Dreiklängen auf der Tastatur' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Bauen von Dreiklängen mit mehr Vorzeichen auf der Tastatur' },
+                    { id: 'augdim', label: '+ übermäßig & vermindert', preview: 'Bauen übermäßiger und verminderter Dreiklänge auf der Tastatur' }
                 ],
                 'drei6': [
-                    { id: 'basis', label: 'Dur & Moll (einfach)' },
-                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
-                    { id: 'augdim', label: 'Übermäßig & vermindert' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Notieren von Dreiklängen im Notensystem' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Notieren von Dreiklängen mit mehr Vorzeichen im Notensystem' },
+                    { id: 'augdim', label: '+ übermäßig & vermindert', preview: 'Notieren übermäßiger und verminderter Dreiklänge im Notensystem' }
                 ],
                 'drei7': [
-                    { id: 'basis', label: 'Dur & Moll (einfach)' },
-                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
-                    { id: 'augdim', label: 'Übermäßig & vermindert' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Bauen von Umkehrungen auf der Tastatur' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Bauen von Umkehrungen mit mehr Vorzeichen auf der Tastatur' },
+                    { id: 'augdim', label: '+ übermäßig & vermindert', preview: 'Bauen übermäßiger und verminderter Umkehrungen auf der Tastatur' }
                 ],
                 'drei8': [
-                    { id: 'basis', label: 'Dur & Moll (einfach)' },
-                    { id: 'vorzeichen', label: 'Mehr Vorzeichen' },
-                    { id: 'augdim', label: 'Übermäßig & vermindert' }
+                    { id: 'basis', label: 'Dur & Moll', preview: 'Notieren von Umkehrungen im Notensystem' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Notieren von Umkehrungen mit mehr Vorzeichen im Notensystem' },
+                    { id: 'augdim', label: '+ übermäßig & vermindert', preview: 'Notieren übermäßiger und verminderter Umkehrungen im Notensystem' }
                 ]
             },
 
@@ -2821,6 +2850,9 @@
                     const subsContainer = document.getElementById('stSubs-' + nodeId);
                     if (subsContainer) {
                         const nodeNum = nodeId.replace(/\D/g, '');
+                        const recIdx = nextUnmastered ? subs.findIndex(s => s.id === nextUnmastered.id) : 0;
+                        const showIdx = (this.selectedSub && this.selectedSub.nodeId === nodeId) ? this.selectedSub.index
+                            : (this.selectedNode === nodeId ? recIdx : -1);
                         subsContainer.innerHTML = subs.map((sub, idx) => {
                             const isDone = mastered.includes(sub.id);
                             const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
@@ -2839,8 +2871,13 @@
                                 <div class="${dotClass}"${progressStyle}>${dotContent}</div>
                                 <span>${sub.label}</span>
                                 ${starsHtml}
+                            </div>
+                            <div class="st-sub-preview" id="stPrev-${nodeId}-${idx}" style="display:${showIdx === idx ? 'flex' : 'none'};">
+                                <span class="st-sub-preview-text">${sub.preview || ''}</span>
+                                <button class="st-sub-preview-start" onclick="quickStart.startSub('${nodeId}', ${idx}); event.stopPropagation();">Start</button>
                             </div>`;
                         }).join('');
+                        requestAnimationFrame(() => this._drawSubLines(nodeId));
                     }
                 });
 
@@ -2871,7 +2908,14 @@
                 if (!this.selectedNode && firstAvailableNode) {
                     this.selectNode(firstAvailableNode);
                 } else if (this.selectedNode) {
-                    this._updateStartButton();
+                    // Preview + Dot-Auswahl des gewählten Knotens nach Re-Render wiederherstellen
+                    const _n = this.selectedNode;
+                    const _l = this.nodeToLevel[_n];
+                    const _m = this.progress[_l] ? (this.progress[_l].mastered || []) : [];
+                    const _s = this.nodeSubSkills[_n] || [];
+                    let _i = (this.selectedSub && this.selectedSub.nodeId === _n) ? this.selectedSub.index : _s.findIndex(x => !_m.includes(x.id));
+                    if (_i < 0) _i = 0;
+                    this._openSubPreview(_n, _i, false);
                 }
             },
 
@@ -2924,19 +2968,21 @@
 
                 // Dot bei empfohlener Sub-Skill auf "current" setzen
                 this._updateSubDotSelection(nodeId);
-                this._updateStartButton();
-                requestAnimationFrame(() => {
-                    this._drawSubLines(nodeId);
-                    this._alignNode4ToNode7();
-                });
+                // Empfohlene (nächste ungemeisterte) Stufe automatisch als Preview öffnen — ohne Tracking
+                const _lvl = this.nodeToLevel[nodeId];
+                const _ms = this.progress[_lvl] ? (this.progress[_lvl].mastered || []) : [];
+                const _sbs = this.nodeSubSkills[nodeId] || [];
+                let _rec = _sbs.findIndex(s => !_ms.includes(s.id));
+                if (_rec < 0) _rec = 0;
+                this._openSubPreview(nodeId, _rec, false);
+                requestAnimationFrame(() => this._alignNode4ToNode7());
             },
 
             _drawSubLines(nodeId) {
                 const subsContainer = document.getElementById('stSubs-' + nodeId);
                 if (!subsContainer) return;
                 const dots = subsContainer.querySelectorAll('.st-sub-dot');
-                const oldLine = subsContainer.querySelector('.st-sub-line');
-                if (oldLine) oldLine.remove();
+                subsContainer.querySelectorAll('.st-sub-line, .st-sub-connector').forEach(el => el.remove());
                 if (dots.length < 2) return;
                 const first = dots[0];
                 const last = dots[dots.length - 1];
@@ -2967,32 +3013,98 @@
                     line.style.background = '#10b981';
                 }
                 subsContainer.appendChild(line);
+
+                // Offene Preview mit der Verbindungslinie koppeln (Steg; bei letzter Stufe als Elbow)
+                const openPv = Array.from(subsContainer.querySelectorAll('.st-sub-preview'))
+                    .find(p => p.style.display !== 'none' && p.offsetHeight > 0);
+                if (openPv) {
+                    const pvRect = openPv.getBoundingClientRect();
+                    const pvCenterY = pvRect.top + pvRect.height / 2 - containerRect.top;
+                    const pvLeftX = pvRect.left - containerRect.left;
+                    if (pvCenterY > lineBottom) {
+                        // Preview liegt unterhalb des letzten Punkts → Linie bis dorthin verlängern
+                        const ext = document.createElement('div');
+                        ext.className = 'st-sub-connector';
+                        ext.style.position = 'absolute';
+                        ext.style.left = lineLeft + 'px';
+                        ext.style.top = lineBottom + 'px';
+                        ext.style.width = '0.125rem';
+                        ext.style.height = (pvCenterY - lineBottom) + 'px';
+                        ext.style.background = '#d1d5db';
+                        ext.style.transform = 'translateX(-50%)';
+                        ext.style.zIndex = '0';
+                        ext.style.pointerEvents = 'none';
+                        subsContainer.appendChild(ext);
+                    }
+                    const stub = document.createElement('div');
+                    stub.className = 'st-sub-connector';
+                    stub.style.position = 'absolute';
+                    stub.style.left = lineLeft + 'px';
+                    stub.style.top = pvCenterY + 'px';
+                    stub.style.width = Math.max(0, pvLeftX - lineLeft) + 'px';
+                    stub.style.height = '0.125rem';
+                    stub.style.background = '#d1d5db';
+                    stub.style.transform = 'translateY(-50%)';
+                    stub.style.zIndex = '0';
+                    stub.style.pointerEvents = 'none';
+                    subsContainer.appendChild(stub);
+                }
             },
 
             // ---- Skilltree: Sub-Skill auswählen ----
             selectSubSkill(nodeId, subIndex) {
-                if (this.selectedNode !== nodeId) {
-                    this.selectNode(nodeId);
-                }
-
-                document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
-
                 const wrapper = document.getElementById('stNode-' + nodeId);
-                const subs = wrapper.querySelectorAll('.st-sub-skill');
-                if (subs[subIndex]) {
-                    subs[subIndex].classList.add('sub-selected');
+                if (!wrapper) return;
+                const alreadyHere = (this.selectedNode === nodeId) && wrapper.classList.contains('expanded');
+                if (!alreadyHere) {
+                    // Knoten zu (oder anderer Knoten aktiv) → aufklappen und direkt die geklickte Stufe öffnen
+                    if (this.selectedNode !== nodeId) this.selectNode(nodeId);
+                    this._openSubPreview(nodeId, subIndex, true);
+                    return;
                 }
+                // Knoten ist offen → Toggle: dieselbe Stufe erneut antippen schließt die Preview (Dismiss)
+                if (this.selectedSub && this.selectedSub.nodeId === nodeId && this.selectedSub.index === subIndex) {
+                    this._closeSubPreview(nodeId);
+                    try {
+                        const sid = (this.nodeSubSkills[nodeId][subIndex] || {}).id || subIndex;
+                        tracker.subskillDismiss({ node: nodeId, subskill: sid });
+                    } catch (e) {}
+                    return;
+                }
+                this._openSubPreview(nodeId, subIndex, true);
+            },
 
-                this.selectedSub = { nodeId, index: subIndex };
-                try {
-                    const _ss = (this.nodeSubSkills[nodeId] && this.nodeSubSkills[nodeId][subIndex]) ? this.nodeSubSkills[nodeId][subIndex].id : subIndex;
-                    tracker.nodeSelect({ node: nodeId, subskill: _ss });
-                } catch (e) {}
+            // ---- Preview einer Teilkompetenz öffnen (track=true → node_select-Event) ----
+            _openSubPreview(nodeId, idx, track) {
+                const container = document.getElementById('stSubs-' + nodeId);
+                if (!container) return;
+                container.querySelectorAll('.st-sub-preview').forEach(p => p.style.display = 'none');
+                const pv = document.getElementById('stPrev-' + nodeId + '-' + idx);
+                if (pv) pv.style.display = 'flex';
+                this.selectedSub = { nodeId, index: idx };
+                this._updateSubDotSelection(nodeId, idx);
+                requestAnimationFrame(() => this._drawSubLines(nodeId));
+                if (track) {
+                    try {
+                        const sid = (this.nodeSubSkills[nodeId][idx] || {}).id || idx;
+                        tracker.nodeSelect({ node: nodeId, subskill: sid });
+                    } catch (e) {}
+                }
+            },
 
-                // Dot zur selektierten Sub-Skill verschieben
-                this._updateSubDotSelection(nodeId, subIndex);
+            // ---- Preview schließen ----
+            _closeSubPreview(nodeId) {
+                const container = document.getElementById('stSubs-' + nodeId);
+                if (container) container.querySelectorAll('.st-sub-preview').forEach(p => p.style.display = 'none');
+                this.selectedSub = null;
+                this._updateSubDotSelection(nodeId);
+                requestAnimationFrame(() => this._drawSubLines(nodeId));
+            },
 
-                this._updateStartButton();
+            // ---- Inline-Start aus der Preview-Zeile ----
+            startSub(nodeId, idx) {
+                this.selectedSub = { nodeId, index: idx };
+                this.startFromSkilltree();
             },
 
             // ---- Start-Button aktualisieren ----
