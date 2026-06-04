@@ -363,30 +363,6 @@
             border-radius: 0.375rem;
         }
 
-        .score-display {
-            background: #ede9fe;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .score-display.hidden-in-quiz {
-            display: none !important;
-        }
-
-        .score-text {
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-
-        .score-percentage {
-            font-size: 0.875rem;
-            color: #4b5563;
-            margin-left: 0.5rem;
-        }
-
         .task-focus-badge {
             display: inline-block;
             background: #ede9fe; /* Lila */
@@ -1317,8 +1293,6 @@
         .header-progress-correct { position: absolute; top: 0; left: 0; height: 100%; background: #10b981; border-radius: 3px; transition: width 0.4s ease; }
         .header-retry-hint { display: none; font-size: 0.75rem; color: #ef4444; margin-top: 3px; font-weight: 600; }
         .header-retry-hint.active { display: block; }
-        .free-retry-hint { display: none; text-align: center; font-size: 0.85rem; color: #ef4444; font-weight: 600; padding: 0.4rem; }
-        .free-retry-hint.active { display: block; }
         .header-reset-btn { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0.5rem; border-radius: 0.5rem; display: none; align-items: center; font-size: 0.85rem; }
         .header-reset-btn.active { display: inline-flex; }
         .header-reset-btn:hover { color: #4b5563; }
@@ -1326,8 +1300,6 @@
         .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid #f1f5f9; }
         .input-help-btn { background: #f5f3ff; border: 1px solid #ddd6fe; color: #8b5cf6; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
         .input-help-btn:hover { background: #ede9fe; }
-
-        #scoreCard.hidden-in-quiz { display: none !important; }
 
         .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
@@ -1667,19 +1639,6 @@
     <!-- ORIGINAL APP (wird versteckt wenn Quick-Start aktiv) -->
     <div id="originalApp" class="level-screen active">
     <div class="container">
-        <!-- Quick-Start Menu Info Modal -->
-        <div class="modal-overlay" id="quickStartMenuModal">
-            <div class="modal" style="max-width: 28rem; text-align: center;">
-                <h2>ℹ️ Hinweis</h2>
-                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
-                    Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
-                    Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
-                </p>
-                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.remove('active')">
-                    Verstanden
-                </button>
-            </div>
-        </div>
 
         <!-- Feedback Modal -->
         <div class="modal-overlay" id="feedbackModal">
@@ -1842,28 +1801,6 @@
                 </div>
             </div>
 
-            <!-- Score Display -->
-            <div class="score-display">
-                <div>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                        <path d="M4 22h16"/>
-                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-                    </svg>
-                    <span class="score-text" id="scoreText">Rhythmus 1</span>
-                    <span class="score-percentage hidden" id="scorePercentage"></span>
-                </div>
-                <button class="btn" onclick="app.resetScore()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                        <path d="M3 3v5h5"/>
-                    </svg>
-                    <span style="font-size: 0.875rem;">Zurücksetzen</span>
-                </button>
-            </div>
         </div>
 
         <!-- Aufgabenstellung (einheitlich wie NT/IT/DT/TT) -->
@@ -1995,7 +1932,6 @@
                 </div>
             </div>
             <div class="feedback hidden" id="feedback"></div>
-            <div class="free-retry-hint" id="freeRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
         </div>
 
         <!-- Aktionen: Hilfe (immer sichtbar) + Reset (nur im Quiz).
@@ -2697,58 +2633,6 @@
                 this.isActive = false;
             },
 
-            showFreeMode() {
-                document.getElementById('quickStartScreen').classList.remove('active');
-                document.getElementById('quickStartScreen').style.display = 'none';
-                document.getElementById('successScreen').classList.remove('active');
-                document.getElementById('successScreen').style.display = 'none';
-                document.getElementById('originalApp').classList.add('active');
-                document.getElementById('originalApp').style.display = 'block';
-
-                document.querySelector('.score-display').classList.remove('hidden-in-quiz');
-
-                // Score zurücksetzen
-                app.score = { correct: 0, total: 0 };
-                app.updateScoreDisplay();
-
-                this.isActive = false;
-                this.currentLevel = null;
-                this.currentOptions = null;
-
-                this.hideQuizOverlay();
-
-                // Settings-Panel anzeigen
-                document.getElementById('settingsPanel').classList.remove('hidden');
-
-                // Settings aus Checkboxen synchronisieren
-                app.settings.includeEighths = document.getElementById('includeEighths').checked;
-                app.settings.includeSixteenths = document.getElementById('includeSixteenths').checked;
-                app.settings.includeDotted = document.getElementById('includeDotted').checked;
-                app.settings.includeRests = document.getElementById('includeRests').checked;
-                app.settings.includeTriplets = document.getElementById('includeTriplets').checked;
-                app.settings.showLegend = document.getElementById('showLegend').checked;
-                app.settings.showGrid = document.getElementById('showGrid').checked;
-                app.settings.showCountingTimes = document.getElementById('showCountingTimes').checked;
-
-                document.getElementById('appTitle').textContent = 'Freies Üben';
-                this.hideTaskInstruction();
-                const quizTempo = document.getElementById('quizTempoControl');
-                if (quizTempo) quizTempo.style.display = 'none';
-
-                // Audio im Freien Üben: verfügbar bei Zählzeiten/Rhythmussprache
-                app.noAudio = false;
-                const playBtn = document.getElementById('playRhythmBtn');
-                const audioControls = document.getElementById('audioControls');
-                if (playBtn) playBtn.style.display = '';
-                if (audioControls) audioControls.style.display = 'grid';
-
-                // Aufgabe generieren
-                app.updateSettings();
-                requestAnimationFrame(() => {
-                    app.generateNewTask();
-                });
-            },
-
             // ---- Progress UI (Skilltree) ----
             updateAllProgress() {
                 const nodes = ['rhy1', 'rhy2', 'rhy3', 'rhy4', 'rhy5', 'rhy6'];
@@ -3182,7 +3066,6 @@
                 document.getElementById('quickStartScreen').style.display = 'none';
                 document.getElementById('originalApp').classList.add('active');
                 document.getElementById('originalApp').style.display = 'block';
-                document.querySelector('.score-display').classList.add('hidden-in-quiz');
 
                 this.showQuizOverlay();
                 // Lernkarte anzeigen (wenn vorhanden), sonst direkt starten
@@ -3969,7 +3852,6 @@
                 this.hideQuizOverlay();
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('successScreen').style.display = 'none';
-                document.querySelector('.score-display').classList.remove('hidden-in-quiz');
                 this.selectedNode = null;
                 this.selectedSub = null;
                 this.currentLevel = null;
@@ -4278,16 +4160,6 @@
                     }
                     this.interactionHintShown = false;
                 }
-            },
-
-            toggleSettings() {
-                // Im Quick-Start: Hinweis-Modal statt Einstellungen
-                if (quickStart.currentLevel) {
-                    document.getElementById('quickStartMenuModal').classList.add('active');
-                    return;
-                }
-                const panel = document.getElementById('settingsPanel');
-                panel.classList.toggle('hidden');
             },
 
             showHelp() {
@@ -8725,6 +8597,7 @@ Gerät:
             updateScoreDisplay() {
                 const scoreText = document.getElementById('scoreText');
                 const scorePercentage = document.getElementById('scorePercentage');
+                if (!scoreText) return; // Score-Anzeige (Freies Üben) entfernt — No-op im Quiz
 
                 if (this.settings.taskType === 'counting-time' || this.settings.taskType === 'rhythm-syllable' || this.settings.taskType === 'note-addition' || this.settings.taskType === 'time-signature-id' || this.settings.taskType === 'gap-fill' || this.settings.taskType === 'dictation') {
                     const percentage = this.score.total > 0
@@ -8736,15 +8609,6 @@ Gerät:
                 } else {
                     scoreText.textContent = `Rhythmus ${this.taskCounter}`;
                     scorePercentage.classList.add('hidden');
-                }
-            },
-
-            setFreeRetry(isRetry) {
-                this.freeRetry = isRetry;
-                if (isRetry) {
-                    document.getElementById('freeRetryHint').classList.add('active');
-                } else {
-                    document.getElementById('freeRetryHint').classList.remove('active');
                 }
             },
 
