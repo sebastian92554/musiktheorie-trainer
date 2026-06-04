@@ -4440,6 +4440,15 @@
                 this.updateUI();
                 this.drawStaff();
                 this.renderKeyboard();
+
+                // Auto-Fokus aufs Eingabefeld (Desktop, wie im Notentrainer) — per rAF
+                // deferred, da der Input-Render teils erst nach diesem Frame sichtbar ist.
+                if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                    requestAnimationFrame(() => {
+                        const _ti = document.querySelector('#originalApp input[type="text"]:not([disabled])');
+                        if (_ti && _ti.offsetParent !== null) { try { _ti.focus({ preventScroll: true }); } catch (e) {} }
+                    });
+                }
             },
 
             calculateNaturalSemitones(note1, octave1, note2, octave2) {
