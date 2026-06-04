@@ -142,75 +142,6 @@
             background: #059669;
         }
 
-        .settings-panel {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .settings-panel h3 {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .select-group {
-            margin-top: 0.75rem;
-        }
-
-        .select-group label {
-            display: block;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .select-group select {
-            width: 100%;
-            max-width: 400px;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-        }
-
-        .score-display {
-            background: #d1fae5;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .score-display.hidden-in-quiz {
-            display: none !important;
-        }
-
-        .score-text {
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-
-        .score-percentage {
-            font-size: 0.875rem;
-            color: #4b5563;
-            margin-left: 0.5rem;
-        }
-
         .clef-badge {
             display: inline-block;
             padding: 0.15rem 0.5rem;
@@ -1498,8 +1429,6 @@
         .header-progress-correct { position: absolute; top: 0; left: 0; height: 100%; background: #10b981; border-radius: 3px; transition: width 0.4s ease; }
         .header-retry-hint { display: none; font-size: 0.75rem; color: #ef4444; margin-top: 3px; font-weight: 600; }
         .header-retry-hint.active { display: block; }
-        .free-retry-hint { display: none; text-align: center; font-size: 0.85rem; color: #ef4444; font-weight: 600; padding: 0.4rem; }
-        .free-retry-hint.active { display: block; }
         .header-reset-btn { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0.5rem; border-radius: 0.5rem; display: none; align-items: center; font-size: 0.85rem; }
         .header-reset-btn.active { display: inline-flex; }
         .header-reset-btn:hover { color: #4b5563; }
@@ -1507,8 +1436,6 @@
         .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid #f1f5f9; }
         .input-help-btn { background: #ecfdf5; border: 1px solid #a7f3d0; color: #10b981; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
         .input-help-btn:hover { background: #d1fae5; }
-
-        #scoreCard.hidden-in-quiz { display: none !important; }
 
         .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
@@ -1524,19 +1451,6 @@
         .keyboard-view-only .white-key:hover,
         .keyboard-view-only .black-key:hover {
             background: inherit;
-        }
-
-        /* Free Retry Hint */
-        #freeRetryHint {
-            display: none;
-            color: #f97316;
-            font-weight: bold;
-            margin-top: 0.5rem;
-            text-align: center;
-        }
-
-        #freeRetryHint.active {
-            display: block;
         }
 
         /* Responsive */
@@ -1939,19 +1853,6 @@
             </div>
         </div>
 
-        <!-- Quick-Start Menu Info Modal -->
-        <div class="modal-overlay" id="quickStartMenuModal">
-            <div class="modal" style="max-width: 28rem; text-align: center;">
-                <h2>ℹ️ Hinweis</h2>
-                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
-                    Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
-                    Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
-                </p>
-                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.remove('active')">
-                    Verstanden
-                </button>
-            </div>
-        </div>
 
         <!-- Header -->
         <div class="card">
@@ -1977,79 +1878,6 @@
                 </div>
             </div>
 
-            <!-- Settings -->
-            <div class="settings-panel hidden" id="settingsPanel">
-                <h3>Einstellungen</h3>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="beginnerFriendlyRange" onchange="app.updateSettings()" checked>
-                    <label for="beginnerFriendlyRange">Anfängerfreundlicher Notenbereich (max. 1 Hilfslinie)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showSemitones" onchange="app.updateSettings()" checked>
-                    <label for="showSemitones">Halbtonschritte bestimmen</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="requireQuality" onchange="app.updateSettings()">
-                    <label for="requireQuality">Übermäßige & verminderte Dreiklänge</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="complexKeys" onchange="app.updateSettings()">
-                    <label for="complexKeys">Tonarten mit >3 Vorzeichen</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="allowDoubleAccidentals" onchange="app.updateSettings()">
-                    <label for="allowDoubleAccidentals">Doppelvorzeichen erlauben (Cisis, Asas, etc.)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="includeInversions" onchange="app.updateSettings()">
-                    <label for="includeInversions">Umkehrungen (Dreiklangsstellungen)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="requireKeyboard" onchange="app.updateSettings()" checked>
-                    <label for="requireKeyboard">Tastatur-Eingabe erforderlich</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="highlightNotesForHS" onchange="app.updateSettings()" checked>
-                    <label for="highlightNotesForHS">Noten-Markierung bei HS-Abfrage</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showCMarker" onchange="app.updateSettings()" checked>
-                    <label for="showCMarker">c-Markierung auf Tastatur anzeigen</label>
-                </div>
-                <div class="select-group">
-                    <label>Notenschlüssel:</label>
-                    <select id="clefSelect" onchange="app.updateSettings()">
-                        <option value="treble">Violinschlüssel (G-Schlüssel)</option>
-                        <option value="bass">Bassschlüssel (F-Schlüssel)</option>
-                        <option value="both">Beide Schlüssel</option>
-                    </select>
-                </div>
-                <!-- Darstellung wird über den Toggle neben dem Play-Button gesteuert -->
-            </div>
-
-            <!-- Score -->
-            <div class="score-display" id="scoreCard">
-                <div>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                        <path d="M4 22h16"/>
-                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-                    </svg>
-                    <span class="score-text" id="scoreText">0 / 0</span>
-                    <span class="score-percentage hidden" id="scorePercentage"></span>
-                </div>
-                <button class="btn" onclick="app.resetScore()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                        <path d="M3 3v5h5"/>
-                    </svg>
-                    <span style="font-size: 0.875rem;">Zurücksetzen</span>
-                </button>
-            </div>
         </div>
 
         <!-- Staff & Keyboard Wrapper für Landscape Layout -->
@@ -2105,7 +1933,6 @@
                 <div id="inputCard"><!-- Wird dynamisch befüllt --></div>
                 <div class="keyboard-status" id="keyboardStatus"></div>
                 <div class="feedback hidden" id="feedback"></div>
-                <div class="free-retry-hint" id="freeRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
                 <div class="input-actions">
                     <button type="button" class="input-help-btn" onclick="app.showIntro()" title="Hilfe / Lernkarte anzeigen">Hilfe</button>
                     <button type="button" class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Punktestand zurücksetzen">
@@ -3210,92 +3037,6 @@
                 this.hideTaskInstruction();
             },
 
-            showFreeMode() {
-                this.isSkipping = false;
-                const dbg = app._debugKeyboard || new URLSearchParams(window.location.search).get('debug') === 'keyboard';
-                if (dbg) console.log('📌 showFreeMode() START');
-
-                document.getElementById('quickStartScreen').classList.remove('active');
-                document.getElementById('successScreen').classList.remove('active');
-                document.getElementById('originalApp').classList.add('active');
-
-                document.getElementById('scoreCard').classList.remove('hidden-in-quiz');
-
-                // Score für Freies Üben zurücksetzen (unabhängig vom Quiz-Counter)
-                app.score = { correct: 0, total: 0 };
-                app.updateScoreDisplay();
-
-                this.isActive = false;
-                this.currentLevel = null;
-                this.currentOptions = null;
-                app.quickStartMode = null;
-
-                // Settings aus den Checkbox-Werten im Menü synchronisieren
-                app.settings.showSemitones = document.getElementById('showSemitones').checked;
-                app.settings.requireQuality = document.getElementById('requireQuality').checked;
-                app.settings.complexKeys = document.getElementById('complexKeys').checked;
-                app.settings.allowDoubleAccidentals = document.getElementById('allowDoubleAccidentals').checked;
-                app.settings.includeInversions = document.getElementById('includeInversions').checked;
-                app.settings.requireKeyboard = document.getElementById('requireKeyboard').checked;
-                app.settings.highlightNotesForHS = document.getElementById('highlightNotesForHS').checked;
-                app.settings.showCMarker = document.getElementById('showCMarker').checked;
-                app.settings.clef = document.getElementById('clefSelect').value;
-                app.settings.displayMode = app.audioMode;  // displayMode vom Toggle
-                app.settings.beginnerFriendlyRange = document.getElementById('beginnerFriendlyRange').checked;
-                app.settings.simpleRootsOnly = false;
-                app.settings.noAudio = false;
-
-                // DOM-Reihenfolge wiederherstellen: Input-Card nach Keyboard
-                const inputCardRestore = document.querySelector('.input-card');
-                const kbCardRestore = document.getElementById('keyboardCard');
-                if (inputCardRestore && kbCardRestore && kbCardRestore.parentNode) {
-                    kbCardRestore.parentNode.insertBefore(inputCardRestore, kbCardRestore.nextSibling);
-                }
-
-                // Staff-Card Top-Area: Badges wiederherstellen
-                const staffTopArea = document.getElementById('staffTopArea');
-                if (staffTopArea) {
-                    staffTopArea.innerHTML = `
-                        <div class="text-center" id="staffBadges" style="display:none;">
-                            <span class="clef-badge clef-treble" id="clefBadge">Violinschlüssel</span>
-                            <span class="clef-badge" id="displayBadge" style="background:#ddd6fe; color:#5b21b6;">Harmonisch</span>
-                        </div>
-                    `;
-                }
-                // audioControls neben Staff einblenden
-                const audioCtrlFM = document.getElementById('audioControls');
-                if (audioCtrlFM) audioCtrlFM.style.display = '';
-
-                document.getElementById('appTitle').textContent = 'Freies Üben';
-                document.getElementById('headerExerciseInfo').classList.remove('active');
-                document.getElementById('headerResetBtn').classList.remove('active');
-
-                // Show keyboard (immer sichtbar — Orientierung oder Aufgabe)
-                document.getElementById('keyboardCard').classList.add('active');
-
-                // Build free-mode inputs
-                app.setupInput();
-
-                // Robustes Rendering: Erst Reflow erzwingen, dann im nächsten Frame rendern
-                // offsetHeight-Zugriff erzwingt synchronen Layout-Berechnung
-                const kbCard = document.getElementById('keyboardCard');
-                if (kbCard) kbCard.offsetHeight; // Force reflow
-                app._keyboardRange = null;
-
-                if (dbg) {
-                    console.log('📌 showFreeMode: kbCard.clientWidth =', kbCard?.clientWidth);
-                    console.log('📌 showFreeMode: requireKeyboard =', app.settings.requireKeyboard);
-                    console.log('📌 showFreeMode: launching double-rAF → generateChord');
-                }
-
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        if (dbg) console.log('📌 showFreeMode: rAF fired, calling generateChord()');
-                        app.generateChord();
-                    });
-                });
-            },
-
             // ---- Start Quiz from Skilltree ----
             startFromSkilltree() {
                 if (!this.selectedNode) return;
@@ -3368,8 +3109,6 @@
                 document.getElementById('quickStartScreen').classList.remove('active');
                 document.getElementById('successScreen').classList.remove('active');
                 document.getElementById('originalApp').classList.add('active');
-
-                document.getElementById('scoreCard').classList.add('hidden-in-quiz');
 
                 app.quickStartMode = level;
                 this.configureAppForLevel(level, this.currentOptions);
@@ -3446,7 +3185,6 @@
 
                     app.setupInput();
                     app.score = { correct: 0, total: 0 };
-                    app.freeRetry = false;
                     return;
                 }
 
@@ -3491,7 +3229,6 @@
                 app.setupInput();
 
                 app.score = { correct: 0, total: 0 };
-                app.freeRetry = false;
             },
 
             // ---- Header-Übungsinfo (wie Tonleitertrainer) ----
@@ -4614,7 +4351,6 @@ const _lernkartenContent = {
             selectedKeys: [],
             score: { correct: 0, total: 0 },
             keyboardSizes: null,
-            freeRetry: false,
             audioMode: 'harmonic',  // 'harmonic' oder 'melodic' — steuert Audio + Darstellung
 
             // QUICK-START FLAGS
@@ -4726,36 +4462,6 @@ const _lernkartenContent = {
                 // endlose rAF-Retry-Schleife in renderKeyboard(), weil containerWidth = 0.
                 // Chord wird stattdessen beim Betreten eines Modus generiert
                 // (startFromSkilltree → generateChord, showFreeMode → generateChord).
-
-                // SETTINGS-PANEL AUTO-CLOSE (wie im Notentrainer)
-                const settingsPanel = document.getElementById('settingsPanel');
-                let mouseLeaveTimeout = null;
-
-                // Close on mouseleave (Desktop) - with 1 second delay
-                settingsPanel.addEventListener('mouseleave', () => {
-                    if (!settingsPanel.classList.contains('hidden')) {
-                        mouseLeaveTimeout = setTimeout(() => {
-                            settingsPanel.classList.add('hidden');
-                        }, 1000);
-                    }
-                });
-
-                // Cancel close if mouse returns (benötigt für mouseleave-Timeout)
-                settingsPanel.addEventListener('mouseenter', () => {
-                    if (mouseLeaveTimeout) {
-                        clearTimeout(mouseLeaveTimeout);
-                        mouseLeaveTimeout = null;
-                    }
-                });
-
-                // Close on click outside panel (wichtig für Tablets!)
-                document.addEventListener('click', (e) => {
-                    if (!settingsPanel.classList.contains('hidden') &&
-                        !settingsPanel.contains(e.target) &&
-                        !e.target.closest('button[onclick*="toggleSettings"]')) {
-                        settingsPanel.classList.add('hidden');
-                    }
-                });
 
                 // FIX #3: Scroll to top on page load to ensure header is visible
                 window.scrollTo(0, 0);
@@ -8234,16 +7940,14 @@ const _lernkartenContent = {
                 this.validationState.hasBeenChecked = true;
 
                 // Score + Tracking nur beim ersten Versuch zählen
-                if (isFirstAttempt && !this.freeRetry) {
+                if (isFirstAttempt) {
                     this.score.total++;
                     if (isCorrect) this.score.correct++;
                     tracker.activity();
                 }
 
-                // Quiz-Flow IMMER aktualisieren (auch bei Retry-Korrektur)
-                if (!this.freeRetry) {
-                    quickStart.handleAnswer(isCorrect);
-                }
+                // Quiz-Flow aktualisieren (auch bei Retry-Korrektur)
+                quickStart.handleAnswer(isCorrect);
 
                 if (isCorrect) this.validationState.allCorrect = true;
 
@@ -8254,18 +7958,10 @@ const _lernkartenContent = {
                 this.updateScoreDisplay();
             },
 
-            setFreeRetry(isRetry) {
-                this.freeRetry = isRetry;
-                if (isRetry) {
-                    document.getElementById('freeRetryHint').classList.add('active');
-                } else {
-                    document.getElementById('freeRetryHint').classList.remove('active');
-                }
-            },
-
             updateScoreDisplay() {
                 const scoreText = document.getElementById('scoreText');
                 const scorePercentage = document.getElementById('scorePercentage');
+                if (!scoreText) return; // Score-Anzeige (Freies Üben) entfernt — No-op im Quiz
 
                 scoreText.textContent = `${this.score.correct} / ${this.score.total}`;
                 if (this.score.total > 0) {
@@ -8297,39 +7993,6 @@ const _lernkartenContent = {
                 this.generateChord();
             },
 
-            updateSettings() {
-                const oldRequireKeyboard = this.settings.requireKeyboard;
-
-                this.settings.showSemitones = document.getElementById('showSemitones').checked;
-                this.settings.requireQuality = document.getElementById('requireQuality').checked;
-                this.settings.complexKeys = document.getElementById('complexKeys').checked;
-                this.settings.allowDoubleAccidentals = document.getElementById('allowDoubleAccidentals').checked;
-                this.settings.includeInversions = document.getElementById('includeInversions').checked;
-                this.settings.requireKeyboard = document.getElementById('requireKeyboard').checked;
-                this.settings.highlightNotesForHS = document.getElementById('highlightNotesForHS').checked;
-                this.settings.showCMarker = document.getElementById('showCMarker').checked;
-                this.settings.clef = document.getElementById('clefSelect').value;
-                this.settings.displayMode = this.audioMode;  // displayMode wird vom Toggle gesteuert
-                this.settings.beginnerFriendlyRange = document.getElementById('beginnerFriendlyRange').checked;
-
-                const onlyKeyboardChanged =
-                    this.settings.requireKeyboard !== oldRequireKeyboard;
-
-                if (!onlyKeyboardChanged) {
-                    this.previousTask = null;
-                    this.recentRootNotes = [];
-                }
-
-                this.updateUI();
-
-                // Alle Fälle: Neue Aufgabe generieren
-                // Im Free-Mode: Inputs neu aufbauen (z.B. Stellungs-Dropdown ein/ausblenden)
-                if (!this.quickStartMode) {
-                    this.setupInput();
-                }
-                this.generateChord();
-            },
-
             updateUI() {
                 const clefBadge = document.getElementById('clefBadge');
                 const isTreble = this.currentChord.note1.clef === 'treble';
@@ -8338,16 +8001,6 @@ const _lernkartenContent = {
 
                 const displayBadge = document.getElementById('displayBadge');
                 displayBadge.textContent = this.currentChord.displayMode === 'harmonic' ? 'Harmonisch' : 'Melodisch';
-            },
-
-            toggleSettings() {
-                // Im Quick-Start: Hinweis-Modal statt Einstellungen
-                if (this.quickStartMode) {
-                    document.getElementById('quickStartMenuModal').classList.add('active');
-                    return;
-                }
-                const panel = document.getElementById('settingsPanel');
-                panel.classList.toggle('hidden');
             },
 
             showIntro() {
