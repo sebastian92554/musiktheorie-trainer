@@ -5994,8 +5994,17 @@ const _lernkartenContent = {
                 this.updateUI();
                 this.drawStaff();
                 this.renderKeyboard();
+
+                // Auto-Fokus aufs Eingabefeld (Desktop, wie im Notentrainer) — per rAF
+                // deferred, da der Input-Render teils erst nach diesem Frame sichtbar ist.
+                if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                    requestAnimationFrame(() => {
+                        const _ti = document.querySelector('#originalApp input[type="text"]:not([disabled])');
+                        if (_ti && _ti.offsetParent !== null) { try { _ti.focus({ preventScroll: true }); } catch (e) {} }
+                    });
+                }
             },
-            
+
             calculateOctavesForRootPosition(rootNote, terzton, quintton, baseOctave) {
                 // Hilfsfunktion: Stammton-Index einer Note ermitteln
                 // Stammton-Reihenfolge: c(0) - d(1) - e(2) - f(3) - g(4) - a(5) - h(6)
