@@ -142,51 +142,6 @@
             background: #c2410c;
         }
 
-        .settings-panel {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .settings-panel h3 {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .select-group {
-            margin-top: 0.75rem;
-        }
-
-        .select-group label {
-            display: block;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .select-group select {
-            width: 100%;
-            max-width: 400px;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-        }
-
         .score-display {
             background: #ffedd5;
             padding: 1rem;
@@ -1739,20 +1694,6 @@
     <!-- Original App (Freies Üben + Quick-Start Modi) -->
     <div id="originalApp" class="level-screen">
     <div class="container" id="app">
-        <!-- Modal (initial versteckt, öffnet über ?-Button) -->
-        <!-- Quick-Start Menu Info Modal -->
-        <div class="modal-overlay" id="quickStartMenuModal">
-            <div class="modal" style="max-width: 28rem; text-align: center;">
-                <h2>ℹ️ Hinweis</h2>
-                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
-                    Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
-                    Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
-                </p>
-                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.remove('active')">
-                    Verstanden
-                </button>
-            </div>
-        </div>
 
         <div class="modal-overlay" id="introModal">
             <div class="modal">
@@ -1827,19 +1768,6 @@
         </div>
 
 
-        <!-- Quick-Start Menu Info Modal -->
-        <div class="modal-overlay hidden" id="quickStartMenuModal">
-            <div class="modal" style="max-width: 28rem; text-align: center;">
-                <h2>ℹ️ Hinweis</h2>
-                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
-                    Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
-                    Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
-                </p>
-                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.add('hidden')">
-                    Verstanden
-                </button>
-            </div>
-        </div>
 
         <!-- Header -->
         <div class="card">
@@ -1864,52 +1792,6 @@
                     <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
                 </div>
             </div>
-
-            <!-- Settings -->
-            <div class="settings-panel hidden" id="settingsPanel">
-                <h3>Einstellungen</h3>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showSemitones" onchange="app.updateSettings()">
-                    <label for="showSemitones">Halbtonschritte bestimmen</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="requireQuality" onchange="app.updateSettings()">
-                    <label for="requireQuality">Feinbestimmung (groß, klein, rein)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="onlyAugDim" onchange="app.updateSettings()">
-                    <label for="onlyAugDim">Feinbestimmung (übermäßig, vermindert)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showLargeIntervals" onchange="app.updateSettings()">
-                    <label for="showLargeIntervals">Erweiterte Intervalle (None bis Duodezime)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="requireKeyboard" onchange="app.updateSettings()">
-                    <label for="requireKeyboard">Tastatur-Eingabe erforderlich</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showCMarker" onchange="app.updateSettings()" checked>
-                    <label for="showCMarker">c-Markierung auf Tastatur anzeigen</label>
-                </div>
-                <div class="select-group">
-                    <label>Notenschlüssel:</label>
-                    <select id="clefSelect" onchange="app.updateSettings()">
-                        <option value="treble">Violinschlüssel (G-Schlüssel)</option>
-                        <option value="bass">Bassschlüssel (F-Schlüssel)</option>
-                        <option value="both">Beide Schlüssel</option>
-                    </select>
-                </div>
-                <div class="select-group">
-                    <label>Darstellung:</label>
-                    <select id="displayMode" onchange="app.updateSettings()">
-                        <option value="harmonic">Harmonisch (übereinander)</option>
-                        <option value="melodic" selected>Melodisch (nebeneinander)</option>
-                    </select>
-                </div>
-            </div>
-
 
             <!-- Score -->
             <div class="score-display" id="scoreCard">
@@ -3073,65 +2955,6 @@
                 this.hideTaskInstruction();
             },
 
-            showFreeMode() {
-                document.getElementById('quickStartScreen').classList.remove('active');
-                document.getElementById('successScreen').classList.remove('active');
-                document.getElementById('originalApp').classList.add('active');
-
-                document.getElementById('scoreCard').classList.remove('hidden-in-quiz');
-
-                this.isActive = false;
-                app.quickStartMode = null;
-
-                // Settings aus aktuellen Checkbox-Werten lesen (statt Hardcoded-Defaults)
-                app.settings.showSemitones = document.getElementById('showSemitones').checked;
-                app.settings.requireQuality = document.getElementById('requireQuality').checked;
-                app.settings.onlyAugDim = document.getElementById('onlyAugDim').checked;
-                app.settings.showLargeIntervals = document.getElementById('showLargeIntervals').checked;
-                app.settings.requireKeyboard = document.getElementById('requireKeyboard').checked;
-                app.settings.clef = document.getElementById('clefSelect').value;
-                app.settings.displayMode = document.getElementById('displayMode').value;
-
-                // Dynamisches Input-Rendering basierend auf Settings
-                app.setupInput();
-
-                // Keyboard-View-Only basierend auf Setting
-                const kbContainer = document.getElementById('keyboardContainer');
-                if (kbContainer) {
-                    if (app.settings.requireKeyboard) {
-                        kbContainer.classList.remove('keyboard-view-only');
-                    } else {
-                        kbContainer.classList.add('keyboard-view-only');
-                    }
-                }
-
-                // Audio im Freien Üben immer verfügbar
-                app.settings.noAudio = false;
-                app.settings.feinbestimmungLernen = false;
-                const playBtn = document.getElementById('playIntervalBtn');
-                const audioToggle = document.getElementById('audioModeToggle');
-                if (playBtn) playBtn.style.display = '';
-                if (audioToggle) audioToggle.style.display = 'none';
-
-                document.getElementById('appTitle').textContent = 'Freies Üben';
-                document.getElementById('headerExerciseInfo').classList.remove('active');
-                document.getElementById('headerResetBtn').classList.remove('active');
-                // Badges im freien Üben separat steuern
-                const badges = document.getElementById('staffBadges');
-                const clefBadge = document.getElementById('clefBadge');
-                const displayBadge = document.getElementById('displayBadge');
-                const showClef = (app.settings.clef === 'both');
-                const showDisplay = false; // Freies Üben: kein Display-Toggle
-                if (clefBadge) clefBadge.style.display = showClef ? '' : 'none';
-                if (displayBadge) displayBadge.style.display = showDisplay ? '' : 'none';
-                if (badges) badges.style.display = (showClef || showDisplay) ? '' : 'none';
-
-                app.score = { correct: 0, total: 0 };
-                app.updateScore();
-                this.showTaskInstruction('Welches Intervall ist das? Wähle die richtige Antwort.');
-                app.generateInterval();
-            },
-
             backToStart() {
                 if (this.isActive) {
                     try { tracker.quizAbandon(this.questionsAnswered || 0); } catch (e) {}
@@ -4060,36 +3883,6 @@
                 // Initiales Input-Rendering (Freies Üben)
                 this.setupInput();
 
-                // SETTINGS-PANEL AUTO-CLOSE (wie im Notentrainer)
-                const settingsPanel = document.getElementById('settingsPanel');
-                let mouseLeaveTimeout = null;
-                
-                // Close on mouseleave (Desktop) - with 1 second delay
-                settingsPanel.addEventListener('mouseleave', () => {
-                    if (!settingsPanel.classList.contains('hidden')) {
-                        mouseLeaveTimeout = setTimeout(() => {
-                            settingsPanel.classList.add('hidden');
-                        }, 1000);
-                    }
-                });
-                
-                // Cancel close if mouse returns (benötigt für mouseleave-Timeout)
-                settingsPanel.addEventListener('mouseenter', () => {
-                    if (mouseLeaveTimeout) {
-                        clearTimeout(mouseLeaveTimeout);
-                        mouseLeaveTimeout = null;
-                    }
-                });
-                
-                // Close on click outside panel (wichtig für Tablets!)
-                document.addEventListener('click', (e) => {
-                    if (!settingsPanel.classList.contains('hidden') && 
-                        !settingsPanel.contains(e.target) && 
-                        !e.target.closest('button[onclick*="toggleSettings"]')) {
-                        settingsPanel.classList.add('hidden');
-                    }
-                });
-                
                 // FIX #3: Scroll to top on page load to ensure header is visible
                 window.scrollTo(0, 0);
             },
@@ -4321,8 +4114,6 @@
                         }
                     });
                     intervalInput.addEventListener('focus', () => {
-                        const sp = document.getElementById('settingsPanel');
-                        if (sp && !sp.classList.contains('hidden')) sp.classList.add('hidden');
                         if (window.innerWidth <= 768) {
                             setTimeout(() => {
                                 const sc = document.querySelector('.staff-card');
@@ -8209,59 +8000,6 @@
                 }
             },
 
-            updateSettings() {
-                const oldDisplayMode = this.settings.displayMode;
-                const oldRequireKeyboard = this.settings.requireKeyboard;
-                
-                this.settings.showSemitones = document.getElementById('showSemitones').checked;
-                this.settings.requireQuality = document.getElementById('requireQuality').checked;
-                this.settings.onlyAugDim = document.getElementById('onlyAugDim').checked;
-                this.settings.showLargeIntervals = document.getElementById('showLargeIntervals').checked;
-                this.settings.requireKeyboard = document.getElementById('requireKeyboard').checked;
-                this.settings.showCMarker = document.getElementById('showCMarker').checked;
-                this.settings.clef = document.getElementById('clefSelect').value;
-                this.settings.displayMode = document.getElementById('displayMode').value;
-                
-                const onlyDisplayChanged = oldDisplayMode !== this.settings.displayMode &&
-                    this.settings.showSemitones === document.getElementById('showSemitones').checked &&
-                    this.settings.requireQuality === document.getElementById('requireQuality').checked &&
-                    this.settings.onlyAugDim === document.getElementById('onlyAugDim').checked &&
-                    this.settings.requireKeyboard === document.getElementById('requireKeyboard').checked &&
-                    this.settings.clef === document.getElementById('clefSelect').value;
-                
-                const onlyKeyboardChanged = oldDisplayMode === this.settings.displayMode &&
-                    this.settings.showSemitones === document.getElementById('showSemitones').checked &&
-                    this.settings.requireQuality === document.getElementById('requireQuality').checked &&
-                    this.settings.onlyAugDim === document.getElementById('onlyAugDim').checked &&
-                    this.settings.requireKeyboard !== oldRequireKeyboard &&
-                    this.settings.clef === document.getElementById('clefSelect').value;
-                
-                if (!onlyDisplayChanged && !onlyKeyboardChanged) {
-                    this.previousTask = null;
-                }
-                
-                // Input-Layout neu rendern bei Settings-Änderung
-                this.setupInput();
-
-                // Keyboard-View-Only aktualisieren
-                const kbc = document.getElementById('keyboardContainer');
-                if (kbc) {
-                    kbc.classList.toggle('keyboard-view-only', !this.settings.requireKeyboard);
-                }
-
-                this.updateUI();
-
-                if (onlyDisplayChanged && this.currentInterval) {
-                    // Nur Display-Modus geändert: Behalte Aufgabe, nur neu zeichnen
-                    this.currentInterval.displayMode = this.settings.displayMode;
-                    this.drawStaff();
-                    this.renderKeyboard();
-                } else {
-                    // Alle anderen Fälle: Neue Aufgabe generieren
-                    this.generateInterval();
-                }
-            },
-
             updateUI() {
                 const clefBadge = document.getElementById('clefBadge');
                 if (clefBadge && this.currentInterval) {
@@ -8283,16 +8021,6 @@
                         ? 'Erst Töne auf der Klaviatur angeben!'
                         : 'Pflichtfeld (zuerst bestimmen!)';
                 }
-            },
-
-            toggleSettings() {
-                // Im Quick-Start: Hinweis-Modal statt Einstellungen
-                if (this.quickStartMode) {
-                    document.getElementById('quickStartMenuModal').classList.add('active');
-                    return;
-                }
-                const panel = document.getElementById('settingsPanel');
-                panel.classList.toggle('hidden');
             },
 
             showIntro() {
