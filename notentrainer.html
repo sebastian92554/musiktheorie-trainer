@@ -142,58 +142,6 @@
             background: #4338ca;
         }
 
-        .settings-panel {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .settings-panel {
-                max-height: 70vh;
-                overflow-y: auto;
-            }
-        }
-
-        .settings-panel h3 {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .select-group {
-            margin-top: 0.75rem;
-        }
-
-        .select-group label {
-            display: block;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .select-group select {
-            width: 100%;
-            max-width: 400px;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-        }
-
         .score-display {
             background: #eef2ff;
             padding: 1rem;
@@ -1631,20 +1579,6 @@
             </div>
         </div>
 
-        <!-- Quick-Start Menu Info Modal -->
-        <div class="modal-overlay" id="quickStartMenuModal">
-            <div class="modal" style="max-width: 28rem; text-align: center;">
-                <h2>ℹ️ Hinweis</h2>
-                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
-                    Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
-                    Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
-                </p>
-                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.remove('active')">
-                    Verstanden
-                </button>
-            </div>
-        </div>
-
         <!-- Header -->
         <div class="card">
             <div class="header">
@@ -1665,40 +1599,6 @@
                         <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
                     </div>
                     <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
-                </div>
-            </div>
-
-            <!-- Settings -->
-            <div class="settings-panel hidden" id="settingsPanel">
-                <h3>Einstellungen</h3>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="useAccidentals" onchange="app.updateSettings()">
-                    <label for="useAccidentals">Vorzeichen verwenden (♯ / ♭)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="requireOctave" onchange="app.updateSettings()">
-                    <label for="requireOctave">Oktavlage erforderlich (z.B. c')</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="extendedRange" onchange="app.updateSettings()">
-                    <label for="extendedRange">Erweiterter Tonumfang (mehr Hilfslinien)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="requireKeyboard" onchange="app.updateSettings()">
-                    <label for="requireKeyboard">Tastatur-Eingabe erforderlich</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showCMarker" onchange="app.updateSettings()" checked>
-                    <label for="showCMarker">c-Markierung auf Tastatur anzeigen</label>
-                </div>
-                <div class="select-group">
-                    <label>Notenschlüssel:</label>
-                    <select id="clefSelect" onchange="app.updateSettings()">
-                        <option value="treble">Violinschlüssel (G-Schlüssel)</option>
-                        <option value="bass">Bassschlüssel (F-Schlüssel)</option>
-                        <option value="both">Beide Schlüssel</option>
-                    </select>
                 </div>
             </div>
 
@@ -2945,44 +2845,6 @@
                 this.hideTaskInstruction();
             },
 
-            showFreeMode() {
-                document.getElementById('quickStartScreen').classList.remove('active');
-                document.getElementById('successScreen').classList.remove('active');
-                document.getElementById('originalApp').classList.add('active');
-
-                document.getElementById('scoreCard').classList.remove('hidden-in-quiz');
-
-                this.isActive = false;
-                app.quickStartMode = null;
-                app.settings.clef = 'treble';
-                app.settings.useAccidentals = false;
-                app.settings.extendedRange = false;
-                app.settings.requireOctave = false;
-                app.settings.requireKeyboard = false;
-                app.settings.showCMarker = true;
-
-                document.getElementById('appTitle').textContent = 'Freies Üben';
-                document.getElementById('headerExerciseInfo').classList.remove('active');
-                document.getElementById('headerResetBtn').classList.remove('active');
-                // Badges: nur bei both
-                const badges = document.getElementById('staffBadges');
-                if (badges) badges.style.display = 'none';
-
-                document.getElementById('clefSelect').value = 'treble';
-                document.getElementById('useAccidentals').checked = false;
-                document.getElementById('extendedRange').checked = false;
-                document.getElementById('requireOctave').checked = false;
-                document.getElementById('requireKeyboard').checked = false;
-                document.getElementById('showCMarker').checked = true;
-
-                // Dynamisches Input-Rendering
-                app.setupInput();
-
-                app.score = { correct: 0, total: 0 };
-                app.updateScore();
-                app.generateNote();
-            },
-
             backToStart() {
                 // Wenn ein Quiz läuft, als Abbruch tracken (mit aktueller Frage-Position)
                 if (this.isActive) {
@@ -3085,10 +2947,6 @@
                 app.settings.extendedRange = options.includes('hilfslinien');
                 app.settings.requireOctave = options.includes('lagen');
 
-                document.getElementById('useAccidentals').checked = app.settings.useAccidentals;
-                document.getElementById('extendedRange').checked = app.settings.extendedRange;
-                document.getElementById('requireOctave').checked = app.settings.requireOctave;
-
                 const keyboardHint = document.getElementById('keyboardHint');
 
                 if (level === 'einsteiger') {
@@ -3130,10 +2988,6 @@
                     app.settings.showCMarker = true;
                     app.buildingMode = true;
                 }
-
-                document.getElementById('clefSelect').value = app.settings.clef;
-                document.getElementById('requireKeyboard').checked = app.settings.requireKeyboard;
-                document.getElementById('showCMarker').checked = app.settings.showCMarker;
 
                 // Clef-Badge nur bei both einblenden
                 const badges = document.getElementById('staffBadges');
@@ -3658,51 +3512,6 @@
                 this.setupInput(); // Dynamisches Input-Rendering
                 this.generateNote();
                 this.renderKeyboard();
-                
-                // UX IMPROVEMENT: Smart settings panel auto-close
-                const settingsPanel = document.getElementById('settingsPanel');
-                let mouseLeaveTimeout = null;
-                
-                // Close on mouseleave (Desktop) - with 1 second delay
-                settingsPanel.addEventListener('mouseleave', () => {
-                    if (!settingsPanel.classList.contains('hidden')) {
-                        mouseLeaveTimeout = setTimeout(() => {
-                            settingsPanel.classList.add('hidden');
-                        }, 1000);
-                    }
-                });
-                
-                // Cancel close if mouse returns
-                settingsPanel.addEventListener('mouseenter', () => {
-                    if (mouseLeaveTimeout) {
-                        clearTimeout(mouseLeaveTimeout);
-                        mouseLeaveTimeout = null;
-                    }
-                });
-                
-                // Close on scroll OUTSIDE settings panel (Mobile/Tablet)
-                // Allow scrolling INSIDE settings panel to access all options
-                let isScrollingInsideSettings = false;
-                
-                settingsPanel.addEventListener('scroll', () => {
-                    isScrollingInsideSettings = true;
-                    setTimeout(() => { isScrollingInsideSettings = false; }, 100);
-                });
-                
-                window.addEventListener('scroll', () => {
-                    if (!settingsPanel.classList.contains('hidden') && !isScrollingInsideSettings) {
-                        settingsPanel.classList.add('hidden');
-                    }
-                });
-                
-                // Close on click outside panel
-                document.addEventListener('click', (e) => {
-                    if (!settingsPanel.classList.contains('hidden') && 
-                        !settingsPanel.contains(e.target) && 
-                        !e.target.closest('button[onclick*="toggleSettings"]')) {
-                        settingsPanel.classList.add('hidden');
-                    }
-                });
                 
                 // FIX #3: Scroll to top on page load to ensure header is visible
                 window.scrollTo(0, 0);
@@ -5842,59 +5651,6 @@
                 }
             },
 
-            updateSettings() {
-                const oldRequireKeyboard = this.settings.requireKeyboard;
-                const oldRequireOctave = this.settings.requireOctave;
-                const oldUseAccidentals = this.settings.useAccidentals;
-                const oldExtendedRange = this.settings.extendedRange;
-                const oldClef = this.settings.clef;
-                const oldShowCMarker = this.settings.showCMarker;
-                
-                this.settings.useAccidentals = document.getElementById('useAccidentals').checked;
-                this.settings.requireOctave = document.getElementById('requireOctave').checked;
-                this.settings.extendedRange = document.getElementById('extendedRange').checked;
-                this.settings.requireKeyboard = document.getElementById('requireKeyboard').checked;
-                this.settings.showCMarker = document.getElementById('showCMarker').checked;
-                this.settings.clef = document.getElementById('clefSelect').value;
-                
-                const onlyKeyboardChanged = 
-                    this.settings.useAccidentals === oldUseAccidentals &&
-                    this.settings.requireOctave === oldRequireOctave &&
-                    this.settings.extendedRange === oldExtendedRange &&
-                    this.settings.requireKeyboard !== oldRequireKeyboard &&
-                    this.settings.showCMarker === oldShowCMarker &&
-                    this.settings.clef === oldClef;
-                
-                const onlyOctaveChanged = 
-                    this.settings.useAccidentals === oldUseAccidentals &&
-                    this.settings.requireOctave !== oldRequireOctave &&
-                    this.settings.extendedRange === oldExtendedRange &&
-                    this.settings.requireKeyboard === oldRequireKeyboard &&
-                    this.settings.showCMarker === oldShowCMarker &&
-                    this.settings.clef === oldClef;
-                
-                const onlyCMarkerChanged = 
-                    this.settings.useAccidentals === oldUseAccidentals &&
-                    this.settings.requireOctave === oldRequireOctave &&
-                    this.settings.extendedRange === oldExtendedRange &&
-                    this.settings.requireKeyboard === oldRequireKeyboard &&
-                    this.settings.showCMarker !== oldShowCMarker &&
-                    this.settings.clef === oldClef;
-                
-                this.updateUI();
-                
-                // UX IMPROVEMENT: Removed automatic 2-second timeout
-                // Settings panel now closes based on user interaction (mouseleave, scroll, click outside)
-                
-                if (!onlyKeyboardChanged && !onlyOctaveChanged && !onlyCMarkerChanged) {
-                    this.generateNote();
-                } else {
-                    if (onlyKeyboardChanged || onlyCMarkerChanged) {
-                        this.renderKeyboard();
-                    }
-                }
-            },
-
             updateUI() {
                 const clefBadge = document.getElementById('clefBadge');
                 const isTreble = this.currentNote.clef === 'treble';
@@ -5959,16 +5715,6 @@
                         keyboardCard.classList.remove('active');
                     }
                 }
-            },
-
-            toggleSettings() {
-                // Im Quick-Start: Hinweis-Modal statt Einstellungen
-                if (this.quickStartMode) {
-                    document.getElementById('quickStartMenuModal').classList.add('active');
-                    return;
-                }
-                const panel = document.getElementById('settingsPanel');
-                panel.classList.toggle('hidden');
             },
 
             showIntro() {
@@ -6148,35 +5894,6 @@ Gerät:
 
             // Event Listeners werden jetzt in _attachInputListeners() registriert
             // (aufgerufen durch setupInput() bei jedem Moduswechsel)
-            
-            // Settings panel auto-close
-            const settingsPanel = document.getElementById('settingsPanel');
-            if (settingsPanel) {
-                let mouseLeaveTimeout = null;
-                
-                settingsPanel.addEventListener('mouseleave', () => {
-                    if (!settingsPanel.classList.contains('hidden')) {
-                        mouseLeaveTimeout = setTimeout(() => {
-                            settingsPanel.classList.add('hidden');
-                        }, 1000);
-                    }
-                });
-                
-                settingsPanel.addEventListener('mouseenter', () => {
-                    if (mouseLeaveTimeout) {
-                        clearTimeout(mouseLeaveTimeout);
-                        mouseLeaveTimeout = null;
-                    }
-                });
-                
-                document.addEventListener('click', (e) => {
-                    if (!settingsPanel.classList.contains('hidden') && 
-                        !settingsPanel.contains(e.target) && 
-                        !e.target.closest('button[onclick*="toggleSettings"]')) {
-                        settingsPanel.classList.add('hidden');
-                    }
-                });
-            }
             
             document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
             
