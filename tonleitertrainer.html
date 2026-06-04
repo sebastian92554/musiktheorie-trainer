@@ -142,61 +142,8 @@
             background: #0e7490;
         }
 
-        .settings-panel {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .settings-panel.hidden {
-            display: none;
-        }
-
         .hidden {
             display: none !important;
-        }
-
-        .settings-panel h3 {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .score-display {
-            background: #cffafe;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #scoreCard.hidden-in-quiz {
-            display: none !important;
-        }
-
-        .score-text {
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-
-        .score-percentage {
-            font-size: 0.875rem;
-            color: #4b5563;
-            margin-left: 0.5rem;
         }
 
         .clef-badge {
@@ -1461,18 +1408,6 @@
         .header-retry-hint.active {
             display: block;
         }
-        .free-retry-hint {
-            display: none;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #ef4444;
-            font-weight: 600;
-            padding: 0.4rem;
-        }
-        .free-retry-hint.active {
-            display: block;
-        }
-
         /* Header: Responsive Layout */
         .header {
             flex-wrap: wrap;
@@ -2058,19 +1993,6 @@
         </div>
 
         <!-- Intro/Hilfe Modal -->
-        <!-- Quick-Start Menu Info Modal -->
-        <div class="modal-overlay" id="quickStartMenuModal">
-            <div class="modal" style="max-width: 28rem; text-align: center;">
-                <h2>ℹ️ Hinweis</h2>
-                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
-                    Im Quick-Start sind die Einstellungen an dein Level angepasst.<br><br>
-                    Für eigene Einstellungen wähle <strong>„Freies Üben"</strong> im Startmenü.
-                </p>
-                <button class="btn-primary" onclick="document.getElementById('quickStartMenuModal').classList.remove('active')" style="padding: 10px 30px; border-radius: 8px; border: none; background: #0891b2; color: white; font-size: 1rem; cursor: pointer;">
-                    Verstanden
-                </button>
-            </div>
-        </div>
 
         <div class="modal-overlay" id="introModal">
             <div class="modal">
@@ -2164,38 +2086,6 @@
                 </div>
             </div>
 
-            <!-- Settings Panel -->
-            <div class="settings-panel hidden" id="settingsPanel">
-                <h3>Einstellungen</h3>
-
-                <!-- Übungsmodus -->
-                <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
-                    <label style="font-weight: 600; color: #164e63;">🎵 Schwierigkeit:</label>
-                    <select id="stageSelect" onchange="app.applySettings()" style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db; margin-top:6px;">
-                        <option value="einsteiger">Ganzton oder Halbton?</option>
-                        <option value="aufsteiger">Halbtonschritte finden</option>
-                        <option value="profi">Tonleiter benennen</option>
-                        <option value="meister">Quintenzirkel</option>
-                    </select>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="settingKeyboard" onchange="app.applySettings()" checked>
-                    <label for="settingKeyboard">Tastatur anzeigen</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="settingVorzeichen" onchange="app.applySettings()">
-                    <label for="settingVorzeichen">Alle Tonarten (inkl. viele Vorzeichen)</label>
-                </div>
-                <div class="checkbox-group" id="settingStufenGroup" style="display:none;">
-                    <input type="checkbox" id="settingStufen" onchange="app.applySettings()">
-                    <label for="settingStufen">HS-Stufen auswählen (Stufenpaar-Buttons)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="settingBass" onchange="app.applySettings()">
-                    <label for="settingBass">Bassschlüssel</label>
-                </div>
-            </div>
         </div>
 
         <!-- Aufgabenstellung -->
@@ -2203,30 +2093,6 @@
             <div class="task-instruction-text" id="taskInstructionText"></div>
         </div>
 
-        <!-- Score Display (nur im freien Modus sichtbar) -->
-        <div class="card" id="scoreCard">
-            <div class="score-display" id="scoreDisplay">
-                <div>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                        <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-                    </svg>
-                    <span class="score-text" id="scoreText">0 / 0</span>
-                    <span class="score-percentage" id="scorePercent"></span>
-                </div>
-                <button class="btn" onclick="app.resetScore()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
-                    </svg>
-                    <span style="font-size: 0.875rem;">Zurücksetzen</span>
-                </button>
-            </div>
-            <!-- (Goal-Progress entfernt — kein Streak/Accuracy im freien Modus) -->
-        </div>
-
-        <!-- Retry-Hint (freier Modus) -->
-        <div class="free-retry-hint" id="freeRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
 
         <!-- Fallback Hint (for Profi fallback) -->
         <div class="fallback-hint" id="fallbackHint">
@@ -3493,44 +3359,6 @@
             this.isActive = false;
         },
 
-        showFreeMode() {
-            document.getElementById('quickStartScreen').classList.remove('active');
-            document.getElementById('successScreen').classList.remove('active');
-            document.getElementById('originalApp').classList.add('active');
-
-            // Score-Counter einblenden für Freies Üben
-            document.getElementById('scoreCard').classList.remove('hidden-in-quiz');
-
-            this.isActive = false;
-            app.quickStartMode = null;
-            app.useBassClef = false;
-            app.useAllKeys = false;
-            app.useKirchentonarten = false;
-            app.goalMode = 'free';
-
-            // Header: Freies Üben anzeigen
-            document.getElementById('appTitle').textContent = 'Freies Üben';
-            document.getElementById('headerExerciseInfo').classList.remove('active');
-            document.getElementById('headerResetBtn').classList.remove('active');
-
-            // Reset settings UI
-            document.getElementById('stageSelect').value = 'einsteiger';
-            document.getElementById('settingKeyboard').checked = true;
-            document.getElementById('settingVorzeichen').checked = false;
-            // (Kirchentonarten-Setting entfernt)
-            if (document.getElementById('settingBass')) document.getElementById('settingBass').checked = false;
-
-            app.configureForStage('einsteiger', true);
-
-            // Audio im Freien Üben: verfügbar (Einsteiger = ton1)
-            app.noAudio = false;
-            const audioControls = document.getElementById('audioControls');
-            if (audioControls) audioControls.style.display = '';
-
-            app.generateNewTask();
-            this.showTaskInstruction('Ganzton- oder Halbtonschritt? Wähle die richtige Antwort.');
-        },
-
         backToStart() {
             if (this.isActive) {
                 try { tracker.quizAbandon(this.questionsAnswered || 0); } catch (e) {}
@@ -3655,9 +3483,6 @@
             document.getElementById('quickStartScreen').classList.remove('active');
             document.getElementById('successScreen').classList.remove('active');
             document.getElementById('originalApp').classList.add('active');
-
-            // Score-Counter ausblenden im Quiz-Modus
-            document.getElementById('scoreCard').classList.add('hidden-in-quiz');
 
             // Configure app
             app.quickStartMode = level;
@@ -8569,53 +8394,6 @@
             fb.className = 'feedback';
         },
 
-        // ---- Settings ----
-        toggleSettings() {
-            if (this.quickStartMode) {
-                // In Quick-Start mode: show modal instead of settings
-                document.getElementById('quickStartMenuModal').classList.add('active');
-                return;
-            }
-            const panel = document.getElementById('settingsPanel');
-            panel.classList.toggle('hidden');
-        },
-
-        applySettings() {
-            const stage = document.getElementById('stageSelect').value;
-            const showKb = document.getElementById('settingKeyboard').checked;
-            const allKeys = document.getElementById('settingVorzeichen').checked;
-            const useBass = document.getElementById('settingBass') ? document.getElementById('settingBass').checked : false;
-            const kirchentonarten = false; // Kirchentonarten nur im Skilltree (Profi)
-            const useStufen = document.getElementById('settingStufen') ? document.getElementById('settingStufen').checked : false;
-
-            // Show/hide HS-Stufen checkbox depending on stage
-            const stufenGroup = document.getElementById('settingStufenGroup');
-            if (stufenGroup) {
-                stufenGroup.style.display = (stage === 'aufsteiger' || stage === 'profi') ? 'flex' : 'none';
-            }
-
-            this.useBassClef = useBass;
-            this.useAllKeys = allKeys;
-            this.useKirchentonarten = kirchentonarten;
-            this.useStufenButtons = useStufen && (stage === 'aufsteiger' || stage === 'profi');
-
-            // Für Quintenzirkel: currentOptions setzen
-            if (stage === 'meister') {
-                quickStart.currentOptions = quickStart.getOptionsForLevel('meister');
-                quickStart.currentLevel = 'meister';
-            }
-
-            this.configureForStage(stage, stage === 'meister' ? false : showKb);
-
-            // Audio im Freien Üben: ton1-ton3 (einsteiger/aufsteiger/profi) haben Audio, meister nicht
-            const hasAudioTask = (stage !== 'meister');
-            this.noAudio = !hasAudioTask;
-            const audioControls = document.getElementById('audioControls');
-            if (audioControls) audioControls.style.display = this.noAudio ? 'none' : '';
-
-            this.generateNewTask();
-        },
-
         // ---- Modals ----
         showIntro() {
             const titleEl = document.getElementById('introModalTitle');
@@ -8821,36 +8599,6 @@ Gerät:
         quickStart.init();
         app.init();
         document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
-
-        // SETTINGS-PANEL AUTO-CLOSE (wie im Dreiklangstrainer)
-        const settingsPanel = document.getElementById('settingsPanel');
-        let mouseLeaveTimeout = null;
-
-        // Close on mouseleave (Desktop) - with 1 second delay
-        settingsPanel.addEventListener('mouseleave', () => {
-            if (!settingsPanel.classList.contains('hidden')) {
-                mouseLeaveTimeout = setTimeout(() => {
-                    settingsPanel.classList.add('hidden');
-                }, 1000);
-            }
-        });
-
-        // Cancel close if mouse returns
-        settingsPanel.addEventListener('mouseenter', () => {
-            if (mouseLeaveTimeout) {
-                clearTimeout(mouseLeaveTimeout);
-                mouseLeaveTimeout = null;
-            }
-        });
-
-        // Close on click outside panel (wichtig für Tablets!)
-        document.addEventListener('click', (e) => {
-            if (!settingsPanel.classList.contains('hidden') &&
-                !settingsPanel.contains(e.target) &&
-                !e.target.closest('button[onclick*="toggleSettings"]')) {
-                settingsPanel.classList.add('hidden');
-            }
-        });
     });
 
     // Resize handler: re-render keyboard on orientation/size change
