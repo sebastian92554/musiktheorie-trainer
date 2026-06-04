@@ -5210,7 +5210,7 @@
                     this.stepPairSelections = [false, false, false, false, false, false, false];
                     setTimeout(() => {
                         const input = document.getElementById('profiInput');
-                        if (input) input.focus();
+                        if (input) app._focusInputDesktop(input);
                     }, 200);
                 } else if (!quickStart.isActive && this.useStufenButtons) {
                     // Freies Üben mit Stufenpaar-Buttons: wie muster_erkennen
@@ -5231,7 +5231,7 @@
                     this.stepPairSelections = [false, false, false, false, false, false, false];
                     setTimeout(() => {
                         const input = document.getElementById('profiInput');
-                        if (input) input.focus();
+                        if (input) app._focusInputDesktop(input);
                     }, 200);
                 } else {
                     // Alles: Texteingabe wie bisher
@@ -5245,7 +5245,7 @@
                     `;
                     setTimeout(() => {
                         const input = document.getElementById('profiInput');
-                        if (input) input.focus();
+                        if (input) app._focusInputDesktop(input);
                     }, 200);
                 }
             }
@@ -5488,7 +5488,7 @@
                 if (input) {
                     input.value = '';
                     input.className = '';
-                    input.focus();
+                    app._focusInputDesktop(input);
                 }
             }
         },
@@ -5694,7 +5694,7 @@
                     </div>`;
                 setTimeout(() => {
                     const inp = document.getElementById('qzTextAnswer');
-                    if (inp) inp.focus();
+                    if (inp) app._focusInputDesktop(inp);
                 }, 100);
             } else if (question.type === 'multi') {
                 this._qzMultiSelected = new Set();
@@ -5758,7 +5758,7 @@
                 setTimeout(() => {
                     input.classList.remove('input-incorrect');
                     input.value = '';
-                    input.focus();
+                    app._focusInputDesktop(input);
                 }, 800);
             }
         },
@@ -7657,6 +7657,14 @@
             }
         },
 
+        // Auto-Fokus aufs Eingabefeld nur auf Desktop (hover/fine-pointer) — sonst
+        // poppt auf Tablets/Mobile die Bildschirmtastatur bei jeder Aufgabe auf.
+        _focusInputDesktop(el) {
+            if (el && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                try { el.focus({ preventScroll: true }); } catch (e) {}
+            }
+        },
+
         // ---- Score Display ----
         updateScoreDisplay() {
             const scoreText = document.getElementById('scoreText');
@@ -7976,7 +7984,7 @@
                         this.inputLocked = false;
                         this.hideFeedback();
                         const inp = document.getElementById('profiInput');
-                        if (inp) { inp.value = ''; inp.className = ''; inp.focus(); }
+                        if (inp) { inp.value = ''; inp.className = ''; app._focusInputDesktop(inp); }
                     }, 3000);
                 }
             }
@@ -8167,7 +8175,7 @@
                         if (btn) btn.classList.remove('selected', 'correct', 'wrong', 'missed');
                     }
                     const inp = document.getElementById('profiInput');
-                    if (inp) { inp.value = ''; inp.className = ''; inp.focus(); }
+                    if (inp) { inp.value = ''; inp.className = ''; app._focusInputDesktop(inp); }
                 }, 3000);
             }
         },
