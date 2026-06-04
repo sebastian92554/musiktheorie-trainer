@@ -1496,10 +1496,17 @@
             padding: 0.5rem;
             border-radius: 0.5rem;
             display: none;
+            align-items: center;
+            font-size: 0.85rem;
         }
         .header-reset-btn.active {
             display: inline-flex;
         }
+        .header-reset-btn:hover { color: #4b5563; }
+        /* Aktions-Zeile unten im Eingabe-Frame: Hilfe (immer) + Reset (nur im Quiz) */
+        .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid #f1f5f9; }
+        .input-help-btn { background: #ecfeff; border: 1px solid #a5f3fc; color: #0891b2; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
+        .input-help-btn:hover { background: #cffafe; }
 
         /* Modal */
         .modal-overlay {
@@ -2001,8 +2008,6 @@
 
                 <!-- Freies Üben + Reset -->
                 <div style="text-align: center; margin-top: 0.75rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <a onclick="quickStart.showFreeMode()" style="font-size: 0.75rem; color: #0891b2; text-decoration: none; cursor: pointer;">Freies Üben (alle Optionen)</a>
-                    <span style="color: #d1d5db;">|</span>
                     <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
                     <span style="color: #d1d5db;">|</span>
                     <a onclick="app.showFeedbackModal()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Feedback</a>
@@ -2141,21 +2146,9 @@
                 <div class="header-top">
                     <div class="title" id="appTitle">Tonleitertrainer</div>
                     <div class="header-buttons">
-                        <button class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Zurücksetzen">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                <path d="M3 3v5h5"/>
-                            </svg>
-                        </button>
-                        <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Lernpfad" style="background:transparent; border:2px solid #0891b2; color:#0891b2; margin-right:2px; padding:0.35rem 0.75rem; font-size:0.9rem;">
+                        <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Lernpfad" style="background:transparent; border:2px solid #0891b2; color:#0891b2; padding:0.35rem 0.75rem; font-size:0.9rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                             Lernpfad
-                        </button>
-                        <button class="btn" onclick="app.showIntro()" title="Hilfe anzeigen" style="font-size: 1.4rem; font-weight: 700; color: #dc2626; line-height: 1;">?</button>
-                        <button class="btn" onclick="app.toggleSettings()" title="Einstellungen">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
                         </button>
                     </div>
                 </div>
@@ -2281,7 +2274,17 @@
 
         <!-- Input Card -->
         <div class="card input-card" id="inputCard">
-            <!-- Dynamic content based on stage -->
+            <div id="inputCardBody"><!-- Dynamic content based on stage --></div>
+            <!-- Aktionen: Hilfe (immer) + Reset (nur im Quiz) — fest in der Eingabe-Karte -->
+            <div class="input-actions" id="inputActions">
+                <button type="button" class="input-help-btn" onclick="app.showIntro()" title="Hilfe / Lernkarte anzeigen">Hilfe</button>
+                <button type="button" class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Punktestand zurücksetzen">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:0.25rem;">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>Zurücksetzen
+                </button>
+            </div>
         </div>
 
         </div><!-- /main-content-wrapper -->
@@ -5287,7 +5290,9 @@
         },
 
         setupInput() {
-            const inputCard = document.getElementById('inputCard');
+            // Content-Container (innerhalb der Eingabe-Karte). Die Aktions-Zeile
+            // (Hilfe/Reset) liegt als Geschwister daneben und bleibt so erhalten.
+            const inputCard = document.getElementById('inputCardBody');
 
             if (this.currentStage === 'bilden') {
                 const highestOpt = quickStart.isActive ? quickStart.currentOptions[quickStart.currentOptions.length - 1] : 'tastatur_einfach';
@@ -8357,7 +8362,7 @@
             kbCard.classList.add('active');
 
             // Setup input for fallback (check button — input via keyboard clicks)
-            const inputCard = document.getElementById('inputCard');
+            const inputCard = document.getElementById('inputCardBody');
             inputCard.innerHTML = `
                 <div class="input-buttons">
                     <button type="button" onclick="app.checkFallback()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
