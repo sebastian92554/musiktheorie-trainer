@@ -4895,6 +4895,18 @@
                         quickStart.showTaskInstruction('Wie heißt diese Note? Gib den Notennamen ein.');
                     }
                 }
+
+                // Auto-Fokus aufs Eingabefeld (Nutzer-Feedback: schnelleres Tippen
+                // ohne erst klicken zu müssen). Nur im Text-Modus und nur auf Geräten
+                // mit physischer Tastatur — sonst poppt auf Tablets die Bildschirm-
+                // tastatur bei jeder Aufgabe auf und verdeckt das Notensystem.
+                if (!this.settings.requireKeyboard &&
+                    window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                    const ni = document.getElementById('noteInput');
+                    if (ni && !ni.disabled) {
+                        try { ni.focus({ preventScroll: true }); } catch (e) { try { ni.focus(); } catch (e2) {} }
+                    }
+                }
             },
 
             // MULTI-INPUT: Reset validation state for new question
