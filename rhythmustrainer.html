@@ -897,7 +897,11 @@
         }
 
         .skilltree-header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
             margin-bottom: 1.25rem;
         }
 
@@ -1489,6 +1493,7 @@
 
             <div class="skilltree-header">
                 <h1>Rhythmustrainer</h1>
+                <div class="account-bar"></div>
             </div>
 
             <div class="skilltree-card">
@@ -2591,6 +2596,7 @@
             saveProgress() {
                 this.progress.timestamp = Date.now();
                 localStorage.setItem('rhythmustrainer_skilltree_v2', JSON.stringify(this.progress));
+                if (window.Account && Account.isLoggedIn()) Account.save(); // Auto-Sync zum Server
             },
 
             createNewProgress() {
@@ -9592,5 +9598,13 @@ Gerät:
             <button onclick="app.dismissLernkarte()">Verstanden, los!</button>
         </div>
     </div>
+    <script src="account.js"></script>
+    <script>
+        // Account-Komponente: Speicher-Status-Icon aktivieren + nach Login Fortschritt neu laden
+        if (window.Account) {
+            Account.enableSaveStatus();
+            Account.onSync = function () { location.reload(); };
+        }
+    </script>
 </body>
 </html>

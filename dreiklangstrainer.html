@@ -856,7 +856,11 @@
         }
 
         .skilltree-header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
             margin-bottom: 1.25rem;
         }
 
@@ -1585,6 +1589,7 @@
         <div class="skilltree-container">
             <div class="skilltree-header">
                 <h1>Dreiklangstrainer</h1>
+                <div class="account-bar"></div>
             </div>
 
             <div class="skilltree-card">
@@ -2594,6 +2599,7 @@
             saveProgress() {
                 this.progress.timestamp = Date.now();
                 localStorage.setItem(this._storageKey, JSON.stringify(this.progress));
+                if (window.Account && Account.isLoggedIn()) Account.save(); // Auto-Sync zum Server
             },
 
             createNewProgress() {
@@ -8270,5 +8276,13 @@ Gerät:
     <footer class="site-footer" style="text-align:center; padding:1.5rem 1rem; color:#94a3b8; font-size:0.75rem; line-height:1.6;">
         <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
     </footer>
+    <script src="account.js"></script>
+    <script>
+        // Account-Komponente: Speicher-Status-Icon aktivieren + nach Login Fortschritt neu laden
+        if (window.Account) {
+            Account.enableSaveStatus();
+            Account.onSync = function () { location.reload(); };
+        }
+    </script>
 </body>
 </html>
