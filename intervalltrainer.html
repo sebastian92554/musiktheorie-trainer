@@ -2471,6 +2471,12 @@
                 } else {
                     try {
                         const parsed = JSON.parse(data);
+                        // 24-h-Ablauf (einheitlich mit den anderen Trainern)
+                        if (parsed.timestamp && Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
+                            this.progress = this.createNewProgress();
+                            this.saveProgress();
+                            return;
+                        }
                         // Migrate old boolean format
                         if (typeof parsed.einsteiger.basis !== 'undefined') {
                             const migrated = this.createNewProgress();

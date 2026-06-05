@@ -59,6 +59,12 @@
             line-height: 1.5;
         }
 
+        .account-strip {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
         /* ── Container ── */
         .container {
             max-width: 900px;
@@ -391,6 +397,10 @@
 
     <main class="container">
 
+        <section class="account-strip">
+            <div class="account-bar"></div>
+        </section>
+
         <section class="kompetenzbaum">
             <h2>Lernpfad</h2>
             <p class="kompetenzbaum-info">
@@ -475,7 +485,7 @@
             </div>
             <div class="info-box">
                 <h3>Sofort loslegen</h3>
-                <p>Keine Anmeldung, keine Installation, keine Kosten. Funktioniert auf Tablet, Smartphone und Computer. DSGVO-konform.</p>
+                <p>Keine Anmeldung nötig, keine Installation, keine Kosten – einfach starten. Wer seinen Lernstand geräteübergreifend speichern möchte, kann optional einen kostenlosen Account anlegen. Funktioniert auf Tablet, Smartphone und Computer. DSGVO-konform.</p>
             </div>
         </section>
 
@@ -485,6 +495,8 @@
         Entwickelt von Sebastian Madyda · <a href="https://www.schillerschule-hannover.de" target="_blank" rel="noopener">Schillerschule Hannover</a><br>
         <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
     </footer>
+
+    <script src="account.js"></script>
 
     <script>
         // L-Connector SVG-Pfad: durchgehende Linie NT → IT

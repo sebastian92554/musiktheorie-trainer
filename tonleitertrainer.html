@@ -2917,7 +2917,7 @@
                 this.saveProgress();
             } else {
                 const parsed = JSON.parse(data);
-                if (parsed.timestamp && Date.now() - parsed.timestamp > 7 * 24 * 60 * 60 * 1000) {
+                if (parsed.timestamp && Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
                     this.progress = this.createNewProgress();
                     this.saveProgress();
                 } else {
