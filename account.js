@@ -235,6 +235,14 @@
 .acc-status-unsaved{color:#dc2626}
 @keyframes acc-rot{to{transform:rotate(360deg)}}
 .acc-spin{animation:acc-rot .8s linear infinite}
+.acc-btn.danger{background:#dc2626;color:#fff}
+.acc-btn.danger:hover{background:#b91c1c}
+.acc-icon{background:none;color:#64748b;padding:.35rem;display:inline-flex;align-items:center}
+.acc-icon:hover{background:#f1f5f9;color:#334155}
+.acc-settings-list{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
+.acc-settings-item{display:block;width:100%;text-align:left;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:.6rem .75rem;cursor:pointer;font:inherit;font-weight:600;color:#334155}
+.acc-settings-item:hover{background:#f1f5f9}
+.acc-settings-item.danger{color:#dc2626}
 `;
 
   var HTML = `
@@ -304,6 +312,26 @@
   </div>
 </div></div>
 
+<div class="acc-overlay" id="acc-m-settings"><div class="acc-modal">
+  <h3>Einstellungen</h3>
+  <div class="acc-settings-list">
+    <button class="acc-settings-item danger" data-acc="open-delete">Account löschen</button>
+    <!-- künftige Einträge hier (z.B. Auswertung) -->
+  </div>
+  <div class="acc-actions"><button class="acc-btn ghost" data-acc="close">Schließen</button></div>
+</div></div>
+
+<div class="acc-overlay" id="acc-m-delete"><div class="acc-modal">
+  <h3>Account löschen</h3>
+  <p class="sub">Möchtest du deinen Account wirklich löschen?</p>
+  <div class="acc-warn-red">⚠️ Dein Account und dein gesamter gespeicherter Fortschritt werden <b>unwiderruflich gelöscht</b>. Lokales Üben bleibt weiter möglich.</div>
+  <div class="acc-msg" id="acc-del-msg"></div>
+  <div class="acc-actions">
+    <button class="acc-btn ghost" data-acc="close">Abbrechen</button>
+    <button class="acc-btn danger" data-acc="delete-confirm">Endgültig löschen</button>
+  </div>
+</div></div>
+
 <div class="acc-toast" id="acc-toast"></div>
 `;
 
@@ -336,7 +364,7 @@
   function _closeModals() {
     var ov = document.querySelectorAll('.acc-overlay');
     for (var i = 0; i < ov.length; i++) ov[i].classList.remove('active');
-    ['acc-reg-msg', 'acc-log-msg', 'acc-res-msg'].forEach(function (i) { var e = _el(i); if (e) e.textContent = ''; });
+    ['acc-reg-msg', 'acc-log-msg', 'acc-res-msg', 'acc-del-msg'].forEach(function (i) { var e = _el(i); if (e) e.textContent = ''; });
     _show('acc-reg-form', true); _show('acc-reg-success', false);
     _show('acc-res-form', true); _show('acc-res-success', false);
     ['acc-reg-user', 'acc-reg-pw', 'acc-log-user', 'acc-log-pw', 'acc-res-user', 'acc-res-code', 'acc-res-pw']
@@ -387,6 +415,14 @@
     Account.logout().then(function () { _renderBar(); _toast('Abgemeldet.'); if (typeof Account.onSync === 'function') Account.onSync('logout'); });
   }
 
+  function _doDelete() {
+    _setMsg('acc-del-msg', '…', true);
+    Account.deleteAccount().then(function (r) {
+      if (r && r.ok) { _closeModals(); _renderBar(); _toast('Account gelöscht.'); }
+      else { _setMsg('acc-del-msg', _errText(r), false); }
+    }).catch(function () { _setMsg('acc-del-msg', 'Keine Verbindung zum Server.', false); });
+  }
+
   var _saveState = null; // null = aus | 'saved' | 'saving' | 'unsaved' (Office-365-artig)
 
   function _statusIcon() {
@@ -405,7 +441,8 @@
     var html = Account.isLoggedIn()
       ? '<span class="acc-who">' + _esc(Account.currentUser()) + ' <small>· angemeldet</small></span>' +
         _statusIcon() +
-        '<button class="acc-btn ghost" data-acc="logout">Abmelden</button>'
+        '<button class="acc-btn ghost" data-acc="logout">Abmelden</button>' +
+        '<button class="acc-btn acc-icon" data-acc="open-settings" title="Einstellungen" aria-label="Einstellungen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>'
       : '<button class="acc-btn ghost" data-acc="open-login">Anmelden</button>' +
         '<button class="acc-btn" data-acc="open-register">Registrieren</button>';
     for (var i = 0; i < mounts.length; i++) mounts[i].innerHTML = html;
@@ -423,6 +460,9 @@
       case 'open-register': _openModal('acc-m-register'); break;
       case 'open-reset': _openModal('acc-m-reset'); break;
       case 'logout': _doLogout(); break;
+      case 'open-settings': _openModal('acc-m-settings'); break;
+      case 'open-delete': _openModal('acc-m-delete'); break;
+      case 'delete-confirm': _doDelete(); break;
     }
   }
 
