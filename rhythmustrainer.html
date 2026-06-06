@@ -9454,7 +9454,7 @@ Gerät:
                 body: `<p>Tippe auf den <strong>Audio-Button</strong>, um den Rhythmus zu hören. Ein <strong>Einzähler</strong> gibt dir das Tempo vor. Baue dann den Takt <strong>Note für Note</strong> nach, indem du auf die Noten-Buttons tippst.</p>
                     <div class="lk-visual" id="lkVisualRhy6Basis"></div>
                     <div class="lk-rule"><strong>Merke:</strong> Höre genau zu und baue den Takt von links nach rechts auf. Der Fortschrittsbalken zeigt, wie voll der Takt ist.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Du kannst den Rhythmus beliebig oft anhören. Nutze Undo, um die letzte Note zu entfernen.</div>
+                    <div class="lk-tip"><strong>Tipp:</strong> Du kannst den Rhythmus beliebig oft anhören. Mit „Rückgängig" entfernst du die letzte Note.</div>
                     <div class="lk-task"><strong>Deine Aufgabe:</strong> Wenn der Takt voll ist, tippe „Prüfen".</div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy6Basis');
@@ -9520,7 +9520,7 @@ Gerät:
                                     <span style="color:${green};font-weight:700">■ Grüne Noten</span> = richtig — sie bleiben stehen.</div>
                                 <div style="margin-bottom:4px">
                                     <span style="color:${red};font-weight:700">■ Rote Noten</span> = falsch — sie werden entfernt.</div>
-                                <div>Du baust <strong>ab der ersten roten Note</strong> weiter. Höre nochmal hin und korrigiere.</div>
+                                <div>Du baust <strong>ab der letzten grünen Note</strong> weiter. Höre nochmal hin und korrigiere.</div>
                             </div>
                             <div style="font-size:0.8rem;color:#6b7280;margin:10px 0 6px">Noten-Buttons:</div>
                             <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:8px">
@@ -9529,7 +9529,7 @@ Gerät:
                                 <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('eighth',30,30)}<br><small style="font-size:0.7rem">Achtel</small></span>
                             </div>
                             <div style="display:flex;gap:0.5rem;justify-content:center">
-                                <span style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:4px 12px;font-size:0.75rem;color:#dc2626">↩ Undo</span>
+                                <span style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:4px 12px;font-size:0.75rem;color:#dc2626">↩ Rückgängig</span>
                                 <span style="background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:4px 12px;font-size:0.75rem;color:#16a34a">✓ Prüfen</span>
                             </div>`;
                     }
