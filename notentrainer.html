@@ -39,6 +39,8 @@
             background: linear-gradient(to bottom right, #eff6ff, #e0e7ff);
             min-height: 100vh;
             padding: 1rem;
+            display: flex;
+            flex-direction: column;
         }
 
         @media (max-width: 768px) {
@@ -1242,6 +1244,11 @@
         .level-screen.active {
             display: block;
         }
+        /* Menü-Screen füllt den Viewport per Flex → Footer von Anfang an unten sichtbar */
+        #quickStartScreen.active {
+            flex: 1 0 auto;
+            min-height: auto;
+        }
         
         /* Quick Start Container */
 
@@ -1461,12 +1468,6 @@
                     <div class="st-progress-bar-bg">
                         <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
                     </div>
-                </div>
-                <div class="st-help-hint" id="stHelpHint">Tippe auf eine Teilkompetenz, um sie direkt zu starten.</div>
-                <div style="text-align: center; margin-top: 0.75rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <a onclick="quickStart.confirmReset()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Fortschritt zurücksetzen</a>
-                    <span style="color: #d1d5db;">|</span>
-                    <a onclick="app.showFeedback()" style="font-size: 0.75rem; color: #9ca3af; text-decoration: none; cursor: pointer;">Feedback</a>
                 </div>
                 <div class="st-legend">
                     <div class="st-legend-item"><div class="st-legend-dot m"></div> Gemeistert</div>
@@ -2430,8 +2431,9 @@
                         this.saveProgress();
                     } else {
                         this.progress = parsed;
-                        // Migration: neue Bilden-Level ergänzen falls fehlend
-                        ['bild_violin', 'bild_bass', 'bild_beide'].forEach(lv => {
+                        // Migration: ALLE benötigten Level sicherstellen (robust gegen alte/
+                        // unvollständige Stände — sonst wirft updateAllProgress bei fehlendem Level)
+                        Object.values(this.nodeToLevel).forEach(lv => {
                             if (!this.progress[lv]) this.progress[lv] = { mastered: [], attempts: {}, scores: {} };
                         });
                     }
@@ -6286,7 +6288,7 @@ Gerät:
 
     </script>
     <footer class="site-footer" style="text-align:center; padding:1.5rem 1rem; color:#94a3b8; font-size:0.75rem; line-height:1.6;">
-        <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
+        <a onclick="app.showFeedback()" style="color:#64748b; text-decoration:none; cursor:pointer;">Feedback</a> · <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
     </footer>
 </body>
 </html>
