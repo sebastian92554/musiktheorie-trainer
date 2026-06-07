@@ -301,19 +301,34 @@ function _features(sid, ev) {
 
 /** Burst-Heuristik → Klassenraum-Segment */
 function _segment(sessions) {
+  // 1) Ground Truth: explizite Schulsession-Marker überstimmen die Burst-Heuristik.
+  //    Alle prod-Sessions in einem [start, end]-Fenster sind klassenraum.
+  //    Test-Marker (Klassen-Präfix „test") werden ausgeschlossen.
+  const windows = _loadSchoolSessions().filter(w =>
+    !String(w.klass || '').toLowerCase().startsWith('test') && w.end);
+  if (windows.length) {
+    sessions.forEach(s => {
+      for (const w of windows) {
+        if (s.t0 >= w.start && s.t0 <= w.end) {
+          s.segment = 'klassenraum';
+          break;
+        }
+      }
+    });
+  }
+
+  // 2) Burst-Heuristik für Tage ohne Marker (Größe + Tablet + Aktivität).
+  //    Aktivitäts-Kriterium BURST_ACTIVE_SHARE filtert Bot-Schwärme/
+  //    Empfehlungs-Bursts/Trainer↔Landing-Loops aus.
   const byTrainer = {};
   sessions.forEach(s => (byTrainer[s.trainer] = byTrainer[s.trainer] || []).push(s));
   for (const t in byTrainer) {
     const list = byTrainer[t].sort((a, b) => a.t0 - b.t0);
     list.forEach(s => {
+      if (s.segment === 'klassenraum') return; // schon durch Marker gesetzt
       const cluster = list.filter(o => Math.abs(o.t0 - s.t0) <= CFG.BURST_WINDOW_MS);
       if (cluster.length >= CFG.BURST_MIN) {
         const tab = cluster.filter(o => o.device === 'tablet').length / cluster.length;
-        // Zusätzlich zu Größe + Tablet-Anteil: mindestens BURST_ACTIVE_SHARE
-        // der Sessions müssen ein quiz_start haben. Sonst werden Bot-Schwärme,
-        // Empfehlungs-Bursts (ChatGPT/Bing/YouTube) und Trainer↔Landing-Loops
-        // eines einzelnen Users fälschlich als Klassenraum klassifiziert
-        // (siehe Daily_Aggregates 18.05/26.05/05.06/06.06 — alle 0% quiz_start).
         const active = cluster.filter(o => o.hasQS).length / cluster.length;
         if (tab >= CFG.BURST_TABLET_SHARE && active >= CFG.BURST_ACTIVE_SHARE) {
           s.segment = 'klassenraum';
