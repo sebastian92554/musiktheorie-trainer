@@ -4,7 +4,7 @@
  * Server-Account zum geräteübergreifenden Speichern des Fortschritts.
  * Einbinden via <script src="account.js"></script> in allen Trainern + Landing.
  *
- * Backend: separates Apps-Script-Projekt (siehe _entwicklung/account_backend.gs).
+ * Backend: separates Apps-Script-Projekt (siehe _apps_script/account_backend.gs).
  * Transport: POST mit Content-Type text/plain → KEIN CORS-Preflight (Phase-0-Regel).
  *
  * Modell:
