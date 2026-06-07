@@ -24,7 +24,8 @@ const CFG = {
   IDLE_MS: 600000,                    // >10min, nur HBs = idle-offen
   BURST_WINDOW_MS: 30 * 60000,        // 30min-Fenster
   BURST_MIN: 8,                       // ≥8 Sessions/Trainer = Klassenraum
-  BURST_TABLET_SHARE: 0.5,
+  BURST_TABLET_SHARE: 0.5,            // ≥50% Tablet
+  BURST_ACTIVE_SHARE: 0.5,            // ≥50% mit quiz_start (echte Lern-Aktivität)
   MIN_ORGANIK_SESSIONS: 200,          // Validitäts-Gate
   MIN_SPAN_DAYS: 7,
   OLD_BOUNCE_REF: 58                  // alte Raw-Data-Zahl (%) für Gegenprobe
@@ -308,7 +309,15 @@ function _segment(sessions) {
       const cluster = list.filter(o => Math.abs(o.t0 - s.t0) <= CFG.BURST_WINDOW_MS);
       if (cluster.length >= CFG.BURST_MIN) {
         const tab = cluster.filter(o => o.device === 'tablet').length / cluster.length;
-        if (tab >= CFG.BURST_TABLET_SHARE) s.segment = 'klassenraum';
+        // Zusätzlich zu Größe + Tablet-Anteil: mindestens BURST_ACTIVE_SHARE
+        // der Sessions müssen ein quiz_start haben. Sonst werden Bot-Schwärme,
+        // Empfehlungs-Bursts (ChatGPT/Bing/YouTube) und Trainer↔Landing-Loops
+        // eines einzelnen Users fälschlich als Klassenraum klassifiziert
+        // (siehe Daily_Aggregates 18.05/26.05/05.06/06.06 — alle 0% quiz_start).
+        const active = cluster.filter(o => o.hasQS).length / cluster.length;
+        if (tab >= CFG.BURST_TABLET_SHARE && active >= CFG.BURST_ACTIVE_SHARE) {
+          s.segment = 'klassenraum';
+        }
       }
     });
   }
