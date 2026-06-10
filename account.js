@@ -466,6 +466,20 @@
     }
   }
 
+  // ---- Idle-Auto-Logout (Schulgeräte-Schutz) ----
+  var IDLE_MS = 30 * 60 * 1000; // 30 Minuten Inaktivität
+  var _lastActivity = Date.now();
+  function _markActivity() { _lastActivity = Date.now(); }
+  function _idleCheck() {
+    if (Account.isLoggedIn() && (Date.now() - _lastActivity) > IDLE_MS) {
+      Account.logout().then(function () {
+        _renderBar();
+        _toast('Wegen Inaktivität abgemeldet.');
+        if (typeof Account.onSync === 'function') Account.onSync('idle');
+      });
+    }
+  }
+
   function _mountUI() {
     if (_el('acc-toast')) return; // schon montiert
     var style = document.createElement('style'); style.textContent = CSS; document.head.appendChild(style);
@@ -473,6 +487,11 @@
     while (wrap.firstChild) document.body.appendChild(wrap.firstChild);
     document.addEventListener('click', _onClick);
     _renderBar();
+    // Aktivität verfolgen + jede Minute auf 60-Min-Inaktivität prüfen
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
+      document.addEventListener(ev, _markActivity, { passive: true });
+    });
+    setInterval(_idleCheck, 60000);
   }
 
   // UI-Hooks nach außen (z.B. für einen eigenen „Anmelden"-Button im Header)
