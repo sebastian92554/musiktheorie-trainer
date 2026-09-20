@@ -3099,9 +3099,13 @@
             },
 
             // ---- Hilfe-Nudge ----
-            // Nach 2 falschen Erstversuchen in Folge einmal pro Durchgang auf die
-            // Hilfe aufmerksam machen. Das Guiding Feedback greift erst im
-            // Success-Screen nach 10 Aufgaben — der Nudge füllt die Lücke währenddessen.
+            // Nach 2 falschen Versuchen in Folge einmal pro Durchgang auf die
+            // Hilfe aufmerksam machen. Gezählt wird JEDER Fehlversuch — auch der
+            // in der Wiederholung: Wer nach der ersten falschen Eingabe nicht
+            // weiterkommt, braucht den Hinweis genauso wie jemand, der zwei
+            // Aufgaben nacheinander im Erstversuch verhaut. Das Guiding Feedback
+            // greift erst im Success-Screen nach 10 Aufgaben — der Nudge füllt
+            // die Lücke währenddessen.
             _nudgeWrongInARow: 0,
             _nudgeSpent: false,      // true, sobald der Nudge im Durchgang gefeuert hat
             _nudgeBubbleTimer: null,
@@ -3134,6 +3138,14 @@
                 this.clearHelpNudge();
             },
 
+            // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
+            registerWrongAttempt() {
+                this._nudgeWrongInARow++;
+                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
+                    this.triggerHelpNudge();
+                }
+            },
+
             // ---- Handle Answer ----
             handleAnswer(isCorrect) {
                 console.log('[handleAnswer] isCorrect:', isCorrect, 'isActive:', this.isActive, 'isRetry:', this.isRetry, 'answered:', this.questionsAnswered, '/', this.totalQuestions);
@@ -3151,6 +3163,9 @@
                             setTimeout(() => this.showSuccess(), 1500);
                             return;
                         }
+                    } else {
+                        // Wiederholung erneut falsch → kommt nicht weiter, zählt mit.
+                        this.registerWrongAttempt();
                     }
                     this.updateQuizOverlay();
                     return;
@@ -3167,10 +3182,7 @@
                 } else {
                     this.isRetry = true;
                     document.getElementById('headerRetryHint').classList.add('active');
-                    this._nudgeWrongInARow++;
-                    if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
-                        this.triggerHelpNudge();
-                    }
+                    this.registerWrongAttempt();
                 }
 
                 if (this.questionsAnswered >= this.totalQuestions && isCorrect) {
@@ -5449,8 +5461,12 @@
                         if (this.quickStartMode) {
                             quickStart.handleAnswer(false);
                         }
+                    } else if (this.quickStartMode && quickStart.isRetry) {
+                        // Wiederholung erneut falsch: zählt NICHT für den Punktestand
+                        // (der bleibt Erstversuch-basiert), aber für den Hilfe-Nudge.
+                        quickStart.registerWrongAttempt();
                     }
-                    
+
                     // Build error message
                     const displayAnswer = this.settings.requireOctave 
                         ? (this.currentNote.octave === 'gross' ? this.currentNote.name.toUpperCase() :
@@ -5620,6 +5636,9 @@
                             try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: _clickedName, userOctave: _clickedOctave, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: (pitchClassOk ? 'oktavlage_falsch' : 'tastenfehler'), tastaturActive: true, tastaturCorrect: pitchClassOk, lageCorrect: octaveExact, tasOnly: true }); } catch (e) {}
                             quickStart.handleAnswer(false);
                         }
+                    } else if (this.quickStartMode && quickStart.isRetry) {
+                        // Wiederholung erneut falsch: nur für den Hilfe-Nudge relevant.
+                        quickStart.registerWrongAttempt();
                     }
 
                     // Fehler-Feedback
@@ -5647,6 +5666,13 @@
                 if (quickStart.isActive) {
                     quickStart.questionsAnswered = 0;
                     quickStart.questionsCorrect = 0;
+                    // Retry-Zustand mit aufräumen: generateNote() liefert unten eine
+                    // frische Aufgabe — die zählt sonst wegen isRetry nicht im Punktestand
+                    // und der rote "Versuch es noch mal"-Hinweis bliebe stehen.
+                    quickStart.isRetry = false;
+                    document.getElementById('headerRetryHint').classList.remove('active');
+                    // Zähler startet bei 0/10 → auch der Hilfe-Nudge ist wieder frei
+                    quickStart.resetHelpNudge();
                     // Overlay komplett neu erstellen (robuster als nur width zurücksetzen)
                     quickStart.showQuizOverlay();
                 }
