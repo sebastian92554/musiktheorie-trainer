@@ -1308,9 +1308,59 @@
         .header-reset-btn.active { display: inline-flex; }
         .header-reset-btn:hover { color: #4b5563; }
         /* Aktions-Zeile unten im Eingabe-Frame: Hilfe (immer) + Reset (nur im Quiz) */
-        .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid #f1f5f9; }
+        .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid #f1f5f9; position: relative; }
         .input-help-btn { background: #f5f3ff; border: 1px solid #ddd6fe; color: #8b5cf6; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
         .input-help-btn:hover { background: #ede9fe; }
+
+        /* Hilfe-Nudge: nach 2 Fehlversuchen in Folge einmal pro Durchgang.
+           Signalfarbe (gefüllter Button) trägt die Aufmerksamkeit und bleibt stehen,
+           bis Hilfe geklickt oder die nächste Aufgabe im Erstversuch richtig ist. */
+        .input-help-btn.nudge {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.30);
+            animation: helpNudgePulse 0.9s ease-in-out 3;
+        }
+        .input-help-btn.nudge:hover { background: #7c3aed; border-color: #7c3aed; }
+        @keyframes helpNudgePulse {
+            0%   { box-shadow: 0 0 0 0    rgba(139, 92, 246, 0.45); }
+            70%  { box-shadow: 0 0 0 14px rgba(139, 92, 246, 0.0); }
+            100% { box-shadow: 0 0 0 4px  rgba(139, 92, 246, 0.30); }
+        }
+        /* Blase öffnet nach UNTEN: über .input-actions liegen Feedback und
+           Eingabebereich — dort würde sie das Fehler-Feedback verdecken. */
+        .help-nudge-bubble {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            background: #8b5cf6;
+            color: #fff;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            padding: 0.55rem 0.75rem;
+            border-radius: 0.5rem;
+            max-width: 250px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .help-nudge-bubble.show { opacity: 1; transform: translateY(0); }
+        .help-nudge-bubble::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 20px;
+            border: 6px solid transparent;
+            border-bottom-color: #8b5cf6;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .input-help-btn.nudge { animation: none; }
+            .help-nudge-bubble { transition: none; }
+        }
 
         .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
@@ -1941,7 +1991,8 @@
              Rhythmus hat keinen gemeinsamen Eingabe-Frame → eigene Zeile am Ende. -->
         <div class="card" style="padding: 0.6rem 1rem;">
             <div class="input-actions" style="margin-top:0; padding-top:0; border-top:none;">
-                <button type="button" class="input-help-btn" onclick="app.showHelp()" title="Hilfe / Lernkarte anzeigen">Hilfe</button>
+                <button type="button" class="input-help-btn" id="helpBtn" onclick="app.showHelp()" title="Hilfe / Lernkarte anzeigen">Hilfe</button>
+                <div class="help-nudge-bubble" id="helpNudgeBubble">Schau in die Hilfe. Dort wird die Aufgabe erklärt.</div>
                 <button type="button" class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Punktestand zurücksetzen">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:0.25rem;">
                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -3052,6 +3103,7 @@
                 this.questionsCorrect = 0;
                 this.questionsCorrectInRow = 0;
                 this.hasBeenCheckedForTask = false;
+                this.resetHelpNudge();
                 this.zz1Shown = false; // Tracker: ZZ1 wurde mindestens einmal gezeigt
 
                 // Taktart auf 4/4 zurücksetzen (wird in configureApp ggf. überschrieben für Taktarten-Knoten)
@@ -3393,6 +3445,53 @@
                 document.getElementById('headerProgressCorrect').style.width = correctPct + '%';
             },
             
+            // ---- Hilfe-Nudge ----
+            // Nach 2 Fehlversuchen in Folge einmal pro Durchgang auf die Hilfe
+            // aufmerksam machen. Gezählt wird JEDER Fehlversuch — auch der in der
+            // Wiederholung: Wer nach der ersten falschen Eingabe nicht weiterkommt,
+            // braucht den Hinweis genauso wie jemand, der zwei Aufgaben nacheinander
+            // im Erstversuch verhaut. Das Guiding Feedback greift erst im
+            // Success-Screen nach 10 Aufgaben — der Nudge füllt die Lücke.
+            _nudgeWrongInARow: 0,
+            _nudgeSpent: false,      // true, sobald der Nudge im Durchgang gefeuert hat
+            _nudgeBubbleTimer: null,
+            NUDGE_WRONG_THRESHOLD: 2,
+
+            triggerHelpNudge() {
+                const btn = document.getElementById('helpBtn');
+                const bubble = document.getElementById('helpNudgeBubble');
+                if (!btn || !bubble) return;
+                this._nudgeSpent = true;
+                btn.classList.remove('nudge');
+                void btn.offsetWidth;          // Reflow → Animation startet neu
+                btn.classList.add('nudge');
+                bubble.classList.add('show');
+                clearTimeout(this._nudgeBubbleTimer);
+                this._nudgeBubbleTimer = setTimeout(() => bubble.classList.remove('show'), 6000);
+            },
+
+            clearHelpNudge() {
+                const btn = document.getElementById('helpBtn');
+                const bubble = document.getElementById('helpNudgeBubble');
+                clearTimeout(this._nudgeBubbleTimer);
+                if (bubble) bubble.classList.remove('show');
+                if (btn) btn.classList.remove('nudge');
+            },
+
+            resetHelpNudge() {
+                this._nudgeWrongInARow = 0;
+                this._nudgeSpent = false;
+                this.clearHelpNudge();
+            },
+
+            // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
+            registerWrongAttempt() {
+                this._nudgeWrongInARow++;
+                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
+                    this.triggerHelpNudge();
+                }
+            },
+
             // Answer Handler (wird von app aufgerufen)
             onAnswerChecked(isCorrect) {
                 // Nur wenn Quick-Start aktiv ist!
@@ -3412,7 +3511,11 @@
                     if (isCorrect) {
                         this.questionsCorrect++;
                         this.questionsCorrectInRow++;
-                        
+                        // Läuft wieder → Signalfarbe weg. _nudgeSpent bleibt gesetzt,
+                        // der Nudge feuert also weiterhin nur einmal pro Durchgang.
+                        this._nudgeWrongInARow = 0;
+                        this.clearHelpNudge();
+
                         // PROGRESSIVE SCHWIERIGKEIT (nur bei Addition): Nach 3 richtigen → mehr Summanden
                         if (app.settings.taskType === 'note-addition' && this.questionsCorrectInRow >= 3) {
                             if (this.currentSummandCount < 5) {
@@ -3423,11 +3526,16 @@
                         }
                     } else {
                         this.questionsCorrectInRow = 0;
+                        this.registerWrongAttempt();
                     }
-                    
+
                     this.updateQuizOverlay();
+                } else if (!isCorrect) {
+                    // Wiederholung erneut falsch: zählt NICHT für den Punktestand
+                    // (der bleibt Erstversuch-basiert), aber für den Hilfe-Nudge.
+                    this.registerWrongAttempt();
                 }
-                
+
                 // Bei ERFOLG: Nächste Aufgabe generieren
                 if (isCorrect) {
                     if (this.questionsAnswered < this.totalQuestions) {
@@ -4171,6 +4279,12 @@
             },
 
             showHelp() {
+                // Hilfe wurde geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
+                // _nudgeSpent verhindert erneutes Auslösen im selben Durchgang.
+                quickStart.clearHelpNudge();
+                quickStart._nudgeSpent = true;
+                quickStart._nudgeWrongInARow = 0;
+
                 const titleEl = document.getElementById('introModalTitle');
                 const contentEl = document.getElementById('introModalContent');
 
@@ -8638,6 +8752,12 @@ Gerät:
                 if (quickStart.isActive) {
                     quickStart.questionsAnswered = 0;
                     quickStart.questionsCorrect = 0;
+                    // Retry-Zustand mit aufräumen: unten wird eine frische Aufgabe
+                    // erzeugt — die zählt sonst wegen hasBeenCheckedForTask nicht
+                    // im Punktestand.
+                    quickStart.hasBeenCheckedForTask = false;
+                    // Zähler startet bei 0/10 → auch der Hilfe-Nudge ist wieder frei
+                    quickStart.resetHelpNudge();
                     // Overlay komplett neu erstellen (robuster als nur width zurücksetzen)
                     quickStart.showQuizOverlay();
                 }
