@@ -31,8 +31,13 @@ const SHEET_ID = '1W7lLRY7qiu-7QWiJFTba-Ax-MiaGMVshnkWrgB2UaQM';
 const SCHOOL_MARKER_TOKEN = 'mt-2026-k7zQ9pX4vB8nL3cF';
 
 // Neue Schema-3 Event-Typen → Tab "Events"
+// WICHTIG: Diese Liste ist eine Whitelist. Jeder Event-Typ, den ein Trainer
+// sendet und der hier FEHLT, fällt in den Alt-Pfad und landet dort im
+// LEGACY-Zweig — der schreibt eine unbrauchbare Zeile ("undefined%") in das
+// aktive Sheet. Bei jedem neuen Event im Tracker hier mit eintragen.
 const EVENTS_TYPES = ['page_view', 'quiz_start', 'quiz_complete', 'heartbeat',
-  'node_select', 'card_view', 'quiz_abandon', 'landing_click', 'card_dismiss'];
+  'node_select', 'card_view', 'quiz_abandon', 'landing_click', 'card_dismiss',
+  'subskill_dismiss', 'help_nudge', 'help_nudge_followed'];
 const EVENTS_HEADERS = ['ts', 'schema', 'env', 'eventType', 'trainer',
   'device', 'referrer', 'sessionId', 'payload'];
 

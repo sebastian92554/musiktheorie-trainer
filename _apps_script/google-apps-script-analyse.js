@@ -590,6 +590,51 @@ function runAnalyse() {
   push('  Lesehilfe', 'Hoher Mastery-Anteil = Karte vermutlich zu lang/redundant. Hoher Überfordert-Anteil = Karte muss verständlicher.');
   push('');
 
+  // HILFE-NUDGE — ausgelöst vs. befolgt
+  // Der Nudge feuert max. 1× pro Durchgang, ein help_nudge_followed ohne
+  // vorheriges help_nudge kann es also nicht geben → Quote = followed/nudge.
+  // Zwei Fragen: (1) Wie oft hängen Schüler überhaupt fest (Nudge-Quote je
+  // quiz_start)? (2) Führt das Signal zur Hilfe (Befolgt-Quote)?
+  // Alle Segmente, weil Klassenraum-Sessions hier das dichtere Signal liefern.
+  push('— HILFE-NUDGE (help_nudge → help_nudge_followed, alle Segmente) —');
+  const nudgeAgg = {};   // key → {n, followed, byTrigger:{retry:0, erstversuch:0}}
+  let nudgeTotal = 0, nudgeFollowed = 0;
+  const nudgeTrigger = { retry: 0, erstversuch: 0 };
+  sessions.forEach(s => {
+    (s.evAll || []).forEach(e => {
+      if (e.eventType !== 'help_nudge' && e.eventType !== 'help_nudge_followed') return;
+      const p = e.payload || {};
+      const k = _sk(s.trainer, p.level, p.subskill);
+      const a = nudgeAgg[k] = nudgeAgg[k] || { n: 0, followed: 0 };
+      if (e.eventType === 'help_nudge') {
+        a.n++; nudgeTotal++;
+        const t = String(p.trigger || '');
+        if (nudgeTrigger[t] !== undefined) nudgeTrigger[t]++;
+      } else {
+        a.followed++; nudgeFollowed++;
+      }
+    });
+  });
+  const nQuizStart = sessions.reduce((acc, s) =>
+    acc + (s.evAll || []).filter(e => e.eventType === 'quiz_start').length, 0);
+  push('  Nudges ausgelöst', nudgeTotal);
+  push('  davon Hilfe geöffnet', nudgeFollowed + ' (' + _pct(nudgeFollowed, nudgeTotal) + '%)');
+  push('  Nudge-Quote je Quiz-Start', _pct(nudgeTotal, nQuizStart) + '% (' + nudgeTotal + '/' + nQuizStart + ')');
+  push('  Auslöser retry', nudgeTrigger.retry + ' (' + _pct(nudgeTrigger.retry, nudgeTotal) + '%)');
+  push('  Auslöser erstversuch', nudgeTrigger.erstversuch + ' (' + _pct(nudgeTrigger.erstversuch, nudgeTotal) + '%)');
+  push('');
+  const nudgeKeys = Object.keys(nudgeAgg).sort((a, b) => nudgeAgg[b].n - nudgeAgg[a].n);
+  nudgeKeys.forEach(k => {
+    const a = nudgeAgg[k];
+    if (!a.n) return;
+    push('  ' + k, 'n=' + a.n + ' | befolgt ' + a.followed + ' (' + _pct(a.followed, a.n) + '%)');
+  });
+  if (!nudgeTotal) push('  (keine help_nudge-Events — Feature noch frisch oder Code.gs-Whitelist prüfen)');
+  push('');
+  push('  Lesehilfe Auslöser', 'retry = in derselben Aufgabe festgehangen; erstversuch = zwei Aufgaben nacheinander im Erstversuch falsch');
+  push('  Lesehilfe Quote', 'Hohe Nudge-Quote = Subskill zu schwer oder Aufgabe unklar. Niedrige Befolgt-Quote = Signal wird übersehen oder Hilfe gilt als nutzlos.');
+  push('');
+
   // Engagement-Tiefe (Abschließer organik)
   const comp = org.filter(s => s.cat === 'abgeschlossen' && s.qc);
   const avg = (f) => comp.length ? Math.round(comp.reduce((a, s) => a + (Number(f(s)) || 0), 0) / comp.length * 10) / 10 : null;
@@ -1056,6 +1101,13 @@ function installAnalyseTrigger() {
 //  devices_desktop | devices_tablet | devices_mobile | devices_other
 //  top_trainer | top_trainer_n
 //  median_dur_engaged_s | median_quizzes_per_active
+//  n_help_nudge | n_help_nudge_followed
+//
+// ACHTUNG beim Erweitern der Spalten: Die Kopfzeile wird nur geschrieben,
+// wenn der Tab NEU angelegt wird (isNew unten). Bei bestehendem Tab bleibt
+// sie stehen, während neue Zeilen bereits mehr Werte haben → Kopfzeile
+// einmalig von Hand ergänzen. Eingefrorene Tage werden nie neu geschrieben,
+// historische Zeilen bleiben in neuen Spalten also leer.
 
 const DAILY_HEADERS = ['date', 'frozen', 'sessions_total', 'sessions_organik',
   'sessions_klassenraum', 'cat_abgeschlossen', 'cat_abgebrochen_aktiv',
@@ -1063,7 +1115,8 @@ const DAILY_HEADERS = ['date', 'frozen', 'sessions_total', 'sessions_organik',
   'cat_idle_offen', 'cat_erkundet_ohne_quiz', 'n_quiz_start', 'n_quiz_complete',
   'n_quiz_abandon', 'n_landing_click', 'devices_desktop', 'devices_tablet',
   'devices_mobile', 'devices_other', 'top_trainer', 'top_trainer_n',
-  'median_dur_engaged_s', 'median_quizzes_per_active'];
+  'median_dur_engaged_s', 'median_quizzes_per_active',
+  'n_help_nudge', 'n_help_nudge_followed'];
 
 function _runDailyAggregates(sessions) {
   const ss = _ss();
@@ -1219,6 +1272,7 @@ function _dailyAggregateRow(date, daySessions, dayEvents, isFluid) {
     devN('desktop'), devN('tablet'), devN('mobile'),
     dayEvents.filter(e => ['desktop', 'tablet', 'mobile'].indexOf(e.device) < 0).length,
     topTr, topN,
-    medEng, medQc
+    medEng, medQc,
+    evN('help_nudge'), evN('help_nudge_followed')
   ];
 }
