@@ -2384,6 +2384,12 @@
         nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
         subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
         cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+        // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
+        // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
+        // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
+        // nacheinander im Erstversuch falsch.
+        helpNudge(p) { this._send('help_nudge', { level: p.level, subskill: p.subskill, trigger: p.trigger }); },
+        helpNudgeFollowed(p) { this._send('help_nudge_followed', { level: p.level, subskill: p.subskill, trigger: p.trigger }); },
         cardDismiss(p) {
             this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart });
             this._lastDismiss = { nodeId: p.nodeId, ms: p.ms_visible || 0, ts: Date.now() };
@@ -3619,14 +3625,27 @@
         // Success-Screen nach 10 Aufgaben — der Nudge füllt die Lücke.
         _nudgeWrongInARow: 0,
         _nudgeSpent: false,      // true, sobald der Nudge im Durchgang gefeuert hat
+        _nudgeActive: false,     // true, solange das Signal sichtbar ist
+        _nudgeTrigger: null,     // 'retry' | 'erstversuch' (fürs Tracking)
         _nudgeBubbleTimer: null,
         NUDGE_WRONG_THRESHOLD: 2,
 
-        triggerHelpNudge() {
+        _nudgeSubskill() {
+            return (this.currentOptions && this.currentOptions.length)
+                ? this.currentOptions[this.currentOptions.length - 1]
+                : 'basis';
+        },
+
+        triggerHelpNudge(trigger) {
             const btn = document.getElementById('helpBtn');
             const bubble = document.getElementById('helpNudgeBubble');
             if (!btn || !bubble) return;
             this._nudgeSpent = true;
+            this._nudgeActive = true;
+            this._nudgeTrigger = trigger || 'erstversuch';
+            try {
+                tracker.helpNudge({ level: this.currentLevel, subskill: this._nudgeSubskill(), trigger: this._nudgeTrigger });
+            } catch (e) {}
             btn.classList.remove('nudge');
             void btn.offsetWidth;          // Reflow → Animation startet neu
             btn.classList.add('nudge');
@@ -3639,6 +3658,7 @@
             const btn = document.getElementById('helpBtn');
             const bubble = document.getElementById('helpNudgeBubble');
             clearTimeout(this._nudgeBubbleTimer);
+            this._nudgeActive = false;
             if (bubble) bubble.classList.remove('show');
             if (btn) btn.classList.remove('nudge');
         },
@@ -3649,11 +3669,24 @@
             this.clearHelpNudge();
         },
 
+        // Hilfe geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
+        // _nudgeSpent verhindert erneutes Auslösen im selben Durchgang.
+        noteHelpOpened() {
+            if (this._nudgeActive) {
+                try {
+                    tracker.helpNudgeFollowed({ level: this.currentLevel, subskill: this._nudgeSubskill(), trigger: this._nudgeTrigger });
+                } catch (e) {}
+            }
+            this.clearHelpNudge();
+            this._nudgeSpent = true;
+            this._nudgeWrongInARow = 0;
+        },
+
         // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
-        registerWrongAttempt() {
+        registerWrongAttempt(trigger) {
             this._nudgeWrongInARow++;
             if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
-                this.triggerHelpNudge();
+                this.triggerHelpNudge(trigger);
             }
         },
 
@@ -3673,7 +3706,7 @@
                     }
                 } else {
                     // Wiederholung erneut falsch → kommt nicht weiter, zählt mit.
-                    this.registerWrongAttempt();
+                    this.registerWrongAttempt('retry');
                 }
                 // Bei erneutem Fehler: isRetry bleibt true, Aufgabe wird nochmal wiederholt
                 this.updateQuizOverlay();
@@ -3712,7 +3745,7 @@
                 // Nächster Versuch ist ein Retry
                 this.isRetry = true;
                 document.getElementById('headerRetryHint').classList.add('active');
-                this.registerWrongAttempt();
+                this.registerWrongAttempt('erstversuch');
             }
 
             if (!this.fallbackActive) {
@@ -8512,11 +8545,8 @@
 
         // ---- Modals ----
         showIntro() {
-            // Hilfe wurde geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
-            // _nudgeSpent verhindert erneutes Auslösen im selben Durchgang.
-            quickStart.clearHelpNudge();
-            quickStart._nudgeSpent = true;
-            quickStart._nudgeWrongInARow = 0;
+            // Hilfe geöffnet → Signal aus, help_nudge_followed melden.
+            quickStart.noteHelpOpened();
 
             const titleEl = document.getElementById('introModalTitle');
             const contentEl = document.getElementById('introModalContent');
