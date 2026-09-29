@@ -2194,17 +2194,6 @@
         <!-- Input Card -->
         <div class="card input-card" id="inputCard">
             <div id="inputCardBody"><!-- Dynamic content based on stage --></div>
-            <!-- Aktionen: Hilfe (immer) + Reset (nur im Quiz) — fest in der Eingabe-Karte -->
-            <div class="input-actions" id="inputActions">
-                <button type="button" class="input-help-btn" id="helpBtn" onclick="app.showIntro()" title="Hilfe / Lernkarte anzeigen">Hilfe</button>
-                <div class="help-nudge-bubble" id="helpNudgeBubble">Schau in die Hilfe. Dort wird die Aufgabe erklärt.</div>
-                <button type="button" class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Punktestand zurücksetzen">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:0.25rem;">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                        <path d="M3 3v5h5"/>
-                    </svg>Zurücksetzen
-                </button>
-            </div>
         </div>
 
         </div><!-- /main-content-wrapper -->
@@ -2214,6 +2203,23 @@
             <div id="qzQuestion" class="qz-question"></div>
             <div id="qzInput" class="qz-input"></div>
             <div id="qzFeedback" class="feedback" style="display:none;"></div>
+        </div>
+
+        <!-- Aktionen: Hilfe (immer sichtbar) + Reset (nur im Quiz).
+             Bewusst AUSSERHALB der Eingabe-Karte: der Meister-Modus blendet
+             #inputCard komplett aus (Quintenzirkel hat eine eigene Karte), die
+             Leiste gilt aber für beide Modi. Gleiches Muster wie im Rhythmustrainer. -->
+        <div class="card" style="padding: 0.6rem 1rem;">
+            <div class="input-actions" id="inputActions" style="margin-top:0; padding-top:0; border-top:none;">
+                <button type="button" class="input-help-btn" id="helpBtn" onclick="app.showIntro()" title="Hilfe / Lernkarte anzeigen">Hilfe</button>
+                <div class="help-nudge-bubble" id="helpNudgeBubble">Schau in die Hilfe. Dort wird die Aufgabe erklärt.</div>
+                <button type="button" class="header-reset-btn" id="headerResetBtn" onclick="app.resetScore()" title="Punktestand zurücksetzen">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:0.25rem;">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>Zurücksetzen
+                </button>
+            </div>
         </div>
 
         <!-- Feedback -->
@@ -3640,6 +3646,10 @@
             const btn = document.getElementById('helpBtn');
             const bubble = document.getElementById('helpNudgeBubble');
             if (!btn || !bubble) return;
+            // Button unsichtbar (ein Sonder-Layout blendet seinen Container aus)?
+            // Dann gar nicht erst feuern — sonst entstünden Tracking-Events für
+            // ein Signal, das niemand sehen konnte.
+            if (!btn.offsetParent) return;
             this._nudgeSpent = true;
             this._nudgeActive = true;
             this._nudgeTrigger = trigger || 'erstversuch';
@@ -3650,6 +3660,13 @@
             void btn.offsetWidth;          // Reflow → Animation startet neu
             btn.classList.add('nudge');
             bubble.classList.add('show');
+            // Der Quintenzirkel/lange Aufgaben schieben die Aktionszeile unter die
+            // Falz — dann in den Blick holen, sonst nichts bewegen.
+            try {
+                const _r = bubble.getBoundingClientRect();
+                const _h = document.documentElement.clientHeight;
+                if (_r.top < 0 || _r.bottom > _h) bubble.scrollIntoView({ block: 'center' });
+            } catch (e) {}
             clearTimeout(this._nudgeBubbleTimer);
             this._nudgeBubbleTimer = setTimeout(() => bubble.classList.remove('show'), 6000);
         },

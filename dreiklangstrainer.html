@@ -3363,6 +3363,10 @@
                 const btn = document.getElementById('helpBtn');
                 const bubble = document.getElementById('helpNudgeBubble');
                 if (!btn || !bubble) return;
+                // Button unsichtbar (ein Sonder-Layout blendet seinen Container aus)?
+                // Dann gar nicht erst feuern — sonst entstünden Tracking-Events für
+                // ein Signal, das niemand sehen konnte.
+                if (!btn.offsetParent) return;
                 this._nudgeSpent = true;
                 this._nudgeActive = true;
                 this._nudgeTrigger = trigger || 'erstversuch';
@@ -3373,6 +3377,13 @@
                 void btn.offsetWidth;          // Reflow → Animation startet neu
                 btn.classList.add('nudge');
                 bubble.classList.add('show');
+                // Der Quintenzirkel/lange Aufgaben schieben die Aktionszeile unter die
+                // Falz — dann in den Blick holen, sonst nichts bewegen.
+                try {
+                    const _r = bubble.getBoundingClientRect();
+                    const _h = document.documentElement.clientHeight;
+                    if (_r.top < 0 || _r.bottom > _h) bubble.scrollIntoView({ block: 'center' });
+                } catch (e) {}
                 clearTimeout(this._nudgeBubbleTimer);
                 this._nudgeBubbleTimer = setTimeout(() => bubble.classList.remove('show'), 6000);
             },
