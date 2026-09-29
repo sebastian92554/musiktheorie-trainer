@@ -5693,6 +5693,14 @@
         // "Wie viele Vorzeichen hat D-Dur?" direkt am Kreis ablesbar.
         _buildQzVisual(subSkillId, opts) {
             const showMore = !!(opts && opts.showMore);
+            // Marker-IDs muessen pro SVG eindeutig sein: url(#id) trifft immer das
+            // ERSTE Element mit dieser ID im Dokument. Lernkarte und Quiz-Karte
+            // liegen gleichzeitig im DOM — mit festen IDs referenzierte das Quiz
+            // den Marker der (ausgeblendeten) Lernkarte, und aus einem
+            // display:none-Baum wird kein Marker gezeichnet: keine Pfeilspitzen.
+            this._qzMarkerUid = (this._qzMarkerUid || 0) + 1;
+            const sharpId = 'arrowSharp' + this._qzMarkerUid;
+            const flatId = 'arrowFlat' + this._qzMarkerUid;
             const cx = this._qzCx, cy = this._qzCy, r = this._qzR;
             const smallR = r - 18;
             const innerR = this._qzInnerR;
@@ -5757,10 +5765,10 @@
             return `<div class="qz-visual">
                 <svg width="370" height="310" viewBox="0 0 370 310">
                     <defs>
-                        <marker id="arrowSharp" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+                        <marker id="${sharpId}" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
                             <polygon points="0 0, 7 2.5, 0 5" fill="#0891b2"/>
                         </marker>
-                        <marker id="arrowFlat" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+                        <marker id="${flatId}" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
                             <polygon points="0 0, 7 2.5, 0 5" fill="#0891b2"/>
                         </marker>
                     </defs>
@@ -5771,9 +5779,9 @@
                     <text x="${pF.x - 2}" y="${pF.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">F</text>
                     ${moreLabels}
                     ${innerContent}
-                    <path d="M${aSS.x},${aSS.y} A${arrowR},${arrowR} 0 0,1 ${aSE.x},${aSE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowSharp)"/>
+                    <path d="M${aSS.x},${aSS.y} A${arrowR},${arrowR} 0 0,1 ${aSE.x},${aSE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#${sharpId})"/>
                     <text x="${sharpMid.x}" y="${sharpMid.y}" text-anchor="middle" font-size="18" font-weight="400" fill="#0891b2">♯</text>
-                    <path d="M${aFS.x},${aFS.y} A${arrowR},${arrowR} 0 0,0 ${aFE.x},${aFE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowFlat)"/>
+                    <path d="M${aFS.x},${aFS.y} A${arrowR},${arrowR} 0 0,0 ${aFE.x},${aFE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#${flatId})"/>
                     <text x="${flatMid.x}" y="${flatMid.y}" text-anchor="middle" font-size="18" font-weight="400" fill="#0891b2">♭</text>
                 </svg>
             </div>`;
