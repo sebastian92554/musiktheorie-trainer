@@ -4280,11 +4280,11 @@
             switch (subSkillId) {
                 case 'aussenkr': q = this._genAussenkr(questionNum); break;
                 case 'innenkr': q = this._genInnenkr(questionNum); break;
-                case 'vorz_ableitung': q = this._genVorzAbleitung(); break;
-                case 'enharmonisch': q = this._genEnharmonisch(); break;
+                case 'vorz_ableitung': q = this._genVorzAbleitung(questionNum); break;
+                case 'enharmonisch': q = this._genEnharmonisch(questionNum); break;
                 case 'symmetrien': q = this._genSymmetrien(questionNum); break;
-                case 'verwandte': q = this._genVerwandte(); break;
-                default: q = this._genAussenkr(); break;
+                case 'verwandte': q = this._genVerwandte(questionNum); break;
+                default: q = this._genAussenkr(questionNum); break;
             }
             q.subSkillId = subSkillId;
             return q;
@@ -4447,11 +4447,46 @@
         },
 
         // 4c: Vorzeichen-Ableitung
-        _genVorzAbleitung() {
-            const keys = Object.keys(this.leadingTones).filter(k => k !== 'C'); // C hat keine Vorzeichen
-            const key = this._randomItem(keys);
-            const isSharp = this.sharpKeys.some(k => k.name === key);
-            const count = Math.abs(this.signatureCount[key]);
+        _genVorzAbleitung(questionNum) {
+            // Schwierigkeit = Zählweite in der Vorzeichenreihe. Deshalb erst
+            // Tonarten mit wenigen Vorzeichen, und die ersten beiden Fragen nur
+            // Kreuze: dort ist das letzte Vorzeichen zugleich der Leitton, es gibt
+            // also einen zweiten Kontrollweg. Bei Bes fehlt der (bei B-Dur ist das
+            // VORletzte Be der Grundton) — die kommen ab Frage 3 dazu.
+            let pool = Object.keys(this.leadingTones)
+                .filter(k => k !== 'C')            // C hat keine Vorzeichen
+                .map(k => ({
+                    name: k,
+                    isSharp: this.sharpKeys.some(s => s.name === k),
+                    count: Math.abs(this.signatureCount[k])
+                }));
+            if (typeof questionNum === 'number') {
+                let staged;
+                if (questionNum < 2)      staged = pool.filter(k => k.isSharp && k.count <= 2);
+                else if (questionNum < 3) staged = pool.filter(k => k.count <= 2);
+                else if (questionNum < 6) staged = pool.filter(k => k.count <= 4);
+                if (staged && staged.length) pool = staged;
+            }
+            // Nie dieselbe Tonart direkt hintereinander …
+            const lastKey = this._recentKeys.length > 0 ? this._recentKeys[this._recentKeys.length - 1] : null;
+            let available = pool.filter(k => k.name !== lastKey);
+            if (available.length === 0) available = pool;
+            // … und in den ersten 5 Fragen gar keine Wiederholung
+            if (typeof questionNum === 'number' && questionNum < 5) {
+                const fresh = available.filter(k => !this._recentKeys.includes(k.name));
+                if (fresh.length > 0) available = fresh;
+            }
+            // Ab Frage 7: die langen Reihen (5+ Vorzeichen) doppelt gewichten
+            if (typeof questionNum === 'number' && questionNum >= 6) {
+                const weighted = [];
+                available.forEach(k => { weighted.push(k); if (k.count >= 5) weighted.push(k); });
+                available = weighted;
+            }
+            const picked = this._randomItem(available);
+            this._recentKeys.push(picked.name);
+            const key = picked.name;
+            const isSharp = picked.isSharp;
+            const count = picked.count;
             // Vorzeichen der Tonart für Staff-Anzeige
             const accidentals = isSharp ? this.sharpOrder.slice(0, count) : this.flatOrder.slice(0, count);
             // Das NEUE (letzte) Vorzeichen ist die richtige Antwort — nicht der Leitton!
@@ -4550,8 +4585,26 @@
         },
 
         // 4e: Verwandte Tonarten (Nachbarn im Quintenzirkel)
-        _genVerwandte() {
-            const key = this._randomItem(this.allKeys);
+        _genVerwandte(questionNum) {
+            // Progression: erst die zentralen Tonarten (wenige Vorzeichen), deren
+            // Nachbarn man im Kopf hat, dann die randstaendigen.
+            let pool = this.allKeys.slice();
+            if (typeof questionNum === 'number') {
+                let staged;
+                if (questionNum < 3)      staged = pool.filter(k => Math.abs(this.signatureCount[k]) <= 2);
+                else if (questionNum < 6) staged = pool.filter(k => Math.abs(this.signatureCount[k]) <= 4);
+                if (staged && staged.length) pool = staged;
+            }
+            // Nie dieselbe Tonart direkt hintereinander, erste 5 Fragen ohne Wiederholung
+            const lastKey = this._recentKeys.length > 0 ? this._recentKeys[this._recentKeys.length - 1] : null;
+            let available = pool.filter(k => k !== lastKey);
+            if (available.length === 0) available = pool;
+            if (typeof questionNum === 'number' && questionNum < 5) {
+                const fresh = available.filter(k => !this._recentKeys.includes(k));
+                if (fresh.length > 0) available = fresh;
+            }
+            const key = this._randomItem(available);
+            this._recentKeys.push(key);
             const idx = this.allKeys.indexOf(key);
             const prev = this.allKeys[(idx - 1 + 12) % 12];
             const next = this.allKeys[(idx + 1) % 12];
@@ -4571,12 +4624,25 @@
         },
 
         // 4f: Enharmonische Verwechslung
-        _genEnharmonisch() {
-            const keys = Object.keys(this.enharmonic);
+        _genEnharmonisch(questionNum) {
+            let keys = Object.keys(this.enharmonic);
+            // Progression: erst von der entlegenen zur gelaeufigen Schreibweise
+            // (Fis → Ges, Cis → Des …) — da ist die ANTWORT eine vertraute Tonart.
+            // Die Gegenrichtung (F → Eis, H → Ces) kommt ab Frage 5 dazu.
+            if (typeof questionNum === 'number' && questionNum < 4) {
+                const gaengig = this.allKeys.concat(['Ges']);
+                const leicht = keys.filter(k => gaengig.includes(this.enharmonic[k]));
+                if (leicht.length) keys = leicht;
+            }
             // Nie dieselbe Tonart direkt hintereinander
             const lastEnh = this._recentEnharm.length > 0 ? this._recentEnharm[this._recentEnharm.length - 1] : null;
             let available = keys.filter(k => k !== lastEnh);
             if (available.length === 0) available = keys;
+            // In den ersten 5 Fragen gar keine Wiederholung
+            if (typeof questionNum === 'number' && questionNum < 5) {
+                const fresh = available.filter(k => !this._recentEnharm.includes(k));
+                if (fresh.length > 0) available = fresh;
+            }
             const key = this._randomItem(available);
             this._recentEnharm.push(key);
             const correct = this.enharmonic[key];
