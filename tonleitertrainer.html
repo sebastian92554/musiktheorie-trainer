@@ -5998,7 +5998,18 @@
             const activeOpts = quickStart.currentOptions || [];
             const highestOpt = activeOpts[activeOpts.length - 1] || 'aussenkr';
 
-            if (highestOpt === 'aussenkr' || qText.includes('Vorzeichen')) {
+            // WICHTIG: Sub-Skill zuerst pruefen, Textmuster nur als Rueckfall.
+            // Die 5c-Frage enthaelt das Wort "Vorzeichen" und landete sonst im
+            // aussenkr-Zweig — der nennt aber die Reihenfolge der TONARTEN
+            // (Geh Du Alter Esel → G D A E H Fis), gesucht sind die VORZEICHEN
+            // (Fis Cis Gis Dis …). Bei E-Dur/4 Kreuze fuehrte das auf "E" statt "Dis".
+            if (highestOpt === 'vorz_ableitung') {
+                if (isFlatContext || (textHasFlat && !textHasSharp)) {
+                    merksatz = 'Zähle in der Be-Reihe so weit, wie die Tonart Bes hat: <b>B – Es – As – Des – Ges – Ces – Fes</b>';
+                } else {
+                    merksatz = 'Zähle in der Kreuz-Reihe so weit, wie die Tonart Kreuze hat: <b>Fis – Cis – Gis – Dis – Ais – Eis – His</b>';
+                }
+            } else if (highestOpt === 'aussenkr' || qText.includes('Vorzeichen')) {
                 if (isSharpContext || textHasSharp) {
                     merksatz = '„<b>G</b>eh <b>D</b>u <b>A</b>lter <b>E</b>sel <b>H</b>ole <b>Fis</b>che"';
                 } else if (isFlatContext || textHasFlat) {
@@ -6010,7 +6021,7 @@
                 }
             } else if (highestOpt === 'innenkr' || qText.includes('parallele')) {
                 merksatz = 'Mollparallele = kleine Terz tiefer (3 Halbtöne)';
-            } else if (highestOpt === 'vorz_ableitung' || qText.includes('Leitton')) {
+            } else if (qText.includes('Leitton')) {
                 merksatz = 'Der Leitton liegt einen <b>Halbton unter</b> dem Grundton';
             } else if (highestOpt === 'symmetrien') {
                 if (qText.includes('Tritonus') || qText.includes('gegenüber')) {
@@ -7371,8 +7382,8 @@
                 body: `<p>Die Vorzeichen erscheinen in einer <strong>festen Reihenfolge</strong>, die dem Quintenzirkel folgt.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-rule"><strong>Kreuz-Reihenfolge:</strong> Fis – Cis – Gis – Dis – Ais – Eis – His.<br><strong>Be-Reihenfolge:</strong> B – Es – As – Des – Ges – Ces – Fes.<br>Beide Reihen musst du nicht zusätzlich auswendig lernen — sie stecken schon im Quintenzirkel. Lies ihn ab F im Uhrzeigersinn (F – C – G – D – A – E – H) und mache aus jedem Ton einen Kreuz-Ton (F → Fis, C → Cis …): Das ist die Kreuz-Reihe. Jedes weitere Kreuz liegt damit eine Quinte höher als das vorige, genau wie jede weitere Kreuz-Tonart. Dieselbe Runde ab H gegen den Uhrzeigersinn (H – E – A – D – G – C – F) ergibt mit Be die Be-Reihe (H → B, E → Es …).</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> G-Dur = 1<span class="vz-sharp"></span> → nur Fis. D-Dur = 2<span class="vz-sharp"></span> → Fis + Cis. Immer der Reihe nach.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne alle Vorzeichen einer Tonart in der richtigen Reihenfolge.</div>`,
+                        <div class="lk-tip"><strong>Tipp:</strong> G-Dur = 1<span class="vz-sharp"></span> → nur Fis. D-Dur = 2<span class="vz-sharp"></span> → Fis + Cis, neu dazu kommt <strong>Cis</strong>. Immer der Reihe nach zählen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Geh die Reihe im Kopf durch und gib nur das <strong>letzte</strong> Vorzeichen an — das, das bei dieser Tonart neu dazukommt.</div>`,
                 render() {
                     // Beispiel: A-Dur (3 Kreuze: Fis, Cis, Gis)
                     document.getElementById('lkVisual1').innerHTML = this._buildStaffVisual({ isSharp: true, accidentals: ['Fis','Cis','Gis'] });
