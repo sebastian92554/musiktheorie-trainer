@@ -5957,15 +5957,25 @@
             // Visuelles Feedback
             const allBtns = document.querySelectorAll('#qzInput .qz-multi-btn');
             const correctSet = new Set(question.correct.map(c => c.toLowerCase()));
-            allBtns.forEach(btn => {
-                btn.disabled = true;
-                const val = btn.textContent.toLowerCase();
-                if (correctSet.has(val)) {
-                    btn.classList.add('qz-correct');
-                } else if (btn.classList.contains('qz-selected') && !correctSet.has(val)) {
-                    btn.classList.add('qz-incorrect');
-                }
-            });
+            if (isCorrect) {
+                allBtns.forEach(btn => {
+                    btn.disabled = true;
+                    if (correctSet.has(btn.textContent.toLowerCase())) btn.classList.add('qz-correct');
+                });
+            } else {
+                // Falsch: kurz aufflackern, dann Auswahl aufheben — die Aufgabe
+                // bleibt bestehen und wird erneut versucht, wie bei den anderen
+                // Fragetypen. Vorher wurden hier alle Buttons deaktiviert UND die
+                // Loesung gruen markiert: Die Aufgabe war damit vorbei, bevor der
+                // Merksatz-Hinweis ueberhaupt etwas nuetzen konnte.
+                allBtns.forEach(btn => {
+                    if (btn.classList.contains('qz-selected')) btn.classList.add('qz-incorrect');
+                });
+                setTimeout(() => {
+                    allBtns.forEach(btn => { btn.classList.remove('qz-incorrect', 'qz-selected'); });
+                    this._qzMultiSelected.clear();
+                }, 600);
+            }
 
             // GF ton5: errLine als Carrier für Fehlerliste setzen.
             if (quickStart.isActive && !isCorrect) {
@@ -5974,7 +5984,12 @@
                 quickStart._lastAspects = { errLine: _corr + ' → du hast ' + _user + ' gewählt' };
             }
 
-            this._handleQzAnswer(isCorrect);
+            if (isCorrect) {
+                this._handleQzAnswer(true);
+            } else {
+                this._showQzMerksatzHint(question);
+                this._handleQzAnswer(false, null, true);
+            }
         },
 
         // Merksatz-Hilfe bei Fehler einblenden — nur den passenden Merksatz
