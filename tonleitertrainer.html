@@ -5698,8 +5698,13 @@
                 return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
             }
 
-            // Ankerpunkte Außenkreis: C (0), G (1), F (11)
+            // Ankerpunkte Außenkreis: C (0), G (1), D (2), F (11), B (10).
+            // D und B sind dabei, damit das Zunehmen um je ein Vorzeichen
+            // ablesbar wird (G = 1♯, D = 2♯ / F = 1♭, B = 2♭).
             const pC = posAt(0, smallR), pG = posAt(1, smallR), pF = posAt(11, smallR);
+            const pD = posAt(2, smallR), pB = posAt(10, smallR);
+            // Fortsetzung andeuten: es geht in beide Richtungen weiter.
+            const pMoreSharp = posAt(3, smallR), pMoreFlat = posAt(9, smallR);
 
             // Pfeile
             const arrowR = r + 6;
@@ -5713,7 +5718,7 @@
             for (let h = 0; h < 12; h++) {
                 const outer = posAt(h, r);
                 const inner = posAt(h, r - 8);
-                const isAnchor = (h === 0 || h === 1 || h === 11);
+                const isAnchor = (h === 0 || h === 1 || h === 2 || h === 10 || h === 11);
                 ticks += `<line x1="${inner.x}" y1="${inner.y}" x2="${outer.x}" y2="${outer.y}" stroke="${isAnchor ? '#0891b2' : '#d1d5db'}" stroke-width="${isAnchor ? 2 : 1.2}"/>`;
             }
 
@@ -5750,6 +5755,10 @@
                     <text x="${pC.x}" y="${pC.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">C</text>
                     <text x="${pG.x + 2}" y="${pG.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">G</text>
                     <text x="${pF.x - 2}" y="${pF.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">F</text>
+                    <text x="${pD.x + 2}" y="${pD.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">D</text>
+                    <text x="${pB.x - 2}" y="${pB.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">B</text>
+                    <text x="${pMoreSharp.x + 2}" y="${pMoreSharp.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">…</text>
+                    <text x="${pMoreFlat.x - 2}" y="${pMoreFlat.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">…</text>
                     ${innerContent}
                     <path d="M${aSS.x},${aSS.y} A${arrowR},${arrowR} 0 0,1 ${aSE.x},${aSE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#arrowSharp)"/>
                     <text x="${sharpMid.x}" y="${sharpMid.y}" text-anchor="middle" font-size="18" font-weight="400" fill="#0891b2">♯</text>
@@ -7316,7 +7325,7 @@
                 body: `<p>Der Quintenzirkel ordnet alle Dur-Tonarten nach ihrer Verwandtschaft. Im Uhrzeigersinn steigt die Anzahl der <span class="vz-sharp"></span> um jeweils ein Vorzeichen (z.&nbsp;B. G-Dur hat ein <span class="vz-sharp"></span>, D-Dur zwei <span class="vz-sharp"></span> usw.), gegen den Uhrzeigersinn die der <span class="vz-flat"></span>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-rule"><strong style="display:block; margin-bottom:4px;">Merksätze lernen</strong><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> C-Dur steht oben (0 Vorzeichen). Rechts = Kreuz, links = Be.</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> C-Dur steht oben (0 Vorzeichen). Nach rechts Kreuze, nach links Bes.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne die Anzahl der Vorzeichen einer Dur-Tonart — oder umgekehrt: Welche Dur-Tonart hat eine bestimmte Anzahl Vorzeichen?</div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this._buildQzVisual('aussenkr');
