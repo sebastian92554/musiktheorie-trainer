@@ -4752,8 +4752,10 @@
             } else {
                 // Einfache Sub-Skills: progressive VZ-Steigerung über 10 Aufgaben
                 const t = this.buildingTaskCounter;
-                if (t <= 1) maxVZ = 0;         // Aufgabe 1: nur C-Dur, a-Moll
-                else if (t <= 4) maxVZ = 1;    // 2–4: bis 1 VZ
+                // Aufgabe 1 lief früher auf maxVZ 0 — das sind genau zwei Tonleitern
+                // (C-Dur, a-Moll), also ein Münzwurf bei jedem Quiz-Start. Ab 1 VZ
+                // sind es sechs, der Einstieg bleibt trotzdem leicht.
+                if (t <= 4) maxVZ = 1;         // 1–4: bis 1 VZ
                 else if (t <= 7) maxVZ = 2;    // 5–7: bis 2 VZ
                 else maxVZ = 3;                // 8–10: bis 3 VZ
             }
@@ -4761,11 +4763,22 @@
             // Tonleiter wählen (Dur + Moll), Wiederholung steuern
             const allScales = [...SCALES.dur, ...SCALES.moll].filter(s => s.vorzeichen >= minVZ && s.vorzeichen <= maxVZ);
             let pool = allScales;
-            // Gleiche Tonleiter nicht direkt hintereinander
-            if (pool.length > 1 && this.currentScale) {
-                const lastKey = this.currentScale.root + '-' + this.currentScale.type;
-                pool = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
-                if (pool.length === 0) pool = allScales;
+            // VARIANZ: Mehr-Stufen-History (pool-adaptiv) statt nur direkter Vorgänger —
+            // verhindert das vom Schülerfeedback gemeldete „gleiche Tonleitern hintereinander"-Muster.
+            // maxHistory = ⌊pool/2⌋ → mind. ⌈pool/2⌉ Skalen bleiben wählbar.
+            if (!this._recentScales) this._recentScales = [];
+            if (pool.length > 1) {
+                const maxHistory = Math.max(1, Math.floor(allScales.length / 2));
+                const recent = this._recentScales.slice(-maxHistory);
+                const filtered = pool.filter(s => !recent.includes(s.root + '-' + s.type));
+                if (filtered.length > 0) {
+                    pool = filtered;
+                } else if (this.currentScale) {
+                    // Fallback: mindestens den direkten Vorgänger ausschließen
+                    const lastKey = this.currentScale.root + '-' + this.currentScale.type;
+                    const fb = pool.filter(s => (s.root + '-' + s.type) !== lastKey);
+                    if (fb.length > 0) pool = fb;
+                }
             }
             // Max 2× gleiche Tonleiter pro Session (spätere Wiederholung didaktisch sinnvoll)
             if (!this._buildingScaleUsage) this._buildingScaleUsage = {};
@@ -4784,6 +4797,12 @@
             const scale = pool[Math.floor(Math.random() * pool.length)];
             const scaleKey = scale.root + '-' + scale.type;
             this._buildingScaleUsage[scaleKey] = (this._buildingScaleUsage[scaleKey] || 0) + 1;
+            // History-Buffer aktualisieren (pool-adaptiv, siehe Anti-Repeat-Block oben)
+            this._recentScales.push(scaleKey);
+            const _maxHist = Math.max(1, Math.floor(allScales.length / 2));
+            if (this._recentScales.length > _maxHist) {
+                this._recentScales = this._recentScales.slice(-_maxHist);
+            }
             this._buildingTypeHistory.push(scale.type);
             if (this._buildingTypeHistory.length > 5) this._buildingTypeHistory.shift();
 
