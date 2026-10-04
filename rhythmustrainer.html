@@ -248,6 +248,28 @@
             opacity: 0.8;
         }
 
+        /* Grundpuls-Schalter (neben Temporegler) */
+        .pulse-toggle {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            cursor: pointer; user-select: none; flex-shrink: 0;
+            padding: 0.3rem 0.4rem;
+        }
+        .pulse-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .pulse-switch {
+            position: relative; display: inline-block; flex-shrink: 0;
+            width: 32px; height: 17px; border-radius: 9px;
+            background: #d1d5db; transition: background 0.15s;
+        }
+        .pulse-switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 13px; height: 13px; border-radius: 50%; background: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform 0.15s;
+        }
+        .pulse-toggle input:checked + .pulse-switch { background: #8b5cf6; }
+        .pulse-toggle input:checked + .pulse-switch::after { transform: translateX(15px); }
+        .pulse-toggle input:focus-visible + .pulse-switch { outline: 2px solid #8b5cf6; outline-offset: 2px; }
+        .pulse-toggle-label { font-size: 0.72rem; color: #7c3aed; white-space: nowrap; }
+
         /* Dictation UI */
         .dictation-container { padding: 1rem; }
         .dictation-task-label {
@@ -1900,8 +1922,13 @@
             <div class="staff-wrapper" id="staffWrapper">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <div class="time-signature-badge" id="timeSignatureBadge">4/4</div>
-                    <div id="audioControls" style="display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 0.5rem; flex: 1;">
-                        <div id="quizTempoControl" style="display:none; align-items: center; gap: 0.4rem; justify-self: end;">
+                    <div id="audioControls" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.4rem 0.75rem; flex: 1;">
+                        <label class="pulse-toggle" title="Leiser Grundschlag während des Rhythmus — der Einzähler bleibt immer hörbar">
+                            <input type="checkbox" id="pulseToggleInput" checked onchange="app.setPulseEnabled(this.checked);">
+                            <span class="pulse-switch"></span>
+                            <span class="pulse-toggle-label">Grundpuls</span>
+                        </label>
+                        <div id="quizTempoControl" style="display:none; align-items: center; gap: 0.4rem;">
                             <span style="font-size: 0.75rem; color: #7c3aed; white-space: nowrap;">Tempo</span>
                             <input type="range" id="quizTempoSlider" min="40" max="160" value="80" step="5"
                                 oninput="app.tempo = Number(this.value); document.getElementById('quizTempoValue').textContent = this.value; document.getElementById('tempoSlider').value = this.value; document.getElementById('tempoValue').textContent = this.value;"
@@ -1913,8 +1940,7 @@
                             style="background: #faf5ff; border: 2px solid #c4b5fd; border-radius: 50%;
                                    width: 40px; height: 40px; cursor: pointer; padding: 0;
                                    display: flex; align-items: center; justify-content: center;
-                                   opacity: 0.7; transition: opacity 0.15s, background 0.15s;
-                                   justify-self: start;"
+                                   opacity: 0.7; transition: opacity 0.15s, background 0.15s;"
                             onmouseenter="this.style.opacity='1';this.style.background='#ede9fe'" onmouseleave="this.style.opacity='0.7';this.style.background='#faf5ff'">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -3347,7 +3373,7 @@
                 const playBtn = document.getElementById('playRhythmBtn');
                 const audioControls = document.getElementById('audioControls');
                 if (playBtn) playBtn.style.display = app.noAudio ? 'none' : '';
-                if (audioControls) audioControls.style.display = app.noAudio ? 'none' : 'grid';
+                if (audioControls) audioControls.style.display = app.noAudio ? 'none' : 'flex';
                 // Tempo-Regler im Quiz einblenden wenn Audio aktiv
                 const quizTempo = document.getElementById('quizTempoControl');
                 if (quizTempo) quizTempo.style.display = app.noAudio ? 'none' : 'flex';
@@ -4912,7 +4938,7 @@ Gerät:
                     const audioControls = document.getElementById('audioControls');
                     const tempoControl = document.getElementById('tempoControl');
                     if (playBtn) playBtn.style.display = this.noAudio ? 'none' : '';
-                    if (audioControls) audioControls.style.display = this.noAudio ? 'none' : 'grid';
+                    if (audioControls) audioControls.style.display = this.noAudio ? 'none' : 'flex';
                     if (tempoControl) tempoControl.style.display = this.noAudio ? 'none' : '';
                 }
                 // Im QuickStart: Settings werden von configureApp gesetzt, nicht vom DOM
@@ -7113,6 +7139,7 @@ Gerät:
             // ---- Audio-Engine (perkussiv) ----
             _audioCtx: null,
             _noiseBuffer: null,
+            _pulseGain: null,
             noAudio: false,
 
             _getAudioCtx() {
@@ -7121,6 +7148,30 @@ Gerät:
                 }
                 if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
                 return this._audioCtx;
+            },
+
+            // Eigener Lautstärke-Kanal für den Grundpuls — so lässt er sich
+            // auch während eines laufenden Hörbeispiels zu- und abschalten
+            _getPulseBus(ctx) {
+                if (!this._pulseGain || this._pulseGain.context !== ctx) {
+                    this._pulseGain = ctx.createGain();
+                    this._pulseGain.gain.value = this.pulseEnabled ? 1 : 0;
+                    this._pulseGain.connect(ctx.destination);
+                }
+                return this._pulseGain;
+            },
+
+            setPulseEnabled(on) {
+                this.pulseEnabled = !!on;
+                // Nur umschalten, wenn schon ein Audio-Context existiert — sonst reicht der Flag
+                if (!this._audioCtx || this._audioCtx.state === 'closed') return;
+                const ctx = this._audioCtx;
+                const g = this._getPulseBus(ctx).gain;
+                const now = ctx.currentTime;
+                // Kurze Rampe statt hartem Sprung: verhindert Knacken mitten im Hi-Hat-Decay
+                g.cancelScheduledValues(now);
+                g.setValueAtTime(g.value, now);
+                g.linearRampToValueAtTime(this.pulseEnabled ? 1 : 0, now + 0.01);
             },
 
             _getNoiseBuffer(ctx) {
@@ -7133,7 +7184,8 @@ Gerät:
                 return this._noiseBuffer;
             },
 
-            _hit(ctx, time, type, vol = 0.6) {
+            _hit(ctx, time, type, vol = 0.6, dest = null) {
+                const out = dest || ctx.destination;
                 if (type === 'woodblock') {
                     const src = ctx.createBufferSource();
                     src.buffer = this._getNoiseBuffer(ctx);
@@ -7142,7 +7194,7 @@ Gerät:
                     const g = ctx.createGain();
                     g.gain.setValueAtTime(vol, time);
                     g.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-                    src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+                    src.connect(bp); bp.connect(g); g.connect(out);
                     src.start(time); src.stop(time + 0.08);
                     const o = ctx.createOscillator();
                     const og = ctx.createGain();
@@ -7151,7 +7203,7 @@ Gerät:
                     o.frequency.exponentialRampToValueAtTime(600, time + 0.02);
                     og.gain.setValueAtTime(vol * 0.6, time);
                     og.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
-                    o.connect(og); og.connect(ctx.destination);
+                    o.connect(og); og.connect(out);
                     o.start(time); o.stop(time + 0.06);
                 } else if (type === 'marked') {
                     const o = ctx.createOscillator();
@@ -7161,7 +7213,7 @@ Gerät:
                     o.frequency.exponentialRampToValueAtTime(1100, time + 0.025);
                     g.gain.setValueAtTime(vol * 0.8, time);
                     g.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-                    o.connect(g); g.connect(ctx.destination);
+                    o.connect(g); g.connect(out);
                     o.start(time); o.stop(time + 0.07);
                     const src = ctx.createBufferSource();
                     src.buffer = this._getNoiseBuffer(ctx);
@@ -7170,7 +7222,7 @@ Gerät:
                     const ng = ctx.createGain();
                     ng.gain.setValueAtTime(vol * 0.35, time);
                     ng.gain.exponentialRampToValueAtTime(0.001, time + 0.025);
-                    src.connect(bp); bp.connect(ng); ng.connect(ctx.destination);
+                    src.connect(bp); bp.connect(ng); ng.connect(out);
                     src.start(time); src.stop(time + 0.04);
                 } else if (type === 'hihat') {
                     const src = ctx.createBufferSource();
@@ -7180,7 +7232,7 @@ Gerät:
                     const g = ctx.createGain();
                     g.gain.setValueAtTime(vol * 0.35, time);
                     g.gain.exponentialRampToValueAtTime(0.001, time + 0.035);
-                    src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+                    src.connect(hp); hp.connect(g); g.connect(out);
                     src.start(time); src.stop(time + 0.06);
                 }
             },
@@ -7231,11 +7283,14 @@ Gerät:
                     }
 
                     // Leiser Grundpuls (Hi-Hat auf jeden Schlag) während des Rhythmus
+                    // Läuft über den Puls-Bus, damit der Schalter auch mitten im
+                    // Hörbeispiel greift — der Einzähler bleibt immer hörbar
                     const beatUnit = 4 / denominator; // Schlagdauer in Vierteln (4/4→1, 7/8→0.5)
+                    const pulseBus = this._getPulseBus(ctx);
                     const maxValue = this.getMaxValue();
                     const totalBeats = Math.ceil(maxValue / beatUnit);
                     for (let i = 0; i < totalBeats; i++) {
-                        this._hit(ctx, rhythmStart + i * beatSec * beatUnit, 'hihat', 0.12);
+                        this._hit(ctx, rhythmStart + i * beatSec * beatUnit, 'hihat', 0.12, pulseBus);
                     }
 
                     // Rhythmus abspielen
@@ -7262,6 +7317,7 @@ Gerät:
             },
 
             tempo: 80,
+            pulseEnabled: true,   // Grundpuls während des Rhythmus (Schalter neben Temporegler)
 
             renderTask() {
                 // Update time signature badge
@@ -9606,6 +9662,7 @@ Gerät:
             'rhy6_8tel': {
                 title: '6a — Rhythmusdiktat',
                 body: `<p>Tippe auf den <strong>Audio-Button</strong>, um den Rhythmus zu hören. Ein <strong>Einzähler</strong> gibt dir das Tempo vor. Baue dann den Takt <strong>Note für Note</strong> nach, indem du auf die Noten-Buttons tippst.</p>
+                    <p>Der <strong>Grundschlag</strong> läuft danach leise weiter — derselbe Klang wie im Einzähler. Mit dem Schalter <strong>Grundpuls</strong> neben dem Tempo kannst du ihn abstellen.</p>
                     <div class="lk-visual" id="lkVisualRhy6Basis"></div>
                     <div class="lk-rule"><strong>Merke:</strong> Höre genau zu und baue den Takt von links nach rechts auf. Der Fortschrittsbalken zeigt, wie voll der Takt ist.</div>
                     <div class="lk-tip"><strong>Tipp:</strong> Du kannst den Rhythmus beliebig oft anhören. Mit „Rückgängig" entfernst du die letzte Note.</div>
