@@ -4845,13 +4845,7 @@
 
             // Keyboard rendern (nur im Tastatur-Modus)
             if (isKeyboard) {
-                const kbCard = document.getElementById('keyboardCard');
-                kbCard.classList.add('keyboard-input');
-                const hint = document.getElementById('keyboardHint');
-                if (hint) hint.textContent = 'Klicke die fehlenden Töne an';
-                // Keyboard zurück vor Input (ursprüngliche DOM-Reihenfolge)
-                const inputCard = document.getElementById('inputCard');
-                kbCard.parentNode.insertBefore(kbCard, inputCard);
+                // Hinweis, Klassen und DOM-Reihenfolge setzt renderBuildingKeyboard selbst
                 this.renderBuildingKeyboard();
                 this._disableStaffBuilding();
             } else {
@@ -4987,6 +4981,20 @@
 
                 container.appendChild(div);
             });
+
+            // Karte in den Eingabe-Zustand versetzen (analog renderKeyboard).
+            // Steht hier und nicht beim Aufrufer, damit auch ein späterer Aufruf
+            // — etwa aus dem Resize-Handler — eine klickbare Tastatur hinterlässt.
+            const kbCard = document.getElementById('keyboardCard');
+            if (kbCard) {
+                kbCard.classList.add('active', 'keyboard-input');
+                kbCard.classList.remove('keyboard-viewonly');
+                // Klickbare Tastatur gehört vor die Eingabekarte
+                const inputCard = document.getElementById('inputCard');
+                if (inputCard && kbCard.parentNode) kbCard.parentNode.insertBefore(kbCard, inputCard);
+            }
+            const kbHint = document.getElementById('keyboardHint');
+            if (kbHint) kbHint.textContent = 'Klicke die fehlenden Töne an';
         },
 
         toggleBuildingKey(midi) {
@@ -8906,7 +8914,13 @@ Gerät:
         if (window.innerWidth !== lastResizeWidth || window.innerHeight !== lastResizeHeight) {
             lastResizeWidth = window.innerWidth;
             lastResizeHeight = window.innerHeight;
-            if (app.showKeyboard) app.renderKeyboard();
+            // ton4 hat eine eigene, klickbare Tastatur — die generische würde sie
+            // durch die Ansichtshilfe ersetzen und die Eingabe tot schalten
+            if (app.currentStage === 'bilden' && app.buildingIsKeyboard) {
+                app.renderBuildingKeyboard();
+            } else if (app.showKeyboard) {
+                app.renderKeyboard();
+            }
         }
     });
 
