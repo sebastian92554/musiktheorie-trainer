@@ -1817,7 +1817,7 @@
                     // Bei laufendem Quiz: zuerst quiz_abandon (mit aktuellem questionIndex), dann Heartbeat
                     try {
                         if (this._lastQuizStart && typeof quickStart !== 'undefined' && quickStart.isActive) {
-                            this.quizAbandon(quickStart.questionsAnswered || 0);
+                            this.quizAbandon(quickStart.questionsAnswered || 0, 'pagehide');
                         }
                     } catch (e) {}
                     this._hbFlush();
@@ -1843,14 +1843,20 @@
             // PLAN_Auswertung B3-Verfeinerung: misst Abbruch-Position innerhalb des Quiz
             // (Hypothesen-Verifikation aus Klassensession 8a — bricht der Schüler bei Q1
             // ab oder nach Q5? Aktuell aus quiz_start ohne quiz_complete nicht erkennbar).
-            quizAbandon(questionIndex) {
+            quizAbandon(questionIndex, exit) {
                 if (!this._lastQuizStart) return;
                 const ms = Date.now() - this._lastQuizStart.ts;
+                // Trefferstand beim Abbruch: trennt "verstanden, reicht mir" (viele
+                // Richtige, spaete Position) von "haengengeblieben" (wenige Richtige).
+                let _qsCorrect = null;
+                try { if (typeof quickStart !== 'undefined' && typeof quickStart.questionsCorrect === 'number') _qsCorrect = quickStart.questionsCorrect; } catch (e) {}
                 this._send('quiz_abandon', {
                     level: this._lastQuizStart.level,
                     subskill: this._lastQuizStart.subskill,
                     mode: this._lastQuizStart.mode,
                     questionIndex: questionIndex,
+                    correctCount: _qsCorrect,
+                    exit: exit || 'unknown',
                     msInQuiz: ms
                 });
                 this._lastQuizStart = null;
@@ -2882,7 +2888,7 @@
             backToStart() {
                 // Wenn ein Quiz läuft, als Abbruch tracken (mit aktueller Frage-Position)
                 if (this.isActive) {
-                    try { tracker.quizAbandon(this.questionsAnswered || 0); } catch (e) {}
+                    try { tracker.quizAbandon(this.questionsAnswered || 0, 'back'); } catch (e) {}
                 }
                 const lastNode = this.selectedNode;
                 this.selectedNode = null;
