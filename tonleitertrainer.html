@@ -4727,6 +4727,10 @@
         buildingActiveTool: null,       // 'sharp', 'flat', oder null
         buildingGhostNote: null,        // {noteName, octave, x} Hover-Preview
         buildingTaskCounter: 0,         // Zählt Aufgaben für Lücken-Progression
+        // Urteil der letzten Prüfung, als Momentaufnahme. Kein Live-Abgleich:
+        // ein neu gesetzter Ton wird wieder schwarz, nicht sofort grün.
+        buildingVerdictStaff: null,     // [true|false|null] je Slot (Notensystem)
+        buildingVerdictKeys: null,      // { midi: true|false } (Tastatur)
 
         // ---- Init / Configure ----
         init() {
@@ -4742,6 +4746,8 @@
             this.buildingStaffNotes = [];
             this.buildingActiveTool = null;
             this.buildingGhostNote = null;
+            this.buildingVerdictStaff = null;
+            this.buildingVerdictKeys = null;
             this.buildingTaskCounter++;
 
             // Vorzeichen-Filter basierend auf höchstem aktiven Sub-Skill
@@ -4932,6 +4938,10 @@
                 }
 
                 const scaleIdx = scaleMidis.indexOf(k.midi);
+                // Als richtig bestaetigte Tasten sind so wenig anklickbar wie die
+                // vorgegebenen — ein versehentliches Abwaehlen wuerde erarbeiteten
+                // Fortschritt zerstoeren.
+                const _bestaetigt = this.buildingVerdictKeys && this.buildingVerdictKeys[k.midi] === true;
                 if (scaleIdx !== -1 && this.buildingGivenIndices.includes(scaleIdx)) {
                     div.style.background = '#dbeafe';
                     div.style.borderColor = '#3b82f6';
@@ -4940,15 +4950,23 @@
                     const dot = document.createElement('div');
                     dot.style.cssText = 'position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#3b82f6;';
                     div.appendChild(dot);
+                } else if (_bestaetigt) {
+                    div.style.cursor = 'default';
                 } else {
                     div.onclick = () => this.toggleBuildingKey(k.midi);
                 }
 
                 if (this.buildingUserSelections.includes(k.midi)) {
-                    div.style.background = '#ccfbf1';
-                    div.style.borderColor = '#0891b2';
+                    // Urteil der letzten Pruefung ueberlebt das Neuzeichnen: eine rote
+                    // Taste bleibt rot, bis sie abgewaehlt wird (nicht bis irgendeine
+                    // andere angefasst wird).
+                    const _v = this.buildingVerdictKeys ? this.buildingVerdictKeys[k.midi] : undefined;
+                    const _bg = _v === true ? '#d1fae5' : _v === false ? '#fee2e2' : '#ccfbf1';
+                    const _bc = _v === true ? '#10b981' : _v === false ? '#ef4444' : '#0891b2';
+                    div.style.background = _bg;
+                    div.style.borderColor = _bc;
                     const dot = document.createElement('div');
-                    dot.style.cssText = 'position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#0891b2;';
+                    dot.style.cssText = `position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:${_bc};`;
                     div.appendChild(dot);
                 }
 
@@ -4966,6 +4984,7 @@
                 div.dataset.midi = k.midi;
 
                 const scaleIdx = scaleMidis.indexOf(k.midi);
+                const _bestaetigt = this.buildingVerdictKeys && this.buildingVerdictKeys[k.midi] === true;
                 if (scaleIdx !== -1 && this.buildingGivenIndices.includes(scaleIdx)) {
                     div.style.background = '#1e40af';
                     div.style.borderColor = '#1e3a8a';
@@ -4973,13 +4992,16 @@
                     const dot = document.createElement('div');
                     dot.style.cssText = 'position:absolute; bottom:12px; left:50%; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:#93c5fd;';
                     div.appendChild(dot);
+                } else if (_bestaetigt) {
+                    div.style.cursor = 'default';
                 } else {
                     div.onclick = () => this.toggleBuildingKey(k.midi);
                 }
 
                 if (this.buildingUserSelections.includes(k.midi)) {
-                    div.style.background = '#0891b2';
-                    div.style.borderColor = '#0e7490';
+                    const _v = this.buildingVerdictKeys ? this.buildingVerdictKeys[k.midi] : undefined;
+                    div.style.background = _v === true ? '#10b981' : _v === false ? '#ef4444' : '#0891b2';
+                    div.style.borderColor = _v === true ? '#059669' : _v === false ? '#dc2626' : '#0e7490';
                     const dot = document.createElement('div');
                     dot.style.cssText = 'position:absolute; bottom:12px; left:50%; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:white;';
                     div.appendChild(dot);
@@ -5005,9 +5027,12 @@
 
         toggleBuildingKey(midi) {
             if (this.inputLocked) return;
+            // Bestaetigt richtige Taste: nicht abwaehlbar (siehe renderBuildingKeyboard)
+            if (this.buildingVerdictKeys && this.buildingVerdictKeys[midi] === true) return;
             const idx = this.buildingUserSelections.indexOf(midi);
             if (idx !== -1) this.buildingUserSelections.splice(idx, 1);
             else this.buildingUserSelections.push(midi);
+            this._clearBuildingVerdict('key', midi);
             this.renderBuildingKeyboard();
             this.drawStaff(); // Update staff to show user notes
 
@@ -5057,6 +5082,7 @@
 
             if (correct) {
                 this.setFreeRetry(false);
+                this.buildingVerdictKeys = null;
                 // Visual feedback: selected → correct (green)
                 document.querySelectorAll('#keyboardContainer > div').forEach(k => {
                     if (this.buildingUserSelections.includes(parseInt(k.dataset.midi))) {
@@ -5068,14 +5094,15 @@
             } else {
                 this.setFreeRetry(true);
                 const expectedSet = new Set(expectedMissing);
-                document.querySelectorAll('#keyboardContainer > div').forEach(k => {
-                    const midi = parseInt(k.dataset.midi);
-                    if (this.buildingUserSelections.includes(midi) && !expectedSet.has(midi)) {
-                        k.style.background = '#fee2e2';
-                        k.style.borderColor = '#ef4444';
-                    }
-                });
-                this.showFeedback(false, '⚠️ <strong>Prüfe nochmal</strong> — nicht alle Töne stimmen.');
+                this.buildingVerdictKeys = {};
+                this.buildingUserSelections.forEach(m => { this.buildingVerdictKeys[m] = expectedSet.has(m); });
+                // Tastatur und Notensystem aus derselben Quelle faerben, damit die
+                // Markierung ein Neuzeichnen ueberlebt (Inline-Styles taten das nicht).
+                this.renderBuildingKeyboard();
+                this.drawStaff();
+                this.showFeedback(false, 'Die <strong>roten Töne</strong> stimmen nicht — klicke sie ab und wähle die richtigen Tasten.');
+                const _btn = document.getElementById('btnPruefen');
+                if (_btn) _btn.textContent = '✓ ERNEUT PRÜFEN';
             }
 
             // GF ton4 (Tastatur-Bau): TAS + HS-Struktur; vorzeichen nur bei
@@ -5088,13 +5115,16 @@
             // Nur weiter generieren, wenn Quiz noch nicht fertig
             const quizDone = quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions;
 
-            const delay = correct ? 1000 : 3000;
+            // Bei Fehlern kurz sperren statt lange: Die Markierung traegt die
+            // Information jetzt dauerhaft, ein langes Warten waere nur Leerlauf.
+            // Die Anweisung bleibt stehen (kein hideFeedback) — sie verschwindet
+            // erst, wenn kein roter Ton mehr steht.
+            const delay = correct ? 1000 : 800;
             setTimeout(() => {
                 if (correct) {
                     if (!quizDone) this.generateNewTask();
                 } else {
                     this.inputLocked = false;
-                    this.hideFeedback();
                 }
             }, delay);
         },
@@ -5194,14 +5224,46 @@
                 octave = info.octave;
             }
 
+            // Als richtig bestaetigter Slot bleibt unangetastet — gleiche Regel wie
+            // bei den bestaetigten Tasten im Tastatur-Modus.
+            const _slotIdx = Math.round((slotX - startX) / spacing);
+            if (this.buildingVerdictStaff && this.buildingVerdictStaff[_slotIdx] === true) {
+                this.buildingGhostNote = null;
+                this.drawStaff();
+                return;
+            }
+
             // Toggle: gleiche Note am gleichen Slot → löschen, sonst ersetzen
             const existing = this.buildingStaffNotes.find(n => Math.abs(n.x - slotX) < 10);
             this.buildingStaffNotes = this.buildingStaffNotes.filter(n => Math.abs(n.x - slotX) > 10);
             if (!(existing && existing.noteName === noteName && existing.octave === octave)) {
                 this.buildingStaffNotes.push({ noteName, octave, x: slotX });
             }
+            this._clearBuildingVerdict('staff', _slotIdx);
             this.drawStaff();
 
+        },
+
+        // Der Schüler fasst einen bewerteten Ton an → dessen Urteil verfällt
+        // (die Note wird wieder schwarz, kein Live-Abgleich). Steht danach kein
+        // roter Ton mehr, verschwindet auch die Anweisung — zustandsgebunden
+        // statt nach Zeit, damit sie genau so lange steht, wie es etwas zu tun gibt.
+        _clearBuildingVerdict(kind, key) {
+            if (kind === 'staff') {
+                if (!this.buildingVerdictStaff) return;
+                if (key >= 0 && key < 8) this.buildingVerdictStaff[key] = null;
+                // Gruene Toene bleiben gruen — nur die angefasste Stelle wird neutral.
+                // Die Anweisung geht, sobald nichts mehr rot ist; das Urteil selbst
+                // bleibt stehen, damit der bestaetigte Teil sichtbar bleibt.
+                if (!this.buildingVerdictStaff.some(v => v === false)) this.hideFeedback();
+                if (this.buildingVerdictStaff.every(v => v === null)) this.buildingVerdictStaff = null;
+            } else {
+                if (!this.buildingVerdictKeys) return;
+                delete this.buildingVerdictKeys[key];
+                const rest = Object.keys(this.buildingVerdictKeys);
+                if (!rest.some(k => this.buildingVerdictKeys[k] === false)) this.hideFeedback();
+                if (!rest.length) this.buildingVerdictKeys = null;
+            }
         },
 
         // ---- Staff-Building: Interaktivität aktivieren/deaktivieren ----
@@ -5244,6 +5306,49 @@
         },
 
         // ---- Staff-Building: Validierung ----
+        // Urteil je Slot für das Notensystem.
+        //
+        // Die Lage bleibt frei: Tonleitern wie a-Moll oder H-Dur lassen sich
+        // sinnvoll in der kleinen wie in der eingestrichenen Oktave schreiben,
+        // beides ist richtig. Frei ist aber die Lage der GANZEN Leiter, nicht
+        // die des einzelnen Tons — deshalb muss sich eine Lage auf mindestens
+        // zwei Töne stützen. Ohne diese Hürde erklärt ein einzelner passender
+        // Ton seine eigene Lage für maßgeblich und sich selbst für richtig
+        // (ein c' im Schluss-Slot wäre grün, obwohl dort c'' steht) — und das
+        // Feedback führte den Schüler auf die absurde Lesart, er müsse den
+        // Rest mit Hilfslinien unter dem System nachbauen.
+        //
+        // Gewählt wird die Lage mit den meisten Treffern; bei Gleichstand die,
+        // die der Notation der Aufgabe am nächsten liegt. Damit bleibt ein
+        // einzelner verrutschter Ton ein einzelner roter Ton.
+        _buildingStaffVerdict() {
+            const startX = 185, spacing = 52;
+            const sc = this.currentScale;
+            if (!sc) return null;
+            const expMidis = sc.notes.map((n, i) => noteToMidi(n, sc.octaves[i]));
+            const bySlot = new Array(8).fill(null);
+            this.buildingStaffNotes.forEach(n => {
+                const slot = Math.round((n.x - startX) / spacing);
+                if (slot >= 0 && slot < 8) bySlot[slot] = n;
+            });
+            // Kandidaten-Lagen: Versatz jedes Tons mit richtigem Notennamen
+            const offs = {};
+            bySlot.forEach((n, i) => {
+                if (!n || n.noteName !== sc.notes[i]) return;
+                const o = noteToMidi(n.noteName, n.octave) - expMidis[i];
+                offs[o] = (offs[o] || 0) + 1;
+            });
+            const keys = Object.keys(offs)
+                .filter(o => offs[o] >= 2)
+                .sort((a, b) => (offs[b] - offs[a]) || (Math.abs(Number(a)) - Math.abs(Number(b))));
+            const refOff = keys.length ? Number(keys[0]) : 0;
+            return bySlot.map((n, i) => {
+                if (!n) return null;
+                return n.noteName === sc.notes[i] &&
+                       (noteToMidi(n.noteName, n.octave) - expMidis[i]) === refOff;
+            });
+        },
+
         checkBuildingStaff() {
             if (this.inputLocked) return;
             if (!this._checkInputComplete()) return;
@@ -5252,28 +5357,16 @@
             const sortedPlaced = [...this.buildingStaffNotes].sort((a, b) => a.x - b.x);
             let correct = false;
             if (sortedPlaced.length === 8) {
-                // Notennamen müssen stimmen
+                // Notennamen je Slot + eine einheitliche Lage für alle acht Töne.
+                // Lagenfrei (jede Oktave zulässig), aber nur als Ganzes — exakt
+                // die Regel der tonweisen Markierung, damit "alle acht grün" und
+                // "richtig" dasselbe bedeuten. Siehe _buildingStaffVerdict.
+                const expMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
                 const namesMatch = sortedPlaced.every((n, i) => n.noteName === this.currentScale.notes[i]);
-                // Oktaven müssen konsistent aufsteigen (gleich oder +1 pro Schritt)
-                let octavesConsistent = true;
-                for (let i = 1; i < sortedPlaced.length; i++) {
-                    const diff = sortedPlaced[i].octave - sortedPlaced[i - 1].octave;
-                    const semiDiff = noteToMidi(sortedPlaced[i].noteName, sortedPlaced[i].octave) -
-                                     noteToMidi(sortedPlaced[i - 1].noteName, sortedPlaced[i - 1].octave);
-                    if (diff < 0 || diff > 1 || semiDiff < 0) { octavesConsistent = false; break; }
-                }
-                // Intervallstruktur muss zur Tonleiter passen
-                let intervalsMatch = true;
-                if (namesMatch && octavesConsistent) {
-                    const expectedMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
-                    for (let i = 1; i < 8; i++) {
-                        const expInterval = expectedMidis[i] - expectedMidis[i - 1];
-                        const userInterval = noteToMidi(sortedPlaced[i].noteName, sortedPlaced[i].octave) -
-                                             noteToMidi(sortedPlaced[i - 1].noteName, sortedPlaced[i - 1].octave);
-                        if (expInterval !== userInterval) { intervalsMatch = false; break; }
-                    }
-                }
-                correct = namesMatch && octavesConsistent && intervalsMatch;
+                const off0 = noteToMidi(sortedPlaced[0].noteName, sortedPlaced[0].octave) - expMidis[0];
+                const sameLage = sortedPlaced.every((n, i) =>
+                    (noteToMidi(n.noteName, n.octave) - expMidis[i]) === off0);
+                correct = namesMatch && sameLage;
             }
 
             if (!this.freeRetry) {
@@ -5284,10 +5377,17 @@
 
             if (correct) {
                 this.setFreeRetry(false);
+                this.buildingVerdictStaff = null;
                 this.showFeedback(true, `✓ Richtig! ${this.currentScale.displayName}`);
             } else {
                 this.setFreeRetry(true);
-                this.showFeedback(false, '⚠️ <strong>Prüfe nochmal</strong> — nicht alle Töne stimmen.');
+                // Tonweise Markierung + Handlungsanweisung. Beide bleiben stehen,
+                // bis der Schüler die roten Töne ersetzt hat (siehe _staffBuildingPlace).
+                this.buildingVerdictStaff = this._buildingStaffVerdict();
+                this.drawStaff();
+                this.showFeedback(false, 'Die <strong>roten Töne</strong> stimmen nicht — tippe sie an und setze sie neu.');
+                const _btn = document.getElementById('btnPruefen');
+                if (_btn) _btn.textContent = '✓ ERNEUT PRÜFEN';
             }
 
             // GF ton4 (Notensystem-Bau): O-NS + HS-Struktur; vorzeichen nur
@@ -5299,13 +5399,16 @@
 
             const quizDone = quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions;
 
-            const delay = correct ? 1000 : 3000;
+            // Bei Fehlern kurz sperren statt lange: Die Markierung traegt die
+            // Information jetzt dauerhaft, ein langes Warten waere nur Leerlauf.
+            // Die Anweisung bleibt stehen (kein hideFeedback) — sie verschwindet
+            // erst, wenn kein roter Ton mehr steht.
+            const delay = correct ? 1000 : 800;
             setTimeout(() => {
                 if (correct) {
                     if (!quizDone) this.generateNewTask();
                 } else {
                     this.inputLocked = false;
-                    this.hideFeedback();
                 }
             }, delay);
         },
@@ -5766,7 +5869,7 @@
                 if (this.buildingIsKeyboard) {
                     text = `Welche Töne fehlen in der ${this.currentScale.displayName}-Tonleiter? Klicke die richtigen Tasten.`;
                 } else {
-                    text = `Schreibe die ${this.currentScale.displayName}-Tonleiter ins Notensystem!`;
+                    text = `Schreibe die ${this.currentScale.displayName}-Tonleiter aufsteigend ins Notensystem!`;
                 }
             } else if (this.currentStage === 'meister') {
                 text = '';
@@ -6555,15 +6658,19 @@
                         usedSlots.add(bestSlot);
                         slotAssignments.push({ userMidi, slot: bestSlot });
                     }
+                    const _vk = this.buildingVerdictKeys;
                     for (const { userMidi, slot } of slotAssignments) {
                         const x = startX + slot * spacing;
+                        const _col = (_vk && _vk[userMidi] !== undefined)
+                            ? (_vk[userMidi] ? '#10b981' : '#ef4444')
+                            : '#0891b2';
                         if (userMidi === scaleMidis[slot]) {
-                            svgContent += this.drawNoteAt(this.currentScale.notes[slot], this.currentScale.octaves[slot], x, baseY, '#0891b2');
+                            svgContent += this.drawNoteAt(this.currentScale.notes[slot], this.currentScale.octaves[slot], x, baseY, _col);
                         } else {
                             const semitone = userMidi % 12;
                             const octave = Math.floor(userMidi / 12) - 1;
                             const noteName = usesFlats ? flatNames[semitone] : sharpNames[semitone];
-                            svgContent += this.drawNoteAt(noteName, octave, x, baseY, '#0891b2');
+                            svgContent += this.drawNoteAt(noteName, octave, x, baseY, _col);
                         }
                     }
                     // Slot-Markers für noch unbesetzte freie Slots (graue Punkte als Orientierung)
@@ -6575,8 +6682,17 @@
                     }
                 } else {
                     // STAFF-Modus: platzierte Noten + Ghost-Note + Slot-Markers
+                    // Nach dem Pruefen tragen die Noten das Urteil der letzten
+                    // Pruefung (gruen/rot); unbewertete bleiben schwarz.
+                    const _v = this.buildingVerdictStaff;
                     this.buildingStaffNotes.forEach(n => {
-                        svgContent += this.drawNoteAt(n.noteName, n.octave, n.x, baseY, '#000');
+                        let col = '#000';
+                        if (_v) {
+                            const slot = Math.round((n.x - startX) / spacing);
+                            if (_v[slot] === true) col = '#10b981';
+                            else if (_v[slot] === false) col = '#ef4444';
+                        }
+                        svgContent += this.drawNoteAt(n.noteName, n.octave, n.x, baseY, col);
                     });
 
                     // Slot-Markers für leere Positionen
@@ -7437,7 +7553,7 @@
                             <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Wähle ein Werkzeug, dann klicke ins Notensystem. Gleiche Note erneut klicken = löschen.</div>
                         </div>
                         <div class="lk-tip"><strong>Tipp:</strong> Arbeite dich Schritt für Schritt aufwärts — jede nächste Stufe liegt genau eine Position höher. Vergiss nicht: Wenn ein Ton ein ♯ oder ♭ braucht, wähle <em>zuerst</em> das Werkzeug, dann klicke.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe alle 8 Töne der Tonleiter ins leere Notensystem. Nutze die Werkzeuge für Vorzeichen.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe alle 8 Töne der Tonleiter <strong>aufsteigend</strong> ins leere Notensystem. Nutze die Werkzeuge für Vorzeichen.</div>`
             },
             ton4_schreiben_schwer: {
                 title: 'Schreiben (viele Vorzeichen)',
