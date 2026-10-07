@@ -4731,6 +4731,7 @@
         // ein neu gesetzter Ton wird wieder schwarz, nicht sofort grün.
         buildingVerdictStaff: null,     // [true|false|null] je Slot (Notensystem)
         buildingVerdictKeys: null,      // { midi: true|false } (Tastatur)
+        buildingHintMidi: null,         // Vorgaengerton, den der M2b-Hinweis markiert
 
         // ---- Init / Configure ----
         init() {
@@ -4748,6 +4749,7 @@
             this.buildingGhostNote = null;
             this.buildingVerdictStaff = null;
             this.buildingVerdictKeys = null;
+            this.buildingHintMidi = null;
             this.buildingTaskCounter++;
 
             // Vorzeichen-Filter basierend auf höchstem aktiven Sub-Skill
@@ -4970,6 +4972,13 @@
                     div.appendChild(dot);
                 }
 
+                // M2b: Vorgaengerton als Bezugspunkt zum Abzaehlen. Steht NACH der
+                // Auswahl-Einfaerbung — sonst ist die Markierung unsichtbar, sobald
+                // der Vorgaengerton selbst gewaehlt ist (der haeufige Fall).
+                if (this.buildingHintMidi === k.midi) {
+                    div.style.boxShadow = 'inset 0 0 0 3px #0891b2';
+                }
+
                 container.appendChild(div);
             });
 
@@ -5005,6 +5014,11 @@
                     const dot = document.createElement('div');
                     dot.style.cssText = 'position:absolute; bottom:12px; left:50%; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:white;';
                     div.appendChild(dot);
+                }
+
+                // M2b — siehe weisse Tasten
+                if (this.buildingHintMidi === k.midi) {
+                    div.style.boxShadow = 'inset 0 0 0 3px #22d3ee';
                 }
 
                 container.appendChild(div);
@@ -5096,11 +5110,19 @@
                 const expectedSet = new Set(expectedMissing);
                 this.buildingVerdictKeys = {};
                 this.buildingUserSelections.forEach(m => { this.buildingVerdictKeys[m] = expectedSet.has(m); });
+                // Stufe 2 der Hilfe — siehe checkBuildingStaff
+                const _hint = quickStart.isActive && quickStart._nudgeSpent ? this._buildingHint() : null;
+                this.buildingHintMidi = _hint ? _hint.midi : null;
                 // Tastatur und Notensystem aus derselben Quelle faerben, damit die
                 // Markierung ein Neuzeichnen ueberlebt (Inline-Styles taten das nicht).
                 this.renderBuildingKeyboard();
                 this.drawStaff();
-                this.showFeedback(false, 'Die <strong>roten Töne</strong> stimmen nicht — klicke sie ab und wähle die richtigen Tasten.');
+                if (_hint) {
+                    quickStart.clearHelpNudge();
+                    this.showFeedback(false, _hint.text);
+                } else {
+                    this.showFeedback(false, 'Die <strong>roten Töne</strong> stimmen nicht — klicke sie ab und wähle die richtigen Tasten.');
+                }
                 const _btn = document.getElementById('btnPruefen');
                 if (_btn) _btn.textContent = '✓ ERNEUT PRÜFEN';
             }
@@ -5249,6 +5271,12 @@
         // roter Ton mehr, verschwindet auch die Anweisung — zustandsgebunden
         // statt nach Zeit, damit sie genau so lange steht, wie es etwas zu tun gibt.
         _clearBuildingVerdict(kind, key) {
+            // M2b-Markierung verfaellt mit dem Urteil — die Tastaturhilfe muss
+            // dafuer neu gezeichnet werden, der Zustand allein reicht nicht.
+            if (this.buildingHintMidi !== null) {
+                this.buildingHintMidi = null;
+                if (!this.buildingIsKeyboard && this.showKeyboard) this.renderKeyboard();
+            }
             if (kind === 'staff') {
                 if (!this.buildingVerdictStaff) return;
                 if (key >= 0 && key < 8) this.buildingVerdictStaff[key] = null;
@@ -5349,6 +5377,44 @@
             });
         },
 
+        // M2b — Erklaerung nach dem Nudge. Benennt den Zusammenhang am ersten
+        // falschen Ton (welcher Schritt dort verlangt ist), nicht die Loesung,
+        // und liefert den Vorgaengerton als Bezugspunkt fuer die Klaviatur.
+        _buildingHint() {
+            const sc = this.currentScale;
+            if (!sc) return null;
+            const exp = sc.notes.map((n, i) => noteToMidi(n, sc.octaves[i]));
+            let slot = -1, placedName = null;
+
+            if (this.buildingIsKeyboard) {
+                const sel = new Set(this.buildingUserSelections);
+                for (let i = 0; i < 8; i++) {
+                    if (this.buildingGivenIndices.includes(i)) continue;
+                    if (!sel.has(exp[i])) { slot = i; break; }
+                }
+            } else {
+                const v = this.buildingVerdictStaff || [];
+                slot = v.findIndex(x => x === false);
+                if (slot >= 0) {
+                    const startX = 185, spacing = 52;
+                    const n = this.buildingStaffNotes.find(n => Math.round((n.x - startX) / spacing) === slot);
+                    placedName = n ? n.noteName : null;
+                }
+            }
+            if (slot < 0) return null;
+            if (slot === 0) return { text: `Fang beim <strong>Grundton ${sc.root}</strong> an.`, midi: null };
+
+            const art = (exp[slot] - exp[slot - 1]) === 1 ? 'Halbtonschritt' : 'Ganzton';
+            let text = `Prüfe <strong>Stufe ${slot + 1}</strong>: Von der ${slot}. zur ${slot + 1}. Stufe verlangt ${sc.type} einen <strong>${art}</strong>. Zähle von deinem Ton auf Stufe ${slot} aus.`;
+            // Stammton richtig, Vorzeichen falsch — der haeufigste Fehler. Sagt dem
+            // Schueler, welche Dimension nicht stimmt, ohne das Vorzeichen zu nennen.
+            if (placedName && placedName !== sc.notes[slot] &&
+                getStaffPosition(placedName) === getStaffPosition(sc.notes[slot])) {
+                text += ' Der <strong>Stammton stimmt</strong>, das Vorzeichen nicht.';
+            }
+            return { text: text, midi: exp[slot - 1] };
+        },
+
         checkBuildingStaff() {
             if (this.inputLocked) return;
             if (!this._checkInputComplete()) return;
@@ -5357,16 +5423,12 @@
             const sortedPlaced = [...this.buildingStaffNotes].sort((a, b) => a.x - b.x);
             let correct = false;
             if (sortedPlaced.length === 8) {
-                // Notennamen je Slot + eine einheitliche Lage für alle acht Töne.
-                // Lagenfrei (jede Oktave zulässig), aber nur als Ganzes — exakt
-                // die Regel der tonweisen Markierung, damit "alle acht grün" und
-                // "richtig" dasselbe bedeuten. Siehe _buildingStaffVerdict.
-                const expMidis = this.currentScale.notes.map((n, i) => noteToMidi(n, this.currentScale.octaves[i]));
-                const namesMatch = sortedPlaced.every((n, i) => n.noteName === this.currentScale.notes[i]);
-                const off0 = noteToMidi(sortedPlaced[0].noteName, sortedPlaced[0].octave) - expMidis[0];
-                const sameLage = sortedPlaced.every((n, i) =>
-                    (noteToMidi(n.noteName, n.octave) - expMidis[i]) === off0);
-                correct = namesMatch && sameLage;
+                // Richtig = jeder der acht Slots ist grün. Dieselbe Funktion, die
+                // auch die Markierung erzeugt — so koennen Urteil und Einfaerbung
+                // nicht auseinanderlaufen. Lagenfrei bleibt es dadurch weiterhin,
+                // aber nur fuer die ganze Leiter (siehe _buildingStaffVerdict).
+                const v = this._buildingStaffVerdict() || [];
+                correct = v.length === 8 && v.every(x => x === true);
             }
 
             if (!this.freeRetry) {
@@ -5385,7 +5447,17 @@
                 // bis der Schüler die roten Töne ersetzt hat (siehe _staffBuildingPlace).
                 this.buildingVerdictStaff = this._buildingStaffVerdict();
                 this.drawStaff();
-                this.showFeedback(false, 'Die <strong>roten Töne</strong> stimmen nicht — tippe sie an und setze sie neu.');
+                // Stufe 2 der Hilfe: Sobald der Nudge verbraucht ist, tritt an die
+                // Stelle der kurzen Anweisung die Erklaerung am ersten roten Ton.
+                const _hint = quickStart.isActive && quickStart._nudgeSpent ? this._buildingHint() : null;
+                if (_hint) {
+                    this.buildingHintMidi = _hint.midi;
+                    if (this.showKeyboard) this.renderKeyboard();
+                    quickStart.clearHelpNudge();
+                    this.showFeedback(false, _hint.text);
+                } else {
+                    this.showFeedback(false, 'Die <strong>roten Töne</strong> stimmen nicht — tippe sie an und setze sie neu.');
+                }
                 const _btn = document.getElementById('btnPruefen');
                 if (_btn) _btn.textContent = '✓ ERNEUT PRÜFEN';
             }
@@ -7831,6 +7903,8 @@
                 if (isClickable && this.stepMarkerSelections && this.stepMarkerSelections[midiToScaleIndex[key.midi]]) {
                     selClass = ' aufsteiger-selected';
                 }
+                // M2b: Vorgaengerton als Bezugspunkt zum Abzaehlen
+                if (this.buildingHintMidi === key.midi) selClass += ' highlighted';
                 const clickAttr = isClickable ? ` onclick="app.toggleAufsteigerKey(${midiToScaleIndex[key.midi]})" style="width:${whiteKeyWidth}px; cursor:pointer;"` : ` style="width:${whiteKeyWidth}px;"`;
                 html += `<div class="white-key${selClass}"${clickAttr}></div>`;
             });
@@ -7845,6 +7919,8 @@
                 if (isClickable && this.stepMarkerSelections && this.stepMarkerSelections[midiToScaleIndex[bk.midi]]) {
                     selClass = ' aufsteiger-selected';
                 }
+                // M2b: Vorgaengerton als Bezugspunkt zum Abzaehlen
+                if (this.buildingHintMidi === bk.midi) selClass += ' highlighted';
                 const clickAttr = isClickable ? ` onclick="app.toggleAufsteigerKey(${midiToScaleIndex[bk.midi]})"` : '';
                 html += `<button class="black-key${selClass}" style="left:${leftPos}px; width:${blackKeyWidth}px;${isClickable ? ' cursor:pointer;' : ''}"${clickAttr}></button>`;
             });
