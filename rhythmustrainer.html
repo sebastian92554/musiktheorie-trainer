@@ -3616,9 +3616,11 @@
                             // TAKTART-WECHSEL: Ab Frage 7 regelmäßige, ab Frage 9 auch unregelmäßige Taktarten
                             if (this.questionsAnswered >= 6 && this.currentLevel !== 'taktarten') {
                                 // Ab Frage 7: nur regelmäßige Taktarten (3/4, 4/4)
-                                // Ab Frage 9: auch unregelmäßige (5/4, 7/8)
+                                // Ab Frage 9: auch 5/4. Kein 7/8: Dort laufen Zählzeiten und
+                                // Silben über Achtel statt Viertel — das wird in diesen Knoten
+                                // nirgends vermittelt (Abbruch-Häufung bei Frage 9/10 in rhy3).
                                 const tsPool = this.questionsAnswered >= 8
-                                    ? ['4/4', '3/4', '5/4', '7/8']
+                                    ? ['4/4', '3/4', '5/4']
                                     : ['4/4', '3/4'];
                                 const newTS = tsPool[Math.floor(Math.random() * tsPool.length)];
                                 const oldTS = app.settings.timeSignature;
