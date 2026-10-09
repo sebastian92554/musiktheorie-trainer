@@ -2368,12 +2368,29 @@
             // Richtige, spaete Position) von "haengengeblieben" (wenige Richtige).
             let _qsCorrect = null;
             try { if (typeof quickStart !== 'undefined' && typeof quickStart.questionsCorrect === 'number') _qsCorrect = quickStart.questionsCorrect; } catch (e) {}
+            // Letzte falsche Antwort: zeigt, WORAN jemand haengenblieb.
+            // lastErrIsLatest = die zuletzt geloggte Antwort war falsch.
+            // Bau-Modi (ton4) setzen kein errLine → lastErr bleibt null.
+            let _lastErr = null, _lastErrIsLatest = null, _errCount = null;
+            try {
+                const _a = errorTracker.answers;
+                _errCount = _a.filter(a => a.isCorrect === false).length;
+                for (let i = _a.length - 1; i >= 0; i--) {
+                    if (_a[i].isCorrect !== false) continue;
+                    _lastErr = _a[i].errLine ? String(_a[i].errLine).slice(0, 120) : null;
+                    _lastErrIsLatest = (i === _a.length - 1);
+                    break;
+                }
+            } catch (e) {}
             this._send('quiz_abandon', {
                 level: this._lastQuizStart.level,
                 subskill: this._lastQuizStart.subskill,
                 mode: this._lastQuizStart.mode,
                 questionIndex: questionIndex,
                 correctCount: _qsCorrect,
+                lastErr: _lastErr,
+                lastErrIsLatest: _lastErrIsLatest,
+                errCount: _errCount,
                 exit: exit || 'unknown',
                 msInQuiz: ms
             });
