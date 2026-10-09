@@ -501,6 +501,42 @@ function runAnalyse() {
   push('  Lesehilfe Hypothesen', 'Q0 <10s: Klassenraum-Hopping | Q0-1 10-30s konz. DT/NT: Eingabe-Hürde | Q2+ >30s: Bug-Frust/Schwierigkeit');
   push('');
 
+  // B3-HÄNGER — Woran blieb jemand hängen? (lastErr/lastErrIsLatest/errCount,
+  // seit 09.10.2026 im quiz_abandon). Nur Abbrüche, deren zuletzt geloggte
+  // Antwort falsch war = an genau dieser Aufgabe gescheitert. Häufen sich
+  // dieselben Fehlerzeilen an derselben Fragenposition, ist das eher ein Bug
+  // als Schwierigkeit (vgl. 7/8-Bug RT Frage 9/10).
+  push('— B3-HÄNGER (quiz_abandon: an falscher Antwort gescheitert, alle Segmente) —');
+  const stuck = {};        // key → {n, q[], err{}}
+  let qaWithField = 0, qaStuck = 0;
+  sessions.forEach(s => {
+    (s.qaAll || []).forEach(p => {
+      if (!p || !('lastErrIsLatest' in p)) return;   // ältere Events ohne Feld
+      qaWithField++;
+      if (p.lastErrIsLatest !== true) return;
+      qaStuck++;
+      const k = _sk(s.trainer, p.level, p.subskill) + ' · ' + (p.mode || '?');
+      const b = stuck[k] = stuck[k] || { n: 0, q: [], err: {} };
+      b.n++;
+      b.q.push(Number(p.questionIndex) || 0);
+      const e = p.lastErr || '(ohne Fehlerzeile — Bau-Modus)';
+      b.err[e] = (b.err[e] || 0) + 1;
+    });
+  });
+  push('  Abbrüche mit Fehler-Feldern', qaWithField);
+  push('  davon an falscher Antwort gescheitert', qaStuck + (qaWithField ? ' (' + _pct(qaStuck, qaWithField) + '%)' : ''));
+  const stuckKeys = Object.keys(stuck).sort((a, b) => stuck[b].n - stuck[a].n);
+  stuckKeys.forEach(k => {
+    const b = stuck[k];
+    const qStr = b.q.slice().sort((x, y) => x - y).join(',');
+    const topErr = Object.keys(b.err).sort((x, y) => b.err[y] - b.err[x]).slice(0, 3)
+      .map(e => e + (b.err[e] > 1 ? ' (' + b.err[e] + 'x)' : '')).join('  ·  ');
+    push('  ' + k, 'n=' + b.n + ' | Fragen: ' + qStr + ' | ' + topErr);
+  });
+  if (!stuckKeys.length) push('  (noch keine Daten — Felder seit 09.10.2026)');
+  push('  Lesehilfe', 'Fragen = questionIndex je Abbruch. Gleiche Fehlerzeile mehrfach oder Häufung an einer festen Fragenposition → Code prüfen.');
+  push('');
+
   // LERNKARTEN-VERWEILDAUER (aus card_dismiss) — mit Bucket-Aufschlüsselung
   // Pro Karte: Median + Bucket-Counts (weggeklickt <2s | kurz 2-5s | gelesen ≥5s).
   // Schwellen entsprechen PLAN_GF-Lernkartendauer §3 (Phase 1, ohne Kalibrierung).
