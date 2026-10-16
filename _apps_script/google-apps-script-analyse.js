@@ -1308,6 +1308,36 @@ function cleanupFutureDailyAggregates() {
     ' Zukunftszeile(n) entfernt (heute=' + today + ')');
 }
 
+// EINMALIG, danach löschbar: entfernt die drei Testzeilen des Clock-Skew-
+// Tests vom 16.10.2026 aus dem Events-Tab.
+// Gezielt über die sessionId statt über env='dev' — im Events-Tab liegen
+// 85 env=dev-Zeilen, davon 82 echte Dev-Sessions aus Mai 2026, die bleiben.
+// Doppelte Absicherung: env MUSS 'dev' sein UND die sessionId MUSS in der
+// Liste stehen. Echte Schülerdaten können so nicht getroffen werden.
+const SKEW_TEST_SIDS = ['skewtest-future', 'skewtest-normal', 'probe'];
+
+function cleanupSkewTestRows() {
+  const sh = _ss().getSheetByName('Events');
+  if (!sh) { Logger.log('Events-Tab fehlt'); return; }
+
+  const vals = sh.getDataRange().getValues();
+  let removed = 0;
+
+  // Von unten nach oben löschen, damit die Zeilennummern stabil bleiben.
+  for (let i = vals.length - 1; i >= 1; i--) {
+    const env = String(vals[i][2] || '');
+    const sid = String(vals[i][7] || '');
+    if (env === 'dev' && SKEW_TEST_SIDS.indexOf(sid) !== -1) {
+      Logger.log('cleanupSkewTestRows: Zeile ' + (i + 1) + ' (' + vals[i][0] +
+        ', sid=' + sid + ') gelöscht');
+      sh.deleteRow(i + 1);
+      removed++;
+    }
+  }
+
+  Logger.log('cleanupSkewTestRows: ' + removed + ' Testzeile(n) entfernt (erwartet: 3)');
+}
+
 function _dailyAggregateRow(date, daySessions, dayEvents, isFluid) {
   const org = daySessions.filter(s => s.segment === 'organik');
   const kla = daySessions.filter(s => s.segment === 'klassenraum');
