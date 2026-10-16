@@ -1214,6 +1214,17 @@ function _runDailyAggregates(sessions) {
   Object.keys(sessByDate).forEach(d => allDays[d] = true);
   Object.keys(eventsByDate).forEach(d => allDays[d] = true);
 
+  // Zweite Verteidigungslinie gegen Geräte mit falscher Systemuhr (erste ist
+  // _resolveEventTs in Code.gs). Ein Zukunftstag liegt nie in fluidDays und
+  // bekommt deshalb sofort frozen=yes — die Zeile wäre nie mehr korrigierbar.
+  // Greift auch für die Altdaten, die vor dem Code.gs-Fix schon im Sheet sind.
+  Object.keys(allDays).filter(d => d > today).forEach(d => {
+    Logger.log('Daily_Aggregates: Zukunftstag ' + d + ' verworfen (' +
+      (sessByDate[d] || []).length + ' Sessions, ' +
+      (eventsByDate[d] || []).length + ' Events) — Client-Uhr falsch gestellt?');
+    delete allDays[d];
+  });
+
   let frozenAdded = 0, fluidAdded = 0, fluidUpdated = 0, frozenTransitioned = 0;
   Object.keys(allDays).sort().forEach(d => {
     const isFluid = !!fluidDays[d];
@@ -1264,6 +1275,37 @@ function cleanupDailyAggregateDuplicates() {
   tab.getRange(1, 1, 1, header.length).setValues([header]);
   if (dedup.length) tab.getRange(2, 1, dedup.length, header.length).setValues(dedup);
   Logger.log('cleanupDailyAggregateDuplicates: ' + (vals.length - 1) + ' Zeilen → ' + dedup.length + ' (Duplikate entfernt: ' + (vals.length - 1 - dedup.length) + ')');
+}
+
+// Einmalig manuell ausführen: entfernt Zeilen mit einem Datum in der ZUKUNFT
+// aus Daily_Aggregates. Hintergrund: Geräte mit falsch gestellter Systemuhr
+// (Schul-Tablet am 13.10.2026 → vier Events auf den 18.10.2026) haben vor dem
+// Clock-Skew-Fix in Code.gs Zukunftstage erzeugt. Die lagen nie in fluidDays
+// und bekamen sofort frozen=yes, waren also nie mehr korrigierbar.
+// Die zugehörigen Events im Events-Tab bleiben unangetastet — nur das
+// Aggregat wird bereinigt.
+function cleanupFutureDailyAggregates() {
+  const tab = _ss().getSheetByName('Daily_Aggregates');
+  if (!tab) { Logger.log('Daily_Aggregates-Tab fehlt'); return; }
+
+  const today = _ymd(Date.now());
+  const vals = tab.getDataRange().getValues();
+  let removed = 0;
+
+  // Von unten nach oben löschen, damit die Zeilennummern stabil bleiben.
+  for (let i = vals.length - 1; i >= 1; i--) {
+    const raw = vals[i][0];
+    const date = (raw instanceof Date) ? _ymd(raw.getTime()) : String(raw || '');
+    if (date && date > today) {
+      Logger.log('cleanupFutureDailyAggregates: Zeile ' + (i + 1) + ' (' + date +
+        ', sessions_total=' + vals[i][2] + ') gelöscht');
+      tab.deleteRow(i + 1);
+      removed++;
+    }
+  }
+
+  Logger.log('cleanupFutureDailyAggregates: ' + removed +
+    ' Zukunftszeile(n) entfernt (heute=' + today + ')');
 }
 
 function _dailyAggregateRow(date, daySessions, dayEvents, isFluid) {

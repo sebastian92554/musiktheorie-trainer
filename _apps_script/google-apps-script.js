@@ -41,6 +41,46 @@ const EVENTS_TYPES = ['page_view', 'quiz_start', 'quiz_complete', 'heartbeat',
 const EVENTS_HEADERS = ['ts', 'schema', 'env', 'eventType', 'trainer',
   'device', 'referrer', 'sessionId', 'payload'];
 
+// =====================================================================
+// CLOCK-SKEW-SCHUTZ — Client-Timestamps auf Plausibilität prüfen
+// =====================================================================
+// data.ts kommt aus der Systemuhr des Geräts (Date.now() im Trainer). Ein
+// Schul-Tablet mit falsch gestellter Uhr hat damit am 13.10.2026 vier Events
+// auf den 18.10.2026 geschrieben — Daily_Aggregates hat daraus einen
+// Zukunftstag gebaut und sofort mit frozen=yes eingefroren (unkorrigierbar).
+// Der umgekehrte Fall ist schlimmer: eine NACHgehende Uhr schreibt Events auf
+// einen bereits eingefrorenen Tag, der sie still verwirft.
+//
+// Deshalb: Abweichung > CLOCK_SKEW_TOLERANCE_MS → Serverzeit gewinnt. Der
+// gemessene Skew und der Original-Timestamp wandern in den payload, damit
+// betroffene Geräte in den Daten auffindbar bleiben statt unsichtbar zu
+// werden. Toleranz bewusst grosszuegig (10 Min), denn kleine Abweichungen
+// sind normal und fuer die Tagesbildung irrelevant.
+const CLOCK_SKEW_TOLERANCE_MS = 10 * 60 * 1000;
+
+function _resolveEventTs(rawTs, payload) {
+  const serverMs = Date.now();
+  const parsed = rawTs ? new Date(String(rawTs)) : null;
+  const clientMs = (parsed && !isNaN(parsed.getTime())) ? parsed.getTime() : null;
+
+  // Kein oder unlesbarer Client-Timestamp → Serverzeit, wie vorher.
+  if (clientMs === null) {
+    return { ts: new Date(serverMs).toISOString(), payload: payload || {} };
+  }
+
+  const skew = clientMs - serverMs;
+  if (Math.abs(skew) <= CLOCK_SKEW_TOLERANCE_MS) {
+    return { ts: new Date(clientMs).toISOString(), payload: payload || {} };
+  }
+
+  // Kopie, damit das Original-Objekt unberuehrt bleibt.
+  const p = {};
+  Object.keys(payload || {}).forEach(function (k) { p[k] = payload[k]; });
+  p.clock_skew_ms = skew;
+  p.ts_client = new Date(clientMs).toISOString();
+  return { ts: new Date(serverMs).toISOString(), payload: p };
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -56,8 +96,9 @@ function doPost(e) {
           ev = ss.insertSheet('Events');
           ev.appendRow(EVENTS_HEADERS);
         }
+        const resolved = _resolveEventTs(data.ts || data.timestamp, data.payload || {});
         ev.appendRow([
-          data.ts || data.timestamp || new Date().toISOString(),
+          resolved.ts,
           data.schema || '',
           data.env || '',
           data.eventType,
@@ -65,7 +106,7 @@ function doPost(e) {
           data.device || '',
           data.referrer || '',
           data.sessionId || '',
-          JSON.stringify(data.payload || {})
+          JSON.stringify(resolved.payload)
         ]);
       } finally {
         try { lock.releaseLock(); } catch (relErr) { /* ignore */ }
