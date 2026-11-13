@@ -3604,7 +3604,8 @@
             
             noteNames: {
                 basic: ['C', 'D', 'E', 'F', 'G', 'A', 'H'],
-                withAccidentals: ['C', 'Cis', 'Des', 'D', 'Dis', 'Es', 'E', 'F', 'Fis', 'Ges', 'G', 'Gis', 'As', 'A', 'Ais', 'B', 'H']
+                // Fes, Ces, Eis, His: Vorzeichen auf einer weißen Taste — Schüler halten Vorzeichen sonst für „schwarze Taste“
+                withAccidentals: ['C', 'Cis', 'Des', 'D', 'Dis', 'Es', 'E', 'Fes', 'Eis', 'F', 'Fis', 'Ges', 'G', 'Gis', 'As', 'A', 'Ais', 'B', 'H', 'Ces', 'His']
             },
 
             notePositions: {
@@ -4788,7 +4789,7 @@
                     if (quickStart.isActive && quickStart.currentOptions) {
                         const highest = quickStart.currentOptions[quickStart.currentOptions.length - 1];
                         if (highest === 'vorzeichen') {
-                            noteList = noteList.filter(n => n.includes('is') || n === 'Es' || n === 'As' || n === 'B' || n === 'Ges' || n === 'Des');
+                            noteList = noteList.filter(n => n.includes('is') || n.endsWith('es') || n === 'Es' || n === 'As' || n === 'B');
                         }
                     }
                     const noteName = noteList[Math.floor(Math.random() * noteList.length)];
@@ -6078,7 +6079,9 @@ Gerät:
             {name:'G',oct:4}, {name:'Ges',oct:4}, {name:'Gis',oct:4},
             {name:'A',oct:4}, {name:'As',oct:4}, {name:'B',oct:4}, {name:'H',oct:4},
             {name:'C',oct:5}, {name:'Cis',oct:5}, {name:'D',oct:5}, {name:'Des',oct:5},
-            {name:'Dis',oct:5}, {name:'E',oct:5}, {name:'Es',oct:5}, {name:'F',oct:5}, {name:'Fis',oct:5}
+            {name:'Dis',oct:5}, {name:'E',oct:5}, {name:'Es',oct:5}, {name:'F',oct:5}, {name:'Fis',oct:5},
+            // Vorzeichen auf weißen Tasten
+            {name:'Eis',oct:4}, {name:'Fes',oct:4}, {name:'His',oct:4}, {name:'Ces',oct:5}, {name:'Eis',oct:5}, {name:'Fes',oct:5}
         ],
         hilfslinien: [
             // Unten (3 HL): F3-D4
@@ -6103,7 +6106,10 @@ Gerät:
             {name:'G',oct:5}, {name:'Gis',oct:5}, {name:'A',oct:5}, {name:'As',oct:5},
             {name:'B',oct:5}, {name:'H',oct:5},
             {name:'C',oct:6}, {name:'Cis',oct:6}, {name:'D',oct:6}, {name:'Des',oct:6},
-            {name:'Dis',oct:6}, {name:'E',oct:6}, {name:'Es',oct:6}
+            {name:'Dis',oct:6}, {name:'E',oct:6}, {name:'Es',oct:6},
+            // Vorzeichen auf weißen Tasten
+            {name:'Fes',oct:3}, {name:'His',oct:3}, {name:'Ces',oct:4}, {name:'Eis',oct:4}, {name:'Fes',oct:4},
+            {name:'His',oct:4}, {name:'Ces',oct:5}, {name:'Eis',oct:5}, {name:'Fes',oct:5}, {name:'His',oct:5}, {name:'Ces',oct:6}, {name:'Eis',oct:6}
         ]
     };
 
@@ -6119,7 +6125,9 @@ Gerät:
             {name:'C',oct:3}, {name:'Cis',oct:3}, {name:'D',oct:3}, {name:'Des',oct:3},
             {name:'Dis',oct:3}, {name:'E',oct:3}, {name:'Es',oct:3}, {name:'F',oct:3},
             {name:'Fis',oct:3}, {name:'G',oct:3}, {name:'Ges',oct:3}, {name:'Gis',oct:3},
-            {name:'A',oct:3}, {name:'As',oct:3}
+            {name:'A',oct:3}, {name:'As',oct:3},
+            // Vorzeichen auf weißen Tasten
+            {name:'His',oct:2}, {name:'Ces',oct:3}, {name:'Eis',oct:3}, {name:'Fes',oct:3}
         ],
         hilfslinien: [
             {name:'A',oct:1}, {name:'H',oct:1},
@@ -6142,7 +6150,10 @@ Gerät:
             {name:'B',oct:3}, {name:'H',oct:3},
             {name:'C',oct:4}, {name:'Cis',oct:4}, {name:'D',oct:4}, {name:'Des',oct:4},
             {name:'Dis',oct:4}, {name:'E',oct:4}, {name:'Es',oct:4}, {name:'F',oct:4},
-            {name:'Fis',oct:4}, {name:'G',oct:4}, {name:'Ges',oct:4}
+            {name:'Fis',oct:4}, {name:'G',oct:4}, {name:'Ges',oct:4},
+            // Vorzeichen auf weißen Tasten
+            {name:'His',oct:1}, {name:'Ces',oct:2}, {name:'Eis',oct:2}, {name:'Fes',oct:2}, {name:'His',oct:2},
+            {name:'Ces',oct:3}, {name:'Eis',oct:3}, {name:'Fes',oct:3}, {name:'Ces',oct:4}, {name:'Eis',oct:4}, {name:'Fes',oct:4}
         ]
     };
 
@@ -6193,7 +6204,7 @@ Gerät:
         // Sub-Skill "vorzeichen": NUR Vorzeichen-Noten (keine Stammtöne)
         const highestOpt = activeOptions[activeOptions.length - 1];
         if (highestOpt === 'vorzeichen') {
-            pool = pool.filter(n => n.name.includes('is') || n.name === 'Es' || n.name === 'As' || n.name === 'B' || n.name === 'Ges' || n.name === 'Des');
+            pool = pool.filter(n => n.name.includes('is') || n.name.endsWith('es') || n.name === 'Es' || n.name === 'As' || n.name === 'B');
         }
 
         // Zufallsnote, letzte 3 vermeiden (wie im Erkennen-Modus)
