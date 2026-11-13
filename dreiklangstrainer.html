@@ -4199,8 +4199,11 @@ const _lernkartenContent = {
             <p><strong>Neu:</strong> Ob ein Dreiklang Dur oder Moll ist, erkennst du an den <strong>Abständen zwischen seinen Tönen</strong>, gezählt in Halbtonschritten (HS).</p>
             <div class="lk-rule"><strong>Das Muster ist fest:</strong> Alle Dur-Dreiklänge haben dieselben Abstände, egal auf welchem Ton sie beginnen. Für Moll gilt das genauso, nur mit anderen Abständen.</div>
             <div class="lk-visual" id="lkVisualDrei2a"></div>
-            <div class="lk-tip"><strong>So zählst du:</strong> Von Taste zu Taste, schwarze Tasten mitzählen. Die Starttaste zählt nicht mit.</div>
-            <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und bestimme die Art: Dur oder Moll. Klappt es noch nicht, schauen wir uns an einzelnen Dreiklängen genauer an, welche Abstände Dur und Moll haben.</div>`,
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und bestimme die Art: Dur oder Moll. Klappt es noch nicht, schauen wir uns an einzelnen Dreiklängen genauer an, welche Abstände Dur und Moll haben.</div>
+            <div class="lk-tip lk-tip-ask">
+                <details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="window.open('intervalltrainer.html?lernkarte=int3_basis', '_blank'); return false">Ausführlich im Intervalltrainer ↗</a></div></details>
+                <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_basis')"><summary>Unsicher, wo die Töne auf der Tastatur liegen?</summary><div class="lk-ask-a">C liegt links neben den zwei schwarzen Tasten, F links neben den drei. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+            </div>`,
         render() {
             document.getElementById('lkVisualDrei2a').innerHTML = renderLernkarteTastatur({ numOctaves:1, title:'Beispiel: C-Dur', highlightKeys:[{key:'C',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'}], arrows:[{from:'C',to:'E',label:'4 HS',color:'#059669'},{from:'E',to:'G',label:'3 HS',color:'#059669'}] });
         }
@@ -4270,6 +4273,7 @@ const _lernkartenContent = {
         title: '2c — Übermäßig und vermindert',
         body: `<p><strong>Du kannst schon:</strong> Dur (4 + 3) und Moll (3 + 4) unterscheiden.</p>
             <p><strong>Neu:</strong> Zwei weitere Arten. Bei ihnen sind beide Abstände gleich groß: <strong>übermäßig 4 + 4</strong>, <strong>vermindert 3 + 3</strong>.</p>
+            <div class="lk-rule"><strong>Beide Abstände gleich:</strong> Übermäßig: C, E, Gis (4 + 4). Vermindert: C, Es, Ges (3 + 3). Zusammen sind das 8 bzw. 6 Halbtonschritte statt 7 wie bei Dur und Moll.</div>
             <div class="lk-contrast" id="lkContrastDrei2Aug" style="flex-wrap:wrap"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und wähle die Zahlen aus. Jetzt kann auch zweimal 4 oder zweimal 3 richtig sein.</div>
             <div class="lk-tip lk-tip-ask">

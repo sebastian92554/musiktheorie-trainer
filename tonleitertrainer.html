@@ -7667,11 +7667,12 @@
             // ===== ton1: Ganzton / Halbton (Einsteiger) =====
             basis: {
                 title: 'Ganzton- und Halbtonschritte',
-                body: `<p>Ein <strong>Ganztonschritt</strong> (GT) überspringt eine Taste. Ein <strong>Halbtonschritt</strong> (HT) geht zur direkt benachbarten Taste.</p>
+                body: `<p><strong>Du kannst schon:</strong> Noten im Violinschlüssel lesen und auf der Tastatur finden.</p>
+                        <p><strong>Neu:</strong> Zwei benachbarte Töne liegen entweder einen <strong>Halbtonschritt</strong> auseinander (die Taste direkt daneben) oder einen <strong>Ganztonschritt</strong> (eine Taste dazwischen).</p>
+                        <div class="lk-rule"><strong>Nur zwei Stellen sind von Natur aus Halbtonschritte:</strong> E–F und H–C. Dort liegt keine schwarze Taste dazwischen. Alle anderen benachbarten Stammtöne, z.&nbsp;B. C–D oder F–G, sind Ganztonschritte.</div>
                         <div class="lk-visual" id="lkVisual1"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> Auf der Klaviatur gibt es nur 2 natürliche Halbtonschritte: <strong>E→F</strong> und <strong>H→C</strong>. Alle anderen benachbarten Stammtöne sind Ganztonschritte.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Merke dir die Ausnahmen: E–F und H–C. Dort fehlt die schwarze Taste dazwischen.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme mit Hilfe der Tastatur, ob zwei benachbarte Töne einen Ganzton- oder Halbtonschritt bilden.</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst zwei Noten. Entscheide: „Ganzton“ oder „Halbton“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:basis')"><summary>Unsicher beim Ablesen der Noten?</summary><div class="lk-ask-a">Der Violinschlüssel windet sich um die G-Linie (2. Linie von unten). Der Zwischenraum darüber ist A, die Linie darüber H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_basis')"><summary>Unsicher, wo die Töne auf der Tastatur liegen?</summary><div class="lk-ask-a">C liegt links neben den zwei schwarzen Tasten, F links neben den drei. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
                         numOctaves: 2,
@@ -7730,11 +7731,12 @@
             },
             vorzeichen: {
                 title: 'Mit Vorzeichen',
-                body: `<p>Ein <strong><span class="vz-sharp"></span> (Kreuz)</strong> erhöht einen Ton um einen Halbton — du gehst auf der Tastatur eine Taste nach <strong>rechts</strong>. Ein <strong><span class="vz-flat"></span> (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
+                body: `<p><strong>Du kannst schon:</strong> Ganzton- und Halbtonschritte zwischen Stammtönen bestimmen.</p>
+                        <p><strong>Neu:</strong> Jetzt haben die Töne Vorzeichen. Ein Vorzeichen verschiebt einen Ton um eine Taste, und damit kann sich der Abstand ändern.</p>
+                        <div class="lk-rule"><strong>Zähle die Tasten, nicht die Namen:</strong> E–F ist ein Halbtonschritt. E–Fis ist ein Ganztonschritt, weil das <span class="vz-sharp"></span> das F eine Taste weiter schiebt. Eis–Fis ist wieder ein Halbtonschritt: Beide Töne sind um eine Taste verschoben.</div>
                         <div class="lk-visual" id="lkVisual1"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> Vorzeichen verschieben den Ton auf der Tastatur um genau eine Taste. Dadurch kann sich der Abstand zwischen zwei Tönen ändern: z.B. ist F→G ein GT, aber F→Fis nur ein HT.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Finde zuerst beide Stammtöne auf der Tastatur. Wende dann die Vorzeichen an. Zähle ob es 1 oder 2 Tasten Abstand sind.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme mit Hilfe der Tastatur, ob der Abstand zwischen zwei Tönen mit Vorzeichen ein GT oder HT ist.</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Entscheide bei jedem Tonpaar: „Ganzton“ oder „Halbton“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Eis die Taste F und Ces die Taste H: Eis und F sind <strong>enharmonisch</strong> gleich.</div></details></div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
                         numOctaves: 1,
@@ -7753,35 +7755,45 @@
             },
             noaudio: {
                 title: 'Ohne Hörbeispiel',
-                body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> Bestimme Ganzton oder Halbton rein visuell auf der Tastatur.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Zähle die Tasten zwischen den beiden Tönen: 1 Taste Abstand = HT, 2 Tasten = GT.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Ganzton- und Halbtonschritte bestimmen, auch mit Vorzeichen.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr. Du entscheidest nur nach dem Notenbild.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Beide Noten ablesen → auf der Tastatur suchen → Tasten zählen: direkt daneben ist ein Halbton, eine dazwischen ein Ganzton.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle „Ganzton“ oder „Halbton“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton1_basis')"><summary>Unsicher, ob Ganzton oder Halbton?</summary><div class="lk-ask-a">Liegt auf der Tastatur keine Taste dazwischen, ist es ein Halbtonschritt (E–F, H–C). Liegt eine dazwischen, ein Ganztonschritt (C–D). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton1_basis', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
 
             // ===== ton2: Halbtonschritte finden (Aufsteiger) =====
             ton2_basis: {
                 title: 'Halbtonschritte finden',
-                body: `<p>Jede Tonleiter besteht aus <strong>8 Tönen</strong> und <strong>7 Schritten</strong>. Genau <strong>2 davon</strong> sind Halbtonschritte — die anderen 5 sind Ganztonschritte.</p>
-                        <div class="lk-tip"><strong>Tipp:</strong> Finde jeden Ton der Tonleiter auf der Tastatur und zähle den Abstand zum nächsten — 2 Tasten = GT, 1 Taste = HT.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter im Notensystem. Klicke auf der Tastatur die Tasten an, zwischen denen ein Halbtonschritt liegt.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Ganzton- und Halbtonschritte zwischen zwei Tönen bestimmen.</p>
+                        <p><strong>Neu:</strong> Eine Tonleiter hat 8 Töne und 7 Schritte. Genau zwei davon sind Halbtonschritte. Wo sie liegen, ist von Tonleiter zu Tonleiter verschieden, darum prüfst du jeden Schritt.</p>
+                        <div class="lk-rule"><strong>Schritt für Schritt prüfen:</strong> C-Dur: C–D Ganzton, D–E Ganzton, E–F Halbton … Die beiden Halbtonschritte liegen bei E–F und H–C.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter im Notensystem. Markiere auf der Tastatur beide Töne jedes Halbtonschritts, also vier Tasten, und prüfe.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton1_basis')"><summary>Unsicher, ob Ganzton oder Halbton?</summary><div class="lk-ask-a">Liegt auf der Tastatur keine Taste dazwischen, ist es ein Halbtonschritt (E–F, H–C). Liegt eine dazwischen, ein Ganztonschritt (C–D). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton1_basis', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton2_stufenpaare: {
                 title: 'Stufenpaare auswählen',
-                body: `<p>Du kannst jetzt GT und HT auf der Tastatur bestimmen. Jetzt lernst du, die <strong>Position der Halbtonschritte als Stufenpaare</strong> auszudrücken — ohne einzelne Tasten anzuklicken.</p>
-                        <p>Jeder Ton einer Tonleiter hat eine <strong>Stufennummer</strong> (1–8). Ein Halbtonschritt zwischen dem 3. und 4. Ton heißt „Stufe 3–4".</p>
-                        <div class="lk-tip"><strong>Tipp:</strong> Nutze weiterhin die Tastatur als Hilfe — zähle die Schritte ab und achte darauf, zwischen welchen Stufen der HT liegt.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter im Notensystem. Wähle die beiden Stufenpaare, zwischen denen ein Halbtonschritt liegt.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Die Halbtonschritte einer Tonleiter auf der Tastatur finden.</p>
+                        <p><strong>Neu:</strong> Jetzt gibst du an, zwischen welchen Stufen sie liegen. Jeder Ton der Tonleiter hat eine Nummer, von 1 (Grundton) bis 8.</p>
+                        <div class="lk-rule"><strong>Ein Stufenpaar benennt den Schritt:</strong> In C-Dur liegt der Halbtonschritt E–F zwischen der 3. und 4. Stufe, H–C zwischen der 7. und 8.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Stufenpaare mit Halbtonschritt aus, z.&nbsp;B. „3.–4.“, und prüfe.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_basis')"><summary>Unsicher beim Finden der Halbtonschritte?</summary><div class="lk-ask-a">Prüfe jeden Schritt auf der Tastatur: keine Taste dazwischen heißt Halbtonschritt. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_basis', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton2_mehr_tonarten: {
                 title: 'Erweiterte Tonarten',
-                body: `<p>Jetzt kommen Tonleitern mit <strong>mehreren Vorzeichen</strong> dazu. Das macht es schwieriger, die Halbtonschritte zu finden, weil mehr Töne auf schwarzen Tasten liegen.</p>
-                        <div class="lk-tip"><strong>Tipp:</strong> Nutze die Klaviatur als Hilfe: Finde jeden Ton auf der Tastatur und zähle den Abstand — 2 Tasten = GT, 1 Taste = HT.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Tonleiter im Notensystem. Wähle die beiden Stufenpaare, zwischen denen ein Halbtonschritt liegt.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Die Halbtonschritte als Stufenpaare angeben.</p>
+                        <p><strong>Neu:</strong> Jetzt kommen Tonleitern mit bis zu sechs Vorzeichen dazu. Mehr Töne liegen dann auf schwarzen Tasten.</p>
+                        <div class="lk-rule"><strong>Erst die Vorzeichen, dann die Abstände:</strong> Finde jeden Ton mit seinem Vorzeichen auf der Tastatur und prüfe dann die Schritte. In E-Dur ist Gis–A ein Halbtonschritt (3.–4.).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Stufenpaare mit Halbtonschritt aus und prüfe.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton1_vorzeichen')"><summary>Unsicher bei Vorzeichen?</summary><div class="lk-ask-a">Ein Vorzeichen verschiebt den Ton um eine Taste: E–Fis ist ein Ganzton, Eis–Fis ein Halbton. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton1_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Eis die Taste F und Ces die Taste H: Eis und F sind <strong>enharmonisch</strong> gleich.</div></details></div>`
             },
             ton2_noaudio: {
                 title: 'Ohne Hörbeispiel',
-                body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> Bestimme die Halbtonschritte rein visuell anhand der Klaviatur und des Notenbilds.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Die Halbtonschritte auch in Tonleitern mit vielen Vorzeichen finden.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Ton für Ton ablesen → auf der Tastatur finden → bei jedem Schritt prüfen: direkt daneben oder eine Taste dazwischen?</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Stufenpaare mit Halbtonschritt aus und prüfe.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_stufenpaare')"><summary>Unsicher bei den Stufenpaaren?</summary><div class="lk-ask-a">Jeder Ton hat eine Nummer von 1 bis 8. Ein Halbtonschritt zwischen dem 3. und 4. Ton ist das Paar „3.–4.“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_stufenpaare', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
 
             // ===== ton3: Tonleiter benennen (Profi) =====
@@ -7794,7 +7806,8 @@
                         <div class="lk-rule"><strong>Das Muster ist fest:</strong> In jeder Dur-Tonleiter liegen die Halbtonschritte zwischen denselben Stufen, egal auf welchem Ton sie beginnt. Für Moll gilt das genauso, nur zwischen anderen Stufen.</div>
                         <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">Beispiel: C-Dur</div>
                         <div class="lk-visual" id="lkVisual3aStart"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht: Dur oder Moll. Die Halbtonschritte sind markiert. Klappt es noch nicht, schauen wir uns an einzelnen Tonleitern genauer an, wo die Halbtonschritte liegen.</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht: Dur oder Moll. Die Halbtonschritte sind markiert. Klappt es noch nicht, schauen wir uns an einzelnen Tonleitern genauer an, wo die Halbtonschritte liegen.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_basis')"><summary>Unsicher beim Finden der Halbtonschritte?</summary><div class="lk-ask-a">Ein Halbtonschritt liegt dort, wo auf der Tastatur keine Taste dazwischen ist: E–F und H–C, aber zum Beispiel auch Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_basis', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_stufenpaare')"><summary>Unsicher bei den Stufennummern?</summary><div class="lk-ask-a">Jeder Ton hat eine Nummer von 1 (Grundton) bis 8. Ein Halbtonschritt zwischen dem 3. und 4. Ton liegt „zwischen 3 und 4“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_stufenpaare', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     document.getElementById('lkVisual3aStart').innerHTML =
                         this.renderLernkarteStaff([
@@ -7885,34 +7898,37 @@
                 title: 'Tonleiter benennen ohne Hilfe',
                 body: `<p><strong>Du kannst schon:</strong> Halbtonschritte finden und die Tonleiter benennen.</p>
                         <p><strong>Neu:</strong> Keine Stufenzahlen und keine Stufen-Auswahl mehr. Du schreibst nur den Namen, die Schritte davor machst du im Kopf.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Halbtonschritte finden → Muster prüfen (Dur 3–4 und 7–8, Moll 2–3 und 5–6) → Grundton + Tongeschlecht. Passt keins der beiden Muster, ist es „Kein Dur/Moll“.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter. Liegst du falsch, markierst du zuerst die Halbtonschritte, dann geht es weiter.</div>
-                        <div class="lk-tip lk-tip-ask">
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. In G-Dur liegen sie also bei H–C und Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details>
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_stufenpaare')"><summary>Unsicher beim Finden der Halbtonschritte?</summary><div class="lk-ask-a">Ein Halbtonschritt liegt dort, wo auf der Tastatur keine Taste dazwischen ist: E–F und H–C, aber zum Beispiel auch Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_stufenpaare', false); return false">Ausführlich nachlesen ›</a></div></details>
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_erkennen')"><summary>Unsicher beim Benennen?</summary><div class="lk-ask-a">Grundton + Tongeschlecht: Beginnt die Tonleiter auf D und hat sie das Dur-Muster, heißt sie D-Dur. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_erkennen', false); return false">Ausführlich nachlesen ›</a></div></details>
-                        </div>`
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_stufenpaare')"><summary>Unsicher beim Finden der Halbtonschritte?</summary><div class="lk-ask-a">Ein Halbtonschritt liegt dort, wo auf der Tastatur keine Taste dazwischen ist: E–F und H–C, aber zum Beispiel auch Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_stufenpaare', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_erkennen')"><summary>Unsicher beim Benennen?</summary><div class="lk-ask-a">Grundton + Tongeschlecht: Beginnt die Tonleiter auf D und hat sie das Dur-Muster, heißt sie D-Dur. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_erkennen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton3_ohne_hilfe: {
                 title: 'Ohne Klaviatur-Hilfe',
-                body: `<p>Ab jetzt wird die <strong>Klaviatur nicht mehr angezeigt</strong>. Du musst die HT-Positionen im Kopf bestimmen.</p>
-                        <div class="lk-tip"><strong>Tipp:</strong> Stelle dir die Klaviatur vor. Merke: <strong>E–F</strong> und <strong>H–C</strong> sind die natürlichen Halbtonschritte. Vorzeichen verschieben um 1 HT.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Tonleiter ohne Klaviatur-Hilfe.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern am Muster ihrer Halbtonschritte benennen.</p>
+                        <p><strong>Neu:</strong> Die Klaviatur wird nicht mehr angezeigt. Die Halbtonschritte bestimmst du im Kopf.</p>
+                        <div class="lk-rule"><strong>Zwei feste Anker:</strong> Zwischen E–F und H–C liegt immer ein Halbtonschritt. Ein Vorzeichen verschiebt einen Ton um eine Taste: Fis–G ist deshalb auch ein Halbtonschritt.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter, z.&nbsp;B. „D-Dur“, oder wähle „Kein Dur/Moll“. Liegst du falsch, erscheint die Tastatur wieder und du markierst die Halbtonschritte.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton3_noaudio: {
                 title: 'Ohne Hörbeispiel',
-                body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> Bestimme die Tonleiter rein visuell anhand des Notenbilds.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern ohne Klaviatur benennen.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Halbtonschritte im Kopf finden → Muster prüfen (Dur 3–4 und 7–8, Moll 2–3 und 5–6) → Grundton + Tongeschlecht.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter oder wähle „Kein Dur/Moll“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
 
             // ===== ton4: Tonleiter bilden (Building-Modus) =====
             ton4_tastatur_einfach: {
                 title: 'Tastatur (einfach)',
-                body: `<p>Du siehst eine Tonleiter, bei der einige Töne <strong>fehlen</strong>. Ergänze die fehlenden Töne, indem du die richtigen Tasten auf der Tastatur antippst.</p>
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern am Muster ihrer Halbtonschritte erkennen und benennen.</p>
+                        <p><strong>Neu:</strong> Jetzt baust du die Tonleiter selbst. Einige Töne sind vorgegeben (blau), die übrigen klickst du auf der Tastatur an. Von Aufgabe zu Aufgabe werden es weniger, am Ende ist nur noch der Grundton vorgegeben.</p>
+                        <div class="lk-rule"><strong>Das Muster ist fest:</strong> Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Daraus ergibt sich, wo ein Vorzeichen nötig ist: In G-Dur muss von E zur 7. Stufe ein Ganztonschritt folgen, also Fis statt F.</div>
                         <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">G-Dur — ergänze die fehlenden Töne</div>
                         <div class="lk-visual" id="lkVisual1"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> Jede Dur-Tonleiter folgt dem Muster <strong>GT–GT–HT–GT–GT–GT–HT</strong>. Die Halbtonschritte liegen immer zwischen Stufe 3–4 und 7–8. Jede Moll-Tonleiter folgt dem Muster <strong>GT–HT–GT–GT–HT–GT–GT</strong> (Stufe 2–3 und 5–6).</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Beginne beim Grundton und gehe Taste für Taste aufwärts. Bei Dur zähle mit: „Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb." Häufig landet man dabei nicht auf einer weißen, sondern auf einer <strong>schwarzen Taste</strong>. Der Stammton wird erhöht oder erniedrigt, damit das GT–HT-Muster eingehalten werden kann. Im Beispiel oben wird aus F ein Fis, weil der Abstand von Stufe 6 zu 7 einen Ganztonschritt beträgt.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Ergänze die fehlenden Töne auf der Tastatur. Die vorgegebenen Töne (blau) helfen dir bei der Orientierung.</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die fehlenden Töne auf der Tastatur an.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton1_basis')"><summary>Unsicher, ob Ganzton oder Halbton?</summary><div class="lk-ask-a">Liegt auf der Tastatur keine Taste dazwischen, ist es ein Halbtonschritt (E–F, H–C). Liegt eine dazwischen, ein Ganztonschritt (C–D). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton1_basis', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es richtig klingt?</summary><div class="lk-ask-a">Über das Lautsprecher-Symbol hörst du die Töne, die du gesetzt hast.</div></details></div>`,
                 render() {
                     // G-Dur: G A H C D E Fis G — vorgegeben: G(0), H(2), C(3), E(5), G(7)
                     const pad = 6, clefSpace = 50, spacing = 44;
@@ -7994,59 +8010,58 @@
             },
             ton4_tastatur_schwer: {
                 title: 'Tastatur (viele Vorzeichen)',
-                body: `<p>Jetzt kommen auch Tonarten mit <strong>4 oder mehr Vorzeichen</strong> dazu. Außerdem bekommst du weniger Töne vorgegeben — am Ende nur noch den Grundton.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> Das Muster bleibt gleich — nur die Startnote ändert sich. Zähle vom Grundton aus: <span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span> (Dur) oder <span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#dc2626;font-weight:700">HT</span>–<span style="color:#16a34a;font-weight:700">GT</span>–<span style="color:#16a34a;font-weight:700">GT</span> (Moll).</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Wenn du unsicher bist, finde zuerst die Halbtonschritte. Bei Dur liegen sie immer zwischen Stufe 3–4 und 7–8. Dann müssen alle anderen Schritte Ganztöne sein.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Ergänze die fehlenden Töne auf der Tastatur. Es sind Lücken zum Füllen vorgegeben.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern mit bis zu drei Vorzeichen bauen und schreiben.</p>
+                        <p><strong>Neu:</strong> Jetzt nur noch Tonleitern mit vier bis sechs Vorzeichen.</p>
+                        <div class="lk-rule"><strong>Das Muster bleibt dasselbe:</strong> E-Dur: E, Fis, Gis, A, H, Cis, Dis, E. Die Halbtonschritte liegen wie immer zwischen 3–4 (Gis–A) und 7–8 (Dis–E).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die fehlenden Töne an. Wie bisher werden die vorgegebenen Töne weniger.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton4_schreiben_einfach: {
                 title: 'Schreiben (einfach)',
-                body: `<p>Jetzt schreibst du die Tonleiter direkt ins <strong>Notensystem</strong>. Klicke auf die richtige Position, um eine Note zu platzieren. Für Vorzeichen nutzt du die Werkzeuge ♯ und ♭.</p>
-                        <div class="lk-visual">
-                            <div style="font-size:0.8rem; color:#475569; margin-bottom:8px;">Werkzeuge</div>
-                            <div style="display:flex; gap:8px; justify-content:center;">
-                                <span style="padding:4px 12px; border:2px solid #0891b2; border-radius:6px; font-size:0.8rem; background:#ecfeff; color:#0891b2; font-weight:600;">♯ Kreuz</span>
-                                <span style="padding:4px 12px; border:2px solid #d1d5db; border-radius:6px; font-size:0.8rem;">♭ Be</span>
-                            </div>
-                            <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Wähle ein Werkzeug, dann klicke ins Notensystem. Gleiche Note erneut klicken = löschen.</div>
-                        </div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Arbeite dich Schritt für Schritt aufwärts — jede nächste Stufe liegt genau eine Position höher. Vergiss nicht: Wenn ein Ton ein ♯ oder ♭ braucht, wähle <em>zuerst</em> das Werkzeug, dann klicke.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe alle 8 Töne der Tonleiter <strong>aufsteigend</strong> ins leere Notensystem. Nutze die Werkzeuge für Vorzeichen.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern auf der Tastatur bauen.</p>
+                        <p><strong>Neu:</strong> Jetzt schreibst du alle acht Töne ins leere Notensystem. Hier zählt auch die Schreibweise: Jede Stufe ist ein eigener Stammton, Fis ist also nicht Ges.</p>
+                        <div class="lk-rule"><strong>Erst die Stammtöne, dann die Vorzeichen:</strong> D-Dur: D, E, F, G, A, H, C, D aufwärts setzen. Dann nach dem Muster prüfen: Von E muss ein Ganztonschritt folgen, also Fis; ebenso Cis vor dem hohen D.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts ins Notensystem. Für ein Vorzeichen wählst du vorher „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten4_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton4_schreiben_schwer: {
                 title: 'Schreiben (viele Vorzeichen)',
-                body: `<p>Wie zuvor, aber jetzt auch mit <strong>komplexeren Tonarten</strong>. Tonarten wie E-Dur (4♯) oder As-Dur (4♭) erfordern sicheren Umgang mit mehreren Vorzeichen.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> Bei ♯-Tonarten werden Kreuze in der Reihenfolge <strong>F–C–G–D–A–E–H</strong> hinzugefügt. Bei ♭-Tonarten die Bes in der Reihenfolge <strong>H–E–A–D–G–C–F</strong> hinzugefügt (umgekehrte Reihenfolge!). Welche und wie viele Vorzeichen eine Tonart hat, lässt sich auch über den <strong>Quintenzirkel</strong> (Knoten 5) nach Regeln ableiten.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Überlege dir zuerst, welche Vorzeichen die Tonart hat. Beispiel: D-Dur hat 2♯ = Fis und Cis. Dann schreibe die Tonleiter und setze bei den betroffenen Tönen das Vorzeichen. Diese Strategie funktioniert besonders gut, wenn du den <strong>Quintenzirkel</strong> (Knoten 5) bereits beherrschst.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter ins Notensystem — auch bei Tonarten mit vielen Vorzeichen.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern mit vielen Vorzeichen auf der Tastatur bauen.</p>
+                        <p><strong>Neu:</strong> Jetzt schreibst du sie ins Notensystem. Jeder Ton bekommt sein eigenes Vorzeichen.</p>
+                        <div class="lk-rule"><strong>Die Vorzeichen kommen in fester Reihenfolge:</strong> Kreuze: Fis, Cis, Gis, Dis, Ais, Eis. Bes: B, Es, As, Des, Ges, Ces. E-Dur hat 4 Kreuze, also die ersten vier: Fis, Cis, Gis, Dis.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts, jede Note mit ihrem Vorzeichen.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten4_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton5_vorz_ableitung')"><summary>Unsicher, woher die Reihenfolge kommt?</summary><div class="lk-ask-a">Sie steckt im Quintenzirkel: Jedes weitere Kreuz liegt eine Quinte über dem vorigen, F, C, G, D … <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton5_vorz_ableitung', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton4_noaudio: {
                 title: 'Ohne Hörbeispiel',
-                body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr. Du musst die Tonleiter rein aus dem Wissen über das Tonleiter-Muster konstruieren.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> Verlasse dich auf die Intervallstruktur: Dur = GT–GT–HT–GT–GT–GT–HT, Moll = GT–HT–GT–GT–HT–GT–GT.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Wenn du unsicher bist, stelle dir die Klaviatur im Kopf vor. Wo sind die natürlichen Halbtonschritte (E–F, H–C)? Von dort aus kannst du die Tonleiter ableiten.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern mit vielen Vorzeichen ins Notensystem schreiben.</p>
+                        <p><strong>Neu:</strong> Ab jetzt ohne Hörbeispiel. Du schreibst Tonleitern mit null bis sechs Vorzeichen.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Stammtöne aufwärts setzen → nach dem Muster prüfen → Vorzeichen setzen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts ins Notensystem.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten4_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`
             },
 
             // ===== ton5: Quintenzirkel (Meister) =====
             ton5_aussenkr: {
                 title: 'Der Quintenzirkel — Außenkreis',
-                body: `<p>Der Quintenzirkel ordnet alle Dur-Tonarten nach ihrer Verwandtschaft. Im Uhrzeigersinn steigt die Anzahl der <span class="vz-sharp"></span> um jeweils ein Vorzeichen (z.&nbsp;B. G-Dur hat ein <span class="vz-sharp"></span>, D-Dur zwei <span class="vz-sharp"></span> usw.), gegen den Uhrzeigersinn die der <span class="vz-flat"></span>.</p>
+                body: `<p><strong>Du kannst schon:</strong> Dur-Tonleitern mit Vorzeichen bauen.</p>
+                        <p><strong>Neu:</strong> Der Quintenzirkel ordnet alle Dur-Tonarten nach ihren Vorzeichen. C-Dur steht oben (keine Vorzeichen). Im Uhrzeigersinn kommt mit jeder Tonart ein <span class="vz-sharp"></span> dazu (G-Dur 1, D-Dur 2 …), gegen den Uhrzeigersinn ein <span class="vz-flat"></span>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong style="display:block; margin-bottom:4px;">Merksätze lernen</strong><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div>
-                        <div class="lk-rule"><strong style="display:block; margin-bottom:4px;">Quinten auf der Tastatur</strong>Zwei Nachbarn im Quintenzirkel liegen eine <strong>Quinte</strong> auseinander, das sind <strong>7 Halbtöne</strong>. Nach rechts zählst du aufwärts (C → G), nach links abwärts (C → F). Die Tastatur unter der Aufgabe hilft dir dabei.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> C-Dur steht oben (0 Vorzeichen). Nach rechts Kreuze, nach links Bes.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne die Anzahl der Vorzeichen einer Dur-Tonart — oder umgekehrt: Welche Dur-Tonart hat eine bestimmte Anzahl Vorzeichen?</div>`,
+                        <div class="lk-rule"><strong>Nachbarn liegen eine Quinte auseinander:</strong> Das sind 7 Halbtonschritte. Nach rechts zählst du aufwärts (C → G), nach links abwärts (C → F). Die Tastatur unter der Aufgabe hilft dir dabei.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib an, wie viele Vorzeichen eine Dur-Tonart hat, oder welche Dur-Tonart eine bestimmte Zahl hat. In manchen Aufgaben ist eine Nachbartonart schon genannt, z.&nbsp;B. „G-Dur hat 1 <span class="vz-sharp"></span>. Wie viele hat A-Dur?“</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei der Reihenfolge der Tonarten?</summary><div class="lk-ask-a"><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen den Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:rein')"><summary>Unsicher, wie man eine Quinte abzählt?</summary><div class="lk-ask-a">Eine reine Quinte hat 7 Halbtonschritte: von C aus Cis, D, Dis, E, F, Fis, G. <a class="lk-ask-more" href="#" onclick="window.open('intervalltrainer.html?lernkarte=rein', '_blank'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this._buildQzVisual('aussenkr', { showMore: true });
                 }
             },
             ton5_innenkr: {
                 title: 'Innenkreis — Mollparallelen',
-                body: `<p>Jede Dur-Tonart hat eine <strong>parallele Molltonart</strong> mit den gleichen Vorzeichen. Sie liegt immer eine kleine Terz (3 HT) tiefer.</p>
+                body: `<p><strong>Du kannst schon:</strong> Die Dur-Tonarten im Quintenzirkel mit ihren Vorzeichen.</p>
+                        <p><strong>Neu:</strong> Jede Dur-Tonart hat eine <strong>parallele Molltonart</strong> mit denselben Vorzeichen. Sie steht im Innenkreis direkt darunter.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> C-Dur → a-Moll, G-Dur → e-Moll, F-Dur → d-Moll usw. Beide teilen dieselben Vorzeichen.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Vom Dur-Grundton 3 HT abwärts = Moll-Parallele.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne zu einer Dur-Tonart die Mollparallele — oder umgekehrt.</div>`,
+                        <div class="lk-rule"><strong>Die Mollparallele liegt 3 Halbtonschritte tiefer:</strong> C-Dur → a-Moll, G-Dur → e-Moll, F-Dur → d-Moll. Beide haben dieselben Vorzeichen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle zu einer Dur-Tonart die Mollparallele oder zu einer Moll-Tonart die Durparallele.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:grossklein')"><summary>Unsicher beim Abzählen der 3 Halbtonschritte?</summary><div class="lk-ask-a">Vom Dur-Grundton drei Tasten abwärts, schwarze mit: von C aus H, B, A, also a-Moll. Das ist eine kleine Terz. <a class="lk-ask-more" href="#" onclick="window.open('intervalltrainer.html?lernkarte=grossklein', '_blank'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
                 render() {
                     const qzHtml = this._buildQzVisual('innenkr');
                     document.getElementById('lkVisual1').innerHTML = qzHtml;
@@ -8068,12 +8083,12 @@
             },
             ton5_vorz_ableitung: {
                 title: 'Vorzeichen-Ableitung',
-                body: `<p>Die Vorzeichen erscheinen in einer <strong>festen Reihenfolge</strong>, die dem Quintenzirkel folgt.</p>
+                body: `<p><strong>Du kannst schon:</strong> Die Zahl der Vorzeichen jeder Dur-Tonart im Quintenzirkel.</p>
+                        <p><strong>Neu:</strong> Die Vorzeichen kommen in einer <strong>festen Reihenfolge</strong> dazu, und die steckt schon im Quintenzirkel.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Kreuz-Reihenfolge:</strong> Fis – Cis – Gis – Dis – Ais – Eis – His.<br><strong>Be-Reihenfolge:</strong> B – Es – As – Des – Ges – Ces – Fes.<br>Beide Reihen musst du nicht zusätzlich auswendig lernen — sie stecken schon im Quintenzirkel. Lies ihn ab F im Uhrzeigersinn (F – C – G – D – A – E – H) und mache aus jedem Ton einen Kreuz-Ton (F → Fis, C → Cis …): Das ist die Kreuz-Reihe. Jedes weitere Kreuz liegt damit eine Quinte höher als das vorige, genau wie jede weitere Kreuz-Tonart. Dieselbe Runde ab H gegen den Uhrzeigersinn (H – E – A – D – G – C – F) ergibt mit Be die Be-Reihe (H → B, E → Es …).</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> G-Dur = 1<span class="vz-sharp"></span> → nur Fis. D-Dur = 2<span class="vz-sharp"></span> → Fis + Cis, neu dazu kommt <strong>Cis</strong>. Immer der Reihe nach zählen.</div>
-                        <div class="lk-tip"><strong>Tipp für Kreuz-Tonarten:</strong> Das neue Kreuz ist immer der <strong>Leitton</strong>, also der Ton einen Halbton unter dem Grundton: D-Dur → <strong>Cis</strong>, A-Dur → <strong>Gis</strong>. Bei Be-Tonarten klappt das nicht.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Geh die Reihe im Kopf durch und gib nur das <strong>letzte</strong> Vorzeichen an — das, das bei dieser Tonart neu dazukommt.</div>`,
+                        <div class="lk-rule"><strong>Die Reihen ablesen:</strong> Lies den Zirkel ab F im Uhrzeigersinn (F – C – G – D – A – E – H) und mache aus jedem Ton einen Kreuz-Ton: Fis – Cis – Gis – Dis – Ais – Eis – His. Dieselbe Runde ab H gegen den Uhrzeigersinn ergibt mit Be die Be-Reihe: B – Es – As – Des – Ges – Ces – Fes.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Die Zahl der Vorzeichen steht in der Aufgabe. Tippe das Vorzeichen ein, das bei dieser Tonart neu dazukommt, z.&nbsp;B. „Cis“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, welches Vorzeichen neu ist?</summary><div class="lk-ask-a">Geh die Reihe von vorn durch: G-Dur hat 1 <span class="vz-sharp"></span>, also nur Fis. D-Dur hat 2, also Fis und Cis, neu ist Cis.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei Kreuz-Tonarten?</summary><div class="lk-ask-a">Das neue Kreuz ist immer der <strong>Leitton</strong>, der Ton einen Halbton unter dem Grundton: D-Dur → Cis, A-Dur → Gis. Bei Be-Tonarten klappt das nicht.</div></details></div>`,
                 render() {
                     // Beispiel: A-Dur (3 Kreuze: Fis, Cis, Gis)
                     document.getElementById('lkVisual1').innerHTML = this._buildStaffVisual({ isSharp: true, accidentals: ['Fis','Cis','Gis'] });
@@ -8081,11 +8096,13 @@
             },
             ton5_enharmonisch: {
                 title: 'Enharmonische Verwechslung',
-                body: `<p>Einige Tonarten klingen <strong>identisch</strong>, haben aber unterschiedliche Namen und Vorzeichen.</p>
+                body: `<p><strong>Du kannst schon:</strong> Die Vorzeichen der Dur-Tonarten im Quintenzirkel.</p>
+                        <p><strong>Neu:</strong> Einige Tonarten klingen gleich, haben aber verschiedene Namen und Vorzeichen. Man nennt sie <strong>enharmonisch</strong> gleich.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-contrast" id="lkContrast1"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> Fis-Dur (6<span class="vz-sharp"></span>) = Ges-Dur (6<span class="vz-flat"></span>). H-Dur (5<span class="vz-sharp"></span>) = Ces-Dur (7<span class="vz-flat"></span>). Des-Dur (5<span class="vz-flat"></span>) = Cis-Dur (7<span class="vz-sharp"></span>). Die Summe der Vorzeichen ergibt immer 12.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne die enharmonische Verwechslung einer Tonart.</div>`,
+                        <div class="lk-rule"><strong>Die Summe der Vorzeichen ist immer 12:</strong> Fis-Dur (6 <span class="vz-sharp"></span>) = Ges-Dur (6 <span class="vz-flat"></span>). H-Dur (5 <span class="vz-sharp"></span>) = Ces-Dur (7 <span class="vz-flat"></span>). Des-Dur (5 <span class="vz-flat"></span>) = Cis-Dur (7 <span class="vz-sharp"></span>). Mehr als 7 Vorzeichen kommen nicht vor, dafür bräuchte man Doppelkreuze oder Doppel-Bs.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Namen der enharmonisch gleichen Tonart ein, z.&nbsp;B. „Ges“ oder „Ges-Dur“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Eis die Taste F und Ces die Taste H: Eis und F sind <strong>enharmonisch</strong> gleich.</div></details></div>`,
                 render() {
                     // QZ mit enharmonischem Paar Fis/Ges
                     const qzHtml = this._buildQzVisual('aussenkr');
@@ -8116,10 +8133,12 @@
             },
             ton5_verwandte: {
                 title: 'Verwandte Tonarten',
-                body: `<p>Verwandte Tonarten liegen im Quintenzirkel <strong>direkt nebeneinander</strong> — sie unterscheiden sich um nur 1 Vorzeichen.</p>
+                body: `<p><strong>Du kannst schon:</strong> Die Dur-Tonarten im Quintenzirkel finden.</p>
+                        <p><strong>Neu:</strong> Verwandte Tonarten stehen im Quintenzirkel <strong>direkt nebeneinander</strong> und unterscheiden sich nur um ein Vorzeichen.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> Jede Tonart hat 2 direkte Nachbarn: eine Quinte aufwärts (1 <span class="vz-sharp"></span> mehr) und eine Quinte abwärts (1 <span class="vz-flat"></span> mehr). Dazu kommen die jeweiligen Mollparallelen.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne die verwandten Tonarten einer gegebenen Tonart.</div>`,
+                        <div class="lk-rule"><strong>Jede Dur-Tonart hat zwei direkte Nachbarn:</strong> rechts die Tonart eine Quinte höher, links die eine Quinte tiefer. G-Dur (1 <span class="vz-sharp"></span>) hat die Nachbarn D-Dur (2 <span class="vz-sharp"></span>) und C-Dur (keine Vorzeichen).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Nachbarn aus und tippe auf „Fertig“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton5_aussenkr')"><summary>Unsicher bei der Reihenfolge im Zirkel?</summary><div class="lk-ask-a">Im Uhrzeigersinn: C, G, D, A, E, H, Fis. Gegen den Uhrzeigersinn: C, F, B, Es, As, Des, Ges. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton5_aussenkr', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const qzHtml = this._buildQzVisual('aussenkr');
                     document.getElementById('lkVisual1').innerHTML = qzHtml;
@@ -8148,10 +8167,12 @@
             },
             ton5_symmetrien: {
                 title: 'Symmetrien im Quintenzirkel',
-                body: `<p>Der Quintenzirkel hat geometrische Symmetrien, die musikalisch bedeutsam sind.</p>
+                body: `<p><strong>Du kannst schon:</strong> Die Dur-Tonarten im Quintenzirkel finden.</p>
+                        <p><strong>Neu:</strong> Im Quintenzirkel lassen sich gleichmäßige Figuren einzeichnen. Ihre Ecken haben immer denselben Abstand voneinander.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong><span style="color:#dc2626">Tritonus</span></strong> <span style="color:#dc2626">&#9644;</span>: Gegenüberliegende Tonarten (z.B. C ↔ Fis) — 6 Quinten Abstand.<br><strong><span style="color:#2563eb">Großterz-Dreieck</span></strong> <span style="color:#2563eb">&#9650;</span>: 4 Quinten zwischen den Ecken (z.B. C – E – As).<br><strong><span style="color:#16a34a">Kleinterz-Raute</span></strong> <span style="color:#16a34a">&#9670;</span>: 3 Quinten Abstand (z.B. C – Es – Fis – A).</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Identifiziere Symmetrie-Partner einer Tonart im Quintenzirkel.</div>`,
+                        <div class="lk-rule"><strong>Drei Figuren:</strong> <strong><span style="color:#dc2626">Tritonus</span></strong> <span style="color:#dc2626">&#9644;</span>: gegenüber, 6 Quinten Abstand (C ↔ Fis).<br><strong><span style="color:#2563eb">Großterz-Dreieck</span></strong> <span style="color:#2563eb">&#9650;</span>: 4 Quinten zwischen den Ecken (C – E – As).<br><strong><span style="color:#16a34a">Kleinterz-Raute</span></strong> <span style="color:#16a34a">&#9670;</span>: 3 Quinten Abstand (C – Es – Fis – A).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die gegenüberliegende Tonart oder die übrigen Ecken des Dreiecks bzw. der Raute.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher beim Abzählen im Zirkel?</summary><div class="lk-ask-a">Zähle die Schritte von Tonart zu Tonart: Von C aus sind es 4 Schritte im Uhrzeigersinn bis E, dann noch einmal 4 bis Gis = As.</div></details></div>`,
                 render() {
                     const qzHtml = this._buildQzVisual('aussenkr');
                     document.getElementById('lkVisual1').innerHTML = qzHtml;
