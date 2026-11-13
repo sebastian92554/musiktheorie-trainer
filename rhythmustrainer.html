@@ -8910,7 +8910,9 @@ Gerät:
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
                 document.getElementById('lernkarteOverlay').classList.add('active');
-                quickStart.hideTaskInstruction();
+                // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
+                // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen
+                if (fromStart) quickStart.hideTaskInstruction();
                 if (typeof content.render === 'function') content.render();
                 return true;
             },
