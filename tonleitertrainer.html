@@ -7080,6 +7080,8 @@
         },
 
         getLernkarteKey(subSkillId) {
+            // Voller Schlüssel (z. B. 'ton2_stufenpaare') für Sprünge in einen anderen Knoten
+            if (/^ton\d_/.test(subSkillId)) return subSkillId;
             const level = quickStart.currentLevel;
             if (level === 'einsteiger') return subSkillId;
             const prefixMap = { 'aufsteiger': 'ton2_', 'profi': 'ton3_', 'bilden': 'ton4_', 'meister': 'ton5_' };
@@ -7102,7 +7104,10 @@
             // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
             // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen
             if (fromStart) quickStart.hideTaskInstruction();
-            this._lernkarteFromStart = !!fromStart;
+            // Sprung aus einer offenen Start-Karte (Tipp-Button): Start-Status behalten,
+            // sonst beginnt nach „Verstanden" keine Aufgabe
+            const chained = document.getElementById('lernkarteOverlay').classList.contains('active');
+            this._lernkarteFromStart = !!fromStart || (chained && this._lernkarteFromStart);
             this._lernkarteAuto = !!auto;
             this._lernkarteOpenedAt = Date.now();
             this._lernkarteCurrentId = subSkillId;
@@ -7672,10 +7677,9 @@
                         <div class="lk-visual" id="lkVisualDDur3b"></div>
                         <div class="lk-rule">Zwischen Fis (3) und G (4) liegt keine Taste, also ein Halbtonschritt. Ebenso zwischen Cis (7) und D (8). Halbtonschritte zwischen 3–4 und 7–8 → Dur. Der Grundton ist D → <strong>D-Dur</strong>.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Halbtonschritt-Stufen und schreib den Namen, z.&nbsp;B. „D-Dur".</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Unsicher? Hier kommst du direkt zur vorherigen Lernkarte:
-                            <div class="lk-jump-row">
-                                <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button>
-                            </div>
+                        <div class="lk-tip">
+                            <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
+                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
                         </div>`,
                 render() {
                     document.getElementById('lkVisualDDur3b').innerHTML =
@@ -7692,11 +7696,10 @@
                         <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">So sieht die Aufgabe jetzt aus</div>
                         <div class="lk-visual" id="lkVisual3c"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter. Liegst du falsch, markierst du zuerst die Halbtonschritte, dann geht es weiter.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Unsicher? Hier kommst du direkt zu den vorherigen Lernkarten:
-                            <div class="lk-jump-row">
-                                <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button>
-                                <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — HT-Stufen + benennen</button>
-                            </div>
+                        <div class="lk-tip">
+                            <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
+                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
+                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Benennen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — Tonleiter benennen</button></div>
                         </div>`,
                 render() {
                     document.getElementById('lkVisual3c').innerHTML =
