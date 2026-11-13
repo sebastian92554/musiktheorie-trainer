@@ -3572,7 +3572,8 @@
 
             // Configure app
             app.quickStartMode = level;
-            const showKeyboard = level !== 'meister' && !this.currentOptions.includes('ohne_hilfe');
+            // ton5 (meister) zeigt die Tastatur als reine Ansichtshilfe zum Abzählen
+            const showKeyboard = !this.currentOptions.includes('ohne_hilfe');
             app.useBassClef = false;
             if (level !== 'meister') {
                 app.useAllKeys = this.currentOptions.includes('alle_tonarten') || this.currentOptions.includes('vorzeichen') || this.currentOptions.includes('mehr_tonarten') || this.currentOptions.includes('alles') || this.currentOptions.includes('muster_erkennen');
@@ -5515,12 +5516,18 @@
             const qzCard = document.getElementById('quintenzirkelCard');
             const staffCard = document.getElementById('staffCard');
             const inputCard = document.getElementById('inputCard');
+            const kbCard = document.getElementById('keyboardCard');
 
             if (stage === 'meister') {
                 qzCard.style.display = 'block';
                 if (staffCard) staffCard.style.display = 'none';
                 inputCard.style.display = 'none';
-                document.getElementById('keyboardCard').classList.remove('active');
+                // Tastaturhilfe unter die QZ-Karte (außerhalb des Landscape-Grids,
+                // sonst stünde sie allein in der rechten Grid-Spalte)
+                qzCard.parentNode.insertBefore(kbCard, qzCard.nextSibling);
+                kbCard.classList.toggle('active', showKeyboard);
+                this.buildingHintMidi = null;
+                if (showKeyboard) this.renderKeyboard();
                 document.getElementById('stepMarkersContainer').classList.remove('active');
                 document.getElementById('fallbackHint').classList.remove('active');
                 this.updateScoreDisplay();
@@ -5532,8 +5539,10 @@
             if (staffCard) staffCard.style.display = '';  /* CSS default = flex */
             inputCard.style.display = '';
 
-            // Keyboard
-            const kbCard = document.getElementById('keyboardCard');
+            // Keyboard (ggf. aus dem Meister-Modus zurück ins Grid holen)
+            if (kbCard.parentNode !== inputCard.parentNode) {
+                inputCard.parentNode.insertBefore(kbCard, inputCard);
+            }
             if (showKeyboard) {
                 kbCard.classList.add('active');
             } else {
@@ -7885,8 +7894,9 @@
 
             // Determine keyboard range: exactly the scale's actual octave range
             // Uses currentScale.octaves which already includes bass clef shifts
+            // Meister (Quintenzirkel): feste Ansicht c–c'' — currentScale stammt ggf. noch aus einem anderen Knoten
             let startOct = 4, endOct = 5, addHighC = true;
-            if (this.currentScale) {
+            if (this.currentScale && this.currentStage !== 'meister') {
                 const minOct = Math.min(...this.currentScale.octaves);
                 const maxOct = Math.max(...this.currentScale.octaves);
                 startOct = minOct;
@@ -7984,7 +7994,9 @@
                 kbCard.classList.toggle('keyboard-viewonly', !isClickableMode);
                 // Klickbare Tastatur vor Input, Tastaturhilfe nach Input
                 const inputCard = document.getElementById('inputCard');
-                if (isClickableMode) {
+                if (this.currentStage === 'meister') {
+                    // Position setzt configureForStage (unter der QZ-Karte)
+                } else if (isClickableMode) {
                     kbCard.parentNode.insertBefore(kbCard, inputCard);
                 } else {
                     inputCard.parentNode.insertBefore(inputCard, kbCard);
