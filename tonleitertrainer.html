@@ -1835,6 +1835,17 @@
             border: 2px solid #0891b2;
         }
         .lernkarte .lk-jump-btn:hover { background: #0891b2; color: #fff; }
+        /* Regel-Frage („Welche Regel hast du angewendet?“) */
+        .lernkarte .lk-choice {
+            display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
+            background: #fff; color: #164e63; border: 2px solid #a5f3fc; border-radius: 8px;
+            font-size: 0.88rem; font-weight: 500; cursor: pointer;
+        }
+        .lernkarte .lk-choice:hover:not(:disabled) { border-color: #0891b2; background: #ecfeff; }
+        .lernkarte .lk-choice.right { border-color: #22c55e; background: #dcfce7; color: #166534; font-weight: 600; }
+        .lernkarte .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
+        .lernkarte .lk-choice:disabled { cursor: default; }
+        .lk-hidden { display: none; }
         .vz-sharp, .vz-flat {
             display: inline-block;
             vertical-align: middle;
@@ -3514,6 +3525,23 @@
                     this.profiMode = 'muster_erkennen';
                 } else {
                     this.profiMode = 'muster_lernen';
+                }
+            }
+
+            // 3a: Probe-Weiche — Fälle nur, wenn die Dur/Moll-Regel noch fehlt.
+            // Regel schon bestätigt (Regel-Frage richtig) oder 3a gemeistert → direkt anwenden.
+            app._rule3a = null;
+            if (level === 'profi' && this.profiMode === 'muster_lernen') {
+                const p = this.progress.profi || {};
+                const known = (p.ruleKnown || []).includes('muster_lernen') || (p.mastered || []).includes('muster_lernen');
+                if (!known) {
+                    app._rule3a = {
+                        mode: 'probe',                  // probe → (bei Fehler) cases → apply
+                        probeTypes: Math.random() < 0.5 ? ['Dur', 'Moll'] : ['Moll', 'Dur'],
+                        probeIdx: 0, probeScales: [],
+                        caseTypes: null, caseIdx: 0,
+                        pending: null                    // 'probe' | 'cases': Karte vor der nächsten Aufgabe
+                    };
                 }
             }
 
@@ -5843,14 +5871,17 @@
                         if (_dm.length > 0) durMoll = _dm;
                         if (_ki.length > 0) kirchen = _ki;
                     }
-                    // 3a, Fragen 1–4: Fälle zum Regel-Finden — Tongeschlecht ist angegeben,
-                    // die Schüler klicken an, zwischen welchen Stufen die HT liegen.
-                    // 2× Dur, dann 2× Moll (je zwei Fälle zeigen, dass das Muster fest ist);
-                    // nur Dur/Moll, max. 2 VZ, ohne C-Dur (steht schon auf der Lernkarte).
-                    const qa = quickStart.questionsAnswered;
-                    this._musterCase = quickStart.isActive && quickStart.profiMode === 'muster_lernen' && qa < 4;
-                    if (this._musterCase) {
-                        const want = qa < 2 ? 'Dur' : 'Moll';
+                    // 3a-Probe-Weiche (app._rule3a): Probe = Tongeschlecht bestimmen (je 1× Dur
+                    // und Moll). Misslingt eine, folgen Fälle mit angegebenem Tongeschlecht (die
+                    // misslungene ist der erste), 2× dieses, dann 2× das andere — die Schüler
+                    // klicken an, zwischen welchen Stufen die HT liegen. Nur Dur/Moll, max. 2 VZ,
+                    // ohne C-Dur (steht schon auf der Lernkarte).
+                    const r3a = (quickStart.isActive && quickStart.profiMode === 'muster_lernen') ? this._rule3a : null;
+                    this._musterCase = !!r3a && r3a.mode === 'cases';
+                    const want = !r3a ? null
+                        : (r3a.mode === 'probe' ? r3a.probeTypes[r3a.probeIdx]
+                        : (r3a.mode === 'cases' ? r3a.caseTypes[r3a.caseIdx] : null));
+                    if (want) {
                         const casePool = durMoll.filter(s => s.type === want && s.vorzeichen <= 2 && !(s.root === 'C' && s.type === 'Dur'));
                         allScales = casePool.length > 0 ? casePool : durMoll;
                     } else
@@ -6014,11 +6045,15 @@
                 }
             }
 
-            // 3a: Nach den vier Fällen (also vor Aufgabe 5) die Muster-Karte einblenden —
-            // bestätigt das Gefundene und führt die Kirchentonarten ein, die ab jetzt vorkommen
+            // 3a: Nach den Fällen die Muster-Karte („Das hast du herausgefunden“), nach
+            // bestandener Probe die Regel-Frage („Welche Regel hast du angewendet?“) —
+            // beide führen die Kirchentonarten ein, die ab jetzt vorkommen
+            const r3a = this._rule3a;
             if (this.currentStage === 'profi' && quickStart.isActive && quickStart.profiMode === 'muster_lernen' &&
-                !quickStart.fallbackActive && quickStart.questionsAnswered === 4) {
-                this.showLernkarte('muster_lernen', false, true);
+                !quickStart.fallbackActive && r3a && r3a.pending) {
+                const which = r3a.pending;
+                r3a.pending = null;
+                this.showLernkarte(which === 'probe' ? 'ton3_muster_lernen_frage' : 'muster_lernen', false, true);
             }
         },
 
@@ -7090,17 +7125,47 @@
             return subSkillId;
         },
 
+        // Regel-Frage („Welche Regel hast du angewendet?“): Antwort markieren, dann
+        // Rückmeldung, eigene Aufgaben und Regel zeigen. Richtig → im Fortschritt merken,
+        // damit Probe, Fälle und Frage beim Wiederholen entfallen.
+        _pickRuleChoice(btn, subSkillId) {
+            const body = document.getElementById('lernkarteBody');
+            const right = btn.dataset.ok === '1';
+            body.querySelectorAll('.lk-choice').forEach(b => { b.disabled = true; });
+            btn.classList.add(right ? 'right' : 'wrong');
+            if (!right) body.querySelector('.lk-choice[data-ok="1"]').classList.add('right');
+            document.getElementById('lkRuleFeedback').innerHTML = right
+                ? '<strong>Genau.</strong> Diese Regel steckt in deinen Aufgaben.'
+                : '<strong>Nicht ganz.</strong> Deine Aufgaben hast du richtig gelöst, die Regel dahinter lautet so:';
+            body.querySelectorAll('.lk-hidden').forEach(el => el.classList.remove('lk-hidden'));
+            const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+            if (lkBtn) lkBtn.style.display = '';
+            if (right) {
+                const p = quickStart.progress[quickStart.currentLevel];
+                if (p) {
+                    p.ruleKnown = p.ruleKnown || [];
+                    if (!p.ruleKnown.includes(subSkillId)) p.ruleKnown.push(subSkillId);
+                    quickStart.saveProgress();
+                }
+            }
+        },
+
         // auto = vom Trainer eingeblendet (3a-Muster-Karte nach den Fällen): zählt
         // nicht als manuelles Öffnen (card_view) und stellt danach die Aufgabe wieder her
         showLernkarte(subSkillId, fromStart, auto) {
             let key = this.getLernkarteKey(subSkillId);
-            // 3a: Start-Karte nur vor/während der vier Fälle, sonst die Muster-Karte
+            // 3a: Start-Karte nur während Probe/Fällen, sonst (Regel bekannt, angewendet,
+            // außerhalb des Quiz) die Muster-Karte
             if (key === 'ton3_muster_lernen') {
-                const inCases = quickStart.isActive && quickStart.profiMode === 'muster_lernen' && quickStart.questionsAnswered < 4;
-                if (!inCases) key = 'ton3_muster_lernen_regel';
+                const r3a = this._rule3a;
+                const learning = quickStart.isActive && quickStart.profiMode === 'muster_lernen' && r3a && r3a.mode !== 'apply';
+                if (!learning) key = 'ton3_muster_lernen_regel';
             }
             const content = this.lernkartenContent[key];
             if (!content) return false;
+            // „Verstanden“-Button wieder zeigen (die Regel-Frage blendet ihn bis zur Antwort aus)
+            const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+            if (lkBtn) lkBtn.style.display = '';
             // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
             // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen
             if (fromStart) quickStart.hideTaskInstruction();
@@ -7636,7 +7701,7 @@
                         <div class="lk-rule"><strong>Das Muster ist fest:</strong> In jeder Dur-Tonleiter liegen die Halbtonschritte zwischen denselben Stufen, egal auf welchem Ton sie beginnt. Für Moll gilt das genauso, nur zwischen anderen Stufen.</div>
                         <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">Beispiel: C-Dur</div>
                         <div class="lk-visual" id="lkVisual3aStart"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> In den ersten vier Aufgaben steht dabei, ob es Dur oder Moll ist: erst zweimal Dur, dann zweimal Moll. Klicke an, zwischen welchen Stufen die Halbtonschritte liegen. Liegen sie bei einer anderen Dur-Tonleiter genauso? Und bei Moll?</div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht: Dur oder Moll. Die Halbtonschritte sind markiert. Klappt es noch nicht, schauen wir uns an einzelnen Tonleitern genauer an, wo die Halbtonschritte liegen.</div>`,
                 render() {
                     document.getElementById('lkVisual3aStart').innerHTML =
                         this.renderLernkarteStaff([
@@ -7667,6 +7732,40 @@
                         numOctaves: 2, keyRange: [5, 12], leftPad: 40, keyWidth: 29,
                         stepBrackets: ['GT','HT','GT','GT','HT','GT','GT']
                     });
+                }
+            },
+            // 3a — Regel-Frage nach bestandener Probe (automatisch). Die eigenen Aufgaben
+            // erscheinen erst nach der Antwort, sonst verrieten sie sie. Richtig → gespeichert,
+            // beim Wiederholen entfallen Probe, Fälle und Frage.
+            ton3_muster_lernen_frage: {
+                title: 'Das Muster von Dur und Moll',
+                body: `<p>Du hast die ersten Aufgaben richtig gelöst.</p>
+                        <div class="lk-task"><strong>Welche Regel hast du angewendet?</strong><div id="lkRuleChoices"></div></div>
+                        <p class="lk-hidden" id="lkRuleFeedback"></p>
+                        <div class="lk-hidden" id="lkRuleEvidence">
+                            <p style="margin-bottom:0"><strong>Deine Aufgaben:</strong></p>
+                            <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:6px 0 8px">
+                                <tr style="color:#155e75;font-weight:600;font-size:0.8rem"><td>Tonleiter</td><td>Halbtonschritte zwischen</td></tr>
+                                <tbody id="lkRuleRows"></tbody>
+                            </table>
+                        </div>
+                        <div class="lk-rule lk-hidden" id="lkRuleBox"><strong>Das Muster von Dur und Moll:</strong> Dur hat die Halbtonschritte zwischen <strong>3–4</strong> und <strong>7–8</strong>, Moll zwischen <strong>2–3</strong> und <strong>5–6</strong>.</div>
+                        <p class="lk-hidden" id="lkRuleNew"><strong>Neu ab jetzt:</strong> Es gibt noch andere Tonleitern mit zwei Halbtonschritten, aber zwischen anderen Stufen (Kirchentonarten). Passt keins der beiden Muster, ist die Antwort <strong>Kein Dur/Moll</strong>.</p>`,
+                render() {
+                    const choices = [
+                        { t: 'Dur hat die Halbtonschritte zwischen 3–4 und 7–8, Moll zwischen 2–3 und 5–6.', ok: true },
+                        { t: 'Dur hat die Halbtonschritte zwischen 2–3 und 5–6, Moll zwischen 3–4 und 7–8.' },
+                        { t: 'Dur-Tonleitern haben mehr Kreuze als Moll-Tonleitern.' },
+                        { t: 'Dur und Moll erkennt man am Grundton.' }
+                    ].map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
+                    document.getElementById('lkRuleChoices').innerHTML = choices.map(c =>
+                        `<button type="button" class="lk-choice" data-ok="${c.ok ? 1 : 0}" onclick="app._pickRuleChoice(this, 'muster_lernen')">${c.t}</button>`).join('');
+                    const scales = (this._rule3a && this._rule3a.probeScales) || [];
+                    document.getElementById('lkRuleRows').innerHTML = scales.map(s =>
+                        `<tr style="border-top:1px solid #a5f3fc"><td>${s.displayName}</td><td>${s.halfSteps.map(h => `${h + 1}–${h + 2}`).join(' und ')}</td></tr>`).join('');
+                    // „Verstanden“ erst nach der Antwort
+                    const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                    if (lkBtn) lkBtn.style.display = 'none';
                 }
             },
             ton3_muster_erkennen: {
@@ -8590,6 +8689,12 @@
             }
 
             if (allCorrect) {
+                // 3a-Fälle: nächster Fall; nach dem vierten → Anwendung, vorher Muster-Karte
+                const r3a = (quickStart.isActive && quickStart.profiMode === 'muster_lernen') ? this._rule3a : null;
+                if (r3a && r3a.mode === 'cases') {
+                    r3a.caseIdx++;
+                    if (r3a.caseIdx >= r3a.caseTypes.length) { r3a.mode = 'apply'; r3a.pending = 'cases'; }
+                }
                 setTimeout(() => {
                     this.generateNewTask();
                 }, 1000);
@@ -8771,9 +8876,22 @@
             const hs = this.currentScale.halfSteps;
             const hsText = hs.map(h => `${h+1}.–${h+2}.`).join(' und ');
 
+            // 3a-Probe: richtig → nächste Probe bzw. danach Regel-Frage; falsch → diese
+            // Aufgabe wird zum ersten Fall (Tongeschlecht wird nachgereicht)
+            const r3a = (quickStart.isActive && quickStart.profiMode === 'muster_lernen') ? this._rule3a : null;
+            const inProbe = !!r3a && r3a.mode === 'probe';
+
             if (isCorrect) {
                 this.setFreeRetry(false);
-                this.showFeedback(true, `Richtig! ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
+                // In der Probe ohne HT-Positionen — sonst stünde die Antwort der Regel-Frage schon da
+                this.showFeedback(true, inProbe
+                    ? `Richtig! ${this.currentScale.displayName}`
+                    : `Richtig! ${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe`);
+                if (inProbe) {
+                    r3a.probeScales.push(this.currentScale);
+                    r3a.probeIdx++;
+                    if (r3a.probeIdx >= r3a.probeTypes.length) { r3a.mode = 'apply'; r3a.pending = 'probe'; }
+                }
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(true);
@@ -8783,6 +8901,26 @@
                     this.setupInput();
                     this.generateNewTask();
                 }, 1000);
+            } else if (inProbe && !isKirchentonart) {
+                // Probe misslungen → Fälle: diese Tonleiter ist der erste, Tongeschlecht wird genannt
+                this.setFreeRetry(true);
+                const t = correctType, o = (t === 'Dur') ? 'Moll' : 'Dur';
+                r3a.mode = 'cases';
+                r3a.caseTypes = [t, t, o, o];
+                r3a.caseIdx = 0;
+                this._musterCase = true;
+                this.showFeedback(false, `⚠️ <strong>Nicht ganz.</strong> Das ist ${this.currentScale.displayName}. Schauen wir genauer hin, wo die Halbtonschritte liegen.`);
+
+                if (quickStart.isActive) {
+                    quickStart.handleAnswer(false);
+                }
+
+                setTimeout(() => {
+                    this.inputLocked = false;
+                    this.hideFeedback();
+                    this.setupInput();
+                    this.updateTaskDescription();
+                }, 3000);
             } else {
                 this.setFreeRetry(true);
                 this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tongeschlecht: <span style="color:#ef4444;">✗</span> — Zwischen welchen Stufen liegen die markierten Halbtonschritte?`);
