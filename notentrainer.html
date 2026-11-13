@@ -4804,17 +4804,16 @@
                     const _earlyQ = quickStart.isActive && quickStart.questionsAnswered <= 2;
                     if (clef === 'treble') {
                         if (this.settings.extendedRange && !_earlyQ) {
-                            // Hilfslinien: klein (unter Notensystem) + Standard-Bereich
-                            // Keyboard-Bereich: 24-60, daher kein dreigestrichen (würde 60-71 erzeugen)
-                            octaveOptions = ['klein', 'klein', 'eingestrichen', 'zweigestrichen', 'zweigestrichen'];
+                            // Hilfslinien: je bis zur 3. Hilfslinie unter (f) und über dem
+                            // System (e''') + Standard-Bereich. Keyboard-Bereich dafür 24-72.
+                            octaveOptions = ['klein', 'klein', 'eingestrichen', 'zweigestrichen', 'zweigestrichen', 'dreigestrichen'];
                         } else {
                             octaveOptions = ['eingestrichen', 'zweigestrichen'];
                         }
                     } else {
                         if (this.settings.extendedRange && !_earlyQ) {
-                            // Hilfslinien: kontra (unter Notensystem) + Standard-Bereich + c'–e'
-                            // über dem System (bis 2 Hilfslinien), sonst entsteht der Eindruck,
-                            // der Bassschlüssel ende beim h. Keyboard-Bereich dafür bis c'' (48).
+                            // Hilfslinien: je bis zur 3. Hilfslinie unter (A,) und über dem
+                            // System (g') + Standard-Bereich. Keyboard-Bereich dafür 0-48.
                             octaveOptions = ['kontra', 'kontra', 'gross', 'klein', 'klein', 'eingestrichen'];
                         } else {
                             octaveOptions = ['gross', 'klein'];
@@ -4822,8 +4821,14 @@
                     }
                     
                     let octave = octaveOptions[Math.floor(Math.random() * octaveOptions.length)];
-                    // Bass eingestrichen nur c'–e' (bis 2 Hilfslinien über dem System), sonst klein
-                    if (clef === 'bass' && octave === 'eingestrichen' && !/^(C|D|E)/.test(noteName)) octave = 'klein';
+                    // Höchstens 3 Hilfslinien: Töne jenseits davon in die Nachbaroktave legen
+                    if (clef === 'treble') {
+                        if (octave === 'klein' && !/^(F|G|A|B|H)/.test(noteName)) octave = 'eingestrichen';         // f–h
+                        if (octave === 'dreigestrichen' && !/^(C|D|E)/.test(noteName)) octave = 'zweigestrichen';  // c'''–e'''
+                    } else {
+                        if (octave === 'kontra' && !/^(A|B|H)/.test(noteName)) octave = 'gross';                 // A,–H,
+                        if (octave === 'eingestrichen' && !/^(C|D|E|F|G)/.test(noteName)) octave = 'klein';      // c'–g'
+                    }
 
                     newNote = { name: noteName, octave, clef };
 
@@ -5156,11 +5161,11 @@
 
                 if (this.currentNote.clef === 'treble') {
                     if (this.settings.extendedRange) {
-                        // Extended treble: 2-Oktaven-Fenster, das den Ton enthält (Gesamtbereich: 24-60)
+                        // Extended treble: 2-Oktaven-Fenster, das den Ton enthält (Gesamtbereich: 24-72, bis c'''')
                         const noteOctStart = Math.floor(currentPitch / 12) * 12;
                         adjustedStartPitch = noteOctStart;
                         adjustedEndPitch = noteOctStart + 24;
-                        if (adjustedEndPitch > 60) { adjustedEndPitch = 60; adjustedStartPitch = 36; }
+                        if (adjustedEndPitch > 72) { adjustedEndPitch = 72; adjustedStartPitch = 48; }
                         if (adjustedStartPitch < 24) { adjustedStartPitch = 24; adjustedEndPitch = 48; }
                     } else {
                         // Normal treble: eingestrichen to zweigestrichen → C4(36) to C5(60)
