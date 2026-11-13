@@ -8345,7 +8345,7 @@
                 this.setFreeRetry(true);
                 const clickedBtn = (answer === 'ganzton') ? btnG : btnH;
                 clickedBtn.classList.add('flash-incorrect');
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonschritt: <span style="color:#ef4444;">✗</span> (${n1}→${n2} = ${actuallyHalfStep ? 'Halbton' : 'Ganzton'})`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonschritt: <span style="color:#ef4444;">✗</span> — Schau auf der Tastatur: Liegt zwischen ${n1} und ${n2} noch eine Taste?`);
             }
 
             // GF ton1: Ganzton/Halbton-Unterscheidung → eigene Achse `gtht`
@@ -8401,6 +8401,7 @@
 
             // Visuelles Feedback auf Tasten
             const allKeys = document.querySelectorAll('.white-key, .black-key');
+            let nFound = 0, nWrong = 0;
             allKeys.forEach(keyEl => {
                 const onclick = keyEl.getAttribute('onclick');
                 if (!onclick) return;
@@ -8410,12 +8411,13 @@
                 const shouldBeSelected = correctNotes.has(idx);
                 const isSelected = this.stepMarkerSelections[idx];
                 keyEl.classList.remove('aufsteiger-selected');
+                // Übersehene Töne nicht markieren — das wäre die Lösung
                 if (shouldBeSelected && isSelected) {
                     keyEl.classList.add('aufsteiger-correct');
-                } else if (shouldBeSelected && !isSelected) {
-                    keyEl.classList.add('aufsteiger-missed');
+                    nFound++;
                 } else if (!shouldBeSelected && isSelected) {
                     keyEl.classList.add('aufsteiger-wrong');
+                    nWrong++;
                 }
             });
 
@@ -8439,7 +8441,7 @@
                 }, 1000);
             } else {
                 this.setFreeRetry(true);
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Markierung: <span style="color:#ef4444;">✗</span> (Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe)`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Markierung: <span style="color:#ef4444;">✗</span> — ${this._hsMarkHint(nFound, nWrong, correctNotes.size)}`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -8465,8 +8467,9 @@
             const correctPairs = new Set(halfSteps);
 
             let allCorrect = true;
+            let nFound = 0, nWrong = 0;
 
-            // Prüfe alle 7 Stufenpaare
+            // Prüfe alle 7 Stufenpaare (übersehene nicht markieren — das wäre die Lösung)
             for (let i = 0; i < 7; i++) {
                 const shouldBeSelected = correctPairs.has(i);
                 const isSelected = this.stepPairSelections[i];
@@ -8474,12 +8477,13 @@
 
                 if (shouldBeSelected && isSelected) {
                     if (btn) btn.classList.add('correct');
+                    nFound++;
                 } else if (shouldBeSelected && !isSelected) {
-                    if (btn) btn.classList.add('missed');
                     allCorrect = false;
                 } else if (!shouldBeSelected && isSelected) {
                     if (btn) btn.classList.add('wrong');
                     allCorrect = false;
+                    nWrong++;
                 }
             }
 
@@ -8495,7 +8499,7 @@
                 this.showFeedback(true, `Richtig! Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe`);
             } else {
                 this.setFreeRetry(true);
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Stufenpaare: <span style="color:#ef4444;">✗</span> (Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe)`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Stufenpaare: <span style="color:#ef4444;">✗</span> — ${this._hsPairHint(nFound, nWrong)}`);
             }
 
             if (quickStart.isActive && !quickStart.fallbackActive) {
@@ -8580,7 +8584,7 @@
             } else {
                 this.setFreeRetry(true);
                 input.classList.add('input-incorrect');
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonleiter: <span style="color:#ef4444;">✗</span> (${this.currentScale.displayName})`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonleiter: <span style="color:#ef4444;">✗</span> — ${this._scaleNameHint(parsed, isKirchentonart)}`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -8601,6 +8605,30 @@
         },
 
         // ---- Answer Handling: PROFI — Muster lernen (Dur/Moll Buttons) ----
+        // ---- Fehler-Hinweise ohne Lösung (ton2/ton3) ----
+        _hsMarkHint(nFound, nWrong, nTotal) {
+            const parts = [`${nFound} von ${nTotal} Tönen richtig markiert`];
+            if (nWrong) parts.push(`${nWrong} falsch`);
+            return parts.join(', ') + '. Ein Halbtonschritt sind zwei Töne direkt nebeneinander, ohne Taste dazwischen.';
+        },
+
+        _hsPairHint(nFound, nWrong) {
+            const parts = [`${nFound} von 2 Stufenpaaren richtig`];
+            if (nWrong) parts.push(`${nWrong} falsch`);
+            return parts.join(', ') + '. Zähle bei jedem Schritt die Tasten: Ohne Taste dazwischen ist es ein Halbton.';
+        },
+
+        _scaleNameHint(parsed, isKirchentonart) {
+            if (parsed.type === '_Other') return 'Das ist eine Dur- oder Molltonleiter. Wo liegen die Halbtonschritte?';
+            if (isKirchentonart) return 'Prüfe die Lage der Halbtonschritte: Passt sie zu Dur oder zu Moll?';
+            // Moll-Grundtöne sind kleingeschrieben gespeichert (d-Moll) — D-Moll zu D-Dur heißt trotzdem: Grundton stimmt
+            const rootOk = String(parsed.root).toLowerCase() === String(this.currentScale.root).toLowerCase();
+            const typeOk = parsed.type === this.currentScale.type;
+            if (rootOk) return 'Der Grundton stimmt, das Tongeschlecht nicht.';
+            if (typeOk) return 'Das Tongeschlecht stimmt, der Grundton nicht.';
+            return 'Grundton und Tongeschlecht stimmen noch nicht.';
+        },
+
         checkProfiMuster(answer) {
             if (this.inputLocked) return;
             this.inputLocked = true;
@@ -8640,7 +8668,9 @@
                 else btnType = 'Kein Dur/Moll';
 
                 const isCorrectBtn = isKirchentonart ? (btnType === 'Kein Dur/Moll') : (btnType === correctType);
-                if (isCorrectBtn) {
+                // Bei falscher Antwort nur die gewählte rot — die richtige grün zu
+                // zeigen, verriete die Lösung für den nächsten Versuch
+                if (isCorrectBtn && isCorrect) {
                     btn.style.background = '#22c55e'; btn.style.borderColor = '#22c55e';
                 } else if (btnType === answer && !isCorrect) {
                     btn.style.background = '#ef4444'; btn.style.borderColor = '#ef4444';
@@ -8665,7 +8695,7 @@
                 }, 1000);
             } else {
                 this.setFreeRetry(true);
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tongeschlecht: <span style="color:#ef4444;">✗</span> (${this.currentScale.displayName} — Halbtonschritte bei ${hsText}. Stufe)`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tongeschlecht: <span style="color:#ef4444;">✗</span> — Zwischen welchen Stufen liegen die markierten Halbtonschritte?`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -8724,7 +8754,9 @@
             const halfSteps = this.currentScale.halfSteps;
             const correctPairs = new Set(halfSteps);
             let pairsCorrect = true;
+            let nFound = 0, nWrong = 0;
 
+            // Übersehene Paare nicht markieren — das wäre die Lösung
             for (let i = 0; i < 7; i++) {
                 const shouldBeSelected = correctPairs.has(i);
                 const isSelected = this.stepPairSelections ? this.stepPairSelections[i] : false;
@@ -8732,12 +8764,13 @@
 
                 if (shouldBeSelected && isSelected) {
                     if (btn) btn.classList.add('correct');
+                    nFound++;
                 } else if (shouldBeSelected && !isSelected) {
-                    if (btn) btn.classList.add('missed');
                     pairsCorrect = false;
                 } else if (!shouldBeSelected && isSelected) {
                     if (btn) btn.classList.add('wrong');
                     pairsCorrect = false;
+                    nWrong++;
                 }
             }
 
@@ -8769,7 +8802,9 @@
                 input.classList.add('input-incorrect');
                 const nameIcon = nameCorrect ? '<span style="color:#22c55e;">✓</span>' : '<span style="color:#ef4444;">✗</span>';
                 const pairsIcon = pairsCorrect ? '<span style="color:#22c55e;">✓</span>' : '<span style="color:#ef4444;">✗</span>';
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Halbtonschritte: ${pairsIcon}<br>Tonleiter: ${nameIcon} (${this.currentScale.displayName})`);
+                const pairsText = pairsCorrect ? '' : ` — ${this._hsPairHint(nFound, nWrong)}`;
+                const nameText = nameCorrect ? '' : ` — ${this._scaleNameHint(parsed, isKirchentonart)}`;
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Halbtonschritte: ${pairsIcon}${pairsText}<br>Tonleiter: ${nameIcon}${nameText}`);
 
                 if (quickStart.isActive) {
                     quickStart.handleAnswer(false);
@@ -8843,6 +8878,7 @@
 
             // Show feedback on keyboard keys
             const allKeys = document.querySelectorAll('.white-key, .black-key');
+            let nFound = 0, nWrong = 0;
             allKeys.forEach(keyEl => {
                 const onclick = keyEl.getAttribute('onclick');
                 if (!onclick) return;
@@ -8852,12 +8888,13 @@
                 const shouldBeSelected = correctNotes.has(idx);
                 const isSelected = this.stepMarkerSelections[idx];
                 keyEl.classList.remove('aufsteiger-selected');
+                // Übersehene Töne nicht markieren — das wäre die Lösung
                 if (shouldBeSelected && isSelected) {
                     keyEl.classList.add('aufsteiger-correct');
-                } else if (shouldBeSelected && !isSelected) {
-                    keyEl.classList.add('aufsteiger-missed');
+                    nFound++;
                 } else if (!shouldBeSelected && isSelected) {
                     keyEl.classList.add('aufsteiger-wrong');
+                    nWrong++;
                 }
             });
 
@@ -8868,7 +8905,7 @@
                     this.exitFallbackMode();
                 }, 1000);
             } else {
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Markierung: <span style="color:#ef4444;">✗</span> (Halbtonschritte bei ${halfSteps[0]+1}.–${halfSteps[0]+2}. und ${halfSteps[1]+1}.–${halfSteps[1]+2}. Stufe)`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Markierung: <span style="color:#ef4444;">✗</span> — ${this._hsMarkHint(nFound, nWrong, correctNotes.size)}`);
 
                 // Reset for retry after 3s
                 setTimeout(() => {

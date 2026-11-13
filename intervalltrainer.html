@@ -6037,6 +6037,11 @@
                 // GF: getrennte Achsen-Signale (anzahl=Größe, qual=Qualität,
                 // hs=Halbtöne). null = von dieser Aufgabe nicht geprüft.
                 let _aOk = null, _qOk = null, _hOk = null, _errLine = null;
+                // Statt der Lösung: sagen, welcher Teil des Namens nicht stimmt
+                const nameHint = (sizeOk, qualOk) => sizeOk
+                    ? 'Die Größe stimmt, die Qualität nicht.'
+                    : (qualOk ? 'Die Qualität stimmt, die Größe nicht.' : 'Größe und Qualität stimmen noch nicht.');
+                const htHint = 'Zähle die Halbtöne noch einmal — der Startton zählt nicht mit.';
 
                 if (task.type === 'bidirektional') {
                     const input = document.getElementById('intervalInput');
@@ -6058,13 +6063,13 @@
                         _aOk = !!(parsed && parsed.size === task.interval.size);
                         _qOk = !!(parsed && parsed.quality === task.interval.quality);
                         if (!isCorrect) _errLine = task.interval.label + ' → du hast ' + (input.value || '?').trim() + ' eingegeben';
-                        feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.label}`;
+                        feedback = isCorrect ? '' : nameHint(_aOk, _qOk);
                     } else {
                         const val = parseInt(input.value.trim());
                         isCorrect = val === task.interval.ht;
                         _hOk = isCorrect;
                         if (!isCorrect) _errLine = task.interval.ht + ' HS → du hast ' + (isNaN(val) ? (input.value || '?').trim() : val) + ' eingegeben';
-                        feedback = isCorrect ? '' : `Richtig wäre: ${task.interval.ht} HS`;
+                        feedback = isCorrect ? '' : htHint;
                     }
 
                     input.classList.remove('input-validated-correct', 'input-validated-incorrect');
@@ -6105,7 +6110,10 @@
                     const stName = document.getElementById('intervalInputStatus');
                     if (stName) { stName.className = `input-status-icon ${nameCorrect ? 'correct' : 'incorrect'}`; stName.textContent = nameCorrect ? '✓' : '✗'; }
 
-                    feedback = isCorrect ? '' : `Richtig wäre: ${task.answerHT} HS, ${task.answerLabel}`;
+                    feedback = isCorrect ? '' : [
+                        htCorrect ? '' : 'Die Halbtonzahl stimmt nicht — beide Intervalle ergeben zusammen eine Oktave.',
+                        nameCorrect ? '' : nameHint(_aOk, _qOk)
+                    ].filter(Boolean).join(' ');
 
                 } else if (task.type === 'augdim') {
                     const input = document.getElementById('intervalInput');
@@ -6116,7 +6124,7 @@
                     _aOk = !!(parsed && parsed.size === task.answer.size);
                     _qOk = !!(parsed && parsed.quality === task.answer.quality);
                     if (!isCorrect) _errLine = task.answerLabel + ' → du hast ' + ((input.value || '?').trim()) + ' eingegeben';
-                    feedback = isCorrect ? '' : `Richtig wäre: ${task.answerLabel}`;
+                    feedback = isCorrect ? '' : nameHint(_aOk, _qOk);
 
                     input.classList.remove('input-validated-correct', 'input-validated-incorrect');
                     input.classList.add(isCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
@@ -6797,7 +6805,7 @@
                     });
 
                     feedbackEl.className = 'feedback incorrect';
-                    feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>${feedbackParts.join('<br>')}<br><span style="font-size:0.85em;">Richtig: ${note1.name}, ${note2.name}</span>`;
+                    feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>${feedbackParts.join('<br>')}<br><span style="font-size:0.85em;">Lies den fehlerhaften Ton noch einmal im Notensystem ab.</span>`;
 
                     if (!this.validationState.hasBeenChecked) {
                         this.validationState.hasBeenChecked = true;
@@ -7639,7 +7647,7 @@
 
                         feedbackEl.classList.remove('hidden');
                         feedbackEl.className = 'feedback incorrect';
-                        feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>${feedbackParts.join('<br>')}<br><span style="font-size:0.85em;">Richtig: ${n1.name}, ${n2.name}</span>`;
+                        feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>${feedbackParts.join('<br>')}<br><span style="font-size:0.85em;">Lies den fehlerhaften Ton noch einmal im Notensystem ab.</span>`;
 
                         if (!this.validationState.hasBeenChecked) {
                             this.validationState.hasBeenChecked = true;
@@ -7939,7 +7947,16 @@
                     if (this.validationState.intervalName === true) {
                         feedbackParts.push(`Intervallname: <span style="color:#22c55e;">✓</span>`);
                     } else if (this.validationState.intervalName === false) {
-                        feedbackParts.push(`Intervallname: <span style="color:#ef4444;">✗</span>`);
+                        // Größe und Qualität getrennt melden — sonst weiß man nicht,
+                        // welche der beiden Angaben nachgebessert werden muss
+                        let nameHint = '';
+                        if (isFeinbestimmungActive) {
+                            const sizeOk = inputSize === correctSize;
+                            const qualOk = inputQuality === correctQuality;
+                            if (sizeOk && !qualOk) nameHint = ' — die Größe stimmt, die Qualität nicht';
+                            else if (qualOk && !sizeOk) nameHint = ' — die Qualität stimmt, die Größe nicht';
+                        }
+                        feedbackParts.push(`Intervallname: <span style="color:#ef4444;">✗</span>${nameHint}`);
                     }
 
                     if (semitonesRequired) {

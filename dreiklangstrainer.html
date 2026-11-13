@@ -4486,6 +4486,7 @@ const _lernkartenContent = {
             previousTask: null,
             recentRootNotes: [],
             selectedKeys: [],
+            lockedKeys: [],   // nach falschem Versuch stehengelassene richtige Tasten (grün, nicht abwählbar)
             score: { correct: 0, total: 0 },
             keyboardSizes: null,
             audioMode: 'harmonic',  // 'harmonic' oder 'melodic' — steuert Audio + Darstellung
@@ -5080,11 +5081,16 @@ const _lernkartenContent = {
                 // Prüfen ob bereits platziert → entfernen
                 const existingIdx = this.buildingStaffNotes.findIndex(n => n.name === name && n.oct === oct);
                 if (existingIdx >= 0) {
+                    // Stehengelassene richtige Töne bleiben gesperrt
+                    if (this.buildingStaffNotes[existingIdx].locked) return;
                     this.buildingStaffNotes.splice(existingIdx, 1);
                 } else if (this.buildingStaffNotes.length < 3) {
                     this.buildingStaffNotes.push({ name, oct });
                 } else {
-                    this.buildingStaffNotes.shift();
+                    // Älteste NICHT gesperrte Note ersetzen
+                    const freeIdx = this.buildingStaffNotes.findIndex(n => !n.locked);
+                    if (freeIdx === -1) return;
+                    this.buildingStaffNotes.splice(freeIdx, 1);
                     this.buildingStaffNotes.push({ name, oct });
                 }
 
@@ -5105,6 +5111,25 @@ const _lernkartenContent = {
             },
 
             // Antwort prüfen (Building Mode)
+            // Umkehrungen: Die Prüfung erlaubt, den ganzen Akkord um Oktaven zu verschieben.
+            // Hier die Verschiebung suchen, bei der die meisten gewählten Töne auf ihrem
+            // Platz stehen — so lässt sich jeder Ton einzeln bewerten.
+            _matchInversion(userMidis, targetMidis) {
+                const shifts = new Set();
+                userMidis.forEach(u => targetMidis.forEach(t => { if ((u - t) % 12 === 0) shifts.add((u - t) / 12); }));
+                let best = { shift: 0, matched: [] };
+                shifts.forEach(k => {
+                    const used = new Set();
+                    const matched = [];
+                    userMidis.forEach((u, i) => {
+                        const t = u - 12 * k;
+                        if (targetMidis.includes(t) && !used.has(t)) { used.add(t); matched.push(i); }
+                    });
+                    if (matched.length > best.matched.length) best = { shift: k, matched };
+                });
+                return best;
+            },
+
             checkBuildingAnswer() {
                 if (this.inputLocked) return;
                 const task = this.buildingCurrentTask;
@@ -5154,25 +5179,40 @@ const _lernkartenContent = {
                 if (feedbackEl) {
                     if (isCorrect) {
                         feedbackEl.innerHTML = `<span style="color:#10b981;font-weight:600;">✓ Richtig!</span>`;
-                    } else if (this.buildingIsInversion) {
-                        // Umkehrungen: unterscheide falsche Töne vs. falsche Stellung
+                    } else {
+                        // Statt der Lösung: wie viele Töne stimmen, und woran es liegt
                         const targetPCs = targetMidis.map(m => m % 12).sort((a, b) => a - b);
                         const userPCs = userMidis.map(m => m % 12).sort((a, b) => a - b);
-                        const rightNotes = targetPCs.every((pc, i) => pc === userPCs[i]);
-                        const correctNames = task.targetNotes.map(n => n.name).join(' – ');
+                        const nRight = new Set(userPCs.filter(pc => targetPCs.includes(pc))).size;
+                        const rightText = `${nRight} von 3 Tönen ${nRight === 1 ? 'stimmt' : 'stimmen'}. Zähle vom Grundton aus die Halbtöne zur Terz und zur Quinte.`;
 
-                        if (rightNotes) {
-                            // Richtige Töne, falsche Lage
-                            feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsche Stellung</span>
-                                <span style="color:#6b7280;font-size:0.85rem;"> — Die Töne stimmen, aber die Lage nicht. Richtig: ${correctNames}</span>`;
+                        if (this.buildingIsInversion) {
+                            // Jeden Ton einzeln bewerten: auf seinem Platz / richtiger Ton in
+                            // falscher Oktave / falscher Ton
+                            const userNotes = this.buildingIsKeyboard
+                                ? this.buildingSelectedKeys.map(k => ({ name: k.name, midi: k.midi }))
+                                : this.buildingStaffNotes.map(n => ({ name: n.name, midi: this._noteToMidi(n.name, n.oct) }));
+                            const match = this._matchInversion(userNotes.map(n => n.midi), targetMidis);
+                            this._invMatch = match;  // für den Retry: richtig platzierte Töne stehen lassen
+                            const nPlaced = match.matched.length;
+                            const misNames = [...new Set(userNotes
+                                .filter((n, i) => !match.matched.includes(i) && targetPCs.includes(((n.midi % 12) + 12) % 12))
+                                .map(n => n.name.charAt(0).toUpperCase() + n.name.slice(1)))];
+                            const octText = misNames.length
+                                ? ` ${misNames.join(' und ')} ${misNames.length === 1 ? 'liegt' : 'liegen'} in der falschen Oktave.`
+                                : '';
+                            if (nRight === 3) {
+                                // Richtige Töne, falsche Lage
+                                feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsche Stellung</span>
+                                    <span style="color:#6b7280;font-size:0.85rem;"> — Die Töne stimmen, aber nicht ihre Lage.${octText}</span>`;
+                            } else {
+                                feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsche Töne</span>
+                                    <span style="color:#6b7280;font-size:0.85rem;"> — ${nPlaced} von 3 Tönen ${nPlaced === 1 ? 'steht' : 'stehen'} richtig.${octText || ' Zähle vom Grundton aus die Halbtöne zur Terz und zur Quinte.'}</span>`;
+                            }
                         } else {
-                            feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsche Töne</span>
-                                <span style="color:#6b7280;font-size:0.85rem;"> — Richtig: ${correctNames}</span>`;
+                            feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsch</span>
+                                <span style="color:#6b7280;font-size:0.85rem;"> — ${rightText}</span>`;
                         }
-                    } else {
-                        const correctNames = task.targetNotes.map(n => n.name).join(' – ');
-                        feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsch</span>
-                            <span style="color:#6b7280;font-size:0.85rem;"> — Richtig: ${correctNames}</span>`;
                     }
                 }
 
@@ -5224,10 +5264,37 @@ const _lernkartenContent = {
                     if (isCorrect) {
                         // Richtig → nächste Aufgabe
                         this.generateBuildingTask();
+                    } else if (this.buildingIsInversion) {
+                        // Falsch → Retry: Richtig platzierte Töne stehen lassen, wenn mindestens
+                        // zwei passen (ein einzelner legt die Lage noch nicht fest) und die
+                        // fehlenden Töne auf der Tastatur erreichbar sind. Sonst alles zurücksetzen.
+                        const match = this._invMatch || { shift: 0, matched: [] };
+                        const missing = targetMidis.map(t => t + 12 * match.shift);
+                        const reachable = !this.buildingIsKeyboard ||
+                            missing.every(m => document.querySelector(`#keyboardContainer [onclick="app.selectKey(${m})"]`));
+                        const keepMatched = (notes) => (match.matched.length >= 2 && reachable)
+                            ? notes.filter((n, i) => match.matched.includes(i)).map(n => ({ ...n, locked: true }))
+                            : [];
+                        this.buildingSelectedKeys = keepMatched(this.buildingSelectedKeys);
+                        this.buildingStaffNotes = keepMatched(this.buildingStaffNotes);
+                        this.drawStaff();
+                        this.renderKeyboard();
+                        this._updateBuildingCheckButton();
                     } else {
-                        // Falsch → Retry: gleiche Aufgabe, Eingabe zurücksetzen
-                        this.buildingSelectedKeys = [];
-                        this.buildingStaffNotes = [];
+                        // Falsch (Grundstellung) → Retry: richtige Töne grün stehen lassen und
+                        // sperren, falsche entfernen (pro Tonklasse nur einer)
+                        const targetPCSet = new Set(task.targetNotes.map(n => ((n.midi % 12) + 12) % 12));
+                        const keepRight = (notes, toMidi) => {
+                            const seen = new Set();
+                            return notes.filter(n => {
+                                const pc = ((toMidi(n) % 12) + 12) % 12;
+                                if (!targetPCSet.has(pc) || seen.has(pc)) return false;
+                                seen.add(pc);
+                                return true;
+                            }).map(n => ({ ...n, locked: true }));
+                        };
+                        this.buildingSelectedKeys = keepRight(this.buildingSelectedKeys, k => k.midi);
+                        this.buildingStaffNotes = keepRight(this.buildingStaffNotes, n => this._noteToMidi(n.name, n.oct));
                         this.drawStaff();
                         this.renderKeyboard();
                         this._updateBuildingCheckButton();
@@ -5252,6 +5319,7 @@ const _lernkartenContent = {
 
                 // selectedKeys synchronisieren (renderKeyboard nutzt this.selectedKeys)
                 this.selectedKeys = this.buildingSelectedKeys.map(k => k.midi);
+                this.lockedKeys = this.buildingSelectedKeys.filter(k => k.locked).map(k => k.midi);
 
                 // Originale renderKeyboard aufrufen (Router umgehen via _skipBuildingRouter)
                 this._skipBuildingRouter = true;
@@ -5278,7 +5346,7 @@ const _lernkartenContent = {
 
                 // Noten sammeln (Keyboard → vom User geklickte Keys; Staff → vom User platzierte Noten)
                 const displayNotes = this.buildingIsKeyboard
-                    ? this.buildingSelectedKeys.map(k => ({ name: k.name, oct: k.oct }))
+                    ? this.buildingSelectedKeys.map(k => ({ name: k.name, oct: k.oct, locked: k.locked }))
                     : [...this.buildingStaffNotes];
 
                 // Noten sortieren (aufsteigend)
@@ -5381,17 +5449,20 @@ const _lernkartenContent = {
                         if (hasSecond && i === 1 && is12Second) nx = x + 12;
                         if (hasSecond && i === 2 && is23Second) nx = x + 12;
 
+                        // Stehengelassene richtige Töne (nach falschem Versuch) grün
+                        const noteFill = n.locked ? '#10b981' : '#000';
+
                         // Vorzeichen (Abstände identisch zur echten drawStaff: Sharp x-45, Flat x-55)
                         const accOffset = (i === 1) ? midAccOffset : 0;
                         if (n.hasSharp) {
-                            content += `<text x="${nx - 45 - accOffset}" y="${n.y + 13}" font-size="42" font-family="serif">♯</text>`;
+                            content += `<text x="${nx - 45 - accOffset}" y="${n.y + 13}" font-size="42" font-family="serif" fill="${noteFill}">♯</text>`;
                         }
                         if (n.hasFlat) {
-                            content += `<text x="${nx - 55 - accOffset}" y="${n.y + 10}" font-size="38" font-family="serif">♭</text>`;
+                            content += `<text x="${nx - 55 - accOffset}" y="${n.y + 10}" font-size="38" font-family="serif" fill="${noteFill}">♭</text>`;
                         }
 
                         // Notenkopf (schwarz, wie im Erkennen-Modus)
-                        content += `<ellipse cx="${nx}" cy="${n.y}" rx="12.5" ry="9.5" fill="#000" transform="rotate(-20 ${nx} ${n.y})"/>`;
+                        content += `<ellipse cx="${nx}" cy="${n.y}" rx="12.5" ry="9.5" fill="${noteFill}" transform="rotate(-20 ${nx} ${n.y})"/>`;
                     });
                 }
 
@@ -5565,6 +5636,7 @@ const _lernkartenContent = {
                     const mode = this.quickStartMode;
                     if (mode === 'einsteiger') {
                         this.selectedKeys = [];
+                        this.lockedKeys = [];
                     } else if (mode === 'aufsteiger') {
                         const s1 = document.getElementById('hsSelect1');
                         const s2 = document.getElementById('hsSelect2');
@@ -6071,6 +6143,7 @@ const _lernkartenContent = {
                 const feedbackEl = document.getElementById('feedback');
                 if (feedbackEl) feedbackEl.classList.add('hidden');
                 this.selectedKeys = [];
+                this.lockedKeys = [];
 
                 // Aufgabenstellung aktualisieren (kontextabhängig)
                 if (this.quickStartMode === 'einsteiger') {
@@ -6813,7 +6886,10 @@ const _lernkartenContent = {
 
                 // Klickbar im Einsteiger-Quiz, Building-Keyboard ODER im Freien Üben mit Tastatur-Eingabe
                 const isClickable = this.quickStartMode === 'einsteiger' || (this.buildingMode && this.buildingIsKeyboard) || (!this.quickStartMode && this.settings.requireKeyboard);
-                const showCorrect = document.getElementById('feedback')?.textContent.includes('Richtig') && !document.getElementById('feedback')?.classList.contains('hidden');
+                // Auch bei „Prüfe nochmal" färben — die Meldung nennt seit Nov 2026 keine Lösung („Richtig: …") mehr
+                const _fbEl = document.getElementById('feedback');
+                const showCorrect = !!_fbEl && !_fbEl.classList.contains('hidden') && (_fbEl.textContent.includes('Richtig') || _fbEl.textContent.includes('Prüfe nochmal'));
+                const lockedKeys = this.lockedKeys || [];
 
                 // Visuelle Unterscheidung: Orientierungstastatur vs. Aufgabentastatur
                 const kbCard = document.getElementById('keyboardCard');
@@ -6851,7 +6927,7 @@ const _lernkartenContent = {
                 whiteKeys.forEach(key => {
                     const isSel = this.selectedKeys.includes(key.midi);
                     const keyPC = ((key.midi % 12) + 12) % 12;
-                    const isCorr = showCorrect && isSel && chordPCs.includes(keyPC);
+                    const isCorr = (showCorrect && isSel && chordPCs.includes(keyPC)) || (isSel && lockedKeys.includes(key.midi));
                     const isWrong = showCorrect && isSel && !chordPCs.includes(keyPC);
                     const cls = 'white-key' + (isClickable ? ' clickable' : '') + (isSel ? ' selected' : '') + (isCorr ? ' correct' : '') + (isWrong ? ' wrong' : '');
                     const click = isClickable ? ' onclick="app.selectKey(' + key.midi + ')"' : '';
@@ -6864,7 +6940,7 @@ const _lernkartenContent = {
                     const leftPos = bk.afterWhiteIndex * (whiteKeyWidth + gap) + whiteKeyWidth + gap / 2 - blackKeyWidth / 2;
                     const isSel = this.selectedKeys.includes(bk.midi);
                     const bkPC = ((bk.midi % 12) + 12) % 12;
-                    const isCorr = showCorrect && isSel && chordPCs.includes(bkPC);
+                    const isCorr = (showCorrect && isSel && chordPCs.includes(bkPC)) || (isSel && lockedKeys.includes(bk.midi));
                     const isWrong = showCorrect && isSel && !chordPCs.includes(bkPC);
                     const cls = 'black-key' + (isClickable ? ' clickable' : '') + (isSel ? ' selected' : '') + (isCorr ? ' correct' : '') + (isWrong ? ' wrong' : '');
                     const click = isClickable ? ' onclick="app.selectKey(' + bk.midi + ')"' : '';
@@ -6953,11 +7029,16 @@ const _lernkartenContent = {
                     if (this.inputLocked) return;
                     const existingIdx = this.buildingSelectedKeys.findIndex(k => k.midi === midi);
                     if (existingIdx >= 0) {
+                        // Stehengelassene richtige Töne bleiben gesperrt
+                        if (this.buildingSelectedKeys[existingIdx].locked) return;
                         this.buildingSelectedKeys.splice(existingIdx, 1);
                     } else if (this.buildingSelectedKeys.length < 3) {
                         this.buildingSelectedKeys.push(this._resolveEnharmonic(midi));
                     } else {
-                        this.buildingSelectedKeys.shift();
+                        // Ältesten NICHT gesperrten Ton ersetzen
+                        const freeIdx = this.buildingSelectedKeys.findIndex(k => !k.locked);
+                        if (freeIdx === -1) return;
+                        this.buildingSelectedKeys.splice(freeIdx, 1);
                         this.buildingSelectedKeys.push(this._resolveEnharmonic(midi));
                     }
                     this.renderKeyboard();
@@ -6970,6 +7051,8 @@ const _lernkartenContent = {
                 if (this.quickStartMode !== 'einsteiger' &&
                     (this.quickStartMode || !this.settings.requireKeyboard)) return;
 
+                // Stehengelassene richtige Tasten bleiben gesperrt
+                if (this.lockedKeys.includes(midi)) return;
                 const index = this.selectedKeys.indexOf(midi);
                 if (index > -1) {
                     this.selectedKeys.splice(index, 1);
@@ -6977,7 +7060,10 @@ const _lernkartenContent = {
                     if (this.selectedKeys.length < 3) {
                         this.selectedKeys.push(midi);
                     } else {
-                        this.selectedKeys.shift();
+                        // Älteste NICHT gesperrte Taste ersetzen
+                        const freeIdx = this.selectedKeys.findIndex(k => !this.lockedKeys.includes(k));
+                        if (freeIdx === -1) return;
+                        this.selectedKeys.splice(freeIdx, 1);
                         this.selectedKeys.push(midi);
                     }
                 }
@@ -7807,11 +7893,20 @@ const _lernkartenContent = {
                         });
                         feedbackEl.classList.remove('hidden');
                         feedbackEl.className = 'feedback incorrect';
-                        feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>${feedbackParts.join('<br>')}<br><span style="font-size:0.85em;">Richtig: ${expectedNames.join(', ')}</span>`;
+                        feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>${feedbackParts.join('<br>')}<br><span style="font-size:0.85em;">Lies den fehlerhaften Ton noch einmal im Notensystem ab.</span>`;
+                        this.renderKeyboard();  // gewählte Tasten sofort grün/rot färben
 
-                        // Alle Tasten zurücksetzen bei falschem Versuch
+                        // Falsche Tasten abwählen, richtige grün stehen lassen und sperren
+                        // (pro Tonklasse nur eine — sonst blockiert ein doppelter Ton den Platz)
                         setTimeout(() => {
-                            this.selectedKeys = [];
+                            const kept = [];
+                            const seenPCs = new Set();
+                            this.selectedKeys.forEach(k => {
+                                const pc = ((k % 12) + 12) % 12;
+                                if (expectedPCSet.has(pc) && !seenPCs.has(pc)) { seenPCs.add(pc); kept.push(k); }
+                            });
+                            this.selectedKeys = kept;
+                            this.lockedKeys = kept.slice();
                             this.renderKeyboard();
                         }, 2500);
                     }

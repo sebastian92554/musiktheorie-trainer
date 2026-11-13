@@ -5676,7 +5676,11 @@
 
                     // Fehler-Feedback
                     feedbackEl.className = 'feedback incorrect';
-                    feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>Taste: <span style="color:#ef4444;">✗</span> (${noteDisplay})`;
+                    // Statt der Lösung: Ton oder Oktave? (Oktave zählt erst ab „Lagen")
+                    const kbHint = pitchClassOk
+                        ? 'Der Ton stimmt, aber die Oktave nicht.'
+                        : 'Lies die Note im Notensystem noch einmal ab.';
+                    feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>Taste: <span style="color:#ef4444;">✗</span> — ${kbHint}`;
                     feedbackEl.classList.remove('hidden');
 
                     // Tastatur zurücksetzen für neuen Versuch
