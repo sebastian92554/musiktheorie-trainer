@@ -8116,8 +8116,9 @@ const _lernkartenContent = {
 
                 // ===== AUFSTEIGER: Beide Halbtonschritte (Dropdowns) =====
                 else if (this.quickStartMode === 'aufsteiger') {
-                    // Während die misslungene Probe zum Fall umgebaut wird, nicht prüfen
-                    if (this._drei2Converting) return;
+                    // Während die misslungene Probe zum Fall umgebaut wird oder nach richtiger
+                    // Antwort (Doppelklick) nicht prüfen — sonst zählten Probe/Fall doppelt
+                    if (this._drei2Converting || (this.validationState && this.validationState.allCorrect)) return;
                     const val1 = this.getHSValue('hsSelect1');
                     const val2 = this.getHSValue('hsSelect2');
                     // drei2a ab Aufgabe 5: zusätzlich die Art (Vorhersage aus dem HS-Muster)
