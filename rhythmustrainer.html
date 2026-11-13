@@ -2643,8 +2643,8 @@
                 ],
                 'rhy2': [
                     { id: 'regelmaessig', label: 'Regelmäßig (2/4, 3/4, 4/4)', preview: 'Erkennen regelmäßiger Taktarten (2/4, 3/4, 4/4)' },
-                    { id: 'unregelmaessig1', label: '+ 5/4, 7/4', preview: 'Erkennen unregelmäßiger Taktarten (+ 5/4, 7/4)' },
-                    { id: 'unregelmaessig2', label: '+ 7/8, 9/8', preview: 'Erkennen unregelmäßiger Taktarten (+ 7/8, 9/8)' }
+                    { id: 'unregelmaessig1', label: '4/4, 5/4, 7/4', preview: 'Unterscheiden von 4/4 und den unregelmäßigen Taktarten 5/4, 7/4' },
+                    { id: 'unregelmaessig2', label: '5/4, 7/4, 7/8, 9/8', preview: 'Unterscheiden von Viertel- und Achtel-Taktarten (5/4, 7/4, 7/8, 9/8)' }
                 ],
                 'rhy3': [
                     { id: 'basis', label: 'Basis', preview: 'Bestimmen der Zählzeiten (Ganze, Halbe, Viertel)' },
@@ -4535,11 +4535,11 @@
                                 <p><strong>2/4-Takt:</strong> 2 Viertelschläge pro Takt (Summe = 2). Kurze, marschähnliche Takte.</p>
                                 <p><strong>3/4-Takt:</strong> 3 Viertelschläge pro Takt (Summe = 3). Typisch für Walzer.</p>
                                 <p><strong>4/4-Takt:</strong> 4 Viertelschläge pro Takt (Summe = 4). Der häufigste Takt.</p>`,
-                            'unregelmaessig1': `<p><strong>+ Unregelmäßige Taktarten: 5/4, 7/4</strong></p>
+                            'unregelmaessig1': `<p><strong>4/4, 5/4, 7/4</strong></p>
                                 <p><strong>Unregelmäßig</strong> bedeutet: Der Zähler ist weder durch 2 noch durch 3 teilbar.</p>
                                 <p><strong>5/4-Takt:</strong> 5 Viertelschläge pro Takt (Summe = 5). Oft in 3+2 gruppiert.</p>
                                 <p><strong>7/4-Takt:</strong> 7 Viertelschläge pro Takt (Summe = 7). Oft in 4+3 gruppiert.</p>`,
-                            'unregelmaessig2': `<p><strong>+ Unregelmäßige Taktarten: 7/8, 9/8</strong></p>
+                            'unregelmaessig2': `<p><strong>5/4, 7/4, 7/8, 9/8</strong></p>
                                 <p>Hier wird in <strong>Achteln</strong> statt Vierteln gezählt — der Nenner ist 8.</p>
                                 <p><strong>7/8-Takt:</strong> 7 Achtelschläge pro Takt (Summe = 3,5 Viertel). Oft in 4+3 gruppiert.</p>
                                 <p><strong>9/8-Takt:</strong> 9 Achtelschläge pro Takt (Summe = 4,5 Viertel). Oft in 3+3+3 gruppiert.</p>`
@@ -8703,6 +8703,7 @@ Gerät:
                     let s = str.toLowerCase()
                         .replace(/-/g, '')
                         .replace(/\s+/g, '')
+                        .replace(/\+/g, 'und')         // "2+" → "2und"
                         .replace(/(\d)u$/g, '$1und')   // "1u" → "1und"
                         .replace(/(\d)u(\D)/g, '$1und$2'); // "1u" vor anderem Text
                     return s;
