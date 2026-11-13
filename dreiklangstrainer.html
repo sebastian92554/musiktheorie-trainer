@@ -5256,16 +5256,31 @@ const _lernkartenContent = {
 
                 let isCorrect;
                 if (this.buildingIsInversion) {
-                    // Umkehrungen: absolute MIDI-Werte vergleichen (Lage zählt)
-                    // Aber Oktav-Verschiebung erlauben: Differenzen zwischen Noten müssen stimmen
+                    // Umkehrungen: dieselben Töne in derselben Reihenfolge, die ganze Lage darf
+                    // eine Oktave verschoben sein. Nur die Abstände zu vergleichen reicht nicht
+                    // (sonst gälte D–F–B als „C-Dur, 1. Umkehrung“), darum auch der Basston.
                     const targetDiffs = [targetMidis[1] - targetMidis[0], targetMidis[2] - targetMidis[1]];
                     const userDiffs = [userMidis[1] - userMidis[0], userMidis[2] - userMidis[1]];
-                    isCorrect = targetDiffs[0] === userDiffs[0] && targetDiffs[1] === userDiffs[1];
+                    const sameBass = (((userMidis[0] - targetMidis[0]) % 12) + 12) % 12 === 0;
+                    isCorrect = sameBass && targetDiffs[0] === userDiffs[0] && targetDiffs[1] === userDiffs[1];
                 } else {
                     // Grundstellung: Pitch-Classes vergleichen (Oktave irrelevant)
                     const targetPCs = targetMidis.map(m => m % 12).sort((a, b) => a - b);
                     const userPCs = userMidis.map(m => m % 12).sort((a, b) => a - b);
                     isCorrect = targetPCs.every((pc, i) => pc === userPCs[i]);
+                }
+
+                // Notensystem: auch die Schreibweise zählt (As ist nicht Gis, C nicht His)
+                const normName = s => s.toLowerCase();
+                const targetNameSet = new Set(task.targetNotes.map(n => normName(n.name)));
+                if (isCorrect && !this.buildingIsKeyboard) {
+                    const tNames = task.targetNotes.slice().sort((a, b) => a.midi - b.midi).map(n => normName(n.name));
+                    const uNames = this.buildingStaffNotes
+                        .map(n => ({ name: normName(n.name), midi: this._noteToMidi(n.name, n.oct) }))
+                        .sort((a, b) => a.midi - b.midi).map(n => n.name);
+                    isCorrect = this.buildingIsInversion
+                        ? tNames.every((nm, i) => nm === uNames[i])
+                        : [...tNames].sort().join() === [...uNames].sort().join();
                 }
 
                 // Debug: Validierung nachvollziehbar machen
@@ -5293,8 +5308,19 @@ const _lernkartenContent = {
                         const userPCs = userMidis.map(m => m % 12).sort((a, b) => a - b);
                         const nRight = new Set(userPCs.filter(pc => targetPCs.includes(pc))).size;
                         const rightText = `${nRight} von 3 Tönen ${nRight === 1 ? 'stimmt' : 'stimmen'}. Zähle vom Grundton aus die Halbtöne zur Terz und zur Quinte.`;
+                        // Notensystem: klingt richtig, ist aber anders geschrieben (eigene Note nennen, nicht die Lösung)
+                        const misspelled = this.buildingIsKeyboard ? [] : [...new Set(this.buildingStaffNotes
+                            .filter(n => targetPCs.includes(((this._noteToMidi(n.name, n.oct) % 12) + 12) % 12) && !targetNameSet.has(normName(n.name)))
+                            .map(n => n.name.charAt(0).toUpperCase() + n.name.slice(1)))];
 
-                        if (this.buildingIsInversion) {
+                        if (misspelled.length) {
+                            if (this.buildingIsInversion) {
+                                this._invMatch = this._matchInversion(
+                                    this.buildingStaffNotes.map(n => this._noteToMidi(n.name, n.oct)), targetMidis);
+                            }
+                            feedbackEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">✗ Falsch geschrieben</span>
+                                <span style="color:#6b7280;font-size:0.85rem;"> — ${misspelled.join(' und ')} ${misspelled.length === 1 ? 'klingt' : 'klingen'} richtig, ${misspelled.length === 1 ? 'steht' : 'stehen'} aber auf dem falschen Platz. Die Terz liegt zwei Stufen über dem Grundton, die Quinte vier${this.buildingIsInversion ? ' (in der Umkehrung eine Oktave versetzt)' : ''}.</span>`;
+                        } else if (this.buildingIsInversion) {
                             // Jeden Ton einzeln bewerten: auf seinem Platz / richtiger Ton in
                             // falscher Oktave / falscher Ton
                             const userNotes = this.buildingIsKeyboard
@@ -5380,8 +5406,10 @@ const _lernkartenContent = {
                         const missing = targetMidis.map(t => t + 12 * match.shift);
                         const reachable = !this.buildingIsKeyboard ||
                             missing.every(m => document.querySelector(`#keyboardContainer [onclick="app.selectKey(${m})"]`));
+                        // Im Notensystem nur richtig geschriebene Töne stehen lassen
+                        const spelledOk = n => this.buildingIsKeyboard || task.targetNotes.some(t => t.name.toLowerCase() === n.name.toLowerCase());
                         const keepMatched = (notes) => (match.matched.length >= 2 && reachable)
-                            ? notes.filter((n, i) => match.matched.includes(i)).map(n => ({ ...n, locked: true }))
+                            ? notes.filter((n, i) => match.matched.includes(i) && spelledOk(n)).map(n => ({ ...n, locked: true }))
                             : [];
                         this.buildingSelectedKeys = keepMatched(this.buildingSelectedKeys);
                         this.buildingStaffNotes = keepMatched(this.buildingStaffNotes);
@@ -5402,7 +5430,9 @@ const _lernkartenContent = {
                             }).map(n => ({ ...n, locked: true }));
                         };
                         this.buildingSelectedKeys = keepRight(this.buildingSelectedKeys, k => k.midi);
-                        this.buildingStaffNotes = keepRight(this.buildingStaffNotes, n => this._noteToMidi(n.name, n.oct));
+                        this.buildingStaffNotes = keepRight(
+                            this.buildingStaffNotes.filter(n => task.targetNotes.some(t => t.name.toLowerCase() === n.name.toLowerCase())),
+                            n => this._noteToMidi(n.name, n.oct));
                         this.drawStaff();
                         this.renderKeyboard();
                         this._updateBuildingCheckButton();
