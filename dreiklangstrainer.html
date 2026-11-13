@@ -1566,14 +1566,20 @@
             font-size: 0.88rem;
             color: #92400e;
         }
-        /* Rücksprung bei benannter Unsicherheit („Unsicher bei …? [Button]“) */
-        .lk-jump-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px; }
-        .lernkarte .lk-jump-btn {
-            width: auto; padding: 8px 14px; font-size: 0.85rem;
-            margin-top: 0; background: #fff; color: #059669;
-            border: 2px solid #10b981;
+        /* Rückfragen im Tipp-Kasten („Unsicher bei …?“): Frage klappt eine Kurzantwort
+           am Beispiel auf, darunter der Link zur ausführlichen Lernkarte */
+        .lk-tip-ask { display: flex; flex-direction: column; gap: 8px; }
+        .lk-ask { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .lk-ask summary {
+            list-style: none; cursor: pointer; padding: 9px 12px; font-weight: 600; font-size: 0.88rem;
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
-        .lernkarte .lk-jump-btn:hover { background: #10b981; color: #fff; }
+        .lk-ask summary::-webkit-details-marker { display: none; }
+        .lk-ask summary::after { content: '▾'; color: #059669; font-size: 1rem; transition: transform 0.15s; }
+        .lk-ask[open] summary::after { transform: rotate(180deg); }
+        .lk-ask-a { padding: 0 12px 10px; font-size: 0.86rem; color: #334155; line-height: 1.45; }
+        .lk-ask-more { display: block; margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #059669; text-decoration: none; }
+        .lk-ask-more:hover { text-decoration: underline; }
         /* Regel-Frage („Welche Regel hast du angewendet?“) */
         .lernkarte .lk-choice {
             display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
@@ -2176,6 +2182,7 @@
             nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
             subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+            tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
             // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
             // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
             // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
@@ -4232,9 +4239,9 @@ const _lernkartenContent = {
             <p><strong>Neu:</strong> Die Dreiklänge haben Vorzeichen. Die Abstände bleiben gleich, nur kommen jetzt schwarze Tasten dazu.</p>
             <div class="lk-visual" id="lkVisualDrei2b"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte, auch bei Vorzeichen.</div>
-            <div class="lk-tip">
-                <div class="lk-jump-row" style="margin-top:0">Unsicher bei den Vorzeichen? <button type="button" class="lk-jump-btn" onclick="window.open('notentrainer.html?lernkarte=vorzeichen', '_blank')">Notentrainer: Vorzeichen</button></div>
-                <div class="lk-jump-row">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('basis', false)">2a — Halbtonschritte zählen</button></div>
+            <div class="lk-tip lk-tip-ask">
+                <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:vorzeichen')"><summary>Unsicher bei den Vorzeichen?</summary><div class="lk-ask-a">♯ erhöht einen Ton um einen Halbtonschritt, ♭ erniedrigt ihn um einen. Fis ist also die schwarze Taste direkt rechts neben F. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von D bis Fis sind es Dis, E, F, Fis, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
             </div>`,
         render() {
             document.getElementById('lkVisualDrei2b').innerHTML = renderLernkarteTastatur({ numOctaves:1, title:'Beispiel: D-Dur', showBlackLabels:true, highlightKeys:[{key:'D',color:'#bbf7d0'},{key:'Fis',color:'#bbf7d0'},{key:'A',color:'#bbf7d0'}], arrows:[{from:'D',to:'Fis',label:'4 HS',color:'#059669'},{from:'Fis',to:'A',label:'3 HS',color:'#059669'}] });
@@ -4246,9 +4253,9 @@ const _lernkartenContent = {
             <p><strong>Neu:</strong> Zwei weitere Arten. Bei ihnen sind beide Abstände gleich groß: <strong>übermäßig 4 + 4</strong>, <strong>vermindert 3 + 3</strong>.</p>
             <div class="lk-contrast" id="lkContrastDrei2Aug" style="flex-wrap:wrap"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte.</div>
-            <div class="lk-tip">
-                <div class="lk-jump-row" style="margin-top:0">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('basis', false)">2a — Halbtonschritte zählen</button></div>
-                <div class="lk-jump-row">Unsicher bei Dreiklängen mit Vorzeichen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('vorzeichen', false)">2b — Mit Vorzeichen</button></div>
+            <div class="lk-tip lk-tip-ask">
+                <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von D bis Fis sind es Dis, E, F, Fis, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_vorzeichen')"><summary>Unsicher bei Dreiklängen mit Vorzeichen?</summary><div class="lk-ask-a">Die Abstände bleiben gleich, nur kommen schwarze Tasten dazu: D-Dur ist D, Fis, A, also 4 + 3 Halbtonschritte wie C-Dur. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details>
             </div>`,
         render() {
             const types = [
@@ -7321,6 +7328,12 @@ const _lernkartenContent = {
                 }
             },
 
+            // Rückfrage im Tipp-Kasten aufgeklappt → tip_open (zeigt, welche Unsicherheiten häufig sind)
+            _askToggled(el, target) {
+                if (!el.open) return;
+                try { tracker.tipOpen({ card: this._lernkarteCurrentId, target }); } catch (e) {}
+            },
+
             // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
             // Lernkarte direkt öffnen, am Ende die Wahl „Zurück zur Aufgabe“ (schließt den per
             // window.open geöffneten Tab) oder „Erst hier üben“ (startet das Quiz zu diesem Sub-Skill).
@@ -7413,7 +7426,8 @@ const _lernkartenContent = {
                     if (skip) return false;
                 }
                 // drei2: Start-Karte nur während Probe und Fällen, sonst die Muster-Karte
-                if (key === 'drei2_basis' && !this._drei2Learning()) key = 'drei2_basis_regel';
+                // Rücksprung mit vollem Schlüssel ('drei2_basis', „Ausführlich nachlesen“) zeigt immer die Start-Karte (dort steht, wie man zählt)
+                if (key === 'drei2_basis' && subSkillId === 'basis' && !this._drei2Learning()) key = 'drei2_basis_regel';
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
                 // „Verstanden“-Button wieder zeigen (die Regel-Frage blendet ihn bis zur Antwort aus)

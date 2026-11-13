@@ -1832,15 +1832,20 @@
         .lernkarte button.lk-btn-secondary { background: #fff; color: #0891b2; border: 2px solid #0891b2; margin-top: 8px; }
         .lernkarte button.lk-btn-secondary:hover { background: #ecfeff; }
         .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
-        /* Sprung-Buttons zu früheren Lernkarten (inline, kleiner als
-           der Standard-Lernkarte-Button am Karten-Ende). */
-        .lk-jump-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px; }
-        .lernkarte .lk-jump-btn {
-            width: auto; padding: 8px 14px; font-size: 0.85rem;
-            margin-top: 0; background: #fff; color: #0891b2;
-            border: 2px solid #0891b2;
+        /* Rückfragen im Tipp-Kasten („Unsicher bei …?“): Frage klappt eine Kurzantwort
+           am Beispiel auf, darunter der Link zur ausführlichen Lernkarte */
+        .lk-tip-ask { display: flex; flex-direction: column; gap: 8px; }
+        .lk-ask { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .lk-ask summary {
+            list-style: none; cursor: pointer; padding: 9px 12px; font-weight: 600; font-size: 0.88rem;
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
-        .lernkarte .lk-jump-btn:hover { background: #0891b2; color: #fff; }
+        .lk-ask summary::-webkit-details-marker { display: none; }
+        .lk-ask summary::after { content: '▾'; color: #0891b2; font-size: 1rem; transition: transform 0.15s; }
+        .lk-ask[open] summary::after { transform: rotate(180deg); }
+        .lk-ask-a { padding: 0 12px 10px; font-size: 0.86rem; color: #334155; line-height: 1.45; }
+        .lk-ask-more { display: block; margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #0891b2; text-decoration: none; }
+        .lk-ask-more:hover { text-decoration: underline; }
         /* Regel-Frage („Welche Regel hast du angewendet?“) */
         .lernkarte .lk-choice {
             display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
@@ -2393,6 +2398,7 @@
         nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
         subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
         cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+        tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
         // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
         // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
         // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
@@ -7120,6 +7126,12 @@
             return `<svg width="${w}" height="${h}" viewBox="0 0 ${Math.round(ref.cx*2*s)} ${Math.round(ref.h*s)}" style="vertical-align:middle"><g transform="scale(${s})"><path d="${pathD}" fill="currentColor" stroke="none"/></g></svg>`;
         },
 
+        // Rückfrage im Tipp-Kasten aufgeklappt → tip_open (zeigt, welche Unsicherheiten häufig sind)
+        _askToggled(el, target) {
+            if (!el.open) return;
+            try { tracker.tipOpen({ card: this._lernkarteCurrentId, target }); } catch (e) {}
+        },
+
         // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
         // Lernkarte direkt öffnen, am Ende die Wahl „Zurück zur Aufgabe“ (schließt den per
         // window.open geöffneten Tab) oder „Erst hier üben“ (startet das Quiz zu diesem Sub-Skill).
@@ -7854,9 +7866,9 @@
                         <div class="lk-visual" id="lkVisualDDur3b"></div>
                         <div class="lk-rule">Zwischen Fis (3) und G (4) liegt keine Taste, also ein Halbtonschritt. Ebenso zwischen Cis (7) und D (8). Halbtonschritte zwischen 3–4 und 7–8 → Dur. Der Grundton ist D → <strong>D-Dur</strong>.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Halbtonschritt-Stufen und schreib den Namen, z.&nbsp;B. „D-Dur".</div>
-                        <div class="lk-tip">
-                            <div class="lk-jump-row" style="margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
-                            <div class="lk-jump-row">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. In G-Dur liegen sie also bei H–C und Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_stufenpaare')"><summary>Unsicher beim Finden der Halbtonschritte?</summary><div class="lk-ask-a">Ein Halbtonschritt liegt dort, wo auf der Tastatur keine Taste dazwischen ist: E–F und H–C, aber zum Beispiel auch Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_stufenpaare', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`,
                 render() {
                     document.getElementById('lkVisualDDur3b').innerHTML =
@@ -7871,10 +7883,10 @@
                 body: `<p><strong>Du kannst schon:</strong> Halbtonschritte finden und die Tonleiter benennen.</p>
                         <p><strong>Neu:</strong> Keine Stufenzahlen und keine Stufen-Auswahl mehr. Du schreibst nur den Namen, die Schritte davor machst du im Kopf.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter. Liegst du falsch, markierst du zuerst die Halbtonschritte, dann geht es weiter.</div>
-                        <div class="lk-tip">
-                            <div class="lk-jump-row" style="margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
-                            <div class="lk-jump-row">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
-                            <div class="lk-jump-row">Unsicher beim Benennen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — Tonleiter benennen</button></div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. In G-Dur liegen sie also bei H–C und Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_stufenpaare')"><summary>Unsicher beim Finden der Halbtonschritte?</summary><div class="lk-ask-a">Ein Halbtonschritt liegt dort, wo auf der Tastatur keine Taste dazwischen ist: E–F und H–C, aber zum Beispiel auch Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_stufenpaare', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_erkennen')"><summary>Unsicher beim Benennen?</summary><div class="lk-ask-a">Grundton + Tongeschlecht: Beginnt die Tonleiter auf D und hat sie das Dur-Muster, heißt sie D-Dur. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_erkennen', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
             },
             ton3_ohne_hilfe: {

@@ -429,15 +429,20 @@
         .lernkarte button.lk-btn-secondary { background: #fff; color: #ea580c; border: 2px solid #ea580c; margin-top: 8px; }
         .lernkarte button.lk-btn-secondary:hover { background: #fff7ed; }
         .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
-        /* Sprung-Buttons zu früheren Lernkarten (inline, kleiner als
-           der Standard-Lernkarte-Button am Karten-Ende) — wie TT/DT */
-        .lk-jump-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px; }
-        .lernkarte .lk-jump-btn {
-            width: auto; padding: 8px 14px; font-size: 0.85rem;
-            margin-top: 0; background: #fff; color: #ea580c;
-            border: 2px solid #ea580c;
+        /* Rückfragen im Tipp-Kasten („Unsicher bei …?“): Frage klappt eine Kurzantwort
+           am Beispiel auf, darunter der Link zur ausführlichen Lernkarte */
+        .lk-tip-ask { display: flex; flex-direction: column; gap: 8px; }
+        .lk-ask { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .lk-ask summary {
+            list-style: none; cursor: pointer; padding: 9px 12px; font-weight: 600; font-size: 0.88rem;
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
-        .lernkarte .lk-jump-btn:hover { background: #ea580c; color: #fff; }
+        .lk-ask summary::-webkit-details-marker { display: none; }
+        .lk-ask summary::after { content: '▾'; color: #ea580c; font-size: 1rem; transition: transform 0.15s; }
+        .lk-ask[open] summary::after { transform: rotate(180deg); }
+        .lk-ask-a { padding: 0 12px 10px; font-size: 0.86rem; color: #334155; line-height: 1.45; }
+        .lk-ask-more { display: block; margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #ea580c; text-decoration: none; }
+        .lk-ask-more:hover { text-decoration: underline; }
         /* Regel-Frage („Welche Regel hast du angewendet?“) */
         .lernkarte .lk-choice {
             display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
@@ -2053,6 +2058,7 @@
             nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
             subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
+            tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
             // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
             // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
             // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
@@ -4745,6 +4751,12 @@
 
             // ---- Lernkarten-System ----
             // Mapping: Sub-Skill-ID + Level → lernkartenContent-Key
+            // Rückfrage im Tipp-Kasten aufgeklappt → tip_open (zeigt, welche Unsicherheiten häufig sind)
+            _askToggled(el, target) {
+                if (!el.open) return;
+                try { tracker.tipOpen({ card: this._lernkarteCurrentId, target }); } catch (e) {}
+            },
+
             // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
             // Lernkarte direkt öffnen, am Ende die Wahl „Zurück zur Aufgabe“ (schließt den per
             // window.open geöffneten Tab) oder „Erst hier üben“ (startet das Quiz zu diesem Sub-Skill).
@@ -5286,9 +5298,9 @@
                         <div class="lk-visual" id="lkVisualKomplement"></div>
                         <p>Achte auf drei Dinge: die <strong>Halbtonschritte</strong> (4 und 8), die <strong>Feinbestimmung</strong> (groß, klein) und das <strong>Rahmenintervall</strong> (Terz = 3, Sexte = 6).</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib zum gezeigten Intervall die Halbtonschritte und den Namen des Komplementärintervalls ein. Klappt es noch nicht, schauen wir uns an einzelnen Intervallpaaren genauer an, was mit Halbtonschritten, Feinbestimmung und Rahmenintervall passiert.</div>
-                        <div class="lk-tip">
-                            <div class="lk-jump-row" style="margin-top:0">Unsicher bei großen und kleinen Intervallen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('grossklein', false)">4b — Große & kleine Intervalle</button></div>
-                            <div class="lk-jump-row">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('int3_basis', false)">3a — Halbtonschritte zählen</button></div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'grossklein')"><summary>Unsicher bei großen und kleinen Intervallen?</summary><div class="lk-ask-a">Sekunden und Terzen gibt es groß und klein, die große hat einen Halbtonschritt mehr: Die kleine Terz hat 3, die große Terz 4 Halbtonschritte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int3_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 // 4c — Muster-Karte (automatisch vor Aufgabe 5, danach als Hilfe).
