@@ -598,34 +598,6 @@
             margin-top: 0.35rem;
         }
 
-        /* Legende */
-        .st-legend {
-            margin-top: 1rem;
-            padding: 0.75rem;
-            background: #f8fafc;
-            border-radius: 0.5rem;
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .st-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.65rem;
-            color: #64748b;
-        }
-        .st-legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        .st-legend-dot.m { background: #0891b2; }
-        .st-legend-dot.a { background: white; border: 2px solid #94a3b8; }
-        .st-legend-dot.l { background: #f1f5f9; border: 2px dashed #cbd5e1; }
-        .st-legend-dot.c { background: #4f46e5; }
-
         /* Freies Üben Link */
         .st-free-practice {
             text-align: center;
@@ -1998,15 +1970,6 @@
                     <div class="st-progress-bar-bg">
                         <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
                     </div>
-                </div>
-
-
-                <!-- Legende -->
-                <div class="st-legend">
-                    <div class="st-legend-item"><div class="st-legend-dot m"></div> Gemeistert</div>
-                    <div class="st-legend-item"><div class="st-legend-dot a"></div> Verfügbar</div>
-                    <div class="st-legend-item"><div class="st-legend-dot l"></div> Lücke erkannt</div>
-                    <div class="st-legend-item"><div class="st-legend-dot c"></div> Andere App</div>
                 </div>
 
             </div>
@@ -6089,7 +6052,7 @@
 
             // Nur mit showMore: D und B beschriften, damit das Zunehmen um je
             // ein Vorzeichen am Bild ablesbar ist.
-            // showAll (Quiz, Fragen 1–5): alle 12 Dur-Namen, damit der Zirkel als
+            // showAll (Quiz, Fragen 1–7): alle 12 Dur-Namen, damit der Zirkel als
             // Werkzeug zum Ablesen da ist. Ohne dx-Versatz, damit die Lösungs-
             // Overlays aus _showQzSolution genau darüber liegen.
             const showAll = !!(opts && opts.showAll);
