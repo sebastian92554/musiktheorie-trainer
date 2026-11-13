@@ -3976,7 +3976,8 @@
             // → kein nextUnmastered-Push → Sub-Skill bleibt im Skilltree als „verfügbar" hängen.
             if (level === 'einsteiger') return ['basis', 'vorzeichen', 'noaudio'];
             if (level === 'aufsteiger') return ['basis', 'stufenpaare', 'mehr_tonarten', 'noaudio'];
-            if (level === 'bilden') return ['tastatur_einfach', 'tastatur_schwer', 'schreiben_einfach', 'schreiben_schwer', 'noaudio'];
+            // Reihenfolge wie im Skilltree — die höchste aktive Option bestimmt, welcher Sub-Skill den Score bekommt
+            if (level === 'bilden') return ['tastatur_einfach', 'schreiben_einfach', 'tastatur_schwer', 'schreiben_schwer', 'noaudio'];
             if (level === 'meister') return ['aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'verwandte', 'symmetrien'];
             return ['muster_lernen', 'muster_erkennen', 'alles', 'ohne_hilfe', 'noaudio'];  // profi
         },
@@ -7199,7 +7200,9 @@
         },
 
         getLernkarteKey(subSkillId) {
-            // Voller Schlüssel (z. B. 'ton2_stufenpaare') für Sprünge in einen anderen Knoten
+            // Voller Schlüssel (z. B. 'ton2_stufenpaare') für Sprünge in einen anderen Knoten;
+            // Knoten 1 hat keine Präfixe im Inhalt: 'ton1_basis' → 'basis'
+            if (/^ton1_/.test(subSkillId)) return subSkillId.slice(5);
             if (/^ton\d_/.test(subSkillId)) return subSkillId;
             const level = quickStart.currentLevel;
             if (level === 'einsteiger') return subSkillId;
