@@ -9231,10 +9231,11 @@ Gerät:
             // ========== rhy1: Notenwerte addieren (Einsteiger) ==========
             'basis': {
                 title: '1a — Notenwerte addieren',
-                body: `<p>Du siehst mehrere Notenwerte und rechnest ihre Dauer zusammen — wie eine Matheaufgabe.</p>
-                    <div class="lk-visual" id="lkVisualBasis"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Ganze = 4, Halbe = 2, Viertel = 1. Notenwerte halbieren sich immer.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Addiere die gezeigten Notenwerte und gib die Summe ein.</div>`,
+                body: `<p><strong>Neu:</strong> Jede Note hat eine Dauer. Gemessen wird sie in Vierteln: Die Viertelnote dauert 1, die Halbe 2, die Ganze 4.</p>
+                        <div class="lk-rule"><strong>Jeder Notenwert ist halb so lang wie der vorige:</strong> Ganze 4, Halbe 2, Viertel 1. Eine Ganze dauert also so lang wie zwei Halbe oder vier Viertel.</div>
+                        <div class="lk-visual" id="lkVisualBasis"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne die Werte der Noten zusammen und gib die Summe in Vierteln ein, z.&nbsp;B. „5“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, welche Note welche ist?</summary><div class="lk-ask-a">Die Ganze ist ein leerer Notenkopf ohne Hals, die Halbe ein leerer Kopf mit Hals, die Viertel ein gefüllter Kopf mit Hals.</div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualBasis');
                     if (el) el.innerHTML = renderLernkarteSymbols([
@@ -9244,10 +9245,12 @@ Gerät:
             },
             'pausen': {
                 title: '1c — Mit Pausen',
-                body: `<p>Pausen sind stille Stellen — sie haben aber <strong>denselben Wert</strong> wie die entsprechende Note.</p>
-                    <div class="lk-contrast" id="lkVisualPausen"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Jede Pause hat exakt denselben Wert wie ihre Note. Pausen werden genauso addiert.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne auch Pausen in die Summe mit ein.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Ganze, Halbe, Viertel und Achtel zusammenrechnen.</p>
+                        <p><strong>Neu:</strong> An einer Pause erklingt nichts. Sie dauert trotzdem und zählt mit.</p>
+                        <div class="lk-rule"><strong>Jede Pause dauert so lang wie ihre Note:</strong> Ganze Pause 4, Halbe Pause 2, Viertelpause 1, Achtelpause 0,5.</div>
+                        <div class="lk-contrast" id="lkVisualPausen"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne die Pausen mit, als wären es Noten, und gib die Summe in Vierteln ein.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei Ganzer und Halber Pause?</summary><div class="lk-ask-a">Die Ganze Pause hängt unter der 4. Linie, die Halbe Pause liegt auf der 3. Linie.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_basis')"><summary>Unsicher bei den Notenwerten?</summary><div class="lk-ask-a">Ganze 4, Halbe 2, Viertel 1, Achtel 0,5, Sechzehntel 0,25. Jeder Wert ist halb so lang wie der vorige. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_basis', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualPausen');
                     if (el) el.innerHTML = `
@@ -9271,10 +9274,12 @@ Gerät:
             },
             '8tel': {
                 title: '1b — Mit Achtelnoten',
-                body: `<p>Die Achtelnote ist <strong>halb so lang</strong> wie eine Viertel.</p>
-                    <div class="lk-visual" id="lkVisual8tel"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Achtel = 0,5 Schläge. Zwei Achtel = eine Viertel.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Achtel werden jetzt mitgerechnet.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Ganze, Halbe und Viertel zusammenrechnen.</p>
+                        <p><strong>Neu:</strong> Die Achtel ist halb so lang wie die Viertel. Sie hat ein Fähnchen; mehrere Achtel werden oft mit einem Balken verbunden.</p>
+                        <div class="lk-rule"><strong>Achtel = 0,5:</strong> Zwei Achtel ergeben eine Viertel.</div>
+                        <div class="lk-visual" id="lkVisual8tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne die Achtel mit. Kommazahlen schreibst du mit Komma, z.&nbsp;B. „2,5“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher beim Rechnen mit 0,5?</summary><div class="lk-ask-a">Fasse zwei Achtel zu einer Viertel zusammen: Viertel + Achtel + Achtel = 1 + 1 = 2.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_basis')"><summary>Unsicher bei den Notenwerten?</summary><div class="lk-ask-a">Ganze 4, Halbe 2, Viertel 1, Achtel 0,5, Sechzehntel 0,25. Jeder Wert ist halb so lang wie der vorige. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_basis', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisual8tel');
                     if (el) el.innerHTML = renderLernkarteSymbols([
@@ -9284,10 +9289,12 @@ Gerät:
             },
             '16tel': {
                 title: '1d — Mit Sechzehntelnoten',
-                body: `<p>Die Sechzehntelnote ist <strong>halb so lang</strong> wie eine Achtel.</p>
-                    <div class="lk-visual" id="lkVisual16tel"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Sechzehntel = 0,25 Schläge. Vier Sechzehntel = eine Viertel.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Sechzehntel werden jetzt mitgerechnet.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Achtel und Pausen mitrechnen.</p>
+                        <p><strong>Neu:</strong> Die Sechzehntel ist halb so lang wie die Achtel. Sie hat zwei Fähnchen bzw. zwei Balken.</p>
+                        <div class="lk-rule"><strong>Sechzehntel = 0,25:</strong> Vier Sechzehntel ergeben eine Viertel, zwei eine Achtel.</div>
+                        <div class="lk-visual" id="lkVisual16tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne die Sechzehntel mit, z.&nbsp;B. „1,75“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher beim Rechnen mit 0,25?</summary><div class="lk-ask-a">Fasse zuerst vier Sechzehntel zu einer Viertel zusammen, zwei zu einer Achtel. Was übrig bleibt, ist 0,25 oder 0,75.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher beim Rechnen mit Achteln?</summary><div class="lk-ask-a">Eine Achtel ist 0,5. Fasse zwei Achtel zu einer Viertel zusammen: Viertel + Achtel + Achtel = 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisual16tel');
                     if (el) el.innerHTML = renderLernkarteSymbols([
@@ -9300,15 +9307,12 @@ Gerät:
             'punktierte': {
                 title: '1e — Mit punktierten Noten',
                 body: `<p><strong>Du kannst schon:</strong> Ganze, Halbe, Viertel, Achtel und Sechzehntel zusammenrechnen.</p>
-                    <p><strong>Neu:</strong> Ein <strong>Punkt hinter der Note</strong> verlängert sie.</p>
-                    <div class="lk-rule"><strong>Die Verlängerung ist fest:</strong> Der Punkt wirkt bei jeder Note auf dieselbe Weise, auch bei Pausen.</div>
-                    <div style="font-weight:600;text-align:center;color:#5b21b6;margin-bottom:4px">Beispiel</div>
-                    <div class="lk-visual" id="lkVisualPunktierte"></div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne aus, wie viele Viertel eine punktierte Note wert ist. Klappt es noch nicht, schauen wir uns an einzelnen Noten genauer an, was der Punkt jedes Mal hinzufügt.</div>
-                    <div class="lk-tip lk-tip-ask">
-                        <details class="lk-ask" ontoggle="app._askToggled(this, '8tel')"><summary>Unsicher bei Achteln?</summary><div class="lk-ask-a">Eine Achtel dauert halb so lang wie eine Viertel, also 0,5. Zwei Achtel ergeben eine Viertel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('8tel', false); return false">Ausführlich nachlesen ›</a></div></details>
-                        <details class="lk-ask" ontoggle="app._askToggled(this, '16tel')"><summary>Unsicher bei Sechzehnteln?</summary><div class="lk-ask-a">Eine Sechzehntel dauert halb so lang wie eine Achtel, also 0,25. Vier Sechzehntel ergeben eine Viertel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('16tel', false); return false">Ausführlich nachlesen ›</a></div></details>
-                    </div>`,
+                        <p><strong>Neu:</strong> Ein <strong>Punkt hinter der Note</strong> verlängert sie.</p>
+                        <div class="lk-rule"><strong>Die Verlängerung ist fest:</strong> Der Punkt wirkt bei jeder Note auf dieselbe Weise, auch bei Pausen.</div>
+                        <div style="font-weight:600;text-align:center;color:#5b21b6;margin-bottom:4px">Beispiel</div>
+                        <div class="lk-visual" id="lkVisualPunktierte"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne aus, wie viele Viertel eine punktierte Note wert ist. Klappt es noch nicht, schauen wir uns an einzelnen Noten genauer an, was der Punkt jedes Mal hinzufügt.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher bei Achteln?</summary><div class="lk-ask-a">Eine Achtel dauert halb so lang wie eine Viertel, also 0,5. Zwei Achtel ergeben eine Viertel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_16tel')"><summary>Unsicher bei Sechzehnteln?</summary><div class="lk-ask-a">Eine Sechzehntel dauert halb so lang wie eine Achtel, also 0,25. Vier Sechzehntel ergeben eine Viertel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_16tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualPunktierte');
                     if (!el) return;
@@ -9377,11 +9381,12 @@ Gerät:
             },
             'triolen': {
                 title: '1f — Mit Triolen',
-                body: `<p>Bei Triolen werden <strong>drei Noten</strong> in die Zeit gespielt, die normalerweise <strong>zwei Noten</strong> gleichen Typs einnehmen. Du erkennst sie an der <strong>3</strong> über den Noten.</p>
-                    <div class="lk-visual" id="lkVisualTriolen"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Eine Triolen-Gruppe dauert immer so lang wie <strong>zwei reguläre Noten</strong> gleichen Typs. Du rechnest also nur den Wert der regulären Zweiergruppe.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Achtel- und 16tel-Triolen erkennst du am <strong>Balken mit der 3</strong>. Viertel- und Halbe-Triolen haben stattdessen eine <strong>Klammer mit der 3</strong>.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Triolen werden jetzt mitgerechnet. Achte auf die 3 über den Noten.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Noten mit und ohne Punkt zusammenrechnen.</p>
+                        <p><strong>Neu:</strong> Eine <strong>Triole</strong> sind drei Noten mit einer 3 darüber. Zusammen dauern sie so lang wie zwei Noten derselben Art.</p>
+                        <div class="lk-rule"><strong>Die Triole zählt wie zwei Noten:</strong> Achteltriole = 2 Achtel = 1. Vierteltriole = 2 Viertel = 2. Halbe Triole = 2 Halbe = 4. 16tel-Triole = 2 Sechzehntel = 0,5.</div>
+                        <div class="lk-visual" id="lkVisualTriolen"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne jede Triole als Ganzes mit. Achtel- und 16tel-Triolen erkennst du am Balken mit der 3, Viertel- und Halbe-Triolen an der Klammer mit der 3.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher, warum drei Noten wie zwei zählen?</summary><div class="lk-ask-a">Die 3 bedeutet: Drei Noten teilen sich die Zeit von zwei. Drei Achtel mit einer 3 dauern so lang wie zwei normale Achtel, also 1 Viertel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualTriolen');
                     if (el) el.innerHTML = `
@@ -9413,21 +9418,16 @@ Gerät:
                         </div>`;
                 }
             },
-            'hilfen_aus': {
-                title: '1g — Ohne Legende',
-                body: `<p>Die <strong>Werteanzeige über den Noten</strong> wird jetzt ausgeblendet. Du rechnest die Notenwerte rein aus dem Notenbild zusammen.</p>
-                    <div class="lk-rule"><strong>Merke:</strong> Du kennst die Werte bereits: Ganze = 4, Halbe = 2, Viertel = 1, Achtel = 0,5, Sechzehntel = 0,25. Punktierte Noten = Wert × 1,5.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Addiere die Notenwerte wie gewohnt — nur ohne Hilfsanzeige.</div>`
-            },
 
             // ========== rhy2: Taktarten erkennen (Taktarten) ==========
             'rhy2_regelmaessig': {
                 title: '2a — Taktarten erkennen',
-                body: `<p>Die <strong>Taktart</strong> verrät, wie viele Schläge in einen Takt passen.</p>
-                    <div class="lk-visual" id="lkVisualTaktarten"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Die <strong>untere Zahl</strong> der Taktart gibt den Notenwert des Grundschlags an (4 = Viertel, 8 = Achtel). Die <strong>obere Zahl</strong> verrät, wie viele davon in den Takt passen.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Addiere alle Notenwerte im Takt — die Summe verrät die Taktart.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Taktart des gezeigten Rhythmus.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Notenwerte und Pausen in Vierteln zusammenrechnen.</p>
+                        <p><strong>Neu:</strong> Die <strong>Taktart</strong> steht am Anfang eines Stücks. Die obere Zahl sagt, wie viele Schläge ein Takt hat, die untere, welcher Notenwert ein Schlag ist (4 = Viertel).</p>
+                        <div class="lk-rule"><strong>Der Takt ist immer voll:</strong> Alle Noten und Pausen eines Takts ergeben zusammen genau die obere Zahl. Im 3/4-Takt sind es 3 Viertel.</div>
+                        <div class="lk-visual" id="lkVisualTaktarten"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Die Taktart fehlt. Rechne alle Noten und Pausen im Takt zusammen und wähle 2/4, 3/4 oder 4/4.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher beim Rechnen mit Achteln?</summary><div class="lk-ask-a">Eine Achtel ist 0,5. Fasse zwei Achtel zu einer Viertel zusammen: Viertel + Achtel + Achtel = 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_pausen')"><summary>Unsicher bei den Pausen?</summary><div class="lk-ask-a">Jede Pause dauert so lang wie ihre Note: Viertelpause 1, Halbe Pause 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_pausen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualTaktarten');
                     if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
@@ -9439,10 +9439,12 @@ Gerät:
             },
             'rhy2_unregelmaessig1': {
                 title: '2b — Unregelmäßige Taktarten',
-                body: `<p>Jetzt kommen Taktarten hinzu, deren Schlagzahl <strong>nicht durch 2 oder 3 teilbar</strong> ist.</p>
-                    <div class="lk-visual" id="lkVisualUnreg1"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> 5/4 und 7/4 sind unregelmäßig — sie lassen sich nicht gleichmäßig in 2er- oder 3er-Gruppen aufteilen.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Taktart — auch bei 5 oder 7 Schlägen pro Takt.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> 2/4, 3/4 und 4/4 an der Summe der Notenwerte im Takt erkennen.</p>
+                        <p><strong>Neu:</strong> Es gibt auch Takte mit 5 oder 7 Vierteln. Man nennt sie <strong>unregelmäßig</strong>, weil sie sich nicht in gleich große Zweier- oder Dreiergruppen teilen lassen.</p>
+                        <div class="lk-rule"><strong>Die Regel bleibt dieselbe:</strong> Die Summe der Viertel ist die obere Zahl. 5 Viertel ergeben 5/4.</div>
+                        <div class="lk-visual" id="lkVisualUnreg1"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne zusammen und wähle 4/4, 5/4 oder 7/4.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy2_regelmaessig')"><summary>Unsicher bei der Taktart?</summary><div class="lk-ask-a">Die obere Zahl sagt, wie viele Schläge ein Takt hat, die untere, welcher Notenwert ein Schlag ist (4 = Viertel). Im 3/4-Takt passen genau 3 Viertel hinein. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy2_regelmaessig', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher beim Rechnen mit Achteln?</summary><div class="lk-ask-a">Eine Achtel ist 0,5. Fasse zwei Achtel zu einer Viertel zusammen: Viertel + Achtel + Achtel = 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualUnreg1');
                     if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
@@ -9453,10 +9455,12 @@ Gerät:
             },
             'rhy2_unregelmaessig2': {
                 title: '2c — Achtel-Taktarten',
-                body: `<p>Bei diesen Taktarten ist die <strong>Grundeinheit eine Achtel</strong> statt einer Viertel.</p>
-                    <div class="lk-visual" id="lkVisualUnreg2"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Die untere Zahl ist 8 — also bekommt die Achtel einen Schlag. 7/8 = 3,5 Viertel, 9/8 = 4,5 Viertel.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Taktart — achte auf die untere Zahl!</div>`,
+                body: `<p><strong>Du kannst schon:</strong> 4/4, 5/4 und 7/4 an der Summe der Notenwerte im Takt erkennen.</p>
+                        <p><strong>Neu:</strong> Bei 7/8 und 9/8 ist die untere Zahl 8: Ein Schlag ist eine Achtel. Ein 7/8-Takt enthält 7 Achtel, also 3,5 Viertel.</p>
+                        <div class="lk-rule"><strong>Ganze Zahl oder ,5?</strong> Rechne in Vierteln: 3,5 → 7/8, 4,5 → 9/8, 5 → 5/4, 7 → 7/4.</div>
+                        <div class="lk-visual" id="lkVisualUnreg2"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne zusammen und wähle 5/4, 7/4, 7/8 oder 9/8.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy2_regelmaessig')"><summary>Unsicher bei der Taktart?</summary><div class="lk-ask-a">Die obere Zahl sagt, wie viele Schläge ein Takt hat, die untere, welcher Notenwert ein Schlag ist (4 = Viertel). Im 3/4-Takt passen genau 3 Viertel hinein. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy2_regelmaessig', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher beim Rechnen mit Achteln?</summary><div class="lk-ask-a">Eine Achtel ist 0,5. Fasse zwei Achtel zu einer Viertel zusammen: Viertel + Achtel + Achtel = 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualUnreg2');
                     if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
@@ -9469,11 +9473,12 @@ Gerät:
             // ========== rhy3: Zählzeiten bestimmen (Fortgeschrittener) ==========
             'rhy3_basis': {
                 title: '3a — Zählzeiten bestimmen',
-                body: `<p>Du siehst einen Takt und bestimmst die <strong>Zählzeit der markierten Note</strong> (violett + roter Pfeil).</p>
-                    <div class="lk-visual" id="lkVisualRhy3Basis"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Im 4/4-Takt gibt es die Zählzeiten 1, 2, 3, 4. Jede Viertelnote bekommt einen Schlag.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Nutze das Raster im Takt — jede gestrichelte Linie markiert einen Schlag. Zähle von links und erschließe, auf welcher Zählzeit die markierte Note beginnt.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein, auf der die markierte Note beginnt.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Notenwerte in Vierteln zusammenrechnen.</p>
+                        <p><strong>Neu:</strong> Jetzt bestimmst du, auf welchem Schlag eine Note beginnt. Im 4/4-Takt zählt man 4 Grundschläge: 1, 2, 3, 4.</p>
+                        <div class="lk-rule"><strong>Zähl Note für Note mit:</strong> Eine Halbe dauert zwei Schläge. Steht sie auf 1, beginnt die nächste Note auf 3.</div>
+                        <div class="lk-visual" id="lkVisualRhy3Basis"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit der markierten Note ein, z.&nbsp;B. „3“. In den ersten Aufgaben zeigen gestrichelte Linien die Schläge, danach zählst du ohne sie. Später wechselt die Taktart auf 3/4 oder 5/4.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_basis')"><summary>Unsicher bei den Notenwerten?</summary><div class="lk-ask-a">Ganze 4, Halbe 2, Viertel 1, Achtel 0,5, Sechzehntel 0,25. Jeder Wert ist halb so lang wie der vorige. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_basis', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher beim Zuhören?</summary><div class="lk-ask-a">Über das Lautsprecher-Symbol hörst du den Takt. Die markierte Note klingt anders als die übrigen.</div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy3Basis');
                     if (el) {
@@ -9526,16 +9531,20 @@ Gerät:
             },
             'rhy3_pausen': {
                 title: '3b — Mit Pausen',
-                body: `<p>Auch Pausen haben eine Zählzeit — die Musik <strong>zählt durch stille Stellen weiter</strong>.</p>
-                    <div class="lk-rule"><strong>Merke:</strong> Die Zählzeiten laufen durch Pausen weiter. Eine Pause auf Schlag 2 hat die Zählzeit 2.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Zählzeit auch bei markierten Pausen.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Zählzeiten von Noten bestimmen.</p>
+                        <p><strong>Neu:</strong> Auch Pausen werden mitgezählt. Ist eine Pause markiert, bestimmst du ihre Zählzeit.</p>
+                        <div class="lk-rule"><strong>Weiterzählen, auch wenn nichts klingt:</strong> Viertelpause auf 1, danach eine Halbe: Die Halbe beginnt auf 2.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein, auch wenn eine Pause markiert ist.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_pausen')"><summary>Unsicher bei den Pausen?</summary><div class="lk-ask-a">Jede Pause dauert so lang wie ihre Note: Viertelpause 1, Halbe Pause 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_pausen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             'rhy3_8tel': {
                 title: '3c — Mit Achtelnoten',
-                body: `<p>Achtel liegen <strong>zwischen den Hauptschlägen</strong> — auf den „und"-Positionen.</p>
-                    <div class="lk-visual" id="lkVisualRhy3_8tel"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Das Raster wird feiner — zwischen den Hauptschlägen erscheint je eine dünnere Hilfslinie für das „und".</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein — z.B. „2und" für eine Achtel zwischen Schlag 2 und 3.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Zählzeiten auf den Schlägen bestimmen.</p>
+                        <p><strong>Neu:</strong> Achtel teilen jeden Schlag in zwei Hälften. Die zweite Hälfte heißt „und“: 1 und 2 und 3 und 4 und.</p>
+                        <div class="lk-rule"><strong>Zähl in Hälften mit:</strong> Eine Viertel geht einen ganzen Schlag weiter, eine Achtel nur bis zum nächsten „und“. Viertel auf 1, Achtel auf 2: Die Note danach beginnt auf „2 und“.</div>
+                        <div class="lk-visual" id="lkVisualRhy3_8tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein, z.&nbsp;B. „2 und“ oder kurz „2u“ bzw. „2+“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher beim Rechnen mit Achteln?</summary><div class="lk-ask-a">Eine Achtel ist 0,5. Fasse zwei Achtel zu einer Viertel zusammen: Viertel + Achtel + Achtel = 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy3_8tel');
                     if (el) {
@@ -9608,10 +9617,12 @@ Gerät:
             },
             'rhy3_16tel': {
                 title: '3d — Mit Sechzehntelnoten',
-                body: `<p>Jeder Schlag wird jetzt in <strong>4 Positionen</strong> unterteilt.</p>
-                    <div class="lk-visual" id="lkVisualRhy3_16tel"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Das Raster wird nochmals feiner — jeder Schlag hat 4 Teile: Zahl, e, und, te.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein — z.B. „1e" oder „3und".</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Zählzeiten mit „und“ bestimmen.</p>
+                        <p><strong>Neu:</strong> Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te.</p>
+                        <div class="lk-rule"><strong>Zähl in Vierteln eines Schlags mit:</strong> Eine Sechzehntel geht einen Teil weiter, eine Achtel zwei, eine Viertel alle vier. Viertel auf 1, Viertel auf 2, Sechzehntel auf 3: Die Note danach beginnt auf „3 e“.</div>
+                        <div class="lk-visual" id="lkVisualRhy3_16tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein, z.&nbsp;B. „3 e“, „1 und“ oder „4 te“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_16tel')"><summary>Unsicher beim Rechnen mit Sechzehnteln?</summary><div class="lk-ask-a">Eine Sechzehntel ist 0,25. Vier Sechzehntel ergeben eine Viertel, zwei eine Achtel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_16tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_8tel')"><summary>Unsicher beim „und“?</summary><div class="lk-ask-a">Achtel teilen jeden Schlag in zwei Hälften: 1 und 2 und 3 und 4 und. Zähl vom Taktanfang Note für Note mit: Nach einer Viertel auf 1 und einer Achtel auf 2 bist du bei „2 und“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy3_16tel');
                     if (el) {
@@ -9697,26 +9708,30 @@ Gerät:
             },
             'rhy3_punktierte': {
                 title: '3e — Mit punktierten Noten',
-                body: `<p>Punktierte Noten dauern <strong>1,5× so lang</strong> — sie verschieben die nachfolgenden Zählzeiten.</p>
-                    <div class="lk-rule"><strong>Merke:</strong> Eine punktierte Viertel dauert 1,5 Schläge. Die nächste Note beginnt nicht auf einem regulären Schlag!</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Nutze das Raster! Es zeigt genau, wo die verschobene Note beginnt.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Zählzeit — auch wenn sie durch Punktierung verschoben ist.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Zählzeiten mit e, und und te bestimmen.</p>
+                        <p><strong>Neu:</strong> Jetzt kommen punktierte Noten und Pausen vor. Nach ihnen beginnt die nächste Note oft zwischen den Schlägen.</p>
+                        <div class="lk-rule"><strong>Der Punkt zählt mit:</strong> Eine punktierte Viertel dauert einen Schlag und eine Hälfte. Steht sie auf 1, beginnt die nächste Note auf „2 und“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit der markierten Note oder Pause ein.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_punktierte')"><summary>Unsicher bei punktierten Noten?</summary><div class="lk-ask-a">Der Punkt fügt die Hälfte des Werts hinzu: punktierte Halbe 2 + 1 = 3, punktierte Viertel 1 + 0,5 = 1,5. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_punktierte', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_16tel')"><summary>Unsicher bei „e“ und „te“?</summary><div class="lk-ask-a">Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te. Zähl vom Taktanfang Note für Note mit: Nach zwei Vierteln und einer Sechzehntel auf 3 bist du bei „3 e“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_16tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             'rhy3_noaudio': {
                 title: '3f — Ohne Hörbeispiel',
-                body: `<p>Nun kannst du den Rhythmus <strong>nicht mehr vorspielen</strong> — ein rein <strong>theoretisches Errechnen</strong> der Zählzeit ist nötig.</p>
-                    <div class="lk-rule"><strong>Merke:</strong> Zähle die Notenwerte von links nach rechts zusammen und leite daraus die Position der markierten Note ab.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Nutze das Raster und zähle die Schläge im Kopf mit.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme die Zählzeit der markierten Note — ohne Audio-Hilfe.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Zählzeiten auch nach punktierten Noten bestimmen.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr.</p>
+                        <div class="lk-rule"><strong>Immer gleich vorgehen:</strong> Vom Taktanfang Note für Note mitzählen (1 e und te 2 e und te …), bis du bei der markierten Note bist. Wo du dann stehst, ist ihre Zählzeit.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zählzeit ein.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_16tel')"><summary>Unsicher bei „e“ und „te“?</summary><div class="lk-ask-a">Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te. Zähl vom Taktanfang Note für Note mit: Nach zwei Vierteln und einer Sechzehntel auf 3 bist du bei „3 e“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_16tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_punktierte')"><summary>Unsicher bei punktierten Noten?</summary><div class="lk-ask-a">Der Punkt fügt die Hälfte des Werts hinzu: punktierte Halbe 2 + 1 = 3, punktierte Viertel 1 + 0,5 = 1,5. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_punktierte', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
 
             // ========== rhy4: Rhythmussilben (Profi) ==========
             'rhy4_basis': {
                 title: '4a — Rhythmussilben sprechen',
-                body: `<p>Jede Note bekommt eine <strong>Sprechsilbe</strong>. So lassen sich Rhythmen laut vorlesen. Es gibt kein Raster mehr — du musst die Position selbst erkennen.</p>
-                    <div class="lk-visual" id="lkVisualRhy4_8tel"></div>
-                    <div class="lk-rule"><strong>Regel:</strong> Note auf dem Schlag → <strong>„du"</strong>. Note auf dem „und" → <strong>„dei"</strong>.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Rhythmussilbe ein, die zur markierten Note gehört.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Zählzeiten bestimmen, auch auf dem „und“.</p>
+                        <p><strong>Neu:</strong> In der Rhythmussprache bekommt jede Note eine Silbe. Welche, hängt davon ab, wo die Note beginnt. Ein Raster gibt es hier nicht.</p>
+                        <div class="lk-rule"><strong>Auf dem Schlag oder auf dem „und“:</strong> Noten auf dem Schlag heißen „du“. Noten neben dem Schlag, auf dem „und“, heißen „dei“. Zwei Achtel ab Schlag 3: „du dei“.</div>
+                        <div class="lk-visual" id="lkVisualRhy4_8tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Silbe der markierten Note ein: „du“ oder „dei“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_8tel')"><summary>Unsicher, ob die Note auf dem Schlag oder dem „und“ beginnt?</summary><div class="lk-ask-a">Zähl vom Taktanfang Note für Note mit: 1 und 2 und … Wo du bei der markierten Note stehst, dort beginnt sie. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy4_8tel');
                     if (el) {
@@ -9772,10 +9787,12 @@ Gerät:
             },
             'rhy4_16tel': {
                 title: '4b — Mit Sechzehntelnoten',
-                body: `<p>Vier Sechzehntel auf einem Schlag bekommen die Silben <strong>du te dei te</strong>.</p>
-                    <div class="lk-visual" id="lkVisualRhy4_16tel"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> du = Schlag, te = „e"-Position, dei = „und"-Position, te = letzte „te"-Position.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die richtige Silbe ein: du, te oder dei.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Die Silben „du“ und „dei“.</p>
+                        <p><strong>Neu:</strong> Sechzehntel liegen zwischen „du“ und „dei“.</p>
+                        <div class="lk-rule"><strong>Die Sechzehntel zwischen „du“ und „dei“ werden mit „te“ aufgefüllt:</strong> du te dei te.</div>
+                        <div class="lk-visual" id="lkVisualRhy4_16tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Silbe der markierten Note ein: „du“, „te“ oder „dei“.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_16tel')"><summary>Unsicher bei „e“ und „te“?</summary><div class="lk-ask-a">Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te. Zähl vom Taktanfang Note für Note mit: Nach zwei Vierteln und einer Sechzehntel auf 3 bist du bei „3 e“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_16tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy4_16tel');
                     if (el) {
@@ -9835,17 +9852,20 @@ Gerät:
             },
             'rhy4_punktierte': {
                 title: '4c — Mit punktierten Noten',
-                body: `<p>Die Silbe richtet sich nach der <strong>Position des Notenanfangs</strong>, nicht nach der Dauer.</p>
-                    <div class="lk-rule"><strong>Merke:</strong> Eine punktierte Note auf dem Schlag = „du". Die Dauer spielt für die Silbe keine Rolle — nur die Startposition zählt.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Durch die Punktierung beginnt die Folgenote auf einer ungewöhnlichen Position — deren Silbe ändert sich!</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Silbe passend zur Startposition der markierten Note ein.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Die Silben du, te und dei.</p>
+                        <p><strong>Neu:</strong> Jetzt kommen punktierte Noten vor. Die Silbe hängt weiter nur vom Beginn der Note ab, nicht von ihrer Dauer.</p>
+                        <div class="lk-rule"><strong>Erst die Zählzeit, dann die Silbe:</strong> Eine punktierte Viertel auf 1 dauert bis „2 und“. Die Achtel danach beginnt auf „2 und“ und heißt deshalb „dei“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Silbe der markierten Note ein.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_punktierte')"><summary>Unsicher bei punktierten Noten?</summary><div class="lk-ask-a">Der Punkt fügt die Hälfte des Werts hinzu: punktierte Halbe 2 + 1 = 3, punktierte Viertel 1 + 0,5 = 1,5. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_punktierte', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_16tel')"><summary>Unsicher bei „e“ und „te“?</summary><div class="lk-ask-a">Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te. Zähl vom Taktanfang Note für Note mit: Nach zwei Vierteln und einer Sechzehntel auf 3 bist du bei „3 e“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_16tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             'rhy4_triolen': {
                 title: '4d — Mit Triolen',
-                body: `<p>Triolen bekommen eigene Silben: <strong>du-da-di</strong>. „du" fällt auf den Schlag, „da" und „di" liegen dazwischen — sie fallen <strong>nicht</strong> mit „dei" oder „te" zusammen.</p>
-                    <div class="lk-visual" id="lkVisualRhy4Triolen"></div>
-                    <div class="lk-rule"><strong>Regel:</strong> Erste Triolen-Note → <strong>„du"</strong>. Zweite → <strong>„da"</strong>. Dritte → <strong>„di"</strong>.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib „du", „da" oder „di" ein — je nach Position innerhalb der Triole.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Silben für Achtel und Sechzehntel.</p>
+                        <p><strong>Neu:</strong> Triolen haben eigene Silben: <strong>du da di</strong>. „da“ und „di“ liegen an anderen Stellen als „dei“ und „te“.</p>
+                        <div class="lk-rule"><strong>Die Silbe richtet sich nach der Stelle in der Triole:</strong> erste Note „du“, zweite „da“, dritte „di“. Das gilt auch für Viertel- und Halbe-Triolen.</div>
+                        <div class="lk-visual" id="lkVisualRhy4Triolen"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib „du“, „da“ oder „di“ ein, wenn eine Triolennote markiert ist.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_triolen')"><summary>Unsicher bei Triolen?</summary><div class="lk-ask-a">Drei Noten mit einer 3 dauern so lang wie zwei derselben Art. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_triolen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy4Triolen');
                     if (el) {
@@ -9903,20 +9923,22 @@ Gerät:
             },
             'rhy4_noaudio': {
                 title: '4e — Ohne Hörbeispiel',
-                body: `<p>Der Audio-Button ist jetzt <strong>deaktiviert</strong> — du kannst dir den Rhythmus nicht mehr vorspielen lassen. Die Rhythmussilbe muss rein aus der <strong>Notation</strong> abgeleitet werden.</p>
-                    <div class="lk-rule"><strong>Merke:</strong> Bestimme zuerst die Position der markierten Note (Schlag, und, e, te) und leite daraus die Silbe ab: du, dei, te — oder bei Triolen: du, da, di.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Zähle die Notenwerte von links nach rechts zusammen, um die Position der markierten Note zu errechnen.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Rhythmussilbe der markierten Note ein — ohne Audio-Hilfe.</div>`
+                body: `<p><strong>Du kannst schon:</strong> Silben für alle Notenwerte, punktierte Noten und Triolen.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Vom Taktanfang mitzählen bis zur markierten Note → Silbe bestimmen: auf dem Schlag „du“, auf dem „und“ „dei“, die Sechzehntel dazwischen „te“; in der Triole du, da, di.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Silbe der markierten Note ein.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_16tel')"><summary>Unsicher bei „e“ und „te“?</summary><div class="lk-ask-a">Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te. Zähl vom Taktanfang Note für Note mit: Nach zwei Vierteln und einer Sechzehntel auf 3 bist du bei „3 e“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_16tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy4_triolen')"><summary>Unsicher bei den Triolen-Silben?</summary><div class="lk-ask-a">Erste Note „du“, zweite „da“, dritte „di“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy4_triolen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
 
             // ========== rhy5: Fehlenden Notenwert ergänzen (Gap-Fill) ==========
             'rhy5_8tel': {
                 title: '5a — Fehlenden Notenwert ergänzen',
-                body: `<p>Du siehst einen Takt mit Noten — aber er ist <strong>nicht voll</strong>. Rechne die vorhandenen Notenwerte zusammen und bestimme, welcher Notenwert fehlt.</p>
-                    <div class="lk-visual" id="lkVisualRhy5Basis"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Taktart minus Summe der vorhandenen Noten = fehlender Wert.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Die <strong>untere Zahl</strong> der Taktart gibt den Notenwert des Grundschlags an (4 = Viertel, 8 = Achtel). Die <strong>obere Zahl</strong> verrät, wie viele davon in den Takt passen.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Button mit dem richtigen Notenwert.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Notenwerte zusammenrechnen und die Taktart lesen.</p>
+                        <p><strong>Neu:</strong> In einem Takt fehlt eine Note. Du bestimmst, welche.</p>
+                        <div class="lk-rule"><strong>Was fehlt, ist der Rest:</strong> obere Zahl minus Summe der vorhandenen Werte. Der Rest ist der fehlende Notenwert.</div>
+                        <div class="lk-visual" id="lkVisualRhy5Basis"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den fehlenden Notenwert: Halbe, Viertel oder Achtel. Später wechselt die Taktart.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy2_regelmaessig')"><summary>Unsicher bei der Taktart?</summary><div class="lk-ask-a">Die obere Zahl sagt, wie viele Schläge ein Takt hat, die untere, welcher Notenwert ein Schlag ist (4 = Viertel). Im 3/4-Takt passen genau 3 Viertel hinein. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy2_regelmaessig', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher beim Rechnen mit Achteln?</summary><div class="lk-ask-a">Eine Achtel ist 0,5. Fasse zwei Achtel zu einer Viertel zusammen: Viertel + Achtel + Achtel = 2. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy5Basis');
                     if (el) {
@@ -9980,10 +10002,12 @@ Gerät:
             },
             'rhy5_punktierte': {
                 title: '5b — Mit punktierten Noten',
-                body: `<p>Jetzt können auch <strong>punktierte Noten</strong> im Takt vorkommen oder als Lösung gefragt sein.</p>
-                    <div class="lk-visual" id="lkVisualRhy5Punkt"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Ein Punkt verlängert die Note um die Hälfte ihres Werts. Punktierte Halbe = 2 + 1 = 3, punktierte Viertel = 1 + 0,5 = 1,5.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Der Button-Pool ist größer — rechne genau und wähle den einen fehlenden Notenwert.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Eine fehlende Halbe, Viertel oder Achtel bestimmen.</p>
+                        <p><strong>Neu:</strong> Jetzt kann auch eine punktierte Halbe oder punktierte Viertel fehlen.</p>
+                        <div class="lk-rule"><strong>Der Rest bestimmt die Note:</strong> Rest 1,5 → punktierte Viertel, Rest 3 → punktierte Halbe.</div>
+                        <div class="lk-visual" id="lkVisualRhy5Punkt"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den fehlenden Notenwert.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_punktierte')"><summary>Unsicher bei punktierten Noten?</summary><div class="lk-ask-a">Der Punkt fügt die Hälfte des Werts hinzu: punktierte Halbe 2 + 1 = 3, punktierte Viertel 1 + 0,5 = 1,5. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_punktierte', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy5Punkt');
                     if (el) el.innerHTML = `
@@ -9998,10 +10022,12 @@ Gerät:
             },
             'rhy5_16tel': {
                 title: '5c — Mit Sechzehntelnoten',
-                body: `<p>Sechzehntel und punktierte Achtel kommen als mögliche fehlende Werte hinzu.</p>
-                    <div class="lk-visual" id="lkVisualRhy5_16tel"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Sechzehntel = 0,25. Achte auf kleine Unterschiede — die Differenz kann jetzt auch 0,25 sein!</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Pool wächst auf 6 Notenwerte. Exakt rechnen!</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Fehlende Noten mit und ohne Punkt bestimmen.</p>
+                        <p><strong>Neu:</strong> Jetzt kann auch eine Sechzehntel oder eine punktierte Achtel fehlen.</p>
+                        <div class="lk-rule"><strong>Kleiner Rest, kleine Note:</strong> Rest 0,25 → Sechzehntel, Rest 0,5 → Achtel, Rest 0,75 → punktierte Achtel.</div>
+                        <div class="lk-visual" id="lkVisualRhy5_16tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den fehlenden Notenwert.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_16tel')"><summary>Unsicher beim Rechnen mit Sechzehnteln?</summary><div class="lk-ask-a">Eine Sechzehntel ist 0,25. Vier Sechzehntel ergeben eine Viertel, zwei eine Achtel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_16tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy5_16tel');
                     if (el) el.innerHTML = `
@@ -10020,12 +10046,12 @@ Gerät:
             // ========== rhy6: Rhythmusdiktat (Dictation) ==========
             'rhy6_8tel': {
                 title: '6a — Rhythmusdiktat',
-                body: `<p>Tippe auf den <strong>Audio-Button</strong>, um den Rhythmus zu hören. Ein <strong>Einzähler</strong> gibt dir das Tempo vor. Baue dann den Takt <strong>Note für Note</strong> nach, indem du auf die Noten-Buttons tippst.</p>
-                    <p>Der <strong>Grundschlag</strong> läuft danach leise weiter — derselbe Klang wie im Einzähler. Mit dem Schalter <strong>Grundpuls</strong> neben dem Tempo kannst du ihn abstellen.</p>
-                    <div class="lk-visual" id="lkVisualRhy6Basis"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Höre genau zu und baue den Takt von links nach rechts auf. Der Fortschrittsbalken zeigt, wie voll der Takt ist.</div>
-                    <div class="lk-tip"><strong>Tipp:</strong> Du kannst den Rhythmus beliebig oft anhören. Mit „Rückgängig" entfernst du die letzte Note.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Wenn der Takt voll ist, tippe „Prüfen".</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Notenwerte zusammenrechnen und Zählzeiten bestimmen.</p>
+                        <p><strong>Neu:</strong> Du hörst einen Takt und schreibst ihn auf. Ein Einzähler gibt das Tempo vor, danach läuft der Grundschlag leise weiter. Mit dem Schalter „Grundpuls“ kannst du ihn abstellen.</p>
+                        <div class="lk-rule"><strong>Am Grundschlag messen:</strong> Ein Ton, der einen Schlag dauert, ist eine Viertel. Zwei Töne pro Schlag sind Achtel, ein Ton über zwei Schläge ist eine Halbe.</div>
+                        <div class="lk-visual" id="lkVisualRhy6Basis"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe die Noten der Reihe nach an. Werte, die nicht mehr in den Takt passen, sind gesperrt. Ist der Takt voll, tippe „Prüfen“. Anhören kannst du so oft du willst, „Rückgängig“ entfernt die letzte Note.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_8tel')"><summary>Unsicher beim Mitzählen?</summary><div class="lk-ask-a">Zähle beim Hören leise mit: 1 und 2 und 3 und 4 und. Beginnt ein Ton auf dem „und“, ist davor eine Achtel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_8tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy6Basis');
                     if (el) {
@@ -10107,10 +10133,12 @@ Gerät:
             },
             'rhy6_punktierte': {
                 title: '6b — Mit punktierten Noten',
-                body: `<p>Punktierte Noten kommen als neue Bausteine hinzu.</p>
-                    <div class="lk-visual" id="lkVisualRhy6Punkt"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Punkt. Halbe = 3 Schläge, Punkt. Viertel = 1,5 Schläge. Höre auf längere Töne!</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Buttons, die nicht in den Restplatz passen, werden automatisch deaktiviert.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Halbe, Viertel und Achtel nach Gehör aufschreiben.</p>
+                        <p><strong>Neu:</strong> Jetzt kommen punktierte Halbe und punktierte Viertel vor.</p>
+                        <div class="lk-rule"><strong>Lang – kurz:</strong> Punktierte Viertel und Achtel klingen „lang – kurz“ und füllen zusammen zwei Schläge. Eine punktierte Halbe dauert drei Schläge.</div>
+                        <div class="lk-visual" id="lkVisualRhy6Punkt"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Baue den Takt mit den Notenknöpfen nach.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_punktierte')"><summary>Unsicher bei punktierten Noten?</summary><div class="lk-ask-a">Der Punkt fügt die Hälfte des Werts hinzu: punktierte Halbe 2 + 1 = 3, punktierte Viertel 1 + 0,5 = 1,5. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_punktierte', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy6Punkt');
                     if (el) el.innerHTML = `
@@ -10125,10 +10153,12 @@ Gerät:
             },
             'rhy6_16tel': {
                 title: '6c — Mit Sechzehntelnoten',
-                body: `<p>Sechzehntel und punktierte Achtel erweitern den Pool.</p>
-                    <div class="lk-visual" id="lkVisualRhy6_16tel"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Sechzehntel = 0,25, Punkt. Achtel = 0,75. Höre auf schnelle Noten!</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Größerer Pool — genau hinhören und den Takt Schritt für Schritt aufbauen.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Noten mit und ohne Punkt nach Gehör aufschreiben.</p>
+                        <p><strong>Neu:</strong> Jetzt kommen Sechzehntel und punktierte Achtel vor.</p>
+                        <div class="lk-rule"><strong>Vier Töne pro Schlag sind Sechzehntel.</strong> Punktierte Achtel und Sechzehntel klingen „lang – kurz“ innerhalb eines Schlags.</div>
+                        <div class="lk-visual" id="lkVisualRhy6_16tel"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Baue den Takt mit den Notenknöpfen nach.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_16tel')"><summary>Unsicher beim Rechnen mit Sechzehnteln?</summary><div class="lk-ask-a">Eine Sechzehntel ist 0,25. Vier Sechzehntel ergeben eine Viertel, zwei eine Achtel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_16tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 render() {
                     const el = document.getElementById('lkVisualRhy6_16tel');
                     if (el) el.innerHTML = `
