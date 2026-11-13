@@ -4787,8 +4787,8 @@
                             : ['g3', 'k2', 'r4', 'r1'].map(s => ({ source: byShort(s), answer: byShort(this.int4Pools.komplementMap[s].label) }));
                         tbody.innerHTML = pairs.map(p =>
                             `<tr style="border-top:1px solid #fed7aa"><td>${p.source.label}</td><td>${p.answer.label}</td>` +
-                            `<td style="text-align:center">${p.source.size} + ${p.answer.size} = ${p.source.size + p.answer.size}</td>` +
-                            `<td style="text-align:center">${p.source.ht} + ${p.answer.ht} = ${p.source.ht + p.answer.ht}</td></tr>`
+                            `<td style="text-align:center">${p.source.ht} + ${p.answer.ht} = ${p.source.ht + p.answer.ht}</td>` +
+                            `<td style="text-align:center">${p.source.size} + ${p.answer.size} = ${p.source.size + p.answer.size}</td></tr>`
                         ).join('');
                     }
                 } else if (key === 'augdim') {
@@ -5128,8 +5128,8 @@
                         <div class="lk-rule"><strong>Die Komplementärbeziehung ist fest:</strong> Sie gilt für jedes Intervallpaar auf dieselbe Weise.</div>
                         <div style="font-weight:600;text-align:center;color:#9a3412;margin-bottom:4px">Beispiel: große Terz + kleine Sexte</div>
                         <div class="lk-visual" id="lkVisualKomplement"></div>
-                        <p>Achte auf drei Dinge: das <strong>Rahmenintervall</strong> (Terz = 3, Sexte = 6), die <strong>Feinbestimmung</strong> (groß, klein) und die <strong>Halbtonschritte</strong> (4 und 8).</p>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> In den ersten vier Aufgaben sind beide Intervalle genannt: erst zweimal groß/klein, dann zweimal rein. Gib die Halbtonschritte des Komplementärintervalls ein. Was passiert jeweils mit Rahmenintervall, Feinbestimmung und Halbtonschritten?</div>
+                        <p>Achte auf drei Dinge: die <strong>Halbtonschritte</strong> (4 und 8), die <strong>Feinbestimmung</strong> (groß, klein) und das <strong>Rahmenintervall</strong> (Terz = 3, Sexte = 6).</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> In den ersten vier Aufgaben sind beide Intervalle genannt: erst zweimal groß/klein, dann zweimal rein. Gib die Halbtonschritte des Komplementärintervalls ein. Was passiert jeweils mit Halbtonschritten, Feinbestimmung und Rahmenintervall?</div>
                         <div class="lk-tip">
                             <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher bei großen und kleinen Intervallen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('grossklein', false)">4b — Große & kleine Intervalle</button></div>
                             <div class="lk-jump-row" style="align-items:center">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('int3_basis', false)">3a — Halbtonschritte zählen</button></div>
@@ -5141,10 +5141,10 @@
                     title: 'Das Muster der Komplementärintervalle',
                     body: `<p><strong>Das hast du herausgefunden</strong> (deine Aufgaben):</p>
                         <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:6px 0 8px">
-                            <tr style="color:#9a3412;font-weight:600;font-size:0.8rem"><td>Intervall</td><td>Komplementärintervall</td><td style="text-align:center">Rahmenintervalle</td><td style="text-align:center">Halbtonschritte</td></tr>
+                            <tr style="color:#9a3412;font-weight:600;font-size:0.8rem"><td>Intervall</td><td>Komplementärintervall</td><td style="text-align:center">Halbtonschritte</td><td style="text-align:center">Rahmenintervalle</td></tr>
                             <tbody id="lkKomplementRows"></tbody>
                         </table>
-                        <div class="lk-rule"><strong>Die Komplementärbeziehungen:</strong><br><strong>Rahmenintervalle:</strong> Summe immer 9.<br><strong>Halbtonschritte:</strong> Summe immer 12.<br><strong>Feinbestimmung:</strong> kehrt sich um. Aus groß wird klein, aus klein wird groß, rein bleibt rein.</div>
+                        <div class="lk-rule"><strong>Die Komplementärbeziehungen:</strong><br><strong>Halbtonschritte:</strong> ergänzen sich zur Oktave, Summe immer 12.<br><strong>Feinbestimmung:</strong> kehrt sich um. Aus klein wird groß, aus groß wird klein, rein bleibt rein.<br><strong>Rahmenintervalle:</strong> Summe immer 9.</div>
                         <p><strong>Neu ab jetzt:</strong> Du bestimmst das Komplementärintervall selbst: Halbtonschritte und Name.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib zum gezeigten Intervall die Halbtonschritte und den Namen des Komplementärintervalls ein.</div>`
                 },
