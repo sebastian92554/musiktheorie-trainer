@@ -8710,9 +8710,13 @@
             // Moll-Grundtöne sind kleingeschrieben gespeichert (d-Moll) — D-Moll zu D-Dur heißt trotzdem: Grundton stimmt
             const rootOk = String(parsed.root).toLowerCase() === String(this.currentScale.root).toLowerCase();
             const typeOk = parsed.type === this.currentScale.type;
-            if (rootOk) return 'Der Grundton stimmt, das Tongeschlecht nicht.';
-            if (typeOk) return 'Das Tongeschlecht stimmt, der Grundton nicht.';
-            return 'Grundton und Tongeschlecht stimmen noch nicht.';
+            // Begriffe an die eigene Eingabe gekoppelt („Der Grundton D stimmt, das
+            // Tongeschlecht „Moll“ nicht.“). Moll-Grundtöne sind kleingeschrieben
+            // gespeichert → als Tonname groß.
+            const root = String(parsed.root).charAt(0).toUpperCase() + String(parsed.root).slice(1);
+            if (rootOk) return `Der Grundton ${root} stimmt, das Tongeschlecht „${parsed.type}“ nicht.`;
+            if (typeOk) return `Das Tongeschlecht „${parsed.type}“ stimmt, der Grundton ${root} nicht.`;
+            return `Weder der Grundton ${root} noch das Tongeschlecht „${parsed.type}“ stimmen.`;
         },
 
         checkProfiMuster(answer) {

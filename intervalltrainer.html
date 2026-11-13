@@ -6002,6 +6002,18 @@
             },
 
             // ---- int4 checkAnswer ----
+            // Rückmeldung zum Intervallnamen ohne Lösung: Begriffe immer an die eigene
+            // Eingabe gekoppelt („Das Rahmenintervall Terz stimmt, die Feinbestimmung
+            // „groß“ nicht.“). parsed = { quality: 'groß'|…, size: 3 } oder null.
+            _intervalPartHint(parsed, sizeOk, qualOk) {
+                const sizeNames = { 1: 'Prime', 2: 'Sekunde', 3: 'Terz', 4: 'Quarte', 5: 'Quinte', 6: 'Sexte', 7: 'Septime', 8: 'Oktave', 9: 'None', 10: 'Dezime', 11: 'Undezime', 12: 'Duodezime' };
+                if (!parsed || !parsed.quality || !sizeNames[parsed.size]) return 'Schreib den Namen z. B. als „g3“ oder „große Terz“.';
+                const size = sizeNames[parsed.size];
+                if (sizeOk && !qualOk) return `Das Rahmenintervall ${size} stimmt, die Feinbestimmung „${parsed.quality}“ nicht.`;
+                if (qualOk && !sizeOk) return `Die Feinbestimmung „${parsed.quality}“ stimmt, das Rahmenintervall ${size} nicht.`;
+                return `Weder das Rahmenintervall ${size} noch die Feinbestimmung „${parsed.quality}“ stimmen.`;
+            },
+
             checkInt4Answer() {
                 const task = this._int4Task;
                 if (!task) return;
@@ -6040,9 +6052,7 @@
                 // hs=Halbtöne). null = von dieser Aufgabe nicht geprüft.
                 let _aOk = null, _qOk = null, _hOk = null, _errLine = null;
                 // Statt der Lösung: sagen, welcher Teil des Namens nicht stimmt
-                const nameHint = (sizeOk, qualOk) => sizeOk
-                    ? 'Die Größe stimmt, die Qualität nicht.'
-                    : (qualOk ? 'Die Qualität stimmt, die Größe nicht.' : 'Größe und Qualität stimmen noch nicht.');
+                const nameHint = (parsed, sizeOk, qualOk) => this._intervalPartHint(parsed, sizeOk, qualOk);
                 const htHint = 'Zähle die Halbtöne noch einmal — der Startton zählt nicht mit.';
 
                 if (task.type === 'bidirektional') {
@@ -6065,7 +6075,7 @@
                         _aOk = !!(parsed && parsed.size === task.interval.size);
                         _qOk = !!(parsed && parsed.quality === task.interval.quality);
                         if (!isCorrect) _errLine = task.interval.label + ' → du hast ' + (input.value || '?').trim() + ' eingegeben';
-                        feedback = isCorrect ? '' : nameHint(_aOk, _qOk);
+                        feedback = isCorrect ? '' : nameHint(parsed, _aOk, _qOk);
                     } else {
                         const val = parseInt(input.value.trim());
                         isCorrect = val === task.interval.ht;
@@ -6114,7 +6124,7 @@
 
                     feedback = isCorrect ? '' : [
                         htCorrect ? '' : 'Die Halbtonzahl stimmt nicht — beide Intervalle ergeben zusammen eine Oktave.',
-                        nameCorrect ? '' : nameHint(_aOk, _qOk)
+                        nameCorrect ? '' : nameHint(parsed, _aOk, _qOk)
                     ].filter(Boolean).join(' ');
 
                 } else if (task.type === 'augdim') {
@@ -6126,7 +6136,7 @@
                     _aOk = !!(parsed && parsed.size === task.answer.size);
                     _qOk = !!(parsed && parsed.quality === task.answer.quality);
                     if (!isCorrect) _errLine = task.answerLabel + ' → du hast ' + ((input.value || '?').trim()) + ' eingegeben';
-                    feedback = isCorrect ? '' : nameHint(_aOk, _qOk);
+                    feedback = isCorrect ? '' : nameHint(parsed, _aOk, _qOk);
 
                     input.classList.remove('input-validated-correct', 'input-validated-incorrect');
                     input.classList.add(isCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
@@ -7955,8 +7965,7 @@
                         if (isFeinbestimmungActive) {
                             const sizeOk = inputSize === correctSize;
                             const qualOk = inputQuality === correctQuality;
-                            if (sizeOk && !qualOk) nameHint = ' — die Größe stimmt, die Qualität nicht';
-                            else if (qualOk && !sizeOk) nameHint = ' — die Qualität stimmt, die Größe nicht';
+                            if (sizeOk !== qualOk) nameHint = ' — ' + this._intervalPartHint({ quality: inputQuality, size: inputSize }, sizeOk, qualOk);
                         }
                         feedbackParts.push(`Intervallname: <span style="color:#ef4444;">✗</span>${nameHint}`);
                     }
