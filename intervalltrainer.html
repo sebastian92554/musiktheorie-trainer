@@ -3288,7 +3288,7 @@
                     // int4: Text wird dynamisch in generateInt4Task() gesetzt
                     return;
                 } else if (level === 'experte') {
-                    text = 'Bestimme das Intervall genau! Wähle Qualität und Größe.';
+                    text = 'Bestimme das Intervall vollständig: Rahmenintervall und Feinbestimmung.';
                 } else if (level === 'bilden_tastatur') {
                     // Text wird dynamisch in setupInput() gesetzt
                     return;
@@ -4323,7 +4323,9 @@
                     // Primen (Intervall 1) ausschließen wenn Tastatureingabe aktiv
                     // Grund: Prime erfordert zweimal dieselbe Taste - nicht sinnvoll umsetzbar
                     const minInterval = this.settings.requireKeyboard ? 2 : 1;
-                    const maxInterval = this.settings.showLargeIntervals ? 12 : 8;
+                    // Erweitert: int5 bis Tredezime (13), int1 bis Duodezime (Auswahlfeld endet dort)
+                    const maxInterval = this.settings.showLargeIntervals
+                        ? (this.quickStartMode === 'experte' ? 13 : 12) : 8;
                     
                     const intervalSize = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
                     
@@ -4824,6 +4826,10 @@
             },
 
             getLernkarteKey(subSkillId) {
+                // Voller Schlüssel für Rücksprünge aus anderen Knoten: 'int1_basis', 'int4_grossklein'
+                // (Knoten 1 und 4 haben keine Präfixe im Inhalt) bzw. 'int3_basis' usw. direkt
+                if (/^int[14]_/.test(subSkillId)) return subSkillId.slice(5);
+                if (/^int\d_/.test(subSkillId)) return subSkillId;
                 const level = quickStart.currentLevel;
                 // INT4 Sub-Skills (rein, grossklein, komplement, augdim, alles) sind direkt
                 if (['rein','grossklein','komplement','augdim','alles'].includes(subSkillId) && level === 'meister') return subSkillId;
@@ -5198,94 +5204,138 @@
                 // ---- INT1: Einsteiger (Grobbestimmung) ----
                 'basis': {
                     title: '1a — Grundintervalle — Prime bis Oktave',
-                    body: `<p>Ein <strong>Intervall</strong> ist der Abstand zwischen zwei Tönen. Du bestimmst es, indem du die Stufen von der unteren zur oberen Note abzählst — die untere Note zählt als 1.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Noten im Violinschlüssel lesen.</p>
+                        <p><strong>Neu:</strong> Ein <strong>Intervall</strong> ist der Abstand zwischen zwei Tönen. Sein Name, das <strong>Rahmenintervall</strong>, sagt, wie viele Stufen es umfasst: Prime (1), Sekunde (2), Terz (3), Quarte (4), Quinte (5), Sexte (6), Septime (7), Oktave (8).</p>
+                        <div class="lk-rule"><strong>So zählst du:</strong> Die untere Note ist Stufe 1. Von dort zählst du Linie und Zwischenraum aufwärts bis zur oberen Note. Von F bis C sind es F, G, A, H, C, also 5 Stufen: eine Quinte.</div>
                         <div class="lk-visual" id="lkVisualBasis"></div>
-                        <div class="lk-rule"><strong>Merke:</strong> Prime = 1, Sekunde = 2, Terz = 3, Quarte = 4, Quinte = 5, Sexte = 6, Septime = 7, Oktave = 8.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Nutze die Tastatur — zähle die weißen Tasten von Ton zu Ton. Die erste Taste zählt mit! Zum Beispiel die Quinte F–C:</div>
-                        <div class="lk-visual" id="lkVisualBasisTastatur"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst zwei Noten im Notensystem. Wähle das passende Intervall aus dem Dropdown.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Stufen und wähle das Rahmenintervall im Auswahlfeld.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:basis')"><summary>Unsicher beim Ablesen der Noten?</summary><div class="lk-ask-a">Lies beide Noten zuerst ab, z.&nbsp;B. F und C. Dann zählst du die Stammtöne von unten nach oben mit: F, G, A, H, C. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, was ein Vorzeichen ändert?</summary><div class="lk-ask-a">Für das Rahmenintervall nichts, du zählst nur die Stufen: F–C und F–Cis sind beide Quinten.</div></details>
+                        </div>`
                 },
                 'extended': {
                     title: '1b — Erweiterte Intervalle — None bis Duodezime',
-                    body: `<p>Intervalle können auch <strong>größer als eine Oktave</strong> sein. Sie lassen sich als Oktave + Grundintervall verstehen:</p>
+                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle von der Prime bis zur Oktave bestimmen.</p>
+                        <p><strong>Neu:</strong> Intervalle können größer als eine Oktave sein. Du zählst einfach weiter: None (9), Dezime (10), Undezime (11), Duodezime (12).</p>
+                        <div class="lk-rule"><strong>Jedes ist eine Oktave plus ein bekanntes Intervall:</strong> None = Oktave + Sekunde, Dezime = Oktave + Terz, Undezime = Oktave + Quarte, Duodezime = Oktave + Quinte.</div>
                         <div class="lk-visual" id="lkVisualExtended"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> None = Oktave + Sekunde (9), Dezime = Oktave + Terz (10), Undezime = Oktave + Quarte (11), Duodezime = Oktave + Quinte (12).</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wie zuvor, aber das Dropdown enthält jetzt auch Intervalle über der Oktave.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wie in 1a, aber das Auswahlfeld reicht jetzt bis zur Duodezime.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int1_basis')"><summary>Unsicher beim Zählen über die Oktave hinaus?</summary><div class="lk-ask-a">Zähle bis zur Oktave und dann weiter: Von C bis zum übernächsten E sind es C, D, E, F, G, A, H, C, D, E, also 10 Stufen: eine Dezime. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'nohelp': {
-                    title: '1c — Freie Eingabe — Ohne Dropdown',
-                    body: `<p>Ab jetzt gibst du den Intervallnamen <strong>frei ein</strong>, ohne aus einem Dropdown zu wählen. Das trainiert den aktiven Abruf.</p>
-                        <div class="lk-rule"><strong>Akzeptierte Eingaben:</strong> Terz, Quinte, Oktave, None usw. — Groß- und Kleinschreibung ist egal.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Falls du unsicher bist, zähle auf der Tastatur nach: Startton = 1, dann Taste für Taste weiter.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Intervallnamen direkt ins Textfeld ein.</div>`
+                    title: '1c — Freie Eingabe — Ohne Auswahlfeld',
+                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle bis zur Duodezime bestimmen und im Auswahlfeld wählen.</p>
+                        <p><strong>Neu:</strong> Jetzt gibt es keine Auswahl mehr. Du schreibst den Namen selbst und musst ihn dafür aus dem Gedächtnis abrufen.</p>
+                        <div class="lk-rule"><strong>Gib den Namen ein:</strong> Terz, Quinte, None … Eine Zahl allein gilt nicht. Groß- und Kleinschreibung ist egal.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Stufen und tippe das Rahmenintervall ein, z.&nbsp;B. „Quinte“.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int1_basis')"><summary>Unsicher, wie das Intervall heißt?</summary><div class="lk-ask-a">Prime 1, Sekunde 2, Terz 3, Quarte 4, Quinte 5, Sexte 6, Septime 7, Oktave 8, None 9, Dezime 10, Undezime 11, Duodezime 12. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 // ---- INT2: Aufsteiger (Tastatur) ----
                 'int2_basis': {
                     title: '2a — Stammtöne auf der Tastatur',
-                    body: `<p>Du siehst ein Intervall im Notensystem und musst beide Töne <strong>auf der Klaviatur finden</strong>. Lerne die Stammtonreihe in beide Richtungen auswendig: aufwärts <strong>C D E F G A H</strong>, abwärts <strong>C H A G F E D</strong>.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle im Notensystem bestimmen.</p>
+                        <p><strong>Neu:</strong> Jetzt findest du beide Töne des Intervalls auf der Klaviatur.</p>
+                        <div class="lk-rule"><strong>Die Tastatur hat feste Ankerpunkte:</strong> Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F. Von dort gehst du zum gesuchten Ton, aufwärts oder abwärts, je nachdem, was kürzer ist: H liegt eine Taste unter dem C.</div>
                         <div class="lk-visual" id="lkVisualInt2Basis"></div>
-                        <div class="lk-rule"><strong>Ankertöne finden:</strong> Links neben der <strong>2er-Gruppe</strong> der schwarzen Tasten liegt immer <strong>C</strong>. Links neben der <strong>3er-Gruppe</strong> liegt immer <strong>F</strong>. Alle anderen Töne leitest du vom nächsten Ankerton ab — aufwärts oder abwärts, je nachdem was kürzer ist.</div>
-                        <div class="lk-tip"><strong>Beispiel:</strong> Wo liegt H? Vom C aus <strong>eine Taste abwärts</strong> — viel schneller, als von F aus fünf Tasten aufwärts zu zählen.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst zwei Noten ohne Vorzeichen. Klicke die richtigen weißen Tasten auf der Klaviatur an.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies beide Noten ab und klicke ihre zwei Tasten an. In 2a kommen nur weiße Tasten vor.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:basis')"><summary>Unsicher beim Ablesen der Noten?</summary><div class="lk-ask-a">Anker im Violinschlüssel ist die G-Linie (2. Linie von unten). Der Zwischenraum darüber ist A, die Linie darüber H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_basis')"><summary>Unsicher, wo ein Ton auf der Tastatur liegt?</summary><div class="lk-ask-a">Suche zuerst C oder F: C links neben den zwei, F links neben den drei schwarzen Tasten. Von C aus aufwärts: D, E, dann wieder F. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                        </div>`
                 },
                 'int2_augdim': {
                     title: '2b — Vorzeichen auf der Tastatur',
-                    body: `<p>Ein <strong><span class="vz-sharp"></span> (Kreuz)</strong> erhöht einen Ton um einen Halbton — eine Taste nach <strong>rechts</strong>. Ein <strong><span class="vz-flat"></span> (Be)</strong> erniedrigt um einen Halbton — eine Taste nach <strong>links</strong>.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Stammtöne auf der Tastatur finden.</p>
+                        <p><strong>Neu:</strong> Jetzt haben die Töne Vorzeichen. <span class="vz-sharp"></span> heißt eine Taste nach rechts, <span class="vz-flat"></span> eine Taste nach links. Meist ist das eine schwarze Taste, aber nicht immer: H mit <span class="vz-sharp"></span> (His) ist die weiße Taste C.</p>
+                        <div class="lk-rule"><strong>Der Name folgt einer festen Regel:</strong> Mit <span class="vz-sharp"></span> hängst du „is“ an (A → Ais), mit <span class="vz-flat"></span> „es“ (D → Des). Ausnahmen: Es, As, B.</div>
                         <div class="lk-visual" id="lkVisualInt2Augdim"></div>
-                        <div class="lk-rule"><strong>Zur Erinnerung:</strong> <span class="vz-sharp"></span> → Stammton + „is" (Fis, Cis, …). <span class="vz-flat"></span> → Stammton + „es" (Des, Ges, …).<br><strong>Ausnahmen:</strong> E + <span class="vz-flat"></span> = <strong>Es</strong>, A + <span class="vz-flat"></span> = <strong>As</strong>, H + <span class="vz-flat"></span> = <strong>B</strong>.</div>
-                        <div class="lk-tip"><strong>Enharmonik:</strong> Jede schwarze Taste hat zwei Namen: Cis = Des, Dis = Es, Fis = Ges, Gis = As, Ais = B. Auf der Tastatur ist es dieselbe Taste.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die richtigen Tasten — auch schwarze.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies beide Noten mit ihren Vorzeichen ab und klicke ihre zwei Tasten an.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist His die Taste C und Fes die Taste E: His und C sind <strong>enharmonisch</strong> gleich.</div></details>
+                        </div>`
                 },
                 'int2_bothclefs': {
                     title: '2c — Beide Schlüssel',
-                    body: `<p>Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> erscheinen. Die Tonnamen bleiben gleich — nur ihre Position im Notensystem ändert sich.</p>
-                        <div class="lk-rule"><strong>Wichtig:</strong> Achte auf den Schlüssel am Anfang der Notenzeile! Im Bassschlüssel liegen die Noten auf anderen Linien als im Violinschlüssel.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die Töne auf der Tastatur — egal in welchem Schlüssel.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen auf der Tastatur finden.</p>
+                        <p><strong>Neu:</strong> Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> stehen. Der Schlüssel wechselt von Aufgabe zu Aufgabe.</p>
+                        <div class="lk-rule"><strong>Derselbe Platz hat zwei Namen:</strong> Die 2. Linie von unten ist im Violinschlüssel G, im Bassschlüssel H. Darum zuerst den Schlüssel prüfen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Achte auf den Schlüssel und klicke die zwei Tasten an.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten2_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten. Der Zwischenraum darüber ist G, die Linie darüber A. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten2_basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                        </div>`
                 },
                 // ---- INT3: Profi (Halbtonschritte) ----
                 'int3_basis': {
                     title: '3a — Halbtonschritte zählen',
-                    body: `<p>Ein <strong>Halbtonschritt</strong> ist der kleinste Abstand auf der Tastatur — von einer Taste zur direkt benachbarten (weiß oder schwarz).</p>
-                        <div class="lk-tip"><strong>Beispiel C → E:</strong> C → Cis (1) → D (2) → Dis (3) → E (4) = <strong>4 Halbtonschritte</strong></div>
+                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle bestimmen und Töne auf der Tastatur finden.</p>
+                        <p><strong>Neu:</strong> Jetzt misst du den Abstand genauer, in <strong>Halbtonschritten</strong>. Ein Halbtonschritt ist der Weg von einer Taste zur direkt benachbarten, weiß oder schwarz.</p>
+                        <div class="lk-rule"><strong>Die Starttaste zählt nicht mit:</strong> Von C bis E sind es Cis (1), D (2), Dis (3), E (4), also 4 Halbtonschritte. Beim Rahmenintervall war die untere Note dagegen Stufe 1.</div>
                         <div class="lk-visual" id="lkVisualInt3Basis"></div>
-                        <div class="lk-rule"><strong>Wichtig:</strong> Die Starttaste zählt <strong>nicht</strong> mit! Du zählst nur die Schritte, nicht die Tasten. Das ist anders als beim Intervall-Abzählen, wo die erste Note als 1 zählt.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Nutze die Klaviatur unter dem Notensystem als Zählhilfe.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte zwischen den zwei Noten und gib die Zahl ein.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte zwischen den beiden Noten und gib die Zahl ein. Die Tastatur darunter hilft beim Zählen.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int2_basis')"><summary>Unsicher, wo die Töne auf der Tastatur liegen?</summary><div class="lk-ask-a">C liegt links neben den zwei schwarzen Tasten, F links neben den drei. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int3_augdim': {
-                    title: '3b — Übermäßige & verminderte Intervalle',
-                    body: `<p>Vorzeichen verändern die Halbtonschrittzahl. Achte besonders genau auf <span class="vz-sharp"></span> und <span class="vz-flat"></span>!</p>
+                    title: '3b — Halbtonschritte mit Vorzeichen',
+                    body: `<p><strong>Du kannst schon:</strong> Halbtonschritte zählen.</p>
+                        <p><strong>Neu:</strong> Jetzt haben die Töne häufiger Vorzeichen. Ein Vorzeichen verschiebt einen Ton um genau einen Halbtonschritt, und damit ändert sich die Zahl.</p>
+                        <div class="lk-rule"><strong>Ein Vorzeichen, ein Halbtonschritt:</strong> C → F sind 5 Halbtonschritte, C → Fis sind 6. Das <span class="vz-sharp"></span> an der oberen Note macht den Abstand einen Halbtonschritt größer, ein <span class="vz-flat"></span> einen kleiner.</div>
                         <div class="lk-visual" id="lkVisualInt3Augdim"></div>
-                        <div class="lk-rule"><strong>Beispiel:</strong> C → F = 5 HS (reine Quarte). Aber C → Fis = 6 HS (übermäßige Quarte). Ein Vorzeichen verschiebt den Ton um genau 1 HS.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte — auch bei Tönen mit Vorzeichen.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte, auch bei Tönen mit Vorzeichen.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int2_augdim')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links. Meist eine schwarze Taste, aber His ist die Taste C. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int2_augdim', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int3_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int3_bothclefs': {
                     title: '3c — Beide Schlüssel — Halbtonschritte',
-                    body: `<p>Die Noten können jetzt auch im <strong>Bassschlüssel</strong> stehen.</p>
-                        <div class="lk-rule"><strong>Merke:</strong> Im Bassschlüssel andere Notenpositionen, aber die Halbtonschritt-Zählung bleibt exakt gleich.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte — auch im Bassschlüssel.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Halbtonschritte zählen, auch bei Vorzeichen.</p>
+                        <p><strong>Neu:</strong> Die Noten können jetzt auch im <strong>Bassschlüssel</strong> stehen.</p>
+                        <div class="lk-rule"><strong>Nur das Ablesen ändert sich, das Zählen bleibt gleich:</strong> Erst beide Töne benennen, dann auf der Tastatur die Halbtonschritte zählen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Achte auf den Schlüssel und gib die Zahl der Halbtonschritte ein.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten2_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten. Der Zwischenraum darüber ist G, die Linie darüber A. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten2_basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                        </div>`
                 },
                 'int3_noaudio': {
                     title: '3d — Ohne Hörbeispiel — Halbtonschritte',
-                    body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr. Du zählst die Halbtonschritte rein visuell.</p>
-                        <div class="lk-rule"><strong>Methode:</strong> Beide Töne auf der Tastatur finden, dann jeden Halbtonschritt von Taste zu Taste abzählen. Die Starttaste zählt nicht mit!</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Anzahl der Halbtonschritte ein — ohne Hörbeispiel.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Halbtonschritte in beiden Schlüsseln zählen.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr. Du zählst nur nach dem Notenbild.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Beide Töne benennen → auf der Tastatur finden → Halbtonschritte zählen, die Starttaste nicht mit.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Zahl der Halbtonschritte ein.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int3_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 // ---- INT4: Meister (Feinbestimmung) ---- (existiert bereits)
                 'rein': {
                     title: '4a — Reine Intervalle — Die 4 Ankerpunkte',
-                    body: `<p>Es gibt vier <strong>reine</strong> Intervalle. Sie bilden die Ankerpunkte, von denen alle anderen Intervalle abgeleitet werden:</p>
+                    body: `<p><strong>Du kannst schon:</strong> Halbtonschritte zählen und Rahmenintervalle bestimmen.</p>
+                        <p><strong>Neu:</strong> Jetzt kommt die <strong>Feinbestimmung</strong> dazu. Vier Rahmenintervalle können <strong>rein</strong> sein: Prime, Quarte, Quinte und Oktave. Sie sind die Ankerpunkte für alle anderen.</p>
+                        <div class="lk-rule"><strong>Die reinen Intervalle haben feste Halbtonschritte:</strong> reine Prime 0, reine Quarte 5, reine Quinte 7, reine Oktave 12.</div>
                         <div class="lk-visual" id="lkVisualRein"></div>
-                        <div class="lk-rule"><strong>Merke:</strong> Nur Prime, Quarte, Quinte und Oktave können „rein" sein. Sekunden und Terzen sind nie rein — sie sind immer groß oder klein.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HS-Zahl oder einen Intervallnamen und gibst das Gegenstück ein.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine Zahl von Halbtonschritten oder einen Namen und gibst das Gegenstück ein, z.&nbsp;B. zu 7 „reine Quinte“ oder kurz „r5“.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int3_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'grossklein': {
                     title: '4b — Große & kleine Intervalle',
-                    body: `<p>Sekunden und Terzen gibt es jeweils als <strong>große</strong> und <strong>kleine</strong> Variante. Sie lassen sich direkt von den Ankerpunkten ableiten:</p>
+                    body: `<p><strong>Du kannst schon:</strong> Die vier reinen Intervalle mit ihren Halbtonschritten.</p>
+                        <p><strong>Neu:</strong> Sekunden und Terzen sind nie rein, sondern <strong>groß</strong> oder <strong>klein</strong>. Du leitest sie von den Ankerpunkten ab.</p>
+                        <div class="lk-rule"><strong>Groß hat immer einen Halbtonschritt mehr als klein:</strong> Von der reinen Prime (0) aufwärts: kleine Sekunde 1, große Sekunde 2. Von der reinen Quarte (5) abwärts: große Terz 4, kleine Terz 3.</div>
                         <div class="lk-visual" id="lkVisualGrossklein"></div>
-                        <div class="lk-rule"><strong>Ableitung:</strong> Von der reinen Prime (0 HS) aus: +1 HS = kleine Sekunde, +2 HS = große Sekunde. Von der reinen Quarte (5 HS) rückwärts: −1 HS = große Terz, −2 HS = kleine Terz. Ein großes Intervall hat immer genau 1 HS mehr als das entsprechende kleine.</div>
-                        <div class="lk-rule"><strong>Regel:</strong> Quarten und Quinten sind nie groß oder klein — sie sind immer rein. Sekunden und Terzen sind nie rein — sie sind immer groß oder klein.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HS-Zahl oder einen Intervallnamen und gibst das Gegenstück ein. Auch reine Intervalle aus dem vorherigen Kapitel können vorkommen.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wie in 4a: Gib zur Zahl den Namen ein oder zum Namen die Zahl. Auch reine Intervalle kommen weiter vor.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_rein')"><summary>Unsicher bei den reinen Intervallen?</summary><div class="lk-ask-a">reine Prime 0, reine Quarte 5, reine Quinte 7, reine Oktave 12 Halbtonschritte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_rein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 // 4c — Start-Karte (vor und während der vier Fälle). Danach zeigt
                 // showLernkarte stattdessen komplement_regel (mit den eigenen Fällen).
@@ -5299,7 +5349,7 @@
                         <p>Achte auf drei Dinge: die <strong>Halbtonschritte</strong> (4 und 8), die <strong>Feinbestimmung</strong> (groß, klein) und das <strong>Rahmenintervall</strong> (Terz = 3, Sexte = 6).</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib zum gezeigten Intervall die Halbtonschritte und den Namen des Komplementärintervalls ein. Klappt es noch nicht, schauen wir uns an einzelnen Intervallpaaren genauer an, was mit Halbtonschritten, Feinbestimmung und Rahmenintervall passiert.</div>
                         <div class="lk-tip lk-tip-ask">
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'grossklein')"><summary>Unsicher bei großen und kleinen Intervallen?</summary><div class="lk-ask-a">Sekunden und Terzen gibt es groß und klein, die große hat einen Halbtonschritt mehr: Die kleine Terz hat 3, die große Terz 4 Halbtonschritte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_grossklein')"><summary>Unsicher bei großen und kleinen Intervallen?</summary><div class="lk-ask-a">Sekunden und Terzen gibt es groß und klein, die große hat einen Halbtonschritt mehr: Die kleine Terz hat 3, die große Terz 4 Halbtonschritte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int3_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
@@ -5335,145 +5385,183 @@
                 },
                 'augdim': {
                     title: '4d — Übermäßig & vermindert',
-                    body: `<p>Neben rein, groß und klein gibt es noch zwei weitere Qualitäten: <strong>übermäßig</strong> und <strong>vermindert</strong>.</p>
-                        <div class="lk-rule"><strong>Definition:</strong> Übermäßig bedeutet 1 HS mehr als rein oder groß. Vermindert bedeutet 1 HS weniger als rein oder klein. Zum Beispiel: Die reine Quarte hat 5 HS — eine übermäßige Quarte hat 6 HS. Die reine Quinte hat 7 HS — eine verminderte Quinte hat ebenfalls 6 HS.</div>
-                        <p>Damit entsteht ein wichtiges Problem: <strong>Dieselbe HS-Zahl kann verschiedene Intervalle sein.</strong> 6 HS können sowohl eine übermäßige Quarte als auch eine verminderte Quinte sein. Was entscheidet? Das <strong>Rahmenintervall</strong> (die Grobbestimmung).</p>
+                    body: `<p><strong>Du kannst schon:</strong> Reine, große und kleine Intervalle mit ihren Halbtonschritten.</p>
+                        <p><strong>Neu:</strong> Zwei weitere Feinbestimmungen: <strong>übermäßig</strong> heißt einen Halbtonschritt mehr als rein oder groß, <strong>vermindert</strong> einen weniger als rein oder klein. Dadurch kann dieselbe Zahl zwei Namen haben.</p>
+                        <div class="lk-rule"><strong>Das Rahmenintervall entscheidet:</strong> 6 Halbtonschritte sind bei einer Quarte eine übermäßige Quarte (5 + 1), bei einer Quinte eine verminderte Quinte (7 − 1).</div>
                         <div class="lk-contrast" id="lkVisualAugdim">
-                            <div>
-                                <div class="lk-label">6 HS, Rahmen: Quarte</div>
-                                <div id="lkAugdimLeft"></div>
-                                <div style="margin-top:6px;font-weight:700;color:#9a3412">→ ü4 (übermäßige Quarte)</div>
-                            </div>
-                            <div>
-                                <div class="lk-label">6 HS, Rahmen: Quinte</div>
-                                <div id="lkAugdimRight"></div>
-                                <div style="margin-top:6px;font-weight:700;color:#9a3412">→ v5 (verminderte Quinte)</div>
-                            </div>
-                        </div>
-                        <div class="lk-tip"><strong>Komplementär-Erweiterung:</strong> Jetzt kennst du auch die letzte Komplementärregel: übermäßig wird im Komplement zu vermindert und umgekehrt (ü ↔ v).</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst eine HS-Zahl und ein Rahmenintervall. Gib die Feinbestimmung ein — z.B. „ü4" oder „übermäßige Quarte".</div>`
+                <div><div class="lk-label">6 Halbtonschritte, Rahmen: Quarte</div><div id="lkAugdimLeft"></div><div style="margin-top:6px;font-weight:700;color:#9a3412">→ ü4 (übermäßige Quarte)</div></div>
+                <div><div class="lk-label">6 Halbtonschritte, Rahmen: Quinte</div><div id="lkAugdimRight"></div><div style="margin-top:6px;font-weight:700;color:#9a3412">→ v5 (verminderte Quinte)</div></div>
+              </div>
+                        <p><strong>Zur Abrundung:</strong> Auch im Komplement kehrt sich die Feinbestimmung um, wie bei groß und klein: Übermäßig wird zu vermindert und umgekehrt. Die beiden Intervalle oben ergänzen sich zur Oktave: übermäßige Quarte (6) + verminderte Quinte (6) = 12 Halbtonschritte.</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst eine Zahl von Halbtonschritten und ein Rahmenintervall. Gib die Feinbestimmung mit Namen ein, z.&nbsp;B. „ü4“ oder „verminderte Quinte“.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_rein')"><summary>Unsicher bei den reinen Intervallen?</summary><div class="lk-ask-a">reine Prime 0, reine Quarte 5, reine Quinte 7, reine Oktave 12 Halbtonschritte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_rein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_grossklein')"><summary>Unsicher bei groß und klein?</summary><div class="lk-ask-a">Groß hat einen Halbtonschritt mehr als klein: kleine Terz 3, große Terz 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'alles': {
                     title: '4e — Alle Typen gemischt',
-                    body: `<p>In diesem Level werden alle bisherigen Aufgabentypen gemischt:</p>
-                        <div class="lk-task"><strong>Die Aufgabentypen:</strong><br>
-                        <strong>1.</strong> HS-Zahl ↔ Intervallname (bidirektional)<br>
-                        <strong>2.</strong> Komplementärintervalle bestimmen (HS-Zahl + Intervallname eingeben)<br>
-                        <strong>3.</strong> Disambiguierung: HS-Zahl + Rahmenintervall → Feinbestimmung</div>
-                        <div class="lk-tip">Falls du Hilfe brauchst, starte mit den vorherigen Unterkapiteln — dort erklärt eine Lernkarte jeden Aufgabentyp Schritt für Schritt.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Alle Aufgabentypen aus 4a bis 4d.</p>
+                        <p><strong>Neu:</strong> Jetzt kommen sie gemischt. Lies jede Aufgabe genau: Was ist gegeben, was ist gefragt?</p>
+                        <div class="lk-rule"><strong>Drei Aufgabentypen:</strong> Halbtonschritte ↔ Name (4a, 4b) · Komplementärintervall (4c) · Halbtonschritte + Rahmenintervall → Feinbestimmung (4d).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Löse jede Aufgabe so, wie es die Aufgabenstellung verlangt.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_grossklein')"><summary>Unsicher bei groß und klein?</summary><div class="lk-ask-a">Groß hat einen Halbtonschritt mehr als klein: kleine Terz 3, große Terz 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_komplement')"><summary>Unsicher bei Komplementärintervallen?</summary><div class="lk-ask-a">Die Halbtonschritte ergänzen sich zu 12, klein wird groß, rein bleibt rein: Zur großen Terz (4) gehört die kleine Sexte (8). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_komplement', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_augdim')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Das Rahmenintervall entscheidet: 6 Halbtonschritte sind bei einer Quarte eine übermäßige Quarte, bei einer Quinte eine verminderte Quinte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_augdim', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 // ---- INT5: Experte (Alles kombiniert) ----
                 'int5_basis': {
-                    title: '5a — Grundqualitäten bestimmen',
-                    body: `<p>Hier bestimmst du Intervalle vollständig: Du siehst ein Intervall auf dem Notenblatt und gibst die <strong>Feinbestimmung</strong> ein — also Qualität und Intervallname.</p>
-                        <div class="lk-rule"><strong>Strategie:</strong> 1. Stufen abzählen (Grobbestimmung) → 2. Halbtonschritte zählen → 3. Qualität ableiten. Die Kompetenzen aus den vorherigen Knoten kommen hier zusammen.</div>
-                        <div class="lk-rule"><strong>Rein:</strong> Prime, Quarte, Quinte, Oktave. <strong>Groß/Klein:</strong> Sekunde, Terz, Sexte, Septime.</div>
-                        <div class="lk-tip"><strong>Eingabe:</strong> Auch Kurzschreibweisen gehen, z.B. „g3" statt „große Terz" oder „r5" statt „reine Quinte".</div>
-                        <div class="lk-tip"><strong>Hörbeispiel:</strong> Über das <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>-Symbol kannst du das Intervall hören. Mit <em>melodisch</em> und <em>harmonisch</em> wechselst du zwischen nacheinander und gleichzeitig.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den vollständigen Intervallnamen mit Qualität ein.</div>`
+                    title: '5a — Intervalle vollständig bestimmen',
+                    body: `<p><strong>Du kannst schon:</strong> Das Rahmenintervall bestimmen (1), Halbtonschritte zählen (3) und daraus die Feinbestimmung ableiten (4).</p>
+                        <p><strong>Neu:</strong> Jetzt bestimmst du ein Intervall im Notensystem vollständig: Rahmenintervall <strong>und</strong> Feinbestimmung.</p>
+                        <div class="lk-rule"><strong>Immer in drei Schritten:</strong> 1. Stufen zählen → Rahmenintervall, z.&nbsp;B. Terz. 2. Halbtonschritte zählen, z.&nbsp;B. 4. 3. Feinbestimmung ableiten: eine Terz mit 4 Halbtonschritten ist eine große Terz.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den vollständigen Namen ein, z.&nbsp;B. „große Terz“ oder kurz „g3“.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int3_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_grossklein')"><summary>Unsicher bei der Feinbestimmung?</summary><div class="lk-ask-a">Rein können nur Prime, Quarte, Quinte und Oktave sein, alle anderen sind groß oder klein. Groß hat einen Halbtonschritt mehr: kleine Terz 3, große Terz 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, wie das Intervall klingt?</summary><div class="lk-ask-a">Über das Lautsprecher-Symbol hörst du es. Mit „melodisch“ und „harmonisch“ wechselst du zwischen nacheinander und gleichzeitig.</div></details>
+                        </div>`
                 },
                 'int5_augdim': {
                     title: '5b — Mit übermäßig & vermindert',
-                    body: `<p>Zusätzlich kommen jetzt <strong>übermäßige</strong> und <strong>verminderte</strong> Intervalle vor.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Intervalle vollständig bestimmen: rein, groß und klein.</p>
+                        <p><strong>Neu:</strong> Jetzt kommen übermäßige und verminderte Intervalle dazu.</p>
+                        <div class="lk-rule"><strong>Erst das Rahmenintervall, dann die Halbtonschritte:</strong> Eine Quarte mit 6 Halbtonschritten ist übermäßig (rein wäre 5), eine Quinte mit 6 vermindert (rein wäre 7).</div>
                         <div class="lk-visual" id="lkVisualInt5Augdim"></div>
-                        <div class="lk-rule"><strong>Übermäßig</strong> = 1 HS mehr als rein oder groß. <strong>Vermindert</strong> = 1 HS weniger als rein oder klein. Die gleiche HS-Zahl kann verschiedene Intervalle sein — das Rahmenintervall (Grobbestimmung) entscheidet!</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib die Feinbestimmung ein — auch „ü4" oder „verminderte Quinte" sind jetzt möglich.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den vollständigen Namen ein, z.&nbsp;B. „übermäßige Quarte“ oder „ü4“.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_augdim')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig ist einen Halbtonschritt mehr als rein oder groß, vermindert einen weniger als rein oder klein. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_augdim', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int5_extended': {
-                    title: '5c — Erweiterte Intervalle mit Qualität',
-                    body: `<p>Jetzt kommen auch Intervalle <strong>über der Oktave</strong> vor — mit vollständiger Qualitätsbestimmung.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> Die Qualität des erweiterten Intervalls entspricht der Qualität des Grundintervalls. Eine große None = Oktave + große Sekunde, eine kleine Dezime = Oktave + kleine Terz.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme auch Intervalle über der Oktave — mit vollständiger Qualität (z.B. „große None", „g9").</div>`
+                    title: '5c — Erweiterte Intervalle vollständig',
+                    body: `<p><strong>Du kannst schon:</strong> Intervalle bis zur Oktave vollständig bestimmen.</p>
+                        <p><strong>Neu:</strong> Jetzt auch über der Oktave, bis zur Tredezime.</p>
+                        <div class="lk-rule"><strong>Die Feinbestimmung bleibt die des kleineren Intervalls:</strong> große None = Oktave + große Sekunde (12 + 2 = 14 Halbtonschritte), kleine Dezime = Oktave + kleine Terz (12 + 3 = 15).</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den vollständigen Namen ein, z.&nbsp;B. „große None“ oder „g9“.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int1_extended')"><summary>Unsicher beim Zählen über die Oktave hinaus?</summary><div class="lk-ask-a">Zähle bis zur Oktave und dann weiter: None 9, Dezime 10, Undezime 11, Duodezime 12, Tredezime 13. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int1_extended', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int5_bothclefs': {
-                    title: '5d — Beide Schlüssel — Feinbestimmung',
-                    body: `<p>Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> erscheinen.</p>
-                        <div class="lk-rule"><strong>Merke:</strong> Die Notenpositionen sind im Bassschlüssel anders, aber die Qualitätsbestimmung bleibt exakt gleich: Stufen zählen → HS zählen → Qualität ableiten.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Intervall mit Qualität — egal in welchem Schlüssel.</div>`
+                    title: '5d — Beide Schlüssel — vollständig',
+                    body: `<p><strong>Du kannst schon:</strong> Intervalle vollständig bestimmen, auch über der Oktave.</p>
+                        <p><strong>Neu:</strong> Das Intervall kann jetzt auch im <strong>Bassschlüssel</strong> stehen.</p>
+                        <div class="lk-rule"><strong>Nur das Ablesen ändert sich:</strong> Stufen zählen → Halbtonschritte zählen → Feinbestimmung ableiten, in beiden Schlüsseln gleich.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Achte auf den Schlüssel und gib den vollständigen Namen ein.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten2_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten. Der Zwischenraum darüber ist G, die Linie darüber A. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten2_basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                        </div>`
                 },
                 'int5_noaudio': {
-                    title: '5e — Ohne Hörbeispiel — Rein visuell',
-                    body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr als Kontrolle. Du bestimmst die Intervalle rein aus dem Notenbild.</p>
-                        <div class="lk-rule"><strong>Deine Strategie:</strong> 1. Grobbestimmung (Stufen abzählen) → 2. Halbtonschritte zählen → 3. Qualität ableiten. Das funktioniert immer — auch ohne Audio!</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Intervall mit vollständiger Qualität — ohne Hörbeispiel.</div>`
+                    title: '5e — Ohne Hörbeispiel',
+                    body: `<p><strong>Du kannst schon:</strong> Intervalle in beiden Schlüsseln vollständig bestimmen.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr als Kontrolle. Du bestimmst das Intervall nur aus dem Notenbild.</p>
+                        <div class="lk-rule"><strong>Immer in drei Schritten:</strong> Stufen zählen → Halbtonschritte zählen → Feinbestimmung ableiten.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den vollständigen Namen ein.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int3_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von C bis E sind es Cis, D, Dis, E, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int3_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 // ---- INT6: Bilden — Tastatur ----
                 'int6_rein': {
                     title: '6a — Reine Intervalle bilden — Tastatur',
-                    body: `<p>Ab jetzt drehst du die Aufgabe um: Statt ein Intervall zu <strong>erkennen</strong>, sollst du es <strong>bilden</strong>. Du siehst den Intervallnamen und einen Startton — klicke die richtige Zieltaste auf der Klaviatur.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Die reinen Intervalle mit ihren Halbtonschritten (4a).</p>
+                        <p><strong>Neu:</strong> Jetzt drehst du die Aufgabe um: Du siehst einen Startton und einen Intervallnamen und suchst den Zielton auf der Tastatur.</p>
+                        <div class="lk-rule"><strong>Vom Startton aufwärts zählen, die Starttaste nicht mit:</strong> reine Quinte von C = 7 Halbtonschritte → G.</div>
                         <div class="lk-visual" id="lkVisualInt6Rein"></div>
-                        <div class="lk-rule"><strong>Die vier reinen Intervalle:</strong> Reine Prime (r1) = 0 HS = gleiche Taste. Reine Quarte (r4) = 5 HS. Reine Quinte (r5) = 7 HS. Reine Oktave (r8) = 12 HS.</div>
-                        <div class="lk-tip"><strong>Strategie:</strong> Zähle vom Startton aus die Halbtonschritte auf der Tastatur ab. Die Starttaste zählt nicht mit! Bei der reinen Quinte z.B. von C aus: Cis(1)–D(2)–Dis(3)–E(4)–F(5)–Fis(6)–G(7) → G ist die Antwort.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die Zieltaste für das angezeigte reine Intervall.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die Zieltaste, z.&nbsp;B. für die reine Quarte von D die Taste G.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_rein')"><summary>Unsicher bei den reinen Intervallen?</summary><div class="lk-ask-a">reine Quarte 5, reine Quinte 7, reine Oktave 12 Halbtonschritte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_rein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int6_grossklein': {
                     title: '6b — Große & kleine Intervalle bilden',
-                    body: `<p>Jetzt kommen auch <strong>große und kleine</strong> Intervalle dazu. Die schwarzen Tasten werden wichtig!</p>
+                    body: `<p><strong>Du kannst schon:</strong> Reine Intervalle auf der Tastatur bilden.</p>
+                        <p><strong>Neu:</strong> Jetzt auch große und kleine: Sekunden, Terzen, Sexten und Septimen. Der Startton kann ein Vorzeichen haben, der Zielton liegt oft auf einer schwarzen Taste.</p>
+                        <div class="lk-rule"><strong>Die Halbtonschritte:</strong> k2 1, g2 2, k3 3, g3 4, k6 8, g6 9, k7 10, g7 11. Sexten und Septimen findest du über das Komplement: 12 minus Terz bzw. Sekunde.</div>
                         <div class="lk-visual" id="lkVisualInt6Grossklein"></div>
-                        <div class="lk-tip"><strong>Tipp — Ankerpunkte:</strong> Von der <span style="color:#9a3412;font-weight:700">reinen Prime (0 HS)</span> aus erreichst du die <span style="color:#2563eb">kleine Sekunde (1 HS)</span> und <span style="color:#2563eb">große Sekunde (2 HS)</span>. Von der <span style="color:#9a3412;font-weight:700">reinen Quarte (5 HS)</span> rückwärts die <span style="color:#2563eb">große Terz (4 HS)</span> und <span style="color:#2563eb">kleine Terz (3 HS)</span>. Von der <span style="color:#9a3412;font-weight:700">reinen Oktave (12 HS)</span> rückwärts die <span style="color:#2563eb">große Septime (11 HS)</span> und <span style="color:#2563eb">kleine Septime (10 HS)</span>.</div>
-                        <div class="lk-tip"><strong>Sexten über Komplemente finden:</strong> Die Halbtonschritte zweier Komplementärintervalle ergeben zusammen immer 12. Groß wird zu klein. Du kennst die Terzen — also rechnest du 12 minus Terz und erhältst die Sexte:<br>
-                        <span style="color:#2563eb">g3 (4 HS)</span> → 12 − 4 = 8 → <span style="color:#16a34a;font-weight:700">k6 (8 HS)</span><br>
-                        <span style="color:#2563eb">k3 (3 HS)</span> → 12 − 3 = 9 → <span style="color:#16a34a;font-weight:700">g6 (9 HS)</span></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die richtige Taste. Schwarze Tasten kommen jetzt häufiger vor.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die Zieltaste, z.&nbsp;B. für die große Terz von D die Taste Fis.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_grossklein')"><summary>Unsicher bei groß und klein?</summary><div class="lk-ask-a">Groß hat einen Halbtonschritt mehr als klein: kleine Terz 3, große Terz 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_komplement')"><summary>Unsicher bei Sexten und Septimen?</summary><div class="lk-ask-a">Über das Komplement: Die kleine Sexte ergänzt die große Terz zur Oktave, also 12 − 4 = 8 Halbtonschritte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_komplement', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int6_augdim': {
                     title: '6c — Übermäßig & vermindert bilden',
-                    body: `<p>Jetzt kommen <strong>übermäßige</strong> und <strong>verminderte</strong> Intervalle hinzu.</p>
-                        <div class="lk-rule"><strong>Regel:</strong> <span style="color:#dc2626;font-weight:700">Übermäßig</span> = 1 HS mehr als rein oder groß. <span style="color:#2563eb;font-weight:700">Vermindert</span> = 1 HS weniger als rein oder klein. Zum Beispiel: ü4 = 6 HS (reine Quarte + 1), v5 = 6 HS (reine Quinte − 1).</div>
+                    body: `<p><strong>Du kannst schon:</strong> Reine, große und kleine Intervalle auf der Tastatur bilden.</p>
+                        <p><strong>Neu:</strong> Jetzt auch übermäßige und verminderte. Sie haben einen Halbtonschritt mehr oder weniger: übermäßige Quarte 6 (rein 5), verminderte Quinte 6 (rein 7).</p>
+                        <div class="lk-rule"><strong>Auf der Tastatur zählt nur die Zahl:</strong> Übermäßige Quarte und verminderte Quinte führen beide 6 Halbtonschritte weit, also auf dieselbe Taste. Den Unterschied siehst du erst im Notensystem (7c).</div>
                         <div class="lk-visual" id="lkVisualInt6Augdim"></div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Auf der Tastatur musst du die Mehrdeutigkeit noch nicht auflösen — es reicht, die richtige Anzahl Halbtonschritte abzuzählen und die korrekte Taste zu drücken. Aber es lohnt sich, den Unterschied schon jetzt nachzuvollziehen: In Knoten 7c (Notensystem schreiben) wird er wichtig, weil dort die Notenposition das Rahmenintervall bestimmt.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die Zieltaste — auch für übermäßige und verminderte Intervalle.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die Zieltaste, z.&nbsp;B. für die übermäßige Quarte von C die Taste Fis.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_augdim')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig ist einen Halbtonschritt mehr als rein oder groß, vermindert einen weniger als rein oder klein. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_augdim', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int6_erweitert': {
                     title: '6d — Erweiterte Intervalle bilden — None bis Tredezime',
-                    body: `<p>Jetzt kommen Intervalle <strong>über der Oktave</strong> hinzu: None, Dezime, Undezime, Duodezime und Tredezime.</p>
-                        <div class="lk-rule"><strong>Denke in Oktave + Grundintervall:</strong> Große None = Oktave + große Sekunde. Kleine Dezime = Oktave + kleine Terz. Reine Undezime = Oktave + reine Quarte. Und so weiter.</div>
+                    body: `<p><strong>Du kannst schon:</strong> Alle Intervalle bis zur Oktave auf der Tastatur bilden.</p>
+                        <p><strong>Neu:</strong> Jetzt auch über der Oktave, bis zur Tredezime (13).</p>
+                        <div class="lk-rule"><strong>Oktave + kleineres Intervall:</strong> große None = 12 + 2 = 14 Halbtonschritte. Geh zuerst eine Oktave hoch (wieder derselbe Ton), dann das kleinere Intervall weiter.</div>
                         <div class="lk-visual" id="lkVisualInt6Erweitert"></div>
-                        <div class="lk-tip"><strong>Strategie:</strong> Finde zuerst die Oktave des Starttons, dann zähle das Grundintervall weiter.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die Zieltaste für erweiterte Intervalle auf der Tastatur.</div>`
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die Zieltaste, z.&nbsp;B. für die große None von C über das nächste C hinaus zum D.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int5_extended')"><summary>Unsicher bei Intervallen über der Oktave?</summary><div class="lk-ask-a">None 9 = Oktave + Sekunde, Dezime 10 = Oktave + Terz, Undezime 11, Duodezime 12, Tredezime 13 = Oktave + Sexte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int5_extended', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 // ---- INT7: Bilden — Notensystem ----
                 'int7_rein': {
                     title: '7a — Reine Intervalle schreiben — Notensystem',
-                    body: `<p>Jetzt platzierst du die Zielnote direkt im <strong>Notensystem</strong> statt auf der Tastatur. Du siehst den Startton auf dem Notensystem und den gewünschten Intervallnamen.</p>
-                        <div class="lk-visual">
-                            <div style="font-size:0.8rem; color:#475569; margin-bottom:8px;">Werkzeuge</div>
-                            <div style="display:flex; gap:8px; justify-content:center;">
-                                <span style="padding:4px 12px; border:2px solid #d1d5db; border-radius:6px; font-size:0.8rem;">♯ Kreuz</span>
-                                <span style="padding:4px 12px; border:2px solid #d1d5db; border-radius:6px; font-size:0.8rem;">♭ Be</span>
-                            </div>
-                            <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Wähle ein Werkzeug, dann klicke oder tippe ins Notensystem. Gleiche Position erneut klicken = Note verschieben.</div>
-                        </div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Bei reinen Intervallen brauchst du von Stammtönen aus meistens kein Vorzeichen — prüfe aber immer die Halbtonschritte!</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Zielnote an der richtigen Stelle im Notensystem.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Reine Intervalle auf der Tastatur bilden.</p>
+                        <p><strong>Neu:</strong> Jetzt schreibst du den Zielton ins Notensystem. Dafür brauchst du zwei Schritte: Das Rahmenintervall gibt den Platz, die Halbtonschritte entscheiden über ein Vorzeichen.</p>
+                        <div class="lk-rule"><strong>Erst der Platz, dann das Vorzeichen:</strong> Die Quinte von D liegt 5 Stufen höher, auf A. D bis A sind 7 Halbtonschritte, genau die reine Quinte, also ohne Vorzeichen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Platz des Zieltons. Brauchst du ein Vorzeichen, wähle vorher „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int6_rein')"><summary>Unsicher, wann ein Vorzeichen nötig ist?</summary><div class="lk-ask-a">Wenn die Halbtonschritte nicht passen: Von H bis F sind es nur 6, die reine Quinte braucht 7, also Fis. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int6_rein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int7_grossklein': {
                     title: '7b — Große & kleine Intervalle schreiben',
-                    body: `<p>Jetzt bilden wir auch <strong>große und kleine</strong> Intervalle im Notensystem. Oft brauchst du ein Vorzeichen.</p>
-                        <div class="lk-rule"><strong>Zwei-Schritt-Methode:</strong> 1. Platziere die Note an der richtigen Stufe (Rahmenintervall). 2. Prüfe, ob ein Vorzeichen nötig ist: Zähle die natürlichen Halbtonschritte und vergleiche mit dem Soll-Wert. Nutze ♯ oder ♭ über die Werkzeug-Buttons.</div>
-                        <div class="lk-tip"><strong>Beispiel:</strong> Große Terz von D: Stufe = F (3. Stufe). D→F natürlich = 3 HS, aber g3 braucht 4 HS → also Fis (♯-Werkzeug nutzen).</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note und setze bei Bedarf ein Vorzeichen mit den Werkzeug-Buttons.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Reine Intervalle ins Notensystem schreiben.</p>
+                        <p><strong>Neu:</strong> Jetzt auch große und kleine. Hier brauchst du öfter ein Vorzeichen.</p>
+                        <div class="lk-rule"><strong>Erst der Platz, dann das Vorzeichen:</strong> Große Terz von D: 3 Stufen höher auf F. D bis F sind 3 Halbtonschritte, die große Terz braucht 4, also Fis.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Platz des Zieltons und setze bei Bedarf ein Vorzeichen.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_grossklein')"><summary>Unsicher bei groß und klein?</summary><div class="lk-ask-a">Groß hat einen Halbtonschritt mehr als klein: kleine Terz 3, große Terz 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int7_augdim': {
                     title: '7c — Übermäßig & vermindert schreiben',
-                    body: `<p>Jetzt kommen <strong>übermäßige und verminderte</strong> Intervalle im Notensystem dazu.</p>
-                        <div class="lk-rule"><strong>Gleiche Stufe, anderes Vorzeichen:</strong> Die Notenposition (Linie/Zwischenraum) bleibt beim gleichen Rahmenintervall identisch. Nur das Vorzeichen ändert sich: ü = 1 HS höher als rein/groß → ♯. v = 1 HS tiefer als rein/klein → ♭.</div>
-                        <div class="lk-tip"><strong>Beispiel:</strong> Übermäßige Quarte von C: Stufe = F (4. Stufe). C→F = 5 HS (rein), ü4 braucht 6 HS → also Fis. Verminderte Quinte von C: Stufe = G (5. Stufe). C→G = 7 HS (rein), v5 braucht 6 HS → also Ges.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Note mit dem passenden Vorzeichen für alle Intervallqualitäten.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Reine, große und kleine Intervalle schreiben.</p>
+                        <p><strong>Neu:</strong> Jetzt auch übermäßige und verminderte. Hier entscheidet das Rahmenintervall über den Platz, auch wenn die Taste dieselbe ist.</p>
+                        <div class="lk-rule"><strong>Gleiche Taste, anderer Platz:</strong> Übermäßige Quarte von C: 4 Stufen → F, mit 6 Halbtonschritten → Fis. Verminderte Quinte von C: 5 Stufen → G, mit 6 Halbtonschritten → Ges.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Platz des Zieltons und setze das passende Vorzeichen.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_augdim')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig ist einen Halbtonschritt mehr als rein oder groß, vermindert einen weniger als rein oder klein. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_augdim', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int7_erweitert': {
                     title: '7d — Erweiterte Intervalle schreiben — None bis Tredezime',
-                    body: `<p>Jetzt schreibst du auch Intervalle <strong>über der Oktave</strong> ins Notensystem.</p>
-                        <div class="lk-rule"><strong>Vorgehen:</strong> Denke in Oktave + Grundintervall. Die Note liegt eine Oktave höher als das entsprechende Grundintervall. Zum Beispiel: Große None = Note der großen Sekunde, aber eine Oktave höher.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Die Zielnote liegt oft auf Hilfslinien oberhalb des Systems. Zähle sorgfältig die Positionen ab — jede Linie und jeder Zwischenraum ist eine Stufe.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Platziere die Zielnote für erweiterte Intervalle im Notensystem.</div>`
+                    body: `<p><strong>Du kannst schon:</strong> Alle Intervalle bis zur Oktave schreiben.</p>
+                        <p><strong>Neu:</strong> Jetzt auch über der Oktave, bis zur Tredezime. Der Zielton liegt dann oft hoch im System oder auf Hilfslinien darüber.</p>
+                        <div class="lk-rule"><strong>Oktave + kleineres Intervall:</strong> Die große None von D ist die große Sekunde E, nur eine Oktave höher.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Platz des Zieltons und setze bei Bedarf ein Vorzeichen.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_hilfslinien')"><summary>Unsicher bei Hilfslinien über dem System?</summary><div class="lk-ask-a">Über der obersten Linie (f'') kommt g'', dann a'' auf der 1. und c''' auf der 2. Hilfslinie. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten4_hilfslinien', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int5_extended')"><summary>Unsicher bei Intervallen über der Oktave?</summary><div class="lk-ask-a">None 9 = Oktave + Sekunde, Dezime 10 = Oktave + Terz, Undezime 11, Duodezime 12, Tredezime 13 = Oktave + Sexte. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int5_extended', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 },
                 'int7_noaudio': {
-                    title: '7e — Ohne Hörbeispiel — Rein visuell schreiben',
-                    body: `<p>Ab jetzt gibt es <strong>kein Hörbeispiel</strong> mehr. Du bildest die Intervalle rein aus dem theoretischen Wissen heraus.</p>
-                        <div class="lk-rule"><strong>Deine Strategie:</strong> 1. Rahmenintervall bestimmen (Stufen abzählen → richtige Position). 2. Halbtonschritte berechnen (Soll vs. natürlich). 3. Vorzeichen setzen falls nötig.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Wenn du unsicher bist, stelle dir die Tastatur vor: Zähle die Halbtonschritte mental ab, um das Vorzeichen zu bestimmen.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bilde das Intervall im Notensystem — ohne akustische Kontrolle.</div>`
+                    title: '7e — Ohne Hörbeispiel schreiben',
+                    body: `<p><strong>Du kannst schon:</strong> Alle Intervalle ins Notensystem schreiben.</p>
+                        <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr.</p>
+                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> 1. Stufen zählen → Platz. 2. Halbtonschritte prüfen. 3. Vorzeichen setzen, falls nötig.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe das Intervall ins Notensystem.</div>
+                        <div class="lk-tip lk-tip-ask">
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int7_grossklein')"><summary>Unsicher, wann ein Vorzeichen nötig ist?</summary><div class="lk-ask-a">Zähle die Halbtonschritte vom Startton zum Platz und vergleiche mit dem Intervall: Große Terz von D auf F hat nur 3, braucht 4, also Fis. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int7_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
+                        </div>`
                 }
             },
 
@@ -8031,6 +8119,8 @@
                 }
                 
                 const sizePatterns = [
+                    // 13 zuerst: „tredezime“ enthält „dezime“
+                    [13, ['tredezime', 'tredezim', 'terzdezime', '13']],
                     [12, ['duodezime', 'duodezim', '12']],
                     [11, ['undezime', 'undezim', '11']],
                     [10, ['dezime', 'dezim', 'decime', '10']],
