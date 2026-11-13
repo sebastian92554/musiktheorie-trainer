@@ -2638,8 +2638,8 @@
                     { id: '8tel', label: '+ Achtel', preview: 'Addieren von Notenwerten mit Achtelnoten' },
                     { id: '16tel', label: '+ Sechzehntel', preview: 'Addieren von Notenwerten mit Sechzehntelnoten' },
                     { id: 'punktierte', label: '+ Punktierte', preview: 'Addieren von Notenwerten mit punktierten Noten' },
-                    { id: 'triolen', label: '+ Triolen', preview: 'Addieren von Notenwerten mit Triolen' },
-                    { id: 'hilfen_aus', label: 'ohne Hilfe', preview: 'Addieren von Notenwerten ohne Hilfe' }
+                    { id: 'triolen', label: '+ Triolen', preview: 'Addieren von Notenwerten mit Triolen' }
+                    // hilfen_aus (1g) entfernt: Legende steht nur noch im Hilfe-Menü, 1g war identisch mit 1f
                 ],
                 'rhy2': [
                     { id: 'regelmaessig', label: 'Regelmäßig (2/4, 3/4, 4/4)', preview: 'Erkennen regelmäßiger Taktarten (2/4, 3/4, 4/4)' },
@@ -3336,6 +3336,9 @@
                         noteTypes.push('triplet-group-eighth');  // 3 Achtel-Triolen = 1 Viertel
                         noteTypes.push('triplet-group-quarter'); // 3 Viertel-Triolen = 2 Viertel
                         noteTypes.push('triplet-group-half');    // 3 Halbe-Triolen = 4 Viertel
+                        if (app.settings.includeSixteenths) {
+                            noteTypes.push('triplet-group-sixteenth'); // 3 16tel-Triolen = 1 Achtel
+                        }
                     }
                     
                     app.settings.additionNoteTypes = noteTypes;
@@ -4191,7 +4194,8 @@
                 // Triolen-Gruppen (für Addition)
                 'triplet-group-eighth': { value: 1.0, symbol: '♪♪♪', name: 'Achtel-Triolen', isTripletGroup: true, isRest: false },
                 'triplet-group-quarter': { value: 2.0, symbol: '♩♩♩', name: 'Viertel-Triolen', isTripletGroup: true, isRest: false },
-                'triplet-group-half': { value: 4.0, symbol: '𝅗𝅥𝅗𝅥𝅗𝅥', name: 'Halbe-Triolen', isTripletGroup: true, isRest: false }
+                'triplet-group-half': { value: 4.0, symbol: '𝅗𝅥𝅗𝅥𝅗𝅥', name: 'Halbe-Triolen', isTripletGroup: true, isRest: false },
+                'triplet-group-sixteenth': { value: 0.5, symbol: '𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯', name: '16tel-Triolen', isTripletGroup: true, isRest: false }
             },
 
             // Professionelle SVG-Pfade für Noten und Pausen (CC0 Lizenz - publicdomainvectors.org)
@@ -4481,9 +4485,7 @@
                                 </div>
                                 <p>Pausen haben denselben Wert wie die entsprechende Note — werden genauso addiert.</p>`,
                             'triolen': `<p><strong>+ Triolen</strong></p>
-                                <p>3 Triolen-Achtel = 1 Viertel. Triolen-Gruppen immer zusammen rechnen.</p>`,
-                            'hilfen_aus': `<p><strong>Ohne Legende</strong></p>
-                                <p>Du musst die Notenwerte jetzt auswendig kennen.</p>`
+                                <p>3 Triolen-Achtel = 1 Viertel. Triolen-Gruppen immer zusammen rechnen.</p>`
                         },
                         'fortgeschrittener': {
                             'basis': `<p><strong>Zählzeiten bestimmen: Basis</strong></p>
@@ -4905,8 +4907,8 @@ Gerät:
                 const baseType = type.replace('-triplet', '');
                 
                 // Je nach Typ unterschiedliche Darstellung
-                if (baseType === 'eighth') {
-                    // Drei kleine Achtel mit Balken
+                if (baseType === 'eighth' || baseType === 'sixteenth') {
+                    // Drei kleine Achtel mit Balken (16tel: zweiter Balken)
                     // ViewBox KLEINER für stärkere Hochskalierung!
                     const spacing = 18;
                     const noteY = 34;  // 4px Abstand von unten (40-34=6, mit Notenkopf ≈4px)
@@ -4927,6 +4929,9 @@ Gerät:
                     }
                     // Balken
                     svg += `<line x1="15.5" y1="${stemTop}" x2="51.5" y2="${stemTop}" stroke="#000" stroke-width="3"/>`;
+                    if (baseType === 'sixteenth') {
+                        svg += `<line x1="15.5" y1="${stemTop + 5}" x2="51.5" y2="${stemTop + 5}" stroke="#000" stroke-width="3"/>`;
+                    }
                     // Klammer mit 3
                     svg += `<line x1="10" y1="4" x2="22" y2="4" stroke="#000" stroke-width="1.5"/>`;
                     svg += `<line x1="42" y1="4" x2="54" y2="4" stroke="#000" stroke-width="1.5"/>`;
@@ -5258,6 +5263,7 @@ Gerät:
                     case 'triplet-group-eighth': return 1;    // 3 × 1/3 = 1
                     case 'triplet-group-quarter': return 2;   // 3 × 2/3 = 2
                     case 'triplet-group-half': return 4;      // 3 × 4/3 = 4
+                    case 'triplet-group-sixteenth': return 0.5; // 3 × 1/6 = 0,5
                     default: return 0;
                 }
             },
@@ -5268,6 +5274,7 @@ Gerät:
                     case 'triplet-group-eighth': return 'eighth-triplet';
                     case 'triplet-group-quarter': return 'quarter-triplet';
                     case 'triplet-group-half': return 'half-triplet';
+                    case 'triplet-group-sixteenth': return 'sixteenth-triplet';
                     default: return null;
                 }
             },
@@ -5616,7 +5623,8 @@ Gerät:
                 // Triolen-Gruppen (selten, da auffällig)
                 'triplet-group-eighth': 2,
                 'triplet-group-quarter': 1,
-                'triplet-group-half': 1
+                'triplet-group-half': 1,
+                'triplet-group-sixteenth': 1
             },
             
             // Gewichtete Zufallsauswahl
@@ -5626,7 +5634,7 @@ Gerät:
                 '16tel': ['sixteenth', 'sixteenth-rest'],
                 'pausen': ['whole-rest', 'half-rest', 'quarter-rest'],
                 'punktierte': ['dotted-half', 'dotted-quarter', 'dotted-eighth', 'dotted-half-rest', 'dotted-quarter-rest', 'dotted-eighth-rest'],
-                'triolen': ['triplet-group-eighth', 'triplet-group-quarter', 'triplet-group-half']
+                'triolen': ['triplet-group-eighth', 'triplet-group-quarter', 'triplet-group-half', 'triplet-group-sixteenth']
             },
 
             // Dynamische Gewichte basierend auf aktuellem Sub-Skill-Schwerpunkt (kn3/kn4)
@@ -5885,7 +5893,7 @@ Gerät:
                     let noteHeight = 50;
                     
                     // Triolen-Gruppen brauchen DEUTLICH mehr Breite!
-                    if (summand.type === 'triplet-group-eighth') {
+                    if (summand.type === 'triplet-group-eighth' || summand.type === 'triplet-group-sixteenth') {
                         noteWidth = 90;  // +64% breiter für deutlich größere Darstellung
                     } else if (summand.type === 'triplet-group-quarter') {
                         noteWidth = 95;  // +73% breiter
@@ -6073,11 +6081,11 @@ Gerät:
                 // Fester Pool bestimmen (keine Ganzen, keine Pausen)
                 // 5a Basis:      half, quarter, eighth
                 // 5b Punktierte: + dotted-half, dotted-quarter
-                // 5c 16tel:      5b + sixteenth
+                // 5c 16tel:      5b + dotted-eighth, sixteenth (wie Diktat)
                 const opts = quickStart.currentOptions || [];
                 let fixedPool;
                 if (opts.includes('16tel')) {
-                    fixedPool = ['half', 'quarter', 'eighth', 'dotted-half', 'dotted-quarter', 'sixteenth'];
+                    fixedPool = ['half', 'quarter', 'eighth', 'dotted-half', 'dotted-quarter', 'dotted-eighth', 'sixteenth'];
                 } else if (opts.includes('punktierte')) {
                     fixedPool = ['half', 'quarter', 'eighth', 'dotted-half', 'dotted-quarter'];
                 } else {
