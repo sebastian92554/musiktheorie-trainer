@@ -1563,6 +1563,15 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #7c3aed; }
+        /* Sprung-Buttons zu früheren Lernkarten (inline, kleiner als
+           der Standard-Lernkarte-Button am Karten-Ende) — wie TT/DT/IT */
+        .lk-jump-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lernkarte .lk-jump-btn {
+            width: auto; padding: 8px 14px; font-size: 0.85rem;
+            margin-top: 0; background: #fff; color: #7c3aed;
+            border: 2px solid #7c3aed;
+        }
+        .lernkarte .lk-jump-btn:hover { background: #7c3aed; color: #fff; }
     </style>
 </head>
 <body>
@@ -1899,7 +1908,7 @@
                 
                 <!-- Eingabe für Summe -->
                 <div class="rt-input-centered">
-                    <label>Summe in Vierteln</label>
+                    <label id="additionLabel">Summe in Vierteln</label>
                     <div class="input-with-status">
                         <input
                             type="text"
@@ -3603,6 +3612,8 @@
                         this.clearHelpNudge();
 
                         // PROGRESSIVE SCHWIERIGKEIT (nur bei Addition): Nach 3 richtigen → mehr Summanden
+                        // (die 1e-Fälle mit nur einer Note zählen dafür nicht)
+                        if (app._dotCase) this.questionsCorrectInRow = 0;
                         if (app.settings.taskType === 'note-addition' && this.questionsCorrectInRow >= 3) {
                             if (this.currentSummandCount < 5) {
                                 this.currentSummandCount++;
@@ -5672,11 +5683,26 @@ Gerät:
                 document.getElementById('additionTaskContainer').classList.remove('hidden');
                 document.getElementById('inputCard').classList.add('hidden');
                 const availableNotes = this.getAvailableNotesForAddition();
-                const summandCount = this.getAdditionSummandCount();
-                
+                // 1e-Fälle (Fragen 1–4): eine einzelne punktierte Note in fester Reihenfolge,
+                // die Aufgabenstellung nennt, woraus sie besteht
+                const qa = quickStart.questionsAnswered;
+                const dotCase = this._dotInCases() ? [
+                    { type: 'dotted-half', text: 'Die punktierte Halbe dauert so lang wie eine Halbe und eine Viertel zusammen.' },
+                    { type: 'dotted-quarter', text: 'Die punktierte Viertel dauert so lang wie eine Viertel und eine Achtel zusammen.' },
+                    { type: 'dotted-eighth', text: 'Die punktierte Achtel dauert so lang wie eine Achtel und eine Sechzehntel zusammen.' },
+                    { type: 'dotted-quarter-rest', text: 'Die punktierte Viertelpause dauert so lang wie eine Viertelpause und eine Achtelpause zusammen.' }
+                ][qa] : null;
+                this._dotCase = !!dotCase;
+                const summandCount = dotCase ? 1 : this.getAdditionSummandCount();
+
                 // Wähle zufällige Notenwerte (GEWICHTET für bessere Verteilung)
                 const summands = [];
                 for (let i = 0; i < summandCount; i++) {
+                    if (dotCase) {
+                        const info = this.noteValues[dotCase.type];
+                        summands.push({ type: dotCase.type, value: info.value, symbol: info.symbol, name: info.name, isRest: info.isRest || false });
+                        continue;
+                    }
                     // Nutze gewichtete Auswahl statt einfach random
                     let noteType;
                     const useWeighted = Math.random() < 0.7; // 70% gewichtet, 30% komplett random
@@ -5739,7 +5765,19 @@ Gerät:
                 feedback.classList.add('hidden');
                 
                 this.hasBeenChecked = false;
-                
+
+                // 1e: Aufgabenstellung je Phase; nach den vier Fällen (vor Aufgabe 5) die
+                // Muster-Karte einblenden
+                const dotHighest = quickStart.isActive && (quickStart.currentOptions || []).slice(-1)[0] === 'punktierte';
+                const addLabel = document.getElementById('additionLabel');
+                if (addLabel) addLabel.textContent = dotCase ? 'Wert in Vierteln' : 'Summe in Vierteln';
+                if (dotCase) {
+                    quickStart.showTaskInstruction(`${dotCase.text} Wie viele Viertel ist sie wert?`);
+                } else if (dotHighest) {
+                    quickStart.showTaskInstruction('Berechne die Summe der Notenwerte. Gib das Ergebnis in Vierteln ein.');
+                    if (qa === 4) this.showLernkarte('punktierte', false, true);
+                }
+
                 // Fokus auf Input
                 setTimeout(() => input.focus(), 100);
             },
@@ -8899,14 +8937,27 @@ Gerät:
                 const prefix = prefixMap[level];
                 return prefix ? prefix + subSkillId : subSkillId;
             },
-            showLernkarte(subSkillId, fromStart) {
-                const key = this.getLernkarteKey(subSkillId);
+            // 1e als höchster Sub-Skill, Fragen 1–4: Fälle mit einer einzelnen punktierten Note
+            _dotInCases() {
+                const opts = quickStart.currentOptions || [];
+                return quickStart.isActive && quickStart.currentLevel === 'einsteiger' &&
+                    opts[opts.length - 1] === 'punktierte' && quickStart.questionsAnswered < 4;
+            },
+            // auto = vom Trainer eingeblendet (1e-Muster-Karte nach den Fällen):
+            // zählt nicht als manuelles Öffnen (card_view)
+            showLernkarte(subSkillId, fromStart, auto) {
+                let key = this.getLernkarteKey(subSkillId);
+                // 1e: Start-Karte nur vor/während der vier Fälle, sonst die Muster-Karte
+                if (key === 'punktierte' && !this._dotInCases()) key = 'punktierte_regel';
                 const content = this.lernkartenContent ? this.lernkartenContent[key] : null;
                 if (!content) return false;
-                this._lernkarteFromStart = !!fromStart;
+                // Sprung aus einer offenen Start-Karte (Tipp-Button): Start-Status behalten,
+                // sonst beginnt nach „Verstanden" keine Aufgabe
+                const chained = document.getElementById('lernkarteOverlay').classList.contains('active');
+                this._lernkarteFromStart = !!fromStart || (chained && this._lernkarteFromStart);
                 this._lernkarteOpenedAt = Date.now();
                 this._lernkarteCurrentId = subSkillId;
-                if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
+                if (!fromStart && !auto) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
                 document.getElementById('lernkarteOverlay').classList.add('active');
@@ -9026,20 +9077,45 @@ Gerät:
                     ]);
                 }
             },
+            // 1e — Start-Karte (vor und während der vier Fälle). Danach zeigt
+            // showLernkarte stattdessen punktierte_regel.
             'punktierte': {
                 title: '1e — Mit punktierten Noten',
-                body: `<p>Ein <strong>Punkt hinter der Note</strong> verlängert sie um die Hälfte ihres Werts — die Note wird 1,5× so lang.</p>
+                body: `<p><strong>Du kannst schon:</strong> Ganze, Halbe, Viertel, Achtel und Sechzehntel zusammenrechnen.</p>
+                    <p><strong>Neu:</strong> Ein <strong>Punkt hinter der Note</strong> verlängert sie.</p>
+                    <div class="lk-rule"><strong>Die Verlängerung ist fest:</strong> Der Punkt wirkt bei jeder Note auf dieselbe Weise, auch bei Pausen.</div>
+                    <div style="font-weight:600;text-align:center;color:#5b21b6;margin-bottom:4px">Beispiel</div>
                     <div class="lk-visual" id="lkVisualPunktierte"></div>
-                    <div class="lk-rule"><strong>Merke:</strong> Punktiert = Notenwert + halber Notenwert. Beispiel: Halbe (2) + Punkt (1) = 3.</div>
-                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Punktierte Noten werden jetzt mitgerechnet.</div>`,
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> In den ersten vier Aufgaben siehst du eine punktierte Note und erfährst, woraus sie besteht. Rechne aus, wie viele Viertel sie wert ist. Was fügt der Punkt jedes Mal hinzu?</div>
+                    <div class="lk-tip">
+                        <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher bei Achteln? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('8tel', false)">1c — Mit Achtelnoten</button></div>
+                        <div class="lk-jump-row" style="align-items:center">Unsicher bei Sechzehnteln? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('16tel', false)">1d — Mit Sechzehntelnoten</button></div>
+                    </div>`,
                 render() {
                     const el = document.getElementById('lkVisualPunktierte');
-                    if (el) el.innerHTML = renderLernkarteSymbols([
-                        {type:'dotted-half', label:'Punkt. Halbe = 3', width:45, height:40},
-                        {type:'dotted-quarter', label:'Punkt. Viertel = 1,5', width:45, height:40},
-                        {type:'dotted-eighth', label:'Punkt. Achtel = 0,75', width:45, height:40}
-                    ]);
+                    if (!el) return;
+                    // Notengleichung: punktierte Halbe = Halbe + Viertel (ohne Zahlen)
+                    const item = (t, l) => `<span style="text-align:center">${renderLegendSymbol(t, 45, 40)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">${l}</small></span>`;
+                    const op = s => `<span style="font-size:1.4rem;font-weight:600;color:#7c3aed">${s}</span>`;
+                    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap">' +
+                        item('dotted-half', 'punktierte Halbe') + op('=') + item('half', 'Halbe') + op('+') + item('quarter', 'Viertel') + '</div>';
                 }
+            },
+            // 1e — Muster-Karte (automatisch vor Aufgabe 5, danach als Hilfe).
+            // Die Zeilen entsprechen der festen Fall-Reihenfolge in generateAdditionTask.
+            'punktierte_regel': {
+                title: 'Die Verlängerung durch den Punkt',
+                body: `<p><strong>Das hast du herausgefunden</strong> (deine Aufgaben):</p>
+                    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:6px 0 8px">
+                        <tr style="color:#5b21b6;font-weight:600;font-size:0.8rem"><td>Note</td><td style="text-align:center">ohne Punkt</td><td style="text-align:center">Punkt</td><td style="text-align:center">punktiert</td></tr>
+                        <tr style="border-top:1px solid #ddd6fe"><td>punktierte Halbe</td><td style="text-align:center">2</td><td style="text-align:center">+ 1</td><td style="text-align:center">= 3</td></tr>
+                        <tr style="border-top:1px solid #ddd6fe"><td>punktierte Viertel</td><td style="text-align:center">1</td><td style="text-align:center">+ 0,5</td><td style="text-align:center">= 1,5</td></tr>
+                        <tr style="border-top:1px solid #ddd6fe"><td>punktierte Achtel</td><td style="text-align:center">0,5</td><td style="text-align:center">+ 0,25</td><td style="text-align:center">= 0,75</td></tr>
+                        <tr style="border-top:1px solid #ddd6fe"><td>punktierte Viertelpause</td><td style="text-align:center">1</td><td style="text-align:center">+ 0,5</td><td style="text-align:center">= 1,5</td></tr>
+                    </table>
+                    <div class="lk-rule"><strong>Die Verlängerung durch den Punkt:</strong> Der Punkt fügt immer die <strong>Hälfte des Notenwerts</strong> hinzu, bei Noten und bei Pausen.</div>
+                    <p><strong>Neu ab jetzt:</strong> Punktierte Noten kommen in den Rechenaufgaben vor.</p>
+                    <div class="lk-task"><strong>Deine Aufgabe:</strong> Addiere die gezeigten Notenwerte und gib die Summe in Vierteln ein.</div>`
             },
             'triolen': {
                 title: '1f — Mit Triolen',
