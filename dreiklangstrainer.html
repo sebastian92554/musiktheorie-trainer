@@ -1566,6 +1566,25 @@
             font-size: 0.88rem;
             color: #92400e;
         }
+        /* Rücksprung bei benannter Unsicherheit („Unsicher bei …? [Button]“) */
+        .lk-jump-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lernkarte .lk-jump-btn {
+            width: auto; padding: 8px 14px; font-size: 0.85rem;
+            margin-top: 0; background: #fff; color: #059669;
+            border: 2px solid #10b981;
+        }
+        .lernkarte .lk-jump-btn:hover { background: #10b981; color: #fff; }
+        /* Regel-Frage („Welche Regel hast du angewendet?“) */
+        .lernkarte .lk-choice {
+            display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
+            background: #fff; color: #065f46; border: 2px solid #a7f3d0; border-radius: 8px;
+            font-size: 0.88rem; font-weight: 500; cursor: pointer;
+        }
+        .lernkarte .lk-choice:hover:not(:disabled) { border-color: #059669; background: #ecfdf5; }
+        .lernkarte .lk-choice.right { border-color: #22c55e; background: #dcfce7; color: #166534; font-weight: 600; }
+        .lernkarte .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
+        .lernkarte .lk-choice:disabled { cursor: default; }
+        .lk-hidden { display: none; }
         .lk-contrast {
             display: flex;
             gap: 12px;
@@ -3145,6 +3164,24 @@
                     this.currentOptions = ['basis'];
                 }
 
+                // drei2a: Probe-Weiche — Fälle nur, wenn die Dur/Moll-Regel noch fehlt.
+                // Regel schon bestätigt (Regel-Frage richtig) oder 2a gemeistert → direkt anwenden.
+                app._rule2a = null;
+                if (level === 'aufsteiger' && this.currentOptions[this.currentOptions.length - 1] === 'basis') {
+                    const p = (this.progress && this.progress.aufsteiger) || {};
+                    const known = (p.ruleKnown || []).includes('basis') || (p.mastered || []).includes('basis');
+                    if (!known) {
+                        const first = Math.random() < 0.5 ? ['dur', 'moll'] : ['moll', 'dur'];
+                        app._rule2a = {
+                            mode: 'probe',                  // probe → (bei Fehler) cases → apply
+                            probeTypes: [...first, Math.random() < 0.5 ? 'dur' : 'moll'],  // 3 Proben (Raten 1:2)
+                            probeIdx: 0, probeChords: [],
+                            caseTypes: null, caseIdx: 0,
+                            pending: null                    // 'probe' | 'cases': Karte vor der nächsten Aufgabe
+                        };
+                    }
+                }
+
                 this.totalQuestions = 10;
                 this._quizStartTs = Date.now();
                 try {
@@ -4133,7 +4170,7 @@ const _lernkartenContent = {
             <div class="lk-rule"><strong>Das Muster ist fest:</strong> Alle Dur-Dreiklänge haben dieselben Abstände, egal auf welchem Ton sie beginnen. Für Moll gilt das genauso, nur mit anderen Abständen.</div>
             <div class="lk-visual" id="lkVisualDrei2a"></div>
             <div class="lk-tip"><strong>So zählst du:</strong> Von Taste zu Taste, schwarze Tasten mitzählen. Die Starttaste zählt nicht mit.</div>
-            <div class="lk-task"><strong>Deine Aufgabe:</strong> In den ersten vier Aufgaben steht dabei, ob es Dur oder Moll ist: erst zweimal Dur, dann zweimal Moll. Zähle die Halbtonschritte. Sind sie bei einem anderen Dur-Dreiklang gleich? Und bei Moll?</div>`,
+            <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und bestimme die Art: Dur oder Moll. Klappt es noch nicht, schauen wir uns an einzelnen Dreiklängen genauer an, welche Abstände Dur und Moll haben.</div>`,
         render() {
             document.getElementById('lkVisualDrei2a').innerHTML = renderLernkarteTastatur({ numOctaves:1, title:'Beispiel: C-Dur', highlightKeys:[{key:'C',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'}], arrows:[{from:'C',to:'E',label:'4 HS',color:'#059669'},{from:'E',to:'G',label:'3 HS',color:'#059669'}] });
         }
@@ -4148,6 +4185,39 @@ const _lernkartenContent = {
             const left = renderLernkarteTastatur({ numOctaves:1, title:'Dur: 4 + 3 HS', highlightKeys:[{key:'C',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'}], arrows:[{from:'C',to:'E',label:'4 HS',color:'#059669'},{from:'E',to:'G',label:'3 HS',color:'#059669'}] });
             const right = renderLernkarteTastatur({ numOctaves:1, title:'Moll: 3 + 4 HS', highlightKeys:[{key:'C',color:'#fecaca'},{key:'Dis',displayName:'Es',color:'#fecaca'},{key:'G',color:'#fecaca'}], arrows:[{from:'C',to:'Dis',label:'3 HS',color:'#dc2626'},{from:'Dis',to:'G',label:'4 HS',color:'#dc2626'}], showBlackLabels:true });
             document.getElementById('lkContrastDrei2Regel').innerHTML = '<div>' + left + '</div><div>' + right + '</div>';
+        }
+    },
+    // 2a — Regel-Frage nach bestandener Probe (automatisch). Die eigenen Aufgaben
+    // erscheinen erst nach der Antwort, sonst verrieten sie sie. Richtig → gespeichert,
+    // beim Wiederholen entfallen Probe, Fälle und Frage.
+    'drei2_basis_frage': {
+        title: 'Das Muster von Dur und Moll',
+        body: `<p>Du hast die ersten Aufgaben richtig gelöst.</p>
+            <div class="lk-task"><strong>Welche Regel hast du angewendet?</strong><div id="lkRuleChoices"></div></div>
+            <p class="lk-hidden" id="lkRuleFeedback"></p>
+            <div class="lk-hidden" id="lkRuleEvidence">
+                <p style="margin-bottom:0"><strong>Deine Aufgaben:</strong></p>
+                <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:6px 0 8px">
+                    <tr style="color:#065f46;font-weight:600;font-size:0.8rem"><td>Dreiklang</td><td>Halbtonschritte</td></tr>
+                    <tbody id="lkRuleRows"></tbody>
+                </table>
+            </div>
+            <div class="lk-rule lk-hidden" id="lkRuleBox"><strong>Das Muster von Dur und Moll:</strong> Dur <strong>4 + 3</strong>, Moll <strong>3 + 4</strong> Halbtonschritte. Beide umfassen zusammen 7, nur die Reihenfolge ist umgekehrt.</div>`,
+        render() {
+            const choices = [
+                { t: 'Dur hat unten 4 und oben 3 Halbtonschritte, Moll unten 3 und oben 4.', ok: true },
+                { t: 'Dur hat unten 3 und oben 4 Halbtonschritte, Moll unten 4 und oben 3.' },
+                { t: 'Moll-Dreiklänge haben Bs, Dur-Dreiklänge haben Kreuze.' },
+                { t: 'Moll-Dreiklänge haben immer eine schwarze Taste.' }
+            ].map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
+            document.getElementById('lkRuleChoices').innerHTML = choices.map(c =>
+                `<button type="button" class="lk-choice" data-ok="${c.ok ? 1 : 0}" onclick="app._pickRuleChoice(this, 'basis')">${c.t}</button>`).join('');
+            const chords = (app._rule2a && app._rule2a.probeChords) || [];
+            document.getElementById('lkRuleRows').innerHTML = chords.map(c =>
+                `<tr style="border-top:1px solid #a7f3d0"><td>${app._drei2ChordName(c.root, c.type)}</td><td>${c.hs1} + ${c.hs2}</td></tr>`).join('');
+            // „Verstanden“ erst nach der Antwort
+            const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+            if (lkBtn) lkBtn.style.display = 'none';
         }
     },
     'drei2_vorzeichen': {
@@ -5664,7 +5734,7 @@ const _lernkartenContent = {
                         this.lockedKeys = [];
                     } else if (mode === 'aufsteiger') {
                         // drei2a-Phase zum Erzeugungszeitpunkt festhalten: Fälle (Art angegeben),
-                        // danach HS zählen + Art bestimmen (nur wenn 2a der höchste Sub-Skill ist)
+                        // sonst (Probe, Anwendung) HS zählen + Art bestimmen (nur wenn 2a der höchste Sub-Skill ist)
                         this._drei2Case = this._drei2InCases();
                         this._drei2Art = !this._drei2Case && quickStart.isActive &&
                             quickStart.currentOptions[quickStart.currentOptions.length - 1] === 'basis';
@@ -5737,11 +5807,13 @@ const _lernkartenContent = {
                     }
                     const rootNote = availableRootNotes[Math.floor(Math.random() * availableRootNotes.length)];
                     
-                    // drei2a-Fälle (Fragen 1–4): Art ist vorgegeben — 2× Dur, dann 2× Moll
-                    // (je zwei Fälle zeigen, dass das Muster fest ist); ohne C-Dur (Lernkarte).
+                    // drei2a-Probe-Weiche: Probe und Fälle mit festgelegter Art (Fälle je zweimal,
+                    // damit sich zeigt, dass das Muster fest ist); ohne C-Dur (Lernkarte).
                     // Terzen direkt festlegen statt würfeln+verwerfen — sonst reichen die
                     // Versuche oft nicht und der Fallback (C-Dur) greift.
-                    const caseType = this._drei2InCases() ? (quickStart.questionsAnswered < 2 ? 'dur' : 'moll') : null;
+                    const r2a = quickStart.isActive ? this._rule2a : null;
+                    const caseType = !r2a ? null : (r2a.mode === 'probe' ? r2a.probeTypes[r2a.probeIdx]
+                        : (r2a.mode === 'cases' ? r2a.caseTypes[r2a.caseIdx] : null));
                     if (caseType === 'dur' && rootNote === 'C') continue;
 
                     // Schritt 2: Würfle erste Terz (groß=4 HS oder klein=3 HS)
@@ -6205,20 +6277,19 @@ const _lernkartenContent = {
                     quickStart.showTaskInstruction('Welche Töne gehören zum Dreiklang? Klicke die 3 richtigen Tasten.');
                 } else if (this.quickStartMode === 'aufsteiger') {
                     // drei2a: Fälle (Art angegeben) → danach HS zählen + Art bestimmen
-                    const cc = this.currentChord;
-                    const chordName = cc.type === 'moll'
-                        ? cc.rootNote.toLowerCase() + '-Moll'
-                        : cc.rootNote.charAt(0).toUpperCase() + cc.rootNote.slice(1) + '-' + cc.type.charAt(0).toUpperCase() + cc.type.slice(1);
                     if (this._drei2Case) {
-                        quickStart.showTaskInstruction(`Das ist ${chordName}. Wie viele Halbtonschritte liegen zwischen den Tönen? Wähle die Zahlen aus.`);
+                        quickStart.showTaskInstruction(this._drei2CaseInstruction());
                     } else if (this._drei2Art) {
                         quickStart.showTaskInstruction('Wie viele Halbtonschritte liegen zwischen den Tönen? Wähle die Zahlen und die Art aus.');
                     } else {
                         quickStart.showTaskInstruction('Wie viele Halbtonschritte liegen zwischen den Tönen? Wähle die Zahlen aus.');
                     }
-                    // Nach den vier Fällen (vor Aufgabe 5) die Muster-Karte einblenden
-                    if (this._drei2Art && quickStart.questionsAnswered === 4) {
-                        this.showLernkarte('basis', false, true);
+                    // Nach bestandener Probe die Regel-Frage, nach den Fällen die Muster-Karte
+                    const r2a = quickStart.isActive ? this._rule2a : null;
+                    if (r2a && r2a.pending) {
+                        const which = r2a.pending;
+                        r2a.pending = null;
+                        this.showLernkarte(which === 'probe' ? 'drei2_basis_frage' : 'basis', false, true);
                     }
                 } else if (this.quickStartMode === 'profi') {
                     quickStart.showTaskInstruction('Welcher Dreiklang ist das? Bestimme Grundton und Art.');
@@ -7197,14 +7268,56 @@ const _lernkartenContent = {
             // ---- Lernkarten-System ----
             lernkartenContent: _lernkartenContent,
 
-            // drei2a als höchster Sub-Skill, Fragen 1–4: Fälle mit angegebener Art
+            // drei2a-Probe-Weiche (app._rule2a): Fälle mit angegebener Art …
             _drei2InCases() {
-                return quickStart.isActive && quickStart.currentLevel === 'aufsteiger' &&
-                    quickStart.currentOptions[quickStart.currentOptions.length - 1] === 'basis' &&
-                    quickStart.questionsAnswered < 4;
+                const r = this._rule2a;
+                return !!r && quickStart.isActive && r.mode === 'cases';
+            },
+            // … bzw. noch in Probe oder Fällen (für die Wahl der Lernkarte)
+            _drei2Learning() {
+                const r = this._rule2a;
+                return !!r && quickStart.isActive && r.mode !== 'apply';
+            },
+            // Akkordname in Schreibweise der Lernkarten: „F-Dur“, „e-Moll“
+            _drei2ChordName(root, type) {
+                return type === 'moll'
+                    ? root.toLowerCase() + '-Moll'
+                    : root.charAt(0).toUpperCase() + root.slice(1) + '-' + type.charAt(0).toUpperCase() + type.slice(1);
+            },
+            // Aufgabenstellung im Fall: Art wird genannt, gezählt werden nur die HS
+            _drei2CaseInstruction() {
+                const cc = this.currentChord;
+                return `Das ist ${this._drei2ChordName(cc.rootNote, cc.type)}. Wie viele Halbtonschritte liegen zwischen den Tönen? Wähle die Zahlen aus.`;
+            },
+
+            // Regel-Frage („Welche Regel hast du angewendet?“): Antwort markieren, dann
+            // Rückmeldung, eigene Aufgaben und Regel zeigen. Richtig → im Fortschritt merken,
+            // damit Probe, Fälle und Frage beim Wiederholen entfallen.
+            _pickRuleChoice(btn, subSkillId) {
+                const body = document.getElementById('lernkarteBody');
+                const right = btn.dataset.ok === '1';
+                body.querySelectorAll('.lk-choice').forEach(b => { b.disabled = true; });
+                btn.classList.add(right ? 'right' : 'wrong');
+                if (!right) body.querySelector('.lk-choice[data-ok="1"]').classList.add('right');
+                document.getElementById('lkRuleFeedback').innerHTML = right
+                    ? '<strong>Genau.</strong> Diese Regel steckt in deinen Aufgaben.'
+                    : '<strong>Nicht ganz.</strong> Deine Aufgaben hast du richtig gelöst, die Regel dahinter lautet so:';
+                body.querySelectorAll('.lk-hidden').forEach(el => el.classList.remove('lk-hidden'));
+                const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                if (lkBtn) lkBtn.style.display = '';
+                if (right) {
+                    const p = quickStart.progress && quickStart.progress[quickStart.currentLevel];
+                    if (p) {
+                        p.ruleKnown = p.ruleKnown || [];
+                        if (!p.ruleKnown.includes(subSkillId)) p.ruleKnown.push(subSkillId);
+                        quickStart.saveProgress();
+                    }
+                }
             },
 
             getLernkarteKey(subSkillId) {
+                // Voller Schlüssel (z. B. 'drei2_basis_frage') direkt verwenden
+                if (/^drei\d_/.test(subSkillId)) return subSkillId;
                 const level = quickStart.currentLevel;
                 // drei1 Sub-Skills sind direkt
                 if (['basis','vorzeichen','range'].includes(subSkillId) && level === 'einsteiger') return subSkillId;
@@ -7221,10 +7334,13 @@ const _lernkartenContent = {
             // zählt nicht als manuelles Öffnen (card_view)
             showLernkarte(subSkillId, fromStart, auto) {
                 let key = this.getLernkarteKey(subSkillId);
-                // drei2: Start-Karte nur vor/während der vier Fälle, sonst die Muster-Karte
-                if (key === 'drei2_basis' && !this._drei2InCases()) key = 'drei2_basis_regel';
+                // drei2: Start-Karte nur während Probe und Fällen, sonst die Muster-Karte
+                if (key === 'drei2_basis' && !this._drei2Learning()) key = 'drei2_basis_regel';
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
+                // „Verstanden“-Button wieder zeigen (die Regel-Frage blendet ihn bis zur Antwort aus)
+                const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                if (lkBtn) lkBtn.style.display = '';
                 // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
                 // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen
                 if (fromStart) quickStart.hideTaskInstruction();
@@ -8000,6 +8116,8 @@ const _lernkartenContent = {
 
                 // ===== AUFSTEIGER: Beide Halbtonschritte (Dropdowns) =====
                 else if (this.quickStartMode === 'aufsteiger') {
+                    // Während die misslungene Probe zum Fall umgebaut wird, nicht prüfen
+                    if (this._drei2Converting) return;
                     const val1 = this.getHSValue('hsSelect1');
                     const val2 = this.getHSValue('hsSelect2');
                     // drei2a ab Aufgabe 5: zusätzlich die Art (Vorhersage aus dem HS-Muster)
@@ -8037,6 +8155,11 @@ const _lernkartenContent = {
                         try { errorTracker.logAnswer({ isCorrect: _at, akkordtypOk: artSel ? artCorrect : _hsOk, hsOk: _hsOk, vorzeichenOk: _hasAcc ? _hsOk : null, errLine: _errLine }); } catch (e) {}
                     }
 
+                    // drei2a-Probe-Weiche: Probe bestanden → Regel-Frage; misslungen → diese
+                    // Aufgabe wird zum ersten Fall (Art wird nachgereicht)
+                    const r2a = quickStart.isActive ? this._rule2a : null;
+                    const inProbe = !!r2a && r2a.mode === 'probe';
+
                     if (hs1Correct && hs2Correct && artCorrect) {
                         isCorrect = true;
                         const s1 = document.getElementById('hsSelect1');
@@ -8046,7 +8169,44 @@ const _lernkartenContent = {
                         if (artSel) artSel.disabled = true;
                         feedbackEl.classList.remove('hidden');
                         feedbackEl.className = 'feedback correct';
-                        feedbackEl.innerHTML = `✓ Perfekt! HS: <strong>${correctInterval1} + ${correctInterval2}</strong> → ${correctRootNote}-${correctType}`;
+                        // In der Probe ohne HS-Muster — sonst stünde die Antwort der Regel-Frage schon da
+                        feedbackEl.innerHTML = inProbe
+                            ? `✓ Richtig! ${this._drei2ChordName(correctRootNote, correctType)}`
+                            : `✓ Perfekt! HS: <strong>${correctInterval1} + ${correctInterval2}</strong> → ${correctRootNote}-${correctType}`;
+                        if (inProbe) {
+                            r2a.probeChords.push({ root: correctRootNote, hs1: correctInterval1, hs2: correctInterval2, type: correctType });
+                            r2a.probeIdx++;
+                            if (r2a.probeIdx >= r2a.probeTypes.length) { r2a.mode = 'apply'; r2a.pending = 'probe'; }
+                        } else if (this._drei2Case && r2a && r2a.mode === 'cases') {
+                            r2a.caseIdx++;
+                            if (r2a.caseIdx >= r2a.caseTypes.length) { r2a.mode = 'apply'; r2a.pending = 'cases'; }
+                        }
+                    } else if (inProbe) {
+                        // Probe misslungen → Fälle: dieser Dreiklang ist der erste, die Art wird genannt
+                        const t = correctType, o = (t === 'dur') ? 'moll' : 'dur';
+                        r2a.mode = 'cases';
+                        r2a.caseTypes = [t, t, o, o];
+                        r2a.caseIdx = 0;
+                        this._drei2Case = true;
+                        this._drei2Art = false;
+                        // Bis zum Umbau gesperrt, sonst würde die alte Auswahl als Fall geprüft
+                        this._drei2Converting = true;
+                        ['hsSelect1', 'hsSelect2'].forEach(id => { const sel = document.getElementById(id); if (sel) sel.disabled = true; });
+                        if (artSel) artSel.disabled = true;
+                        feedbackEl.classList.remove('hidden');
+                        feedbackEl.className = 'feedback incorrect';
+                        feedbackEl.innerHTML = `⚠️ <strong>Nicht ganz.</strong> Das ist ${this._drei2ChordName(correctRootNote, t)}. Schauen wir genauer hin, wie viele Halbtonschritte zwischen den Tönen liegen.`;
+                        // Neu zählen: alle Auswahlen frei, Art-Auswahl entfällt
+                        setTimeout(() => {
+                            ['hsSelect1', 'hsSelect2'].forEach(id => {
+                                const sel = document.getElementById(id);
+                                if (sel) { sel.value = ''; sel.disabled = false; }
+                            });
+                            if (artSel) artSel.parentElement.remove();
+                            this._drei2Converting = false;
+                            feedbackEl.classList.add('hidden');
+                            quickStart.showTaskInstruction(this._drei2CaseInstruction());
+                        }, 3000);
                     } else {
                         const feedbackParts = [];
                         feedbackParts.push(`Grundton→Terz: ${hs1Correct ? '<span style="color:#22c55e;">✓</span>' : '<span style="color:#ef4444;">✗</span>'}`);
