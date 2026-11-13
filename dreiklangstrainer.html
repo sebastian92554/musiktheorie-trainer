@@ -4227,7 +4227,7 @@ const _lernkartenContent = {
             <div class="lk-visual" id="lkVisualDrei2b"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte, auch bei Vorzeichen.</div>
             <div class="lk-tip">
-                <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher bei den Vorzeichen? <button type="button" class="lk-jump-btn" onclick="window.open('notentrainer.html', '_blank')">Notentrainer: Vorzeichen</button></div>
+                <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher bei den Vorzeichen? <button type="button" class="lk-jump-btn" onclick="window.open('notentrainer.html?lernkarte=vorzeichen', '_blank')">Notentrainer: Vorzeichen</button></div>
                 <div class="lk-jump-row" style="align-items:center">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('basis', false)">2a — Halbtonschritte zählen</button></div>
             </div>`,
         render() {
@@ -7315,6 +7315,30 @@ const _lernkartenContent = {
                 }
             },
 
+            // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
+            // Lernkarte direkt öffnen. Per window.open im neuen Tab geöffnet → „Verstanden“
+            // schließt den Tab wieder, und man ist zurück bei der Aufgabe im anderen Trainer.
+            openDeepLinkLernkarte() {
+                const url = new URL(location.href);
+                const key = url.searchParams.get('lernkarte');
+                if (!key || !(this.lernkartenContent || {})[key]) return;
+                url.searchParams.delete('lernkarte');
+                history.replaceState(null, '', url);
+                // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
+                document.body.appendChild(document.getElementById('lernkarteOverlay'));
+                if (!this.showLernkarte(key, false)) return;
+                if (window.opener) {
+                    const btn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                    btn.textContent = 'Verstanden, zurück';
+                    btn.onclick = () => {
+                        btn.textContent = 'Verstanden, los!';
+                        btn.onclick = () => app.dismissLernkarte();
+                        app.dismissLernkarte();
+                        window.close();
+                    };
+                }
+            },
+
             getLernkarteKey(subSkillId) {
                 // Voller Schlüssel (z. B. 'drei2_basis_frage') direkt verwenden
                 if (/^drei\d_/.test(subSkillId)) return subSkillId;
@@ -8753,6 +8777,7 @@ Gerät:
             
             // App initialisieren (aber nicht sichtbar machen)
             app.init();
+            app.openDeepLinkLernkarte();
             
             document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
             

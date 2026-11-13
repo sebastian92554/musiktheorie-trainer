@@ -4739,6 +4739,30 @@
 
             // ---- Lernkarten-System ----
             // Mapping: Sub-Skill-ID + Level → lernkartenContent-Key
+            // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
+            // Lernkarte direkt öffnen. Per window.open im neuen Tab geöffnet → „Verstanden“
+            // schließt den Tab wieder, und man ist zurück bei der Aufgabe im anderen Trainer.
+            openDeepLinkLernkarte() {
+                const url = new URL(location.href);
+                const key = url.searchParams.get('lernkarte');
+                if (!key || !(this.lernkartenContent || {})[key]) return;
+                url.searchParams.delete('lernkarte');
+                history.replaceState(null, '', url);
+                // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
+                document.body.appendChild(document.getElementById('lernkarteOverlay'));
+                if (!this.showLernkarte(key, false)) return;
+                if (window.opener) {
+                    const btn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                    btn.textContent = 'Verstanden, zurück';
+                    btn.onclick = () => {
+                        btn.textContent = 'Verstanden, los!';
+                        btn.onclick = () => app.dismissLernkarte();
+                        app.dismissLernkarte();
+                        window.close();
+                    };
+                }
+            },
+
             getLernkarteKey(subSkillId) {
                 const level = quickStart.currentLevel;
                 // INT4 Sub-Skills (rein, grossklein, komplement, augdim, alles) sind direkt
@@ -8636,6 +8660,7 @@ Gerät:
             
             // App initialisieren (aber nicht anzeigen - Quick-Start ist Standard)
             app.init();
+            app.openDeepLinkLernkarte();
             
             document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
             

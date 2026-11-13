@@ -7114,6 +7114,30 @@
             return `<svg width="${w}" height="${h}" viewBox="0 0 ${Math.round(ref.cx*2*s)} ${Math.round(ref.h*s)}" style="vertical-align:middle"><g transform="scale(${s})"><path d="${pathD}" fill="currentColor" stroke="none"/></g></svg>`;
         },
 
+        // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
+        // Lernkarte direkt öffnen. Per window.open im neuen Tab geöffnet → „Verstanden“
+        // schließt den Tab wieder, und man ist zurück bei der Aufgabe im anderen Trainer.
+        openDeepLinkLernkarte() {
+            const url = new URL(location.href);
+            const key = url.searchParams.get('lernkarte');
+            if (!key || !(this.lernkartenContent || {})[key]) return;
+            url.searchParams.delete('lernkarte');
+            history.replaceState(null, '', url);
+            // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
+            document.body.appendChild(document.getElementById('lernkarteOverlay'));
+            if (!this.showLernkarte(key, false)) return;
+            if (window.opener) {
+                const btn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                btn.textContent = 'Verstanden, zurück';
+                btn.onclick = () => {
+                    btn.textContent = 'Verstanden, los!';
+                    btn.onclick = () => app.dismissLernkarte();
+                    app.dismissLernkarte();
+                    window.close();
+                };
+            }
+        },
+
         getLernkarteKey(subSkillId) {
             // Voller Schlüssel (z. B. 'ton2_stufenpaare') für Sprünge in einen anderen Knoten
             if (/^ton\d_/.test(subSkillId)) return subSkillId;
@@ -9484,6 +9508,7 @@ Gerät:
     window.addEventListener('load', () => {
         quickStart.init();
         app.init();
+        app.openDeepLinkLernkarte();
         document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
     });
 
