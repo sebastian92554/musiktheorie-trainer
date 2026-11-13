@@ -8096,13 +8096,13 @@
             },
             ton5_enharmonisch: {
                 title: 'Enharmonische Verwechslung',
-                body: `<p><strong>Du kannst schon:</strong> Die Vorzeichen der Dur-Tonarten im Quintenzirkel.</p>
-                        <p><strong>Neu:</strong> Einige Tonarten klingen gleich, haben aber verschiedene Namen und Vorzeichen. Man nennt sie <strong>enharmonisch</strong> gleich.</p>
+                body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen auf der Tastatur finden und die Dur-Tonarten im Quintenzirkel.</p>
+                        <p><strong>Neu:</strong> Manche Töne haben zwei Namen: Fis und Ges sind dieselbe Taste. Darum klingen Fis-Dur und Ges-Dur gleich. Diesen Namenswechsel nennt man <strong>enharmonische Verwechslung</strong>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-contrast" id="lkContrast1"></div>
-                        <div class="lk-rule"><strong>Die Summe der Vorzeichen ist immer 12:</strong> Fis-Dur (6 <span class="vz-sharp"></span>) = Ges-Dur (6 <span class="vz-flat"></span>). H-Dur (5 <span class="vz-sharp"></span>) = Ces-Dur (7 <span class="vz-flat"></span>). Des-Dur (5 <span class="vz-flat"></span>) = Cis-Dur (7 <span class="vz-sharp"></span>). Mehr als 7 Vorzeichen kommen nicht vor, dafür bräuchte man Doppelkreuze oder Doppel-Bs.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Namen der enharmonisch gleichen Tonart ein, z.&nbsp;B. „Ges“ oder „Ges-Dur“.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Eis die Taste F und Ces die Taste H: Eis und F sind <strong>enharmonisch</strong> gleich.</div></details></div>`,
+                        <div class="lk-rule"><strong>Gesucht ist der andere Name des Grundtons:</strong> Fis-Dur = Ges-Dur, Cis-Dur = Des-Dur, Gis-Dur = As-Dur. Das geht auch auf weißen Tasten: Eis-Dur = F-Dur, Ces-Dur = H-Dur.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den anderen Namen ein, z.&nbsp;B. „Ges“ oder „Ges-Dur“. Die Vorzeichen der Tonart musst du dafür nicht kennen.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher, wie ein Ton zwei Namen haben kann?</summary><div class="lk-ask-a">Ein <span class="vz-sharp"></span> schiebt einen Ton eine Taste nach rechts, ein <span class="vz-flat"></span> eine nach links. Von F nach rechts und von G nach links landest du auf derselben Taste: Fis = Ges. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei Eis oder Ces?</summary><div class="lk-ask-a">Zwischen E und F liegt keine schwarze Taste. Eis, eine Taste rechts von E, ist darum die weiße Taste F. Genauso ist Ces die weiße Taste H.</div></details></div>`,
                 render() {
                     // QZ mit enharmonischem Paar Fis/Ges
                     const qzHtml = this._buildQzVisual('aussenkr');
