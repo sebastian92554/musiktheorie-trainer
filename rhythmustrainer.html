@@ -2634,8 +2634,8 @@
             nodeSubSkills: {
                 'rhy1': [
                     { id: 'basis', label: 'Basis', preview: 'Addieren von Notenwerten (Ganze, Halbe, Viertel)' },
-                    { id: 'pausen', label: '+ Pausen', preview: 'Addieren von Notenwerten mit Pausen' },
                     { id: '8tel', label: '+ Achtel', preview: 'Addieren von Notenwerten mit Achtelnoten' },
+                    { id: 'pausen', label: '+ Pausen', preview: 'Addieren von Notenwerten mit Pausen' },
                     { id: '16tel', label: '+ Sechzehntel', preview: 'Addieren von Notenwerten mit Sechzehntelnoten' },
                     { id: 'punktierte', label: '+ Punktierte', preview: 'Addieren von Notenwerten mit punktierten Noten' },
                     { id: 'triolen', label: '+ Triolen', preview: 'Addieren von Notenwerten mit Triolen' }
@@ -4912,7 +4912,7 @@ Gerät:
                     // ViewBox KLEINER für stärkere Hochskalierung!
                     const spacing = 18;
                     const noteY = 34;  // 4px Abstand von unten (40-34=6, mit Notenkopf ≈4px)
-                    const stemTop = 10;
+                    const stemTop = baseType === 'sixteenth' ? 13 : 10; // 16tel: Platz zwischen 3 und Balken
                     
                     // ViewBox Breite basierend auf Browser-Breite
                     // width=55: viewBox=62, width=90: viewBox=70
@@ -9243,7 +9243,7 @@ Gerät:
                 }
             },
             'pausen': {
-                title: '1b — Mit Pausen',
+                title: '1c — Mit Pausen',
                 body: `<p>Pausen sind stille Stellen — sie haben aber <strong>denselben Wert</strong> wie die entsprechende Note.</p>
                     <div class="lk-contrast" id="lkVisualPausen"></div>
                     <div class="lk-rule"><strong>Merke:</strong> Jede Pause hat exakt denselben Wert wie ihre Note. Pausen werden genauso addiert.</div>
@@ -9270,7 +9270,7 @@ Gerät:
                 }
             },
             '8tel': {
-                title: '1c — Mit Achtelnoten',
+                title: '1b — Mit Achtelnoten',
                 body: `<p>Die Achtelnote ist <strong>halb so lang</strong> wie eine Viertel.</p>
                     <div class="lk-visual" id="lkVisual8tel"></div>
                     <div class="lk-rule"><strong>Merke:</strong> Achtel = 0,5 Schläge. Zwei Achtel = eine Viertel.</div>
