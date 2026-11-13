@@ -5673,8 +5673,23 @@
                             <button type="button" onclick="app.checkFallback()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
                         </div>
                     `;
+                } else if (quickStart.profiMode === 'muster_lernen' && this._musterCase) {
+                    // Fälle (Fragen 1–3): Tongeschlecht angegeben, HT-Stufenpaare ablesen
+                    let pairButtons = '<div class="step-pair-buttons">';
+                    for (let i = 0; i < 7; i++) {
+                        pairButtons += `<button type="button" class="step-pair-btn" id="stepPair${i}" onclick="app.toggleStepPair(${i})">${i+1}.–${i+2}.</button>`;
+                    }
+                    pairButtons += '</div>';
+                    inputCard.innerHTML = `
+                        ${pairButtons}
+                        <div class="input-buttons" style="margin-top:8px;">
+                            <button type="button" onclick="app.checkAufsteiger()" id="btnPruefen" class="btn-primary" style="max-width:300px;padding:12px 30px;font-size:1.1rem;">✓ PRÜFEN</button>
+                        </div>
+                    `;
+                    this.stepPairSelections = [false, false, false, false, false, false, false];
                 } else if (quickStart.profiMode === 'muster_lernen') {
                     // Muster lernen: Noten + HS vormarkiert auf Tastatur, Tonart wählen
+                    this.stepPairSelections = null;
                     inputCard.innerHTML = `
                         <div class="input-buttons" style="gap:10px;flex-wrap:wrap;justify-content:center;">
                             <button type="button" onclick="app.checkProfiMuster('Dur')" class="btn-primary" style="padding:12px 30px;font-size:1rem;min-width:100px;">DUR</button>
@@ -5828,6 +5843,17 @@
                         if (_dm.length > 0) durMoll = _dm;
                         if (_ki.length > 0) kirchen = _ki;
                     }
+                    // 3a, Fragen 1–4: Fälle zum Regel-Finden — Tongeschlecht ist angegeben,
+                    // die Schüler klicken an, zwischen welchen Stufen die HT liegen.
+                    // 2× Dur, dann 2× Moll (je zwei Fälle zeigen, dass das Muster fest ist);
+                    // nur Dur/Moll, max. 2 VZ, ohne C-Dur (steht schon auf der Lernkarte).
+                    const qa = quickStart.questionsAnswered;
+                    this._musterCase = quickStart.isActive && quickStart.profiMode === 'muster_lernen' && qa < 4;
+                    if (this._musterCase) {
+                        const want = qa < 2 ? 'Dur' : 'Moll';
+                        const casePool = durMoll.filter(s => s.type === want && s.vorzeichen <= 2 && !(s.root === 'C' && s.type === 'Dur'));
+                        allScales = casePool.length > 0 ? casePool : durMoll;
+                    } else
                     // Alle Profi-Modi: 2:1 Dur/Moll vs Kirchentonart
                     {
                         if (!this._lastTypeHistory) this._lastTypeHistory = [];
@@ -5951,6 +5977,11 @@
                 this._lastEinsteigerKey = thisScaleKey;
             }
 
+            // 3a: Eingabe wechselt nach den Fällen (Stufenpaare → Tongeschlecht)
+            if (this.currentStage === 'profi' && quickStart.isActive && quickStart.profiMode === 'muster_lernen' && !quickStart.fallbackActive) {
+                this.setupInput();
+            }
+
             // Update task description
             this.updateTaskDescription();
 
@@ -5982,6 +6013,13 @@
                     app._focusInputDesktop(input);
                 }
             }
+
+            // 3a: Nach den vier Fällen (also vor Aufgabe 5) die Muster-Karte einblenden —
+            // bestätigt das Gefundene und führt die Kirchentonarten ein, die ab jetzt vorkommen
+            if (this.currentStage === 'profi' && quickStart.isActive && quickStart.profiMode === 'muster_lernen' &&
+                !quickStart.fallbackActive && quickStart.questionsAnswered === 4) {
+                this.showLernkarte('muster_lernen', false, true);
+            }
         },
 
         updateTaskDescription() {
@@ -5998,6 +6036,8 @@
             } else if (this.currentStage === 'profi') {
                 if (quickStart.fallbackActive) {
                     text = 'Markiere die Halbtonschritte auf der Tastatur!';
+                } else if (quickStart.profiMode === 'muster_lernen' && this._musterCase) {
+                    text = `Das ist ${this.currentScale.displayName}. Zwischen welchen Stufen liegen die markierten Halbtonschritte?`;
                 } else if (quickStart.profiMode === 'muster_lernen') {
                     text = 'Schau dir die markierten Halbtonschritte an. Welches Tongeschlecht ist das?';
                 } else if (quickStart.profiMode === 'muster_erkennen') {
@@ -6939,6 +6979,23 @@
                     }
                     svgContent += this.drawNoteAt(this.currentScale.notes[i], this.currentScale.octaves[i], x, baseY);
                 }
+
+                // 3a/3b: Stufenzahlen unter den Notenköpfen, damit das Abzählen nicht im
+                // Kopf passieren muss (ab 3c weg). Unter der tiefsten Note, mind. unter dem System.
+                const showSteps = this.currentStage === 'profi' && quickStart.isActive && !quickStart.fallbackActive &&
+                    (quickStart.profiMode === 'muster_lernen' || quickStart.profiMode === 'muster_erkennen');
+                if (showSteps) {
+                    const noteYs = this.currentScale.notes.map((noteName, i) => {
+                        const octave = this.currentScale.octaves[i];
+                        const staffPos = getStaffPosition(noteName);
+                        const fullPos = useBass ? (octave - 2) * 7 + staffPos - 4 : (octave - 4) * 7 + staffPos - 2;
+                        return baseY - (fullPos * 10);
+                    });
+                    const stepY = Math.max(baseY + 40, Math.max(...noteYs) + 34);
+                    for (let i = 0; i < 8; i++) {
+                        svgContent += `<text x="${startX + i * spacing}" y="${stepY}" text-anchor="middle" font-size="18" font-weight="600" fill="#0891b2">${i + 1}</text>`;
+                    }
+                }
             }
 
             svg.innerHTML = svgContent;
@@ -7031,15 +7088,25 @@
             return subSkillId;
         },
 
-        showLernkarte(subSkillId, fromStart) {
-            const key = this.getLernkarteKey(subSkillId);
+        // auto = vom Trainer eingeblendet (3a-Muster-Karte nach den Fällen): zählt
+        // nicht als manuelles Öffnen (card_view) und stellt danach die Aufgabe wieder her
+        showLernkarte(subSkillId, fromStart, auto) {
+            let key = this.getLernkarteKey(subSkillId);
+            // 3a: Start-Karte nur vor/während der vier Fälle, sonst die Muster-Karte
+            if (key === 'ton3_muster_lernen') {
+                const inCases = quickStart.isActive && quickStart.profiMode === 'muster_lernen' && quickStart.questionsAnswered < 4;
+                if (!inCases) key = 'ton3_muster_lernen_regel';
+            }
             const content = this.lernkartenContent[key];
             if (!content) return false;
-            quickStart.hideTaskInstruction();
+            // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
+            // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen
+            if (fromStart) quickStart.hideTaskInstruction();
             this._lernkarteFromStart = !!fromStart;
+            this._lernkarteAuto = !!auto;
             this._lernkarteOpenedAt = Date.now();
             this._lernkarteCurrentId = subSkillId;
-            if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
+            if (!fromStart && !auto) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
             document.getElementById('lernkarteTitle').textContent = content.title;
             document.getElementById('lernkarteBody').innerHTML = content.body;
 
@@ -7073,6 +7140,7 @@
             } catch (e) {}
             this._lernkarteOpenedAt = null;
             document.getElementById('lernkarteOverlay').classList.remove('active');
+            this._lernkarteAuto = false;
             if (this._lernkarteFromStart) {
                 this._lernkarteFromStart = false;
                 if (this.currentStage === 'meister') {
@@ -7554,69 +7622,89 @@
             },
 
             // ===== ton3: Tonleiter benennen (Profi) =====
+            // 3a — Start-Karte (vor und während der vier Fälle). Nach den Fällen zeigt
+            // showLernkarte stattdessen ton3_muster_lernen_regel (Muster + Kirchentonarten).
             ton3_muster_lernen: {
                 title: 'Tongeschlecht bestimmen',
-                body: `<p>Du weißt jetzt, wo die Halbtonschritte liegen. Jetzt lernst du, das <strong>Tongeschlecht</strong> zu erkennen — die Position der HT verrät, ob eine Tonleiter Dur, Moll oder etwas anderes ist.</p>
-                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">C-Dur</div>
-                        <div class="lk-visual" id="lkVisualCDur3"></div>
-                        <div style="font-weight:600;text-align:center;color:#155e75;margin-top:12px;margin-bottom:4px">a-Moll</div>
-                        <div class="lk-visual" id="lkVisualAMoll3"></div>
-                        <div class="lk-rule"><strong>Regel:</strong> In <strong>Dur</strong> liegen die HT zwischen <strong>3./4.</strong> und <strong>7./8. Stufe</strong>. In <strong>Moll</strong> zwischen <strong>2./3.</strong> und <strong>5./6. Stufe</strong>.</div>
-                        <div class="lk-rule"><strong>Andere Tongeschlechter:</strong> Neben Dur und Moll gibt es weitere Tonleitern mit 2 HT an anderen Positionen — die sogenannten <strong>Kirchentonarten</strong> (z.B. Dorisch, Phrygisch, Lydisch, Mixolydisch). Im Quiz kommen auch diese vor — sonst könntest du ohne Analyse zwischen Dur und Moll raten. Wähle in diesen Fällen <strong>„Andere"</strong>.</div>
-                        <div class="lk-tip"><strong>Tipp:</strong> Die Halbtonschritte sind im Notensystem farbig markiert — achte auf ihre Position, sie ist das Erkennungsmerkmal.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht: Dur, Moll oder Andere.</div>`,
+                body: `<p><strong>Du kannst schon:</strong> Halbtonschritte in einer Tonleiter finden.</p>
+                        <p><strong>Neu:</strong> Ob eine Tonleiter Dur oder Moll ist, erkennst du an der <strong>Lage ihrer Halbtonschritte</strong>.</p>
+                        <div class="lk-rule"><strong>Das Muster ist fest:</strong> In jeder Dur-Tonleiter liegen die Halbtonschritte zwischen denselben Stufen, egal auf welchem Ton sie beginnt. Für Moll gilt das genauso, nur zwischen anderen Stufen.</div>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">Beispiel: C-Dur</div>
+                        <div class="lk-visual" id="lkVisual3aStart"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> In den ersten vier Aufgaben steht dabei, ob es Dur oder Moll ist: erst zweimal Dur, dann zweimal Moll. Klicke an, zwischen welchen Stufen die Halbtonschritte liegen. Liegen sie bei einer anderen Dur-Tonleiter genauso? Und bei Moll?</div>`,
                 render() {
-                    // C-Dur: Staff + Tastatur
-                    document.getElementById('lkVisualCDur3').innerHTML =
+                    document.getElementById('lkVisual3aStart').innerHTML =
                         this.renderLernkarteStaff([
-                            {label:'C', pos:-2}, {label:'D', pos:-1}, {label:'E', pos:0}, {label:'F', pos:1},
-                            {label:'G', pos:2}, {label:'A', pos:3}, {label:'H', pos:4}, {label:'C', pos:5}
-                        ], { hideLabels: true }) +
+                            {label:'1', pos:-2}, {label:'2', pos:-1}, {label:'3', pos:0}, {label:'4', pos:1},
+                            {label:'5', pos:2}, {label:'6', pos:3}, {label:'7', pos:4}, {label:'8', pos:5}
+                        ]) +
                         this.renderLernkarteTastatur({
                             numOctaves: 2, keyRange: [0, 7], leftPad: 40, keyWidth: 29,
                             stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
                         });
-                    // a-Moll: Staff + Tastatur
-                    document.getElementById('lkVisualAMoll3').innerHTML =
-                        this.renderLernkarteStaff([
-                            {label:'A', pos:3}, {label:'H', pos:4}, {label:'C', pos:5}, {label:'D', pos:6},
-                            {label:'E', pos:7}, {label:'F', pos:8}, {label:'G', pos:9}, {label:'A', pos:10}
-                        ], { hideLabels: true }) +
-                        this.renderLernkarteTastatur({
-                            numOctaves: 2, keyRange: [5, 12], leftPad: 40, keyWidth: 29,
-                            stepBrackets: ['GT','HT','GT','GT','HT','GT','GT']
-                        });
+                }
+            },
+            ton3_muster_lernen_regel: {
+                title: 'Das Muster von Dur und Moll',
+                body: `<p><strong>Das hast du herausgefunden:</strong> Dur und Moll unterscheiden sich durch die Lage der Halbtonschritte, und das jeweilige Muster bleibt immer gleich.</p>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">Dur: Halbtonschritte zwischen 3–4 und 7–8</div>
+                        <div class="lk-visual" id="lkVisual3aDur"></div>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">Moll: Halbtonschritte zwischen 2–3 und 5–6</div>
+                        <div class="lk-visual" id="lkVisual3aMoll"></div>
+                        <p><strong>Neu ab jetzt:</strong> Es gibt noch andere Tonleitern mit zwei Halbtonschritten, aber zwischen anderen Stufen (Kirchentonarten). Passt keins der beiden Muster, ist die Antwort <strong>Kein Dur/Moll</strong>.</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Bestimme das Tongeschlecht selbst.</div>`,
+                render() {
+                    document.getElementById('lkVisual3aDur').innerHTML = this.renderLernkarteTastatur({
+                        numOctaves: 2, keyRange: [0, 7], leftPad: 40, keyWidth: 29,
+                        stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
+                    });
+                    document.getElementById('lkVisual3aMoll').innerHTML = this.renderLernkarteTastatur({
+                        numOctaves: 2, keyRange: [5, 12], leftPad: 40, keyWidth: 29,
+                        stepBrackets: ['GT','HT','GT','GT','HT','GT','GT']
+                    });
                 }
             },
             ton3_muster_erkennen: {
                 title: 'Tonleiter benennen',
-                body: `<p>Jetzt bestimmst du zusätzlich den <strong>Namen</strong> der Tonleiter.</p>
-                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">D-Dur</div>
+                body: `<p><strong>Du kannst schon:</strong> Am Muster der Halbtonschritte erkennen, ob eine Tonleiter Dur, Moll oder keins von beiden ist.</p>
+                        <p><strong>Neu:</strong> Die Halbtonschritte sind nicht mehr markiert, du findest sie selbst. Und du benennst die Tonleiter nach dem Muster: <strong>Grundton + Tongeschlecht</strong>.</p>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">Beispiel: D-Dur</div>
                         <div class="lk-visual" id="lkVisualDDur3b"></div>
-                        <div class="lk-rule"><strong>Schritt 1:</strong> HT-Positionen finden → Tongeschlecht bestimmen.<br><strong>Schritt 2:</strong> Grundton ablesen → Name = Grundton + Tongeschlecht (z.B. „D-Dur").</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die HT-Stufen UND benenne die Tonleiter.</div>`,
+                        <div class="lk-rule">Zwischen Fis (3) und G (4) liegt keine Taste, also ein Halbtonschritt. Ebenso zwischen Cis (7) und D (8). Halbtonschritte zwischen 3–4 und 7–8 → Dur. Der Grundton ist D → <strong>D-Dur</strong>.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Halbtonschritt-Stufen und schreib den Namen, z.&nbsp;B. „D-Dur".</div>
+                        <div class="lk-tip"><strong>Tipp:</strong> Unsicher? Hier kommst du direkt zur vorherigen Lernkarte:
+                            <div class="lk-jump-row">
+                                <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button>
+                            </div>
+                        </div>`,
                 render() {
                     document.getElementById('lkVisualDDur3b').innerHTML =
                         this.renderLernkarteStaff([
-                            {label:'D', pos:-1}, {label:'E', pos:0}, {label:'Fis', pos:1, accidental:'sharp'}, {label:'G', pos:2},
-                            {label:'A', pos:3}, {label:'H', pos:4}, {label:'Cis', pos:5, accidental:'sharp'}, {label:'D', pos:6}
-                        ], { hideLabels: true }) +
-                        this.renderLernkarteTastatur({
-                            numOctaves: 2, keyRange: [1, 8], leftPad: 40, keyWidth: 29,
-                            stepBrackets: ['GT','GT','HT','GT','GT','GT','HT']
-                        });
+                            {label:'1', pos:-1}, {label:'2', pos:0}, {label:'3', pos:1, accidental:'sharp'}, {label:'4', pos:2},
+                            {label:'5', pos:3}, {label:'6', pos:4}, {label:'7', pos:5, accidental:'sharp'}, {label:'8', pos:6}
+                        ]);
                 }
             },
             ton3_alles: {
-                title: 'Alle Tonleitern',
-                body: `<p>Alle bisherigen Aufgabentypen werden jetzt <strong>gemischt</strong>: Tongeschlecht bestimmen, HT-Stufen finden und Tonleiter benennen.</p>
+                title: 'Tonleiter benennen ohne Hilfe',
+                body: `<p><strong>Du kannst schon:</strong> Halbtonschritte finden und die Tonleiter benennen.</p>
+                        <p><strong>Neu:</strong> Keine Stufenzahlen und keine Stufen-Auswahl mehr. Du schreibst nur den Namen, die Schritte davor machst du im Kopf.</p>
+                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">So sieht die Aufgabe jetzt aus</div>
+                        <div class="lk-visual" id="lkVisual3c"></div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter. Liegst du falsch, markierst du zuerst die Halbtonschritte, dann geht es weiter.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> Unsicher? Hier kommst du direkt zu den vorherigen Lernkarten:
                             <div class="lk-jump-row">
                                 <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button>
                                 <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — HT-Stufen + benennen</button>
                             </div>
-                        </div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Löse alle Aufgabentypen im Mix.</div>`
+                        </div>`,
+                render() {
+                    document.getElementById('lkVisual3c').innerHTML =
+                        this.renderLernkarteStaff([
+                            {label:'D', pos:-1}, {label:'E', pos:0}, {label:'Fis', pos:1, accidental:'sharp'}, {label:'G', pos:2},
+                            {label:'A', pos:3}, {label:'H', pos:4}, {label:'Cis', pos:5, accidental:'sharp'}, {label:'D', pos:6}
+                        ], { hideLabels: true });
+                }
             },
             ton3_ohne_hilfe: {
                 title: 'Ohne Klaviatur-Hilfe',
@@ -8105,7 +8193,7 @@
                     setTimeout(() => this.hideFeedback(), 2000);
                     return false;
                 }
-            } else if (this.currentStage === 'aufsteiger') {
+            } else if (this.currentStage === 'aufsteiger' || (this.currentStage === 'profi' && this._musterCase && !quickStart.fallbackActive)) {
                 const hasInput = this.stepPairSelections
                     ? this.stepPairSelections.some(v => v)
                     : (this.stepMarkerSelections ? this.stepMarkerSelections.some(v => v) : false);
@@ -8615,6 +8703,10 @@
         _hsPairHint(nFound, nWrong) {
             const parts = [`${nFound} von 2 Stufenpaaren richtig`];
             if (nWrong) parts.push(`${nWrong} falsch`);
+            // 3a-Fälle: HT sind markiert, Stufenzahlen stehen darunter
+            if (this.currentStage === 'profi' && this._musterCase) {
+                return parts.join(', ') + '. Schau auf die Stufenzahlen unter den markierten Noten.';
+            }
             return parts.join(', ') + '. Zähle bei jedem Schritt die Tasten: Ohne Taste dazwischen ist es ein Halbton.';
         },
 

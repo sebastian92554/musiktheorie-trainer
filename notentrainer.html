@@ -3758,7 +3758,9 @@
                 const key = this.getLernkarteKey(subSkillId);
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
-                quickStart.hideTaskInstruction();
+                // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
+                // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen
+                if (fromStart) quickStart.hideTaskInstruction();
                 this._lernkarteFromStart = !!fromStart;
                 this._lernkarteOpenedAt = Date.now();
                 this._lernkarteCurrentId = subSkillId;
