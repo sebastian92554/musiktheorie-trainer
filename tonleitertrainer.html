@@ -7693,21 +7693,12 @@
                 title: 'Tonleiter benennen ohne Hilfe',
                 body: `<p><strong>Du kannst schon:</strong> Halbtonschritte finden und die Tonleiter benennen.</p>
                         <p><strong>Neu:</strong> Keine Stufenzahlen und keine Stufen-Auswahl mehr. Du schreibst nur den Namen, die Schritte davor machst du im Kopf.</p>
-                        <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">So sieht die Aufgabe jetzt aus</div>
-                        <div class="lk-visual" id="lkVisual3c"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter. Liegst du falsch, markierst du zuerst die Halbtonschritte, dann geht es weiter.</div>
                         <div class="lk-tip">
                             <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
                             <div class="lk-jump-row" style="align-items:center">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
                             <div class="lk-jump-row" style="align-items:center">Unsicher beim Benennen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — Tonleiter benennen</button></div>
-                        </div>`,
-                render() {
-                    document.getElementById('lkVisual3c').innerHTML =
-                        this.renderLernkarteStaff([
-                            {label:'D', pos:-1}, {label:'E', pos:0}, {label:'Fis', pos:1, accidental:'sharp'}, {label:'G', pos:2},
-                            {label:'A', pos:3}, {label:'H', pos:4}, {label:'Cis', pos:5, accidental:'sharp'}, {label:'D', pos:6}
-                        ], { hideLabels: true });
-                }
+                        </div>`
             },
             ton3_ohne_hilfe: {
                 title: 'Ohne Klaviatur-Hilfe',
