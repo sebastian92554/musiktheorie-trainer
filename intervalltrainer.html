@@ -423,6 +423,15 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #c2410c; }
+        /* Sprung-Buttons zu früheren Lernkarten (inline, kleiner als
+           der Standard-Lernkarte-Button am Karten-Ende) — wie TT/DT */
+        .lk-jump-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lernkarte .lk-jump-btn {
+            width: auto; padding: 8px 14px; font-size: 0.85rem;
+            margin-top: 0; background: #fff; color: #ea580c;
+            border: 2px solid #ea580c;
+        }
+        .lernkarte .lk-jump-btn:hover { background: #ea580c; color: #fff; }
         .vz-sharp, .vz-flat {
             display: inline-block;
             vertical-align: middle;
@@ -4715,17 +4724,31 @@
                 return subSkillId;
             },
 
-            showLernkarte(subSkillId, fromStart) {
-                const key = this.getLernkarteKey(subSkillId);
+            // 4c als höchster Sub-Skill, Fragen 1–4: Fälle mit angegebenem Komplementärintervall
+            _komplementInCases() {
+                const opts = quickStart.currentOptions || [];
+                return quickStart.isActive && quickStart.currentLevel === 'meister' &&
+                    opts[opts.length - 1] === 'komplement' && quickStart.questionsAnswered < 4;
+            },
+
+            // auto = vom Trainer eingeblendet (4c-Muster-Karte nach den Fällen):
+            // zählt nicht als manuelles Öffnen (card_view)
+            showLernkarte(subSkillId, fromStart, auto) {
+                let key = this.getLernkarteKey(subSkillId);
+                // 4c: Start-Karte nur vor/während der vier Fälle, sonst die Muster-Karte
+                if (key === 'komplement' && !this._komplementInCases()) key = 'komplement_regel';
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
                 // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
                 // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen
                 if (fromStart) quickStart.hideTaskInstruction();
-                this._lernkarteFromStart = !!fromStart;
+                // Sprung aus einer offenen Start-Karte (Tipp-Button): Start-Status behalten,
+                // sonst beginnt nach „Verstanden" keine Aufgabe
+                const chained = document.getElementById('lernkarteOverlay').classList.contains('active');
+                this._lernkarteFromStart = !!fromStart || (chained && this._lernkarteFromStart);
                 this._lernkarteOpenedAt = Date.now();
                 this._lernkarteCurrentId = subSkillId;
-                if (!fromStart) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
+                if (!fromStart && !auto) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
 
@@ -4749,10 +4772,24 @@
                 } else if (key === 'komplement') {
                     const el = document.getElementById('lkVisualKomplement');
                     if (el) {
-                        el.innerHTML = '<div style="display:flex;justify-content:center;gap:8px">' +
-                            '<div>' + this.renderKomplementStaff('A', 'eingestrichen', 'g3 (4 HS)', 'k6 (8 HS)', 'gr. Terz + kl. Sexte') + '</div>' +
-                            '<div>' + this.renderKomplementStaff('G', 'eingestrichen', 'g2 (2 HS)', 'k7 (10 HS)', 'gr. Sekunde + kl. Septime') + '</div>' +
-                        '</div>';
+                        el.innerHTML = '<div style="display:flex;justify-content:center"><div>' +
+                            this.renderKomplementStaff('A', 'eingestrichen', 'g3 (4 HS)', 'k6 (8 HS)', 'gr. Terz + kl. Sexte') +
+                        '</div></div>';
+                    }
+                } else if (key === 'komplement_regel') {
+                    // Zeilen = die vier eigenen Fälle; ohne (z. B. Hilfe außerhalb des Quiz) feste Beispiele
+                    const tbody = document.getElementById('lkKomplementRows');
+                    if (tbody) {
+                        const all = [...this.int4Pools.rein, ...this.int4Pools.grossklein, ...this.int4Pools.sextenseptimen];
+                        const byShort = s => all.find(i => i.short === s);
+                        const pairs = (this._komplementCasePairs && this._komplementCasePairs.length === 4)
+                            ? this._komplementCasePairs
+                            : ['g3', 'k2', 'r4', 'r1'].map(s => ({ source: byShort(s), answer: byShort(this.int4Pools.komplementMap[s].label) }));
+                        tbody.innerHTML = pairs.map(p =>
+                            `<tr style="border-top:1px solid #fed7aa"><td>${p.source.label}</td><td>${p.answer.label}</td>` +
+                            `<td style="text-align:center">${p.source.size} + ${p.answer.size} = ${p.source.size + p.answer.size}</td>` +
+                            `<td style="text-align:center">${p.source.ht} + ${p.answer.ht} = ${p.source.ht + p.answer.ht}</td></tr>`
+                        ).join('');
                     }
                 } else if (key === 'augdim') {
                     const leftEl = document.getElementById('lkAugdimLeft');
@@ -5082,13 +5119,34 @@
                         <div class="lk-rule"><strong>Regel:</strong> Quarten und Quinten sind nie groß oder klein — sie sind immer rein. Sekunden und Terzen sind nie rein — sie sind immer groß oder klein.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Du bekommst abwechselnd eine HS-Zahl oder einen Intervallnamen und gibst das Gegenstück ein. Auch reine Intervalle aus dem vorherigen Kapitel können vorkommen.</div>`
                 },
+                // 4c — Start-Karte (vor und während der vier Fälle). Danach zeigt
+                // showLernkarte stattdessen komplement_regel (mit den eigenen Fällen).
                 'komplement': {
                     title: '4c — Komplementärintervalle',
-                    body: `<p>Zwei Intervalle, die zusammen eine <strong>Oktave (12 HS)</strong> ergeben, sind Komplementärintervalle. Das bedeutet: Du musst nur die Hälfte aller Intervalle auswendig kennen — den Rest errechnest du über das Komplement.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Reine, große und kleine Intervalle bis zur Terz bestimmen.</p>
+                        <p><strong>Neu:</strong> Zwei Intervalle, die sich zur <strong>Oktave</strong> ergänzen, heißen Komplementärintervalle. Darüber lernst du auch Sexten und Septimen kennen.</p>
+                        <div class="lk-rule"><strong>Die Komplementärbeziehung ist fest:</strong> Sie gilt für jedes Intervallpaar auf dieselbe Weise.</div>
+                        <div style="font-weight:600;text-align:center;color:#9a3412;margin-bottom:4px">Beispiel: große Terz + kleine Sexte</div>
                         <div class="lk-visual" id="lkVisualKomplement"></div>
-                        <p>Sekunden und Terzen kennst du bereits. Über die Komplementärbeziehung lernst du jetzt auch <strong>Sexten und Septimen</strong> kennen: Eine kleine Terz (3 HS) ergänzt sich mit einer großen Sexte (9 HS) zu 12 HS. Eine große Sekunde (2 HS) ergänzt sich mit einer kleinen Septime (10 HS) zu 12 HS.</p>
-                        <div class="lk-rule"><strong>Die Komplementärregeln:</strong> Die Halbtonschritte beider Intervalle ergeben zusammen immer 12. Dabei wird groß zu klein und klein zu groß. Reine Intervalle bleiben rein — eine reine Quarte (5 HS) wird zur reinen Quinte (7 HS).</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst ein Intervall auf dem Notensystem und gibst das Komplementärintervall ein — sowohl die HS-Zahl als auch den Intervallnamen.</div>`
+                        <p>Achte auf drei Dinge: das <strong>Rahmenintervall</strong> (Terz = 3, Sexte = 6), die <strong>Feinbestimmung</strong> (groß, klein) und die <strong>Halbtonschritte</strong> (4 und 8).</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> In den ersten vier Aufgaben sind beide Intervalle genannt: erst zweimal groß/klein, dann zweimal rein. Gib die Halbtonschritte des Komplementärintervalls ein. Was passiert jeweils mit Rahmenintervall, Feinbestimmung und Halbtonschritten?</div>
+                        <div class="lk-tip">
+                            <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher bei großen und kleinen Intervallen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('grossklein', false)">4b — Große & kleine Intervalle</button></div>
+                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('int3_basis', false)">3a — Halbtonschritte zählen</button></div>
+                        </div>`
+                },
+                // 4c — Muster-Karte (automatisch vor Aufgabe 5, danach als Hilfe).
+                // Die Tabelle füllt showLernkarte mit den vier eigenen Fällen.
+                'komplement_regel': {
+                    title: 'Das Muster der Komplementärintervalle',
+                    body: `<p><strong>Das hast du herausgefunden</strong> (deine Aufgaben):</p>
+                        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:6px 0 8px">
+                            <tr style="color:#9a3412;font-weight:600;font-size:0.8rem"><td>Intervall</td><td>Komplementärintervall</td><td style="text-align:center">Rahmenintervalle</td><td style="text-align:center">Halbtonschritte</td></tr>
+                            <tbody id="lkKomplementRows"></tbody>
+                        </table>
+                        <div class="lk-rule"><strong>Die Komplementärbeziehungen:</strong><br><strong>Rahmenintervalle:</strong> Summe immer 9.<br><strong>Halbtonschritte:</strong> Summe immer 12.<br><strong>Feinbestimmung:</strong> kehrt sich um. Aus groß wird klein, aus klein wird groß, rein bleibt rein.</div>
+                        <p><strong>Neu ab jetzt:</strong> Du bestimmst das Komplementärintervall selbst: Halbtonschritte und Name.</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib zum gezeigten Intervall die Halbtonschritte und den Namen des Komplementärintervalls ein.</div>`
                 },
                 'augdim': {
                     title: '4d — Übermäßig & vermindert',
@@ -5908,7 +5966,23 @@
                     this.int4Pools.grossklein.forEach(i => { pool.push(i); pool.push(i); pool.push(i); }); // 3× Gewichtung
                     taskType = 'bidirektional';
                 } else if (currentSub === 'komplement') {
-                    const keys = Object.keys(this.int4Pools.komplementMap);
+                    // 4c-Fälle (Fragen 1–4): Komplementärintervall ist genannt, nur die
+                    // Halbtonschritte sind gefragt. Erst 2× groß/klein (Sekunde/Terz), dann
+                    // 2× rein aus verschiedenen Paaren (Prime/Oktave und Quarte/Quinte).
+                    const inCases = this._komplementInCases();
+                    const qa = quickStart.questionsAnswered;
+                    if (inCases && qa === 0) this._komplementCasePairs = [];
+                    let keys = Object.keys(this.int4Pools.komplementMap);
+                    if (inCases) {
+                        const used = (this._komplementCasePairs || []).map(p => p.source.short);
+                        if (qa < 2) {
+                            keys = ['k2', 'g2', 'k3', 'g3'].filter(k => !used.includes(k));
+                        } else {
+                            const usedPrime = used.some(k => k === 'r1' || k === 'r8');
+                            const usedQuart = used.some(k => k === 'r4' || k === 'r5');
+                            keys = ['r1', 'r8', 'r4', 'r5'].filter(k => (k === 'r1' || k === 'r8') ? !usedPrime : !usedQuart);
+                        }
+                    }
                     const key = keys[Math.floor(Math.random() * keys.length)];
                     const komplement = this.int4Pools.komplementMap[key];
                     // Finde das Quell-Intervall (inkl. Sexten/Septimen, die ab komplement dazukommen)
@@ -5916,17 +5990,30 @@
                     const source = allIntervals.find(i => i.short === key);
                     if (source) {
                         this.generateIntervalForTask(source.ht, source.size);
+                        const answerFull = allIntervals.find(i => i.short === komplement.label);
                         this._int4Task = {
                             type: 'komplement',
                             source: source,
                             answer: komplement,
                             answerHT: komplement.ht,
-                            answerLabel: komplement.label
+                            answerLabel: komplement.label,
+                            caseMode: inCases
                         };
-                        quickStart.showTaskInstruction(`Du siehst eine ${source.label} (${source.ht} HS). Wie heißt das Komplementärintervall? Gib HS-Zahl und Intervallname ein.`);
-                        // Inputs zurücksetzen
+                        if (inCases && answerFull) {
+                            this._komplementCasePairs.push({ source, answer: answerFull });
+                            quickStart.showTaskInstruction(`Die ${source.label} (${source.ht} HS) und die ${answerFull.label} ergänzen sich zur Oktave. Wie viele Halbtonschritte hat die ${answerFull.label}?`);
+                        } else {
+                            quickStart.showTaskInstruction(`Du siehst eine ${source.label} (${source.ht} HS). Wie heißt das Komplementärintervall? Gib HS-Zahl und Intervallname ein.`);
+                        }
+                        // Inputs zurücksetzen; in den Fällen nur das HS-Feld zeigen
                         const si = document.getElementById('semitonesInput'); if (si) si.value = '';
                         const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
+                        const nameGroup = ii ? ii.closest('.input-group') : null;
+                        if (nameGroup) nameGroup.style.display = inCases ? 'none' : '';
+                        // Nach den vier Fällen (vor Aufgabe 5) die Muster-Karte einblenden
+                        if (!inCases && quickStart.isActive && opts[opts.length - 1] === 'komplement' && qa === 4) {
+                            this.showLernkarte('komplement', false, true);
+                        }
                         return;
                     }
                 } else if (currentSub === 'augdim') {
@@ -6093,9 +6180,11 @@
                     const htInput = document.getElementById('semitonesInput');
                     const nameInput = document.getElementById('intervalInput');
                     if (!htInput || !nameInput) return;
-                    if (!htInput.value.trim() && !nameInput.value.trim()) {
+                    // 4c-Fälle: Komplementärintervall ist genannt, nur die Halbtonschritte zählen
+                    const caseMode = !!task.caseMode;
+                    if (!htInput.value.trim() && (caseMode || !nameInput.value.trim())) {
                         const feedbackEl = document.getElementById('feedback');
-                        feedbackEl.textContent = '💡 Bitte beide Felder ausfüllen.';
+                        feedbackEl.textContent = caseMode ? '💡 Bitte die Halbtonschritte eingeben.' : '💡 Bitte beide Felder ausfüllen.';
                         feedbackEl.className = 'feedback incorrect';
                         feedbackEl.classList.remove('hidden');
                         setTimeout(() => feedbackEl.classList.add('hidden'), 2000);
@@ -6104,13 +6193,15 @@
                     }
 
                     const htCorrect = parseInt(htInput.value.trim()) === task.answerHT;
-                    const parsed = parseInput(nameInput.value);
-                    const nameCorrect = parsed && parsed.quality === task.answer.quality && parsed.size === task.answer.size;
+                    const parsed = caseMode ? null : parseInput(nameInput.value);
+                    const nameCorrect = caseMode || !!(parsed && parsed.quality === task.answer.quality && parsed.size === task.answer.size);
                     isCorrect = htCorrect && nameCorrect;
                     _hOk = htCorrect;
-                    _aOk = !!(parsed && parsed.size === task.answer.size);
-                    _qOk = !!(parsed && parsed.quality === task.answer.quality);
-                    if (!isCorrect) _errLine = task.answerHT + ' HS, ' + task.answerLabel + ' → du hast ' + ((htInput.value || '?').trim()) + ' HS, ' + ((nameInput.value || '?').trim()) + ' eingegeben';
+                    _aOk = caseMode ? null : !!(parsed && parsed.size === task.answer.size);
+                    _qOk = caseMode ? null : !!(parsed && parsed.quality === task.answer.quality);
+                    if (!isCorrect) _errLine = caseMode
+                        ? task.answerHT + ' HS (' + task.answerLabel + ') → du hast ' + ((htInput.value || '?').trim()) + ' HS eingegeben'
+                        : task.answerHT + ' HS, ' + task.answerLabel + ' → du hast ' + ((htInput.value || '?').trim()) + ' HS, ' + ((nameInput.value || '?').trim()) + ' eingegeben';
 
                     htInput.classList.remove('input-validated-correct', 'input-validated-incorrect');
                     htInput.classList.add(htCorrect ? 'input-validated-correct' : 'input-validated-incorrect');
