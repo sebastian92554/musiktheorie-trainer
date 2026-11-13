@@ -4267,10 +4267,12 @@
         _lastTritonus: null,
         _lastTriangle: null,
         _lastDiamond: null,
+        _recentPredict: [],   // Vorhersage-Paare 'X|Y' (alphabetisch), keine Doppelung
 
         resetRecent() {
             this._recentKeys = [];
             this._recentEnharm = [];
+            this._recentPredict = [];
             this._lastTritonus = null;
             this._lastTriangle = null;
             this._lastDiamond = null;
@@ -4356,31 +4358,91 @@
                 });
                 available = weighted;
             }
+            // Frage 1 zählt von C aus ab — C selbst wäre da keine Aufgabe
+            if (questionNum === 0) available = available.filter(k => k.count > 0);
             const keyData = this._randomItem(available);
             this._recentKeys.push(keyData.name);
 
-            const direction = Math.random() < 0.5 ? 'key_to_count' : 'count_to_key';
+            // Feste Abfolge: Frage 1 von C aus abzählen, Fragen 2–4 Vorhersage von
+            // einer Nachbartonart aus (die Regel „ein Platz weiter = ein Vorzeichen
+            // mehr“ soll früh greifen), Frage 5 Gegenrichtung, danach gemischt.
+            // fullCircle muss zu showAll in generateQuintenzirkelTask passen.
+            const fullCircle = typeof questionNum === 'number' && questionNum < 7;
+            let direction;
+            if (questionNum === 0) direction = 'key_to_count';
+            else if (questionNum >= 1 && questionNum <= 3) direction = 'predict';
+            else if (questionNum === 4) direction = 'count_to_key';
+            else direction = Math.random() < 0.5 ? 'key_to_count' : 'count_to_key';
             const isSharp = this.sharpKeys.some(k => k.name === keyData.name);
+
+            // Antwort-Buttons „n ♯/♭“: Nachbar-Zählwerte bevorzugen (±1, ±2)
+            const countOptions = (count, sharp) => {
+                const options = [this._vzShort(count, sharp)];
+                const near = [count - 2, count - 1, count + 1, count + 2]
+                    .filter(c => c >= 0 && c <= 6 && c !== count);
+                const far = [0, 1, 2, 3, 4, 5, 6].filter(c => c !== count && !near.includes(c));
+                const distractorCounts = this._shuffle(near).concat(this._shuffle(far)).slice(0, 3);
+                distractorCounts.forEach(c => options.push(this._vzShort(c, sharp)));
+                return this._shuffle(options);
+            };
+            const merkSharp = 'Merksatz: „<b>G</b>eh <b>D</b>u <b>A</b>lter <b>E</b>sel <b>H</b>ole <b>Fis</b>che“';
+            const merkFlat = 'Merksatz: „<b>F</b>reche <b>B</b>uben <b>Es</b>sen <b>As</b>pirin <b>Des</b>halb <b>Ges</b>und“';
+
+            if (direction === 'predict') {
+                // Bezugstonart auf derselben Seite, 1–2 Plätze entfernt (in beide
+                // Richtungen), gleiche Vorzeichen-Obergrenze wie die Zieltonart
+                const maxCount = questionNum < 3 ? 2 : (questionNum < 6 ? 4 : 6);
+                const pairId = (a, b) => [a, b].sort().join('|');
+                // Alle Paare (Ziel, Bezug) aus den verfügbaren Zieltonarten; schon
+                // gestellte Paare raus, damit sich keine Vorhersage doppelt
+                const combos = [];
+                [...new Set(available)].forEach(target => {
+                    const sides = target.name === 'C' ? [true, false] : [this.sharpKeys.includes(target)];
+                    sides.forEach(sideSharp => {
+                        const side = sideSharp ? this.sharpKeys : [this.sharpKeys[0], ...this.flatKeys];
+                        const t = side.findIndex(k => k.name === target.name);
+                        [t - 2, t - 1, t + 1, t + 2]
+                            .filter(i => i >= 0 && i < side.length && side[i].count <= maxCount)
+                            .forEach(i => combos.push({ target, ref: side[i], sideSharp }));
+                    });
+                });
+                const unused = combos.filter(c => !this._recentPredict.includes(pairId(c.ref.name, c.target.name)));
+                const { target, ref, sideSharp } = this._randomItem(unused.length ? unused : combos);
+                this._recentKeys[this._recentKeys.length - 1] = target.name;
+                this._recentPredict.push(pairId(ref.name, target.name));
+                return {
+                    type: 'buttons',
+                    question: `${ref.name}-Dur hat ${this._vzText(ref.count, sideSharp)}. Wie viele Vorzeichen hat ${target.name}-Dur?`,
+                    correct: this._vzShort(target.count, sideSharp),
+                    options: countOptions(target.count, sideSharp),
+                    solutionKeys: [ref.name, target.name],
+                    tip: sideSharp
+                        ? `Wie viele Plätze liegen zwischen ${ref.name} und ${target.name}, und in welche Richtung? Jeder Platz nach <b>rechts</b> bringt ein ♯ mehr, jeder Platz nach links eins weniger.`
+                        : `Wie viele Plätze liegen zwischen ${ref.name} und ${target.name}, und in welche Richtung? Jeder Platz nach <b>links</b> bringt ein ♭ mehr, jeder Platz nach rechts eins weniger.`
+                };
+            }
 
             if (direction === 'key_to_count') {
                 // Gegeben: Tonart → Wie viele Vorzeichen?
-                const correct = this._vzShort(keyData.count, isSharp);
-                const options = [correct];
-                // Distraktoren: Nachbar-Zählwerte bevorzugen (±1, ±2)
-                const near = [keyData.count - 2, keyData.count - 1, keyData.count + 1, keyData.count + 2]
-                    .filter(c => c >= 0 && c <= 6 && c !== keyData.count);
-                const far = [0, 1, 2, 3, 4, 5, 6].filter(c => c !== keyData.count && !near.includes(c));
-                const distractorCounts = this._shuffle(near).concat(this._shuffle(far)).slice(0, 3);
-                distractorCounts.forEach(c => {
-                    if (c === 0) options.push('0');
-                    else options.push(this._vzShort(c, isSharp));
-                });
+                let tip;
+                if (keyData.count === 0) {
+                    tip = 'C-Dur steht ganz oben im Quintenzirkel — keine Vorzeichen!';
+                } else if (fullCircle) {
+                    tip = isSharp
+                        ? `Zähle von C aus die Plätze nach <b>rechts</b> bis ${keyData.name}. Jeder Platz nach rechts bringt ein ♯ mehr.`
+                        : `Zähle von C aus die Plätze nach <b>links</b> bis ${keyData.name}. Jeder Platz nach links bringt ein ♭ mehr.`;
+                } else {
+                    tip = isSharp
+                        ? `Gehe von C aus in Quinten nach <b>rechts</b>, bis du bei ${keyData.name} bist. Jeder Schritt bringt ein ♯ mehr.<br>${merkSharp}`
+                        : `Gehe von C aus in Quinten nach <b>links</b>, bis du bei ${keyData.name} bist. Jeder Schritt bringt ein ♭ mehr.<br>${merkFlat}`;
+                }
                 return {
                     type: 'buttons',
                     question: `Wie viele Vorzeichen hat ${keyData.name}-Dur?`,
-                    correct: correct,
-                    options: this._shuffle(options),
-                    solutionKeys: [keyData.name]
+                    correct: this._vzShort(keyData.count, isSharp),
+                    options: countOptions(keyData.count, isSharp),
+                    solutionKeys: [keyData.name],
+                    tip
                 };
             } else {
                 // Gegeben: Anzahl+Typ → Welche Tonart?
@@ -4397,12 +4459,26 @@
                 );
                 const distractorPool = this._shuffle(nearKeys).concat(this._shuffle(farKeys));
                 const distractors = distractorPool.slice(0, 3).map(k => k.name + '-Dur');
+                const n = keyData.count;
+                let tip;
+                if (n === 0) {
+                    tip = 'Keine Vorzeichen: Schau, wo die ♯-Seite und die ♭-Seite beginnen.';
+                } else if (fullCircle) {
+                    tip = isSharp
+                        ? `Gehe von C aus ${n === 1 ? '1 Platz' : n + ' Plätze'} nach <b>rechts</b>. Jeder Platz nach rechts bringt ein ♯ mehr.`
+                        : `Gehe von C aus ${n === 1 ? '1 Platz' : n + ' Plätze'} nach <b>links</b>. Jeder Platz nach links bringt ein ♭ mehr.`;
+                } else {
+                    tip = isSharp
+                        ? `Gehe von C aus ${n === 1 ? '1 Quinte' : n + ' Quinten'} nach <b>rechts</b>.<br>${merkSharp}`
+                        : `Gehe von C aus ${n === 1 ? '1 Quinte' : n + ' Quinten'} nach <b>links</b>.<br>${merkFlat}`;
+                }
                 return {
                     type: 'buttons',
                     question: `Welche Dur-Tonart hat ${typeWord}?`,
                     correct: correct,
                     options: this._shuffle([correct, ...distractors]),
-                    solutionKeys: [keyData.name]
+                    solutionKeys: [keyData.name],
+                    tip
                 };
             }
         },
@@ -4450,7 +4526,8 @@
                     question: `Wie heißt die Mollparallele von ${durKey}-Dur?`,
                     correct: correct,
                     options: this._shuffle([correct, ...distractors]),
-                    solutionKeys: [durKey]
+                    solutionKeys: [durKey],
+                    tip: `Die Mollparallele liegt 3 Halbtöne (kleine Terz) <b>unter</b> ${durKey}, zähle auf der Tastatur abwärts. Im Zirkel steht sie innen direkt unter ihrer Durtonart, so wie a unter C.`
                 };
             } else {
                 // Moll → Dur: passende Molltonart aus verfügbaren Dur-Keys ableiten
@@ -4465,7 +4542,8 @@
                     question: `Wie heißt die Durparallele von ${mollKey}-Moll?`,
                     correct: correct,
                     options: this._shuffle([correct, ...distractors]),
-                    solutionKeys: [durKey]
+                    solutionKeys: [durKey],
+                    tip: `Die Durparallele liegt 3 Halbtöne (kleine Terz) <b>über</b> ${mollKey}, zähle auf der Tastatur aufwärts. Im Zirkel steht sie außen direkt über ihrer Molltonart, so wie C über a.`
                 };
             }
         },
@@ -4643,7 +4721,8 @@
                 correct: correctArr,
                 options: this._shuffle([...correctArr, ...distractors]),
                 requiredCount: 2,
-                solutionKeys: [prev, key, next]
+                solutionKeys: [prev, key, next],
+                tip: `${key} hat zwei Nachbarn: eine Quinte nach <b>rechts</b> und eine Quinte nach <b>links</b>.`
             };
         },
 
@@ -6010,8 +6089,18 @@
 
             // Nur mit showMore: D und B beschriften, damit das Zunehmen um je
             // ein Vorzeichen am Bild ablesbar ist.
+            // showAll (Quiz, Fragen 1–5): alle 12 Dur-Namen, damit der Zirkel als
+            // Werkzeug zum Ablesen da ist. Ohne dx-Versatz, damit die Lösungs-
+            // Overlays aus _showQzSolution genau darüber liegen.
+            const showAll = !!(opts && opts.showAll);
             let moreLabels = '';
-            if (showMore) {
+            if (showAll) {
+                QUINTENZIRKEL.allKeys.forEach((name, idx) => {
+                    if (name === 'C' || name === 'G' || name === 'F') return;
+                    const p = posAt(idx, smallR);
+                    moreLabels += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">${name}</text>`;
+                });
+            } else if (showMore) {
                 const pD = posAt(2, smallR), pB = posAt(10, smallR);
                 moreLabels =
                     `<text x="${pD.x + 2}" y="${pD.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">D</text>` +
@@ -6152,7 +6241,11 @@
             if (oldNextBtn) oldNextBtn.remove();
             this.inputLocked = false;
 
-            qEl.innerHTML = this._buildQzVisual(question.subSkillId);
+            // Fragen 1–7: voller Zirkel (ablesen), 8–10: nur Anker (rekonstruieren).
+            // Verwandte/Enharmonik immer mit Ankern — dort stünde die Antwort im Bild.
+            const fullCircleSkills = ['aussenkr', 'innenkr', 'vorz_ableitung', 'symmetrien'];
+            const showAll = questionNum < 7 && fullCircleSkills.includes(question.subSkillId);
+            qEl.innerHTML = this._buildQzVisual(question.subSkillId, { showAll });
             quickStart.showTaskInstruction(question.question);
 
             if (question.type === 'buttons') {
@@ -6268,12 +6361,25 @@
                 // Fragetypen. Vorher wurden hier alle Buttons deaktiviert UND die
                 // Loesung gruen markiert: Die Aufgabe war damit vorbei, bevor der
                 // Merksatz-Hinweis ueberhaupt etwas nuetzen konnte.
+                // Richtig gewählte bleiben stehen (grün, gesperrt), nur die falschen
+                // flackern rot und werden abgewählt — sonst hielte man auch die
+                // richtigen für falsch.
                 allBtns.forEach(btn => {
-                    if (btn.classList.contains('qz-selected')) btn.classList.add('qz-incorrect');
+                    if (!btn.classList.contains('qz-selected')) return;
+                    if (correctSet.has(btn.textContent.toLowerCase())) {
+                        btn.classList.remove('qz-selected');
+                        btn.classList.add('qz-correct');
+                        btn.disabled = true;
+                    } else {
+                        btn.classList.add('qz-incorrect');
+                    }
                 });
                 setTimeout(() => {
-                    allBtns.forEach(btn => { btn.classList.remove('qz-incorrect', 'qz-selected'); });
-                    this._qzMultiSelected.clear();
+                    allBtns.forEach(btn => {
+                        if (!btn.classList.contains('qz-incorrect')) return;
+                        btn.classList.remove('qz-incorrect', 'qz-selected');
+                        this._qzMultiSelected.delete(btn.textContent);
+                    });
                 }, 600);
             }
 
@@ -6287,13 +6393,25 @@
             if (isCorrect) {
                 this._handleQzAnswer(true);
             } else {
-                this._showQzMerksatzHint(question);
+                // Rückmeldung danach unterscheiden, was an der Auswahl nicht stimmt
+                const nRight = selected.filter(s => correctSet.has(s.toLowerCase())).length;
+                const nWrong = selected.length - nRight;
+                const nMissing = question.correct.length - nRight;
+                let headline;
+                if (nWrong === 0) {
+                    headline = `⚠️ Richtig so weit, es fehlt noch ${nMissing === 1 ? 'eine Tonart' : nMissing + ' Tonarten'}.`;
+                } else if (nRight === 0) {
+                    headline = nWrong === 1 ? '⚠️ Die gewählte Tonart passt nicht.' : '⚠️ Keine der gewählten Tonarten passt.';
+                } else {
+                    headline = `⚠️ ${nRight === 1 ? 'Eine Tonart stimmt' : nRight + ' Tonarten stimmen'}, ${nWrong === 1 ? 'eine passt nicht' : nWrong + ' passen nicht'}.`;
+                }
+                this._showQzMerksatzHint(question, headline);
                 this._handleQzAnswer(false, null, true);
             }
         },
 
         // Merksatz-Hilfe bei Fehler einblenden — nur den passenden Merksatz
-        _showQzMerksatzHint(question) {
+        _showQzMerksatzHint(question, headline = '⚠️ Prüfe nochmal!') {
             const fbEl = document.getElementById('qzFeedback');
             let merksatz = '';
 
@@ -6311,14 +6429,19 @@
 
             // Bestimme welcher Sub-Skill aktiv ist
             const activeOpts = quickStart.currentOptions || [];
-            const highestOpt = activeOpts[activeOpts.length - 1] || 'aussenkr';
+            // Sub-Skill der FRAGE, nicht der höchste gewählte: im Cascade-Modus
+            // kommen auch Fragen früherer Sub-Skills dran
+            const highestOpt = question.subSkillId || activeOpts[activeOpts.length - 1] || 'aussenkr';
 
             // WICHTIG: Sub-Skill zuerst pruefen, Textmuster nur als Rueckfall.
             // Die 5c-Frage enthaelt das Wort "Vorzeichen" und landete sonst im
             // aussenkr-Zweig — der nennt aber die Reihenfolge der TONARTEN
             // (Geh Du Alter Esel → G D A E H Fis), gesucht sind die VORZEICHEN
             // (Fis Cis Gis Dis …). Bei E-Dur/4 Kreuze fuehrte das auf "E" statt "Dis".
-            if (highestOpt === 'vorz_ableitung') {
+            if (question.tip) {
+                // Aufgabenspezifischer Hinweis aus dem Generator (Richtung ♯ rechts / ♭ links)
+                merksatz = question.tip;
+            } else if (highestOpt === 'vorz_ableitung') {
                 if (isFlatContext || (textHasFlat && !textHasSharp)) {
                     merksatz = 'Zähle in der Be-Reihe so weit, wie die Tonart Bes hat: <b>B – Es – As – Des – Ges – Ces – Fes</b>';
                 } else {
@@ -6354,9 +6477,9 @@
             }
 
             if (merksatz) {
-                fbEl.innerHTML = '⚠️ Prüfe nochmal!<br><span class="qz-merksatz">' + merksatz + '</span>';
+                fbEl.innerHTML = headline + '<br><span class="qz-merksatz">' + merksatz + '</span>';
             } else {
-                fbEl.textContent = '⚠️ Prüfe nochmal!';
+                fbEl.textContent = headline;
             }
             fbEl.className = 'feedback incorrect';
             fbEl.style.display = 'block';
@@ -7673,6 +7796,7 @@
                 body: `<p>Der Quintenzirkel ordnet alle Dur-Tonarten nach ihrer Verwandtschaft. Im Uhrzeigersinn steigt die Anzahl der <span class="vz-sharp"></span> um jeweils ein Vorzeichen (z.&nbsp;B. G-Dur hat ein <span class="vz-sharp"></span>, D-Dur zwei <span class="vz-sharp"></span> usw.), gegen den Uhrzeigersinn die der <span class="vz-flat"></span>.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-rule"><strong style="display:block; margin-bottom:4px;">Merksätze lernen</strong><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div>
+                        <div class="lk-rule"><strong style="display:block; margin-bottom:4px;">Quinten auf der Tastatur</strong>Zwei Nachbarn im Quintenzirkel liegen eine <strong>Quinte</strong> auseinander, das sind <strong>7 Halbtöne</strong>. Nach rechts zählst du aufwärts (C → G), nach links abwärts (C → F). Die Tastatur unter der Aufgabe hilft dir dabei.</div>
                         <div class="lk-tip"><strong>Tipp:</strong> C-Dur steht oben (0 Vorzeichen). Nach rechts Kreuze, nach links Bes.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Nenne die Anzahl der Vorzeichen einer Dur-Tonart — oder umgekehrt: Welche Dur-Tonart hat eine bestimmte Anzahl Vorzeichen?</div>`,
                 render() {
@@ -7711,6 +7835,7 @@
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-rule"><strong>Kreuz-Reihenfolge:</strong> Fis – Cis – Gis – Dis – Ais – Eis – His.<br><strong>Be-Reihenfolge:</strong> B – Es – As – Des – Ges – Ces – Fes.<br>Beide Reihen musst du nicht zusätzlich auswendig lernen — sie stecken schon im Quintenzirkel. Lies ihn ab F im Uhrzeigersinn (F – C – G – D – A – E – H) und mache aus jedem Ton einen Kreuz-Ton (F → Fis, C → Cis …): Das ist die Kreuz-Reihe. Jedes weitere Kreuz liegt damit eine Quinte höher als das vorige, genau wie jede weitere Kreuz-Tonart. Dieselbe Runde ab H gegen den Uhrzeigersinn (H – E – A – D – G – C – F) ergibt mit Be die Be-Reihe (H → B, E → Es …).</div>
                         <div class="lk-tip"><strong>Tipp:</strong> G-Dur = 1<span class="vz-sharp"></span> → nur Fis. D-Dur = 2<span class="vz-sharp"></span> → Fis + Cis, neu dazu kommt <strong>Cis</strong>. Immer der Reihe nach zählen.</div>
+                        <div class="lk-tip"><strong>Tipp für Kreuz-Tonarten:</strong> Das neue Kreuz ist immer der <strong>Leitton</strong>, also der Ton einen Halbton unter dem Grundton: D-Dur → <strong>Cis</strong>, A-Dur → <strong>Gis</strong>. Bei Be-Tonarten klappt das nicht.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Geh die Reihe im Kopf durch und gib nur das <strong>letzte</strong> Vorzeichen an — das, das bei dieser Tonart neu dazukommt.</div>`,
                 render() {
                     // Beispiel: A-Dur (3 Kreuze: Fis, Cis, Gis)
