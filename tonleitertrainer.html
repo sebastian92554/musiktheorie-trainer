@@ -7154,8 +7154,20 @@
                     from = f ? f.charAt(0).toUpperCase() + f.slice(1) : '';
                 }
             } catch (e) { from = window.opener ? '' : null; }
+            this._appendNextChoice(key, from !== null
+                ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
+                : { label: 'Zurück zum Menü' });
+        },
+
+        // „Wie geht es weiter?“ am Kartenende statt „Verstanden“: zurück (back.after danach)
+        // oder „Erst hier üben“ (startet das Quiz zu dem Sub-Skill, dessen Lernkarte key ist).
+        // Für Deep-Links aus anderen Trainern und für Sprünge über „Ausführlich nachlesen“.
+        _appendNextChoice(key, back) {
             const target = this._findSubForKey(key);
             const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
+            // Sprung innerhalb des laufenden Quiz auf die eigene Karte: kein „Erst hier üben“
+            const same = target && quickStart.isActive && quickStart.selectedSub
+                && quickStart.selectedSub.nodeId === target.nodeId && quickStart.selectedSub.index === target.idx;
 
             const card = document.querySelector('#lernkarteOverlay .lernkarte');
             const btn = card.querySelector(':scope > button');
@@ -7163,20 +7175,18 @@
             const box = document.createElement('div');
             box.className = 'lk-next';
             box.innerHTML = '<div class="lk-next-q">Wie geht es weiter?</div>' +
-                (from !== null
-                    ? `<button type="button" data-act="back">Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}</button>`
-                    : '<button type="button" data-act="back">Zurück zum Menü</button>') +
-                (sub ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
+                `<button type="button" data-act="back">${back.label}</button>` +
+                (sub && !same ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
             card.appendChild(box);
-            const cleanup = () => { box.remove(); btn.style.display = ''; };
             box.querySelector('[data-act="back"]').onclick = () => {
-                cleanup();
+                this._removeNextChoice();
                 app.dismissLernkarte();
-                if (from !== null) window.close();
+                if (back.after) back.after();
             };
             const practice = box.querySelector('[data-act="practice"]');
             if (practice) practice.onclick = () => {
-                cleanup();
+                this._removeNextChoice();
+                this._lernkarteFromStart = false;   // keine Aufgabe des alten Quiz mehr erzeugen
                 app.dismissLernkarte();
                 // Start-Karte = die eben gelesene Karte → nicht noch einmal zeigen, gleich die erste Aufgabe
                 app._skipStartCardKey = key;
@@ -7184,6 +7194,12 @@
                 quickStart.selectedSub = { nodeId: target.nodeId, index: target.idx };
                 quickStart.startFromSkilltree();
             };
+        },
+        _removeNextChoice() {
+            const box = document.querySelector('#lernkarteOverlay .lk-next');
+            if (box) box.remove();
+            const btn = document.querySelector('#lernkarteOverlay .lernkarte > button');
+            if (btn) btn.style.display = '';
         },
 
         // Sub-Skill (Knoten + Index), dessen Lernkarte den Schlüssel hat — für „Erst hier üben“
@@ -7241,6 +7257,7 @@
         // nicht als manuelles Öffnen (card_view) und stellt danach die Aufgabe wieder her
         showLernkarte(subSkillId, fromStart, auto) {
             let key = this.getLernkarteKey(subSkillId);
+            const linkKey = key;   // vor der 3a-Umleitung: Ziel für „Erst hier üben“
             // „Erst hier üben“ nach einem Deep-Link: diese Start-Karte wurde gerade gelesen → überspringen
             if (fromStart && this._skipStartCardKey) {
                 const skip = this._skipStartCardKey === key;
@@ -7265,6 +7282,7 @@
             // Sprung aus einer offenen Start-Karte (Tipp-Button): Start-Status behalten,
             // sonst beginnt nach „Verstanden" keine Aufgabe
             const chained = document.getElementById('lernkarteOverlay').classList.contains('active');
+            this._removeNextChoice();
             this._lernkarteFromStart = !!fromStart || (chained && this._lernkarteFromStart);
             this._lernkarteAuto = !!auto;
             this._lernkarteOpenedAt = Date.now();
@@ -7287,6 +7305,8 @@
             });
 
             document.getElementById('lernkarteOverlay').classList.add('active');
+            // Sprung über „Ausführlich nachlesen“ aus einer offenen Karte: Wahl statt „Verstanden, los!“
+            if (chained && !auto) this._appendNextChoice(linkKey, { label: quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen' });
             return true;
         },
 
