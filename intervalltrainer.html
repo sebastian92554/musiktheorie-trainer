@@ -423,9 +423,15 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #c2410c; }
+        /* Deep-Link aus einem anderen Trainer: „Wie geht es weiter?“ am Kartenende */
+        .lk-next { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        .lk-next-q { font-size: 0.88rem; font-weight: 600; color: #334155; margin-bottom: -6px; }
+        .lernkarte button.lk-btn-secondary { background: #fff; color: #ea580c; border: 2px solid #ea580c; margin-top: 8px; }
+        .lernkarte button.lk-btn-secondary:hover { background: #fff7ed; }
+        .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
         /* Sprung-Buttons zu früheren Lernkarten (inline, kleiner als
            der Standard-Lernkarte-Button am Karten-Ende) — wie TT/DT */
-        .lk-jump-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lk-jump-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px; }
         .lernkarte .lk-jump-btn {
             width: auto; padding: 8px 14px; font-size: 0.85rem;
             margin-top: 0; background: #fff; color: #ea580c;
@@ -4740,8 +4746,8 @@
             // ---- Lernkarten-System ----
             // Mapping: Sub-Skill-ID + Level → lernkartenContent-Key
             // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
-            // Lernkarte direkt öffnen. Per window.open im neuen Tab geöffnet → „Verstanden“
-            // schließt den Tab wieder, und man ist zurück bei der Aufgabe im anderen Trainer.
+            // Lernkarte direkt öffnen, am Ende die Wahl „Zurück zur Aufgabe“ (schließt den per
+            // window.open geöffneten Tab) oder „Erst hier üben“ (startet das Quiz zu diesem Sub-Skill).
             openDeepLinkLernkarte() {
                 const url = new URL(location.href);
                 const key = url.searchParams.get('lernkarte');
@@ -4751,16 +4757,58 @@
                 // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
                 document.body.appendChild(document.getElementById('lernkarteOverlay'));
                 if (!this.showLernkarte(key, false)) return;
-                if (window.opener) {
-                    const btn = document.querySelector('#lernkarteOverlay .lernkarte > button');
-                    btn.textContent = 'Verstanden, zurück';
-                    btn.onclick = () => {
-                        btn.textContent = 'Verstanden, los!';
-                        btn.onclick = () => app.dismissLernkarte();
-                        app.dismissLernkarte();
-                        window.close();
-                    };
-                }
+
+                // Herkunft (nur mit opener kann der Tab sich wieder schließen)
+                let from = null;
+                try {
+                    if (window.opener) {
+                        const f = window.opener.location.pathname.split('/').pop().replace('.html', '');
+                        from = f ? f.charAt(0).toUpperCase() + f.slice(1) : '';
+                    }
+                } catch (e) { from = window.opener ? '' : null; }
+                const target = this._findSubForKey(key);
+                const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
+
+                const card = document.querySelector('#lernkarteOverlay .lernkarte');
+                const btn = card.querySelector(':scope > button');
+                btn.style.display = 'none';
+                const box = document.createElement('div');
+                box.className = 'lk-next';
+                box.innerHTML = '<div class="lk-next-q">Wie geht es weiter?</div>' +
+                    (from !== null
+                        ? `<button type="button" data-act="back">Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}</button>`
+                        : '<button type="button" data-act="back">Zurück zum Menü</button>') +
+                    (sub ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
+                card.appendChild(box);
+                const cleanup = () => { box.remove(); btn.style.display = ''; };
+                box.querySelector('[data-act="back"]').onclick = () => {
+                    cleanup();
+                    app.dismissLernkarte();
+                    if (from !== null) window.close();
+                };
+                const practice = box.querySelector('[data-act="practice"]');
+                if (practice) practice.onclick = () => {
+                    cleanup();
+                    app.dismissLernkarte();
+                    // Start-Karte = die eben gelesene Karte → nicht noch einmal zeigen, gleich die erste Aufgabe
+                    app._skipStartCardKey = key;
+                    quickStart.selectedNode = target.nodeId;
+                    quickStart.selectedSub = { nodeId: target.nodeId, index: target.idx };
+                    quickStart.startFromSkilltree();
+                };
+            },
+
+            // Sub-Skill (Knoten + Index), dessen Lernkarte den Schlüssel hat — für „Erst hier üben“
+            _findSubForKey(key) {
+                const q = quickStart, saved = q.currentLevel;
+                try {
+                    for (const nodeId of Object.keys(q.nodeSubSkills || {})) {
+                        q.currentLevel = q.nodeToLevel[nodeId];
+                        const idx = q.nodeSubSkills[nodeId].findIndex(s => this.getLernkarteKey(s.id) === key);
+                        if (idx >= 0) return { nodeId, idx };
+                    }
+                } finally { q.currentLevel = saved; }
+                return null;
             },
 
             getLernkarteKey(subSkillId) {
@@ -4820,6 +4868,12 @@
             // zählt nicht als manuelles Öffnen (card_view)
             showLernkarte(subSkillId, fromStart, auto) {
                 let key = this.getLernkarteKey(subSkillId);
+                // „Erst hier üben“ nach einem Deep-Link: diese Start-Karte wurde gerade gelesen → überspringen
+                if (fromStart && this._skipStartCardKey) {
+                    const skip = this._skipStartCardKey === key;
+                    this._skipStartCardKey = null;
+                    if (skip) return false;
+                }
                 // 4c: Start-Karte nur während Probe und Fällen, sonst die Muster-Karte
                 if (key === 'komplement' && !this._komplementLearning()) key = 'komplement_regel';
                 const content = this.lernkartenContent[key];
@@ -5233,8 +5287,8 @@
                         <p>Achte auf drei Dinge: die <strong>Halbtonschritte</strong> (4 und 8), die <strong>Feinbestimmung</strong> (groß, klein) und das <strong>Rahmenintervall</strong> (Terz = 3, Sexte = 6).</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib zum gezeigten Intervall die Halbtonschritte und den Namen des Komplementärintervalls ein. Klappt es noch nicht, schauen wir uns an einzelnen Intervallpaaren genauer an, was mit Halbtonschritten, Feinbestimmung und Rahmenintervall passiert.</div>
                         <div class="lk-tip">
-                            <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher bei großen und kleinen Intervallen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('grossklein', false)">4b — Große & kleine Intervalle</button></div>
-                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('int3_basis', false)">3a — Halbtonschritte zählen</button></div>
+                            <div class="lk-jump-row" style="margin-top:0">Unsicher bei großen und kleinen Intervallen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('grossklein', false)">4b — Große & kleine Intervalle</button></div>
+                            <div class="lk-jump-row">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('int3_basis', false)">3a — Halbtonschritte zählen</button></div>
                         </div>`
                 },
                 // 4c — Muster-Karte (automatisch vor Aufgabe 5, danach als Hilfe).

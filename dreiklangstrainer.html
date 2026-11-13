@@ -1567,7 +1567,7 @@
             color: #92400e;
         }
         /* Rücksprung bei benannter Unsicherheit („Unsicher bei …? [Button]“) */
-        .lk-jump-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lk-jump-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px; }
         .lernkarte .lk-jump-btn {
             width: auto; padding: 8px 14px; font-size: 0.85rem;
             margin-top: 0; background: #fff; color: #059669;
@@ -1617,6 +1617,12 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #059669; }
+        /* Deep-Link aus einem anderen Trainer: „Wie geht es weiter?“ am Kartenende */
+        .lk-next { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        .lk-next-q { font-size: 0.88rem; font-weight: 600; color: #334155; margin-bottom: -6px; }
+        .lernkarte button.lk-btn-secondary { background: #fff; color: #059669; border: 2px solid #059669; margin-top: 8px; }
+        .lernkarte button.lk-btn-secondary:hover { background: #ecfdf5; }
+        .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
         .vz-sharp, .vz-flat {
             display: inline-block;
             vertical-align: middle;
@@ -4227,8 +4233,8 @@ const _lernkartenContent = {
             <div class="lk-visual" id="lkVisualDrei2b"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte, auch bei Vorzeichen.</div>
             <div class="lk-tip">
-                <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher bei den Vorzeichen? <button type="button" class="lk-jump-btn" onclick="window.open('notentrainer.html?lernkarte=vorzeichen', '_blank')">Notentrainer: Vorzeichen</button></div>
-                <div class="lk-jump-row" style="align-items:center">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('basis', false)">2a — Halbtonschritte zählen</button></div>
+                <div class="lk-jump-row" style="margin-top:0">Unsicher bei den Vorzeichen? <button type="button" class="lk-jump-btn" onclick="window.open('notentrainer.html?lernkarte=vorzeichen', '_blank')">Notentrainer: Vorzeichen</button></div>
+                <div class="lk-jump-row">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('basis', false)">2a — Halbtonschritte zählen</button></div>
             </div>`,
         render() {
             document.getElementById('lkVisualDrei2b').innerHTML = renderLernkarteTastatur({ numOctaves:1, title:'Beispiel: D-Dur', showBlackLabels:true, highlightKeys:[{key:'D',color:'#bbf7d0'},{key:'Fis',color:'#bbf7d0'},{key:'A',color:'#bbf7d0'}], arrows:[{from:'D',to:'Fis',label:'4 HS',color:'#059669'},{from:'Fis',to:'A',label:'3 HS',color:'#059669'}] });
@@ -4241,8 +4247,8 @@ const _lernkartenContent = {
             <div class="lk-contrast" id="lkContrastDrei2Aug" style="flex-wrap:wrap"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte.</div>
             <div class="lk-tip">
-                <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('basis', false)">2a — Halbtonschritte zählen</button></div>
-                <div class="lk-jump-row" style="align-items:center">Unsicher bei Dreiklängen mit Vorzeichen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('vorzeichen', false)">2b — Mit Vorzeichen</button></div>
+                <div class="lk-jump-row" style="margin-top:0">Unsicher beim Zählen der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('basis', false)">2a — Halbtonschritte zählen</button></div>
+                <div class="lk-jump-row">Unsicher bei Dreiklängen mit Vorzeichen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('vorzeichen', false)">2b — Mit Vorzeichen</button></div>
             </div>`,
         render() {
             const types = [
@@ -7316,8 +7322,8 @@ const _lernkartenContent = {
             },
 
             // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
-            // Lernkarte direkt öffnen. Per window.open im neuen Tab geöffnet → „Verstanden“
-            // schließt den Tab wieder, und man ist zurück bei der Aufgabe im anderen Trainer.
+            // Lernkarte direkt öffnen, am Ende die Wahl „Zurück zur Aufgabe“ (schließt den per
+            // window.open geöffneten Tab) oder „Erst hier üben“ (startet das Quiz zu diesem Sub-Skill).
             openDeepLinkLernkarte() {
                 const url = new URL(location.href);
                 const key = url.searchParams.get('lernkarte');
@@ -7327,16 +7333,58 @@ const _lernkartenContent = {
                 // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
                 document.body.appendChild(document.getElementById('lernkarteOverlay'));
                 if (!this.showLernkarte(key, false)) return;
-                if (window.opener) {
-                    const btn = document.querySelector('#lernkarteOverlay .lernkarte > button');
-                    btn.textContent = 'Verstanden, zurück';
-                    btn.onclick = () => {
-                        btn.textContent = 'Verstanden, los!';
-                        btn.onclick = () => app.dismissLernkarte();
-                        app.dismissLernkarte();
-                        window.close();
-                    };
-                }
+
+                // Herkunft (nur mit opener kann der Tab sich wieder schließen)
+                let from = null;
+                try {
+                    if (window.opener) {
+                        const f = window.opener.location.pathname.split('/').pop().replace('.html', '');
+                        from = f ? f.charAt(0).toUpperCase() + f.slice(1) : '';
+                    }
+                } catch (e) { from = window.opener ? '' : null; }
+                const target = this._findSubForKey(key);
+                const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
+
+                const card = document.querySelector('#lernkarteOverlay .lernkarte');
+                const btn = card.querySelector(':scope > button');
+                btn.style.display = 'none';
+                const box = document.createElement('div');
+                box.className = 'lk-next';
+                box.innerHTML = '<div class="lk-next-q">Wie geht es weiter?</div>' +
+                    (from !== null
+                        ? `<button type="button" data-act="back">Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}</button>`
+                        : '<button type="button" data-act="back">Zurück zum Menü</button>') +
+                    (sub ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
+                card.appendChild(box);
+                const cleanup = () => { box.remove(); btn.style.display = ''; };
+                box.querySelector('[data-act="back"]').onclick = () => {
+                    cleanup();
+                    app.dismissLernkarte();
+                    if (from !== null) window.close();
+                };
+                const practice = box.querySelector('[data-act="practice"]');
+                if (practice) practice.onclick = () => {
+                    cleanup();
+                    app.dismissLernkarte();
+                    // Start-Karte = die eben gelesene Karte → nicht noch einmal zeigen, gleich die erste Aufgabe
+                    app._skipStartCardKey = key;
+                    quickStart.selectedNode = target.nodeId;
+                    quickStart.selectedSub = { nodeId: target.nodeId, index: target.idx };
+                    quickStart.startFromSkilltree();
+                };
+            },
+
+            // Sub-Skill (Knoten + Index), dessen Lernkarte den Schlüssel hat — für „Erst hier üben“
+            _findSubForKey(key) {
+                const q = quickStart, saved = q.currentLevel;
+                try {
+                    for (const nodeId of Object.keys(q.nodeSubSkills || {})) {
+                        q.currentLevel = q.nodeToLevel[nodeId];
+                        const idx = q.nodeSubSkills[nodeId].findIndex(s => this.getLernkarteKey(s.id) === key);
+                        if (idx >= 0) return { nodeId, idx };
+                    }
+                } finally { q.currentLevel = saved; }
+                return null;
             },
 
             getLernkarteKey(subSkillId) {
@@ -7358,6 +7406,12 @@ const _lernkartenContent = {
             // zählt nicht als manuelles Öffnen (card_view)
             showLernkarte(subSkillId, fromStart, auto) {
                 let key = this.getLernkarteKey(subSkillId);
+                // „Erst hier üben“ nach einem Deep-Link: diese Start-Karte wurde gerade gelesen → überspringen
+                if (fromStart && this._skipStartCardKey) {
+                    const skip = this._skipStartCardKey === key;
+                    this._skipStartCardKey = null;
+                    if (skip) return false;
+                }
                 // drei2: Start-Karte nur während Probe und Fällen, sonst die Muster-Karte
                 if (key === 'drei2_basis' && !this._drei2Learning()) key = 'drei2_basis_regel';
                 const content = this.lernkartenContent[key];

@@ -1826,9 +1826,15 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #0e7490; }
+        /* Deep-Link aus einem anderen Trainer: „Wie geht es weiter?“ am Kartenende */
+        .lk-next { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        .lk-next-q { font-size: 0.88rem; font-weight: 600; color: #334155; margin-bottom: -6px; }
+        .lernkarte button.lk-btn-secondary { background: #fff; color: #0891b2; border: 2px solid #0891b2; margin-top: 8px; }
+        .lernkarte button.lk-btn-secondary:hover { background: #ecfeff; }
+        .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
         /* Sprung-Buttons zu früheren Lernkarten (inline, kleiner als
            der Standard-Lernkarte-Button am Karten-Ende). */
-        .lk-jump-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lk-jump-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px; }
         .lernkarte .lk-jump-btn {
             width: auto; padding: 8px 14px; font-size: 0.85rem;
             margin-top: 0; background: #fff; color: #0891b2;
@@ -7115,8 +7121,8 @@
         },
 
         // Deep-Link aus einem anderen Trainer (?lernkarte=<Schlüssel>, z. B. 'vorzeichen'):
-        // Lernkarte direkt öffnen. Per window.open im neuen Tab geöffnet → „Verstanden“
-        // schließt den Tab wieder, und man ist zurück bei der Aufgabe im anderen Trainer.
+        // Lernkarte direkt öffnen, am Ende die Wahl „Zurück zur Aufgabe“ (schließt den per
+        // window.open geöffneten Tab) oder „Erst hier üben“ (startet das Quiz zu diesem Sub-Skill).
         openDeepLinkLernkarte() {
             const url = new URL(location.href);
             const key = url.searchParams.get('lernkarte');
@@ -7126,16 +7132,58 @@
             // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
             document.body.appendChild(document.getElementById('lernkarteOverlay'));
             if (!this.showLernkarte(key, false)) return;
-            if (window.opener) {
-                const btn = document.querySelector('#lernkarteOverlay .lernkarte > button');
-                btn.textContent = 'Verstanden, zurück';
-                btn.onclick = () => {
-                    btn.textContent = 'Verstanden, los!';
-                    btn.onclick = () => app.dismissLernkarte();
-                    app.dismissLernkarte();
-                    window.close();
-                };
-            }
+
+            // Herkunft (nur mit opener kann der Tab sich wieder schließen)
+            let from = null;
+            try {
+                if (window.opener) {
+                    const f = window.opener.location.pathname.split('/').pop().replace('.html', '');
+                    from = f ? f.charAt(0).toUpperCase() + f.slice(1) : '';
+                }
+            } catch (e) { from = window.opener ? '' : null; }
+            const target = this._findSubForKey(key);
+            const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
+
+            const card = document.querySelector('#lernkarteOverlay .lernkarte');
+            const btn = card.querySelector(':scope > button');
+            btn.style.display = 'none';
+            const box = document.createElement('div');
+            box.className = 'lk-next';
+            box.innerHTML = '<div class="lk-next-q">Wie geht es weiter?</div>' +
+                (from !== null
+                    ? `<button type="button" data-act="back">Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}</button>`
+                    : '<button type="button" data-act="back">Zurück zum Menü</button>') +
+                (sub ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
+            card.appendChild(box);
+            const cleanup = () => { box.remove(); btn.style.display = ''; };
+            box.querySelector('[data-act="back"]').onclick = () => {
+                cleanup();
+                app.dismissLernkarte();
+                if (from !== null) window.close();
+            };
+            const practice = box.querySelector('[data-act="practice"]');
+            if (practice) practice.onclick = () => {
+                cleanup();
+                app.dismissLernkarte();
+                // Start-Karte = die eben gelesene Karte → nicht noch einmal zeigen, gleich die erste Aufgabe
+                app._skipStartCardKey = key;
+                quickStart.selectedNode = target.nodeId;
+                quickStart.selectedSub = { nodeId: target.nodeId, index: target.idx };
+                quickStart.startFromSkilltree();
+            };
+        },
+
+        // Sub-Skill (Knoten + Index), dessen Lernkarte den Schlüssel hat — für „Erst hier üben“
+        _findSubForKey(key) {
+            const q = quickStart, saved = q.currentLevel;
+            try {
+                for (const nodeId of Object.keys(q.nodeSubSkills || {})) {
+                    q.currentLevel = q.nodeToLevel[nodeId];
+                    const idx = q.nodeSubSkills[nodeId].findIndex(s => this.getLernkarteKey(s.id) === key);
+                    if (idx >= 0) return { nodeId, idx };
+                }
+            } finally { q.currentLevel = saved; }
+            return null;
         },
 
         getLernkarteKey(subSkillId) {
@@ -7178,6 +7226,12 @@
         // nicht als manuelles Öffnen (card_view) und stellt danach die Aufgabe wieder her
         showLernkarte(subSkillId, fromStart, auto) {
             let key = this.getLernkarteKey(subSkillId);
+            // „Erst hier üben“ nach einem Deep-Link: diese Start-Karte wurde gerade gelesen → überspringen
+            if (fromStart && this._skipStartCardKey) {
+                const skip = this._skipStartCardKey === key;
+                this._skipStartCardKey = null;
+                if (skip) return false;
+            }
             // 3a: Start-Karte nur während Probe/Fällen, sonst (Regel bekannt, angewendet,
             // außerhalb des Quiz) die Muster-Karte
             if (key === 'ton3_muster_lernen') {
@@ -7801,8 +7855,8 @@
                         <div class="lk-rule">Zwischen Fis (3) und G (4) liegt keine Taste, also ein Halbtonschritt. Ebenso zwischen Cis (7) und D (8). Halbtonschritte zwischen 3–4 und 7–8 → Dur. Der Grundton ist D → <strong>D-Dur</strong>.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die beiden Halbtonschritt-Stufen und schreib den Namen, z.&nbsp;B. „D-Dur".</div>
                         <div class="lk-tip">
-                            <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
-                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
+                            <div class="lk-jump-row" style="margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
+                            <div class="lk-jump-row">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
                         </div>`,
                 render() {
                     document.getElementById('lkVisualDDur3b').innerHTML =
@@ -7818,9 +7872,9 @@
                         <p><strong>Neu:</strong> Keine Stufenzahlen und keine Stufen-Auswahl mehr. Du schreibst nur den Namen, die Schritte davor machst du im Kopf.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter. Liegst du falsch, markierst du zuerst die Halbtonschritte, dann geht es weiter.</div>
                         <div class="lk-tip">
-                            <div class="lk-jump-row" style="align-items:center;margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
-                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
-                            <div class="lk-jump-row" style="align-items:center">Unsicher beim Benennen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — Tonleiter benennen</button></div>
+                            <div class="lk-jump-row" style="margin-top:0">Unsicher beim Muster von Dur und Moll? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_lernen', false)">3a — Tongeschlecht bestimmen</button></div>
+                            <div class="lk-jump-row">Unsicher beim Finden der Halbtonschritte? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('ton2_stufenpaare', false)">2b — Stufenpaare auswählen</button></div>
+                            <div class="lk-jump-row">Unsicher beim Benennen? <button type="button" class="lk-jump-btn" onclick="app.showLernkarte('muster_erkennen', false)">3b — Tonleiter benennen</button></div>
                         </div>`
             },
             ton3_ohne_hilfe: {
