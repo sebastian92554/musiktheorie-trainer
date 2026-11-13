@@ -4812,16 +4812,19 @@
                         }
                     } else {
                         if (this.settings.extendedRange && !_earlyQ) {
-                            // Hilfslinien: kontra (unter Notensystem) + Standard-Bereich
-                            // Keyboard-Bereich: 0-36, daher kein eingestrichen (würde 36-47 erzeugen)
-                            octaveOptions = ['kontra', 'kontra', 'gross', 'klein', 'klein'];
+                            // Hilfslinien: kontra (unter Notensystem) + Standard-Bereich + c'–e'
+                            // über dem System (bis 2 Hilfslinien), sonst entsteht der Eindruck,
+                            // der Bassschlüssel ende beim h. Keyboard-Bereich dafür bis c'' (48).
+                            octaveOptions = ['kontra', 'kontra', 'gross', 'klein', 'klein', 'eingestrichen'];
                         } else {
                             octaveOptions = ['gross', 'klein'];
                         }
                     }
                     
-                    const octave = octaveOptions[Math.floor(Math.random() * octaveOptions.length)];
-                    
+                    let octave = octaveOptions[Math.floor(Math.random() * octaveOptions.length)];
+                    // Bass eingestrichen nur c'–e' (bis 2 Hilfslinien über dem System), sonst klein
+                    if (clef === 'bass' && octave === 'eingestrichen' && !/^(C|D|E)/.test(noteName)) octave = 'klein';
+
                     newNote = { name: noteName, octave, clef };
 
                     const noteId = `${newNote.name}-${newNote.octave}-${newNote.clef}`;
@@ -5166,11 +5169,11 @@
                     }
                 } else {
                     if (this.settings.extendedRange) {
-                        // Extended bass: 2-Oktaven-Fenster, das den Ton enthält (Gesamtbereich: 0-36)
+                        // Extended bass: 2-Oktaven-Fenster, das den Ton enthält (Gesamtbereich: 0-48, bis c'')
                         const noteOctStart = Math.floor(currentPitch / 12) * 12;
                         adjustedStartPitch = noteOctStart;
                         adjustedEndPitch = noteOctStart + 24;
-                        if (adjustedEndPitch > 36) { adjustedEndPitch = 36; adjustedStartPitch = 12; }
+                        if (adjustedEndPitch > 48) { adjustedEndPitch = 48; adjustedStartPitch = 24; }
                         if (adjustedStartPitch < 0) { adjustedStartPitch = 0; adjustedEndPitch = 24; }
                     } else {
                         // Normal bass: gross to klein → C2(12) to C4(36)
