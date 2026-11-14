@@ -1594,6 +1594,38 @@
         .lernkarte .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
         .lernkarte .lk-choice:disabled { cursor: default; }
         .lk-hidden { display: none; }
+
+        /* „Woran liegt es?“ nach zwei Fehlversuchen (woranPanel) */
+        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #ddd6fe; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(139,92,246,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1f2937; animation: wqIn 0.25s ease-out; }
+        @keyframes wqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .wq-q { font-weight: 700; margin: 0 0 10px; color: #5b21b6; }
+        .wq-opts { display: flex; flex-direction: column; gap: 6px; }
+        .wq-opt { text-align: left; border: 1.5px solid #ddd6fe; background: #f5f3ff; color: #4c1d95; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+        .wq-opt:hover { background: #ede9fe; }
+        .wq-opt.secondary { background: #fff; border-color: #e5e7eb; color: #4b5563; }
+        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #5b21b6; font-size: 0.88rem; }
+        .wq-cases { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        /* Spalte als Block statt Flex: Flex berechnet die Höhe der Takt-SVGs (Breite 100 %) zu klein */
+        .wq-cases.wq-col { display: block; }
+        .wq-cases.wq-col .wq-case { margin-bottom: 8px; }
+        .wq-case { flex: 1 1 0; min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px; text-align: center; }
+        .wq-case.wq-task { flex: 1 1 100%; }
+        .wq-case svg { width: 100% !important; height: auto !important; max-height: 150px; }
+        .wq-case .wq-addition { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; }
+        .wq-case .wq-addition svg { width: auto !important; max-height: 60px; }
+        .wq-kbsvg { display: block; margin: 4px auto 0; width: 100%; max-width: 380px; height: auto; }
+        .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
+        .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
+        .wq-wrong { color: #dc2626; }
+        .wq-right { color: #16a34a; }
+        .wq-full { width: 100%; text-align: left; }
+        .wq-cmp { border-color: #c4b5fd; }
+        body.wq-open #feedback, body.wq-open #additionFeedback, body.wq-open #tsFeedback, body.wq-open #helpBtn { display: none !important; }
+        /* RT scrollt auf Tablet/Handy nicht (alles auf einem Bildschirm) → Feld als Fenster über der
+           Aufgabe, das selbst scrollt (wie die Lernkarten) */
+        .wq-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 12px; }
+        .wq-overlay .wq-panel { margin: 0; width: 100%; max-height: 88vh; overflow-y: auto; }
+        .wq-go { display: block; width: 100%; margin-top: 12px; background: #8b5cf6; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -2262,6 +2294,9 @@
             subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
             tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
+            // „Woran liegt es?“: gewählte Vermutung (choice), beobachtete Fehlerart (observed),
+            // beide Fehlerarten (errors), match; opened = aufgeklappte Rückfrage.
+            selfAssess(p) { this._send('self_assess', p); },
             // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
             // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
             // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
@@ -2334,6 +2369,353 @@
             getErrorPattern() { return null; }
         }
         const errorTracker = new ErrorTracker();
+
+        // ── „Woran liegt es?“ (ersetzt den Hilfe-Nudge, Nov 2026) ──
+        // Nach zwei Fehlversuchen in Folge, einmal pro Durchgang: Der Schüler wählt eine Vermutung,
+        // sieht seine beiden Versuche (Aufgabe + eigene Antwort, Fehler rot), klappt den Vergleich
+        // „Was haben deine beiden Fehler gemeinsam?“ und Hilfen zu den beobachteten Fehlern auf.
+        // Verrät nie die Lösung. Im RT als Fenster über der Aufgabe (die Seite scrollt auf Tablet/Handy nicht).
+        // Mock: _entwicklung/mock_rt_woran.html (Problemfälle zum Durchspielen).
+        const woranPanel = (function () {
+        const lkExists = k => !!((app.lernkartenContent || {})[k]);
+        const ask = (q, a, key) => {
+            const more = key && lkExists(key) ? ` <a class="lk-ask-more" href="#" onclick="app.showLernkarte('${key}', false); return false">Ausführlich nachlesen ›</a>` : '';
+            return `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}${more}</div></details>`;
+        };
+        const red = t => `<strong class="wq-wrong">${t}</strong>`;
+        const col = (t, ok) => `<strong class="${ok ? 'wq-right' : 'wq-wrong'}">${t}</strong>`;
+        const num = v => String(Math.round(v * 100) / 100).replace('.', ',');
+        // Notenwert-Namen ausgeschrieben (Halbe, punktierte Viertel, Achtelpause …); dat: „der punktierten Viertel“
+        const BASEN = { whole: 'Ganze', half: 'Halbe', quarter: 'Viertel', eighth: 'Achtel', sixteenth: 'Sechzehntel' };
+        const RESTN = { whole: 'ganze Pause', half: 'halbe Pause', quarter: 'Viertelpause', eighth: 'Achtelpause', sixteenth: 'Sechzehntelpause' };
+        function valName(type, dat) {
+            const m = (type || '').match(/^(dotted-)?(whole|half|quarter|eighth|sixteenth)(-rest)?$/);
+            if (!m) return (((app.noteValues[type] || {}).name) || type).replace(/ Note$/, '');
+            const base = m[3] ? RESTN[m[2]] : BASEN[m[2]];
+            return m[1] ? (dat ? 'punktierten ' : 'punktierte ') + base : base;
+        }
+
+        // ---- Zustand ----
+        function ctx() {
+            const lvl = quickStart.currentLevel;
+            const sub = (quickStart.currentOptions || []).slice(-1)[0];
+            const mode = { einsteiger: 'add', taktarten: 'ts', fortgeschrittener: 'zz', profi: 'silbe', notenwert_bilden: 'gap', rhythmusdiktat: 'dict' }[lvl] || null;
+            return { lvl, sub, mode, opts: quickStart.currentOptions || [] };
+        }
+
+        // ---- Bilder ----
+        // Takt des Trainers als Bild (renderBar zeichnet in #barDisplay). withGrid: Raster einblenden;
+        // patch: Aufgabe vorübergehend verändern (z. B. eigene Note in die Lücke). Danach alles zurück.
+        function barImg(withGrid, patch) {
+            const s = app.settings, keep = { g: s.showGrid, c: s.showCountingTimes, r: s.showRhythmSyllables }, task = app.currentTask;
+            if (withGrid) s.showGrid = true;
+            s.showCountingTimes = false; s.showRhythmSyllables = false;
+            if (patch) app.currentTask = patch(task);
+            let svg = '';
+            try { app.renderBar(); svg = document.getElementById('barDisplay').innerHTML; } finally {
+                app.currentTask = task; s.showGrid = keep.g; s.showCountingTimes = keep.c; s.showRhythmSyllables = keep.r;
+                app.renderBar();
+            }
+            // keine grünen Noten im Bild (nur die negative Information)
+            return svg.replace(/\sid="[^"]*"/g, '').replace(/#10b981/g, '#000');
+        }
+        // Zählzeit „3 und“ → Position in Vierteln (für die Rasterstelle)
+        function parseCount(raw) {
+            const t = (raw || '').toLowerCase().replace(/\+/g, ' und ').replace(/\s+/g, ' ').trim();
+            const m = t.match(/^(\d+)\s*(und|u|e|te|la|li)?$/);
+            if (!m) return null;
+            const suf = m[2] === 'u' ? 'und' : (m[2] || '');
+            return { beat: +m[1], suf };
+        }
+        function countPos(pc) {
+            const eighth = /\/8$/.test(app.settings.timeSignature);
+            if (eighth) return (pc.beat - 1) * 0.5;
+            return (pc.beat - 1) + ({ '': 0, und: 0.5, e: 0.25, te: 0.75, la: 1 / 3, li: 2 / 3 }[pc.suf] || 0);
+        }
+        // Eigene Zählzeit rot an die Rasterstelle setzen, die sie bezeichnet
+        function markCount(svg, raw) {
+            const pc = parseCount(raw);
+            if (!pc) return svg;
+            const max = app.getMaxValue(), pos = countPos(pc);
+            if (pos < 0 || pos > max) return svg;
+            const x = 145 + pos / max * 515, y = 140;
+            const mark = `<line x1="${x}" y1="${y + 48}" x2="${x}" y2="${y + 62}" stroke="#dc2626" stroke-width="4"/>`
+                + `<text x="${x}" y="${y + 94}" text-anchor="middle" font-size="34" font-weight="700" fill="#dc2626">${raw}</text>`;
+            return svg.replace('</svg>', mark + '</svg>');
+        }
+        // Addieren: Summanden als Blöcke auf einem Viertel-Raster, darüber eine Klammer über alle Summanden
+        // mit der eigenen Summe (wie die Tastaturklammern: zeigt, was gezählt wird, nicht „zu viel/zu wenig“)
+        function additionRuler(summands, user) {
+            const total = summands.reduce((a, s) => a + s.value, 0);
+            const span = Math.max(Math.ceil(total), 1);
+            const W = Math.min(70, 360 / span), X0 = 10, Y = 40, H = 26;
+            let svg = `<svg class="wq-kbsvg" viewBox="0 0 ${X0 * 2 + span * W} ${Y + H + 24}" xmlns="http://www.w3.org/2000/svg">`;
+            // Raster in Vierteln (Achtel fein)
+            for (let q = 0; q <= span * 2; q++) {
+                const x = X0 + q * W / 2, main = q % 2 === 0;
+                svg += `<line x1="${x}" y1="${Y - 4}" x2="${x}" y2="${Y + H + 4}" stroke="${main ? '#9ca3af' : '#e5e7eb'}" stroke-width="${main ? 1.5 : 1}" stroke-dasharray="${main ? '4,3' : '2,3'}"/>`;
+                if (main) svg += `<text x="${x}" y="${Y + H + 18}" text-anchor="middle" font-size="11" fill="#6b7280">${q / 2}</text>`;
+            }
+            let x = X0;
+            const FILL = ['#ddd6fe', '#c4b5fd'];
+            summands.forEach((s, i) => {
+                const w = s.value * W;
+                svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#8b5cf6"/>`;
+                x += w;
+            });
+            if (user != null && !isNaN(user)) {
+                const x2 = X0 + total * W, by = Y - 10;
+                svg += `<path d="M ${X0} ${by + 6} V ${by} H ${x2} V ${by + 6}" fill="none" stroke="#dc2626" stroke-width="2"/>`;
+                svg += `<text x="${(X0 + x2) / 2}" y="${by - 6}" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">${num(user)} Viertel?</text>`;
+            }
+            return svg + '</svg>';
+        }
+
+        // Notenwert einsetzen: der Takt als Viertel-Raster, die vorhandenen Noten als Blöcke, die Lücke als
+        // gestrichelte Box. Darüber die eigene Wahl als Frage („Viertel?“) – ihre Länge wird nicht gezeichnet,
+        // abgezählt wird die Lücke (wie bei den Klammern: zeigt, was gezählt wird, nicht „zu lang/zu kurz“)
+        function gapRuler(notes, gapIndex, label) {
+            const max = app.getMaxValue();
+            const span = Math.max(Math.ceil(max), 1);
+            const W = Math.min(70, 360 / span), X0 = 10, Y = 40, H = 26;
+            let svg = `<svg class="wq-kbsvg" viewBox="0 0 ${X0 * 2 + span * W} ${Y + H + 24}" xmlns="http://www.w3.org/2000/svg">`;
+            for (let q = 0; q <= span * 2; q++) {
+                const x = X0 + q * W / 2, main = q % 2 === 0;
+                svg += `<line x1="${x}" y1="${Y - 4}" x2="${x}" y2="${Y + H + 4}" stroke="${main ? '#9ca3af' : '#e5e7eb'}" stroke-width="${main ? 1.5 : 1}" stroke-dasharray="${main ? '4,3' : '2,3'}"/>`;
+                if (main) svg += `<text x="${x}" y="${Y + H + 18}" text-anchor="middle" font-size="11" fill="#6b7280">${q / 2}</text>`;
+            }
+            let x = X0, gx = null, gw = 0;
+            const FILL = ['#ddd6fe', '#c4b5fd'];
+            notes.forEach((n, i) => {
+                const w = n.value * W;
+                if (i === gapIndex) { gx = x; gw = w; svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="#fff" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,3"/>`; }
+                else svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#8b5cf6"/>`;
+                x += w;
+            });
+            if (gx !== null) {
+                const by = Y - 16; // mit Abstand über den Rasterlinien
+                svg += `<path d="M ${gx + 2} ${by + 6} V ${by} H ${gx + gw - 2} V ${by + 6}" fill="none" stroke="#dc2626" stroke-width="2"/>`;
+                svg += `<text x="${gx + gw / 2}" y="${by - 6}" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">${label}?</text>`;
+            }
+            return svg + '</svg>';
+        }
+
+        // ---- Fehlversuch festhalten ----
+        function attemptOf(c) {
+            const ti = document.getElementById('taskInstructionText');
+            const base = { id: quickStart.questionsAnswered, mode: c.mode, instr: ti ? ti.innerText.trim() : '' };
+            if (c.mode === 'add') {
+                const t = app.currentAdditionTask;
+                if (!t) return null;
+                const raw = (document.getElementById('additionInput') || {}).value || '';
+                const user = parseFloat(raw.trim().replace(',', '.'));
+                const dot = t.summands.find(s => /dotted/.test(s.type));
+                // Punkt nicht mitgezählt: Summe passt, wenn die punktierte Note nur ihren Grundwert hätte
+                const punkt = !!dot && Math.abs(user - (t.correctSum - dot.value / 3)) < 0.02;
+                const disp = document.getElementById('additionDisplay');
+                return { ...base, kind: punkt ? 'punkt' : 'summe', dot: dot ? valName(dot.type, true) : null, user: raw, uhtml: red(raw.trim()), verb: 'eingegeben',
+                    img: disp ? `<div class="wq-addition">${disp.innerHTML.replace(/\sid="[^"]*"/g, '')}</div>` : '', own: additionRuler(t.summands, user),
+                    rests: t.summands.some(s => s.isRest), types: t.summands.map(s => s.type) };
+            }
+            if (c.mode === 'ts') {
+                const bar = app.currentTask;
+                const sel = app._lastTsAnswer;
+                if (!bar || !sel) return null;
+                return { ...base, kind: 'takt', user: sel, uhtml: red(sel), verb: 'gewählt', img: barImg(false), own: '' };
+            }
+            if (c.mode === 'zz' || c.mode === 'silbe') {
+                const bar = app.currentTask;
+                const raw = ((document.getElementById('startCountingInput') || {}).value || '').trim();
+                if (!bar || !raw) return null;
+                if (c.mode === 'silbe') return { ...base, kind: 'silbe', user: raw, uhtml: red(raw), verb: 'eingegeben', img: barImg(true), own: '' };
+                const u = parseCount(raw), k = parseCount(bar.correctStartCounting);
+                const beatOk = !!u && !!k && u.beat === k.beat;
+                // Eine Zählzeit („3 und“) ist eine Einheit wie ein Notenname → ganz rot
+                const uhtml = red(raw);
+                return { ...base, kind: beatOk ? 'unter' : 'schlag', beat: u && u.beat, suf: u && u.suf, user: raw, uhtml, verb: 'eingegeben', img: '', own: markCount(barImg(true), raw) };
+            }
+            if (c.mode === 'gap') {
+                const t = app.gapFillCurrentTask, sel = app._lastGapAnswer;
+                if (!t || !sel) return null;
+                const notes = (t.bar && t.bar.notes) || (app.currentTask && app.currentTask.notes) || [];
+                return { ...base, kind: 'luecke', user: valName(sel.type), uhtml: red(valName(sel.type)), verb: 'gewählt', img: barImg(true), own: gapRuler(notes, t.gapIndex, valName(sel.type)) };
+            }
+            if (c.mode === 'dict') {
+                const ob = app.dictationCurrentTask && app.dictationCurrentTask.originalBar;
+                const user = app.dictationUserNotes || [];
+                if (!ob || !user.length) return null;
+                const orig = ob._preSplitNotes || ob.notes.filter(n => !n.tiedFrom);
+                const wrongIdx = user.map((n, i) => (!orig[i] || Math.abs(n.value - orig[i].value) > 0.001) ? i : -1).filter(i => i >= 0);
+                // Zählzeit der Stelle aus den eigenen Noten davor (vom Taktanfang mitgezählt)
+                const at = i => { let p = 0; for (let k = 0; k < i; k++) p += user[k].value; const eighth = /\/8$/.test(app.settings.timeSignature); if (eighth) return `${Math.floor(p * 2 + 0.001) + 1}`; const b = Math.floor(p + 0.001) + 1, f = Math.round((p % 1) * 4) / 4; return `${b}${f === 0.5 ? ' und' : f === 0.25 ? ' e' : f === 0.75 ? ' te' : ''}`; };
+                const svg = document.getElementById('barDisplay');
+                return { ...base, kind: 'diktat', wrongIdx, at: wrongIdx.map(at), user: user.map(n => valName(n.type)).join(', '),
+                    uhtml: user.map((n, i) => col(valName(n.type), !wrongIdx.includes(i))).join(', '), verb: 'gesetzt', img: '',
+                    own: svg ? svg.innerHTML.replace(/\sid="[^"]*"/g, '').replace(/#10b981/g, '#000') : '' };
+            }
+            return null;
+        }
+
+        // ---- Antworten (Ich-Form) ----
+        function options(c, last) {
+            const o = [];
+            if (c.mode === 'add') {
+                o.push(['wert', 'Ich weiß nicht, wie viele Viertel eine Note wert ist.']);
+                if (c.opts.includes('punktierte') || (last && last.dot)) o.push(['punkt', 'Ich weiß nicht, was der Punkt bedeutet.']);
+                o.push(['rechnen', 'Ich verrechne mich beim Zusammenzählen.']);
+            } else if (c.mode === 'ts') {
+                o.push(['zaehlen', 'Ich verzähle mich beim Zusammenzählen der Notenwerte.']);
+                o.push(['bedeutung', 'Ich weiß nicht, was die Zahlen der Taktart bedeuten.']);
+            } else if (c.mode === 'zz') {
+                o.push(['schlag', 'Ich verzähle mich bei den Schlägen.']);
+                if (c.opts.includes('8tel') || c.opts.includes('16tel')) o.push(['unter', c.opts.includes('16tel') ? 'Ich verwechsle „e“, „und“ und „te“.' : 'Ich weiß nicht, wann „und“ dazukommt.']);
+            } else if (c.mode === 'silbe') {
+                o.push(['silbe', 'Ich verwechsle du, dei und te.']);
+                o.push(['position', 'Ich finde die Zählzeit der Note nicht.']);
+            } else if (c.mode === 'gap') {
+                o.push(['rest', 'Ich weiß nicht, wie viel noch in den Takt passt.']);
+                o.push(['wert', 'Ich verwechsle die Notenwerte.']);
+            } else if (c.mode === 'dict') {
+                o.push(['hoeren', 'Ich höre den Rhythmus nicht genau.']);
+                o.push(['wert', 'Ich weiß nicht, welcher Notenwert so klingt.']);
+            }
+            return o.slice(0, 3);
+        }
+        const FITS = { summe: ['wert', 'rechnen'], punkt: ['punkt', 'wert'], takt: ['zaehlen', 'bedeutung'], schlag: ['schlag'], unter: ['unter'], silbe: ['silbe', 'position'], luecke: ['rest', 'wert'], diktat: ['hoeren', 'wert'] };
+        // Ursachen lassen sich nicht trennen → kein Urteil
+        const OPEN = ['takt', 'silbe', 'luecke', 'diktat', 'summe'];
+
+        // ---- Vergleich ----
+        function partW(x) { return { summe: 'die Summe', punkt: 'der Wert der punktierten Note', takt: 'die Taktart', schlag: 'der Schlag', unter: 'die Unterteilung', silbe: 'die Silbe', luecke: 'der Notenwert', diktat: 'eine Note' }[x.kind] || 'die Antwort'; }
+        function common(two, c, one) {
+            const [a, b] = two;
+            if (a.kind !== b.kind) return `Nicht gestimmt hat ${one ? 'beim 1. Versuch' : 'bei der 1. Aufgabe'} ${partW(a)}, ${one ? 'beim 2. Versuch' : 'bei der 2. Aufgabe'} ${partW(b)}.`;
+            const k = a.kind;
+            if (k === 'punkt') return `Beide Male stimmte der Wert der ${a.dot || 'punktierten Note'} nicht.`;
+            if (k === 'summe') return one ? 'Beide Male stimmte die Summe nicht. Zähle die Blöcke auf dem Raster ab.' : 'Bei beiden Aufgaben stimmte die Summe nicht.';
+            if (k === 'takt') return one ? 'Beide Male stimmte die Taktart nicht.' : 'Bei beiden Aufgaben stimmte die Taktart nicht.';
+            if (k === 'unter') return one && a.beat === b.beat ? `Den Schlag ${a.beat} hattest du beide Male richtig, die Unterteilung nicht.` : 'Den Schlag hattest du beide Male richtig, die Unterteilung nicht.';
+            if (k === 'schlag') return one ? 'Beide Male stimmte der Schlag nicht. Im Bild steht deine Zählzeit dort, wo sie im Takt liegt.' : 'Bei beiden Aufgaben stimmte der Schlag nicht.';
+            if (k === 'silbe') {
+                // Die Silbe hängt an der Zählzeit: sagen, wohin die eigene Silbe gehört, und auf die Zählzeit der
+                // markierten Note verweisen (nicht sagen, wo sie steht)
+                const ORT = { du: 'auf einen Schlag', dei: 'auf das „und“ zwischen zwei Schlägen', te: 'zwischen Schlag und „und“', da: 'auf die 2. Note einer Triole', di: 'auf die 3. Note einer Triole' };
+                const syl = [...new Set(two.map(x => (x.user || '').toLowerCase()))];
+                const where = syl.filter(x => ORT[x]).map(x => `„${x}“ gehört ${ORT[x]}`).join(', ');
+                return `${one ? 'Beide Male stimmte die Silbe nicht.' : 'Bei beiden Aufgaben stimmte die Silbe nicht.'}${where ? ' ' + where + '.' : ''} Die Silbe hängt an der Zählzeit: Bestimme zuerst die Zählzeit der markierten Note, vom Taktanfang aus gezählt.`;
+            }
+            if (k === 'luecke') return one ? 'Beide Male passte deine Note nicht in die Lücke. Zähle auf dem Raster ab, wie viele Viertel die gestrichelte Lücke lang ist.' : 'Bei beiden Aufgaben passte deine Note nicht in die Lücke.';
+            if (k === 'diktat') {
+                const both = a.wrongIdx.filter(i => b.wrongIdx.includes(i));
+                if (one && both.length) { const i = both[0]; return `Deine ${i + 1}. Note (auf Zählzeit ${a.at[a.wrongIdx.indexOf(i)]}) stimmte beide Male nicht.`; }
+                return 'Bei beiden Versuchen stimmten andere Noten nicht.';
+            }
+            return 'Beide Male stimmte deine Antwort nicht.';
+        }
+
+        // ---- Hilfen: nur zu den beobachteten Fehlern ----
+        function helpFor(two, c) {
+            const out = [], seen = new Set();
+            const add = (q, a, key) => { if (!seen.has(q)) { seen.add(q); out.push(ask(q, a, key)); } };
+            const kinds = [...new Set(two.map(x => x.kind))];
+            const o = c.opts;
+            kinds.forEach(k => {
+                if (k === 'summe' || k === 'punkt' || k === 'luecke') add('Unsicher, wie viele Viertel eine Note wert ist?', 'Ganze = 4, Halbe = 2, Viertel = 1, Achtel = ½, Sechzehntel = ¼ Viertel. Pausen sind genauso lang wie die Note mit gleichem Namen.', 'basis');
+                if (k === 'punkt' || (k === 'summe' && two.some(x => x.dot))) add('Unsicher, was der Punkt bedeutet?', 'Der Punkt verlängert die Note um die Hälfte ihres Werts: Eine punktierte Halbe ist 2 + 1 = 3 Viertel.', 'punktierte');
+                if (k === 'summe' && two.some(x => x.rests)) add('Unsicher bei den Pausen?', 'Eine Pause zählt genauso viele Viertel wie die Note mit gleichem Namen: Viertelpause = 1.', 'pausen');
+                if (k === 'takt') {
+                    add('Unsicher beim Zusammenzählen der Notenwerte?', 'Zähle alle Notenwerte des Takts in Vierteln zusammen. Die Summe steht oben in der Taktart.', 'rhy2_regelmaessig');
+                    add('Unsicher, was die Zahlen der Taktart bedeuten?', 'Unten steht der Notenwert, in dem gezählt wird (4 = Viertel, 8 = Achtel), oben, wie viele davon in einen Takt passen.', 'rhy2_regelmaessig');
+                }
+                if (k === 'schlag') add('Unsicher beim Mitzählen der Schläge?', 'Zähle vom Taktanfang: Jede Viertel ist ein Schlag. Zähle die Notenwerte vor der markierten Note zusammen und rechne 1 dazu.', 'rhy3_basis');
+                if (k === 'unter') {
+                    if (o.includes('16tel')) add('Unsicher bei „e“, „und“ und „te“?', 'Zwischen zwei Schlägen liegen bei Sechzehnteln vier Stellen: 1 – e – und – te – 2.', 'rhy3_16tel');
+                    else add('Unsicher, wann „und“ dazukommt?', 'Liegt eine Note genau zwischen zwei Schlägen, heißt die Stelle „und“: 1 – und – 2 – und.', 'rhy3_8tel');
+                }
+                if (k === 'silbe') {
+                    add('Unsicher bei du, dei und te?', '„du“ steht auf dem Schlag, „dei“ auf dem „und“ zwischen zwei Schlägen, „te“ füllt die Sechzehntel dazwischen: du – te – dei – te.', o.includes('16tel') ? 'rhy4_16tel' : 'rhy4_basis');
+                    add('Unsicher bei der Zählzeit der Note?', 'Zähle vom Taktanfang die Notenwerte vor der markierten Note zusammen. So findest du ihre Zählzeit: auf einem Schlag, auf dem „und“ oder dazwischen.', o.includes('16tel') ? 'rhy3_16tel' : 'rhy3_8tel');
+                }
+                if (k === 'luecke') add('Unsicher, wie viel noch in den Takt passt?', 'Zähle die Notenwerte, die schon im Takt stehen, zusammen und ziehe sie von der Taktart ab. Der Rest gehört in die Lücke.', 'rhy5_8tel');
+                if (k === 'diktat') {
+                    add('Unsicher beim Hören?', 'Zähle oder tippe die Schläge mit und achte darauf, auf welchem oder neben welchem Schlag ein Ton erklingt.', 'rhy6_8tel');
+                    add('Unsicher, wie viele Viertel eine Note wert ist?', 'Ganze = 4, Halbe = 2, Viertel = 1, Achtel = ½, Sechzehntel = ¼ Viertel.', 'basis');
+                }
+            });
+            return out;
+        }
+
+        let attempts = [], panel = null, overlay = null;
+        function closePanel() { if (overlay) { overlay.remove(); overlay = null; panel = null; } document.body.classList.remove('wq-open'); }
+
+        function showPanel() {
+            const c = ctx();
+            closePanel();
+            panel = document.createElement('div');
+            panel.className = 'wq-panel';
+            panel.innerHTML = `<p class="wq-q">Zweimal daneben. Was glaubst du: Woran liegt es?</p><div class="wq-opts">`
+                + options(c, attempts[attempts.length - 1]).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
+                + '<button class="wq-opt secondary" data-k="klick">Ich habe mich verklickt.</button>'
+                + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div>';
+            panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => answer(b.dataset.k, c));
+            overlay = document.createElement('div');
+            overlay.className = 'wq-overlay';
+            overlay.appendChild(panel);
+            document.body.appendChild(overlay);
+            document.body.classList.add('wq-open');
+        }
+
+        function answer(choice, c) {
+            const two = attempts.slice(-2);
+            const kinds = two.map(x => x.kind);
+            const same = kinds[0] === kinds[1];
+            const observed = same ? kinds[0] : null;
+            const one = two[0].id === two[1].id;
+
+            let rel = '';
+            if (choice === 'klick') rel = same ? 'Zweimal an derselben Stelle verklickt man sich selten.' : 'Gut möglich, dass du dich verklickt hast.';
+            else if (choice === 'punkt' && !two.some(x => x.dot)) rel = 'In der Aufgabe gibt es aber keine punktierte Note.';
+            else if (choice === 'weiss' || (observed && OPEN.includes(observed))) rel = '';
+            else if (same && (FITS[observed] || []).includes(choice)) rel = 'Das passt zu deiner Vermutung.';
+            else if (kinds.some(k => (FITS[k] || []).includes(choice))) rel = same ? '' : 'Einer der beiden Fehler passt zu deiner Vermutung.';
+
+            // Immer beide Versuche in eigenen Kästen; das Aufgabenbild einmal oben
+            const u = x => `<div class="wq-case-u">Du hast ${x.uhtml} ${x.verb}.</div>`;
+            let cases;
+            if (one) {
+                const shared = two[1].img ? `<div class="wq-case wq-task">${two[1].img}</div>` : '';
+                cases = shared + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Versuch</div>${x.own || ''}${u(x)}</div>`).join('');
+            } else {
+                cases = two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Aufgabe</div>${x.img || ''}${x.own || ''}${u(x)}</div>`).join('');
+            }
+            const asks = helpFor(two, c);
+            const colLayout = two.some(x => x.own);
+            panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${colLayout ? ' wq-col' : ''}">${cases}</div>`
+                + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>Was haben deine beiden Fehler gemeinsam?</summary><div class="lk-ask-a">${common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
+                + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                + '<button class="wq-go">Weiter üben</button>';
+            panel.querySelector('.wq-go').onclick = closePanel;
+            panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
+            send(c, choice, observed, kinds);
+        }
+
+        function send(c, choice, observed, kinds, opened) {
+            const p = { level: c.lvl, subskill: c.sub, choice, observed, errors: kinds, match: observed && !['klick', 'weiss'].includes(choice) && !OPEN.includes(observed) ? (FITS[observed] || []).includes(choice) : null };
+            if (opened) p.opened = opened;
+            try { tracker.selfAssess(p); } catch (e) {}
+        }
+
+        return {
+            // Fehlversuch festhalten (Zustand der Aufgabe in diesem Moment)
+            record() { const c = ctx(); if (!c.mode) return; const at = attemptOf(c); if (at) attempts.push(at); },
+            ready() { return attempts.length >= 2; },
+            show: showPanel,
+            // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
+            onAnswer(ok, isRetry) { if (ok) { if (!isRetry) attempts = []; closePanel(); } },
+            reset() { attempts = []; closePanel(); }
+        };
+        })();
+
 
         // ===================================
         // GF-ONTOLOGIE (Skill-DAG) — zentrale Map trainer.dim → {domäne, achse}
@@ -3610,6 +3992,7 @@
                 this._nudgeWrongInARow = 0;
                 this._nudgeSpent = false;
                 this.clearHelpNudge();
+                woranPanel.reset();
             },
 
             // Hilfe geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
@@ -3626,10 +4009,16 @@
             },
 
             // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
+            // Statt des Hilfe-Nudges erscheint nach zwei Fehlversuchen „Woran liegt es?“.
             registerWrongAttempt(trigger) {
+                // Misslungene Regel-Probe (1e) ist kein Fehlversuch: Sie zeigt nur, dass die Regel noch fehlt,
+                // und führt in die Fälle. Erst Fehler dort zählen für „Woran liegt es?“.
+                if (this._probeMiss) { this._probeMiss = false; return; }
+                woranPanel.record();
                 this._nudgeWrongInARow++;
-                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
-                    this.triggerHelpNudge(trigger);
+                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD && woranPanel.ready()) {
+                    this._nudgeSpent = true;
+                    woranPanel.show();
                 }
             },
 
@@ -3637,6 +4026,8 @@
             onAnswerChecked(isCorrect) {
                 // Nur wenn Quick-Start aktiv ist!
                 if (!this.isActive) return;
+                // Wiederholung = Aufgabe schon einmal geprüft (hasBeenCheckedForTask, vor der Änderung unten)
+                woranPanel.onAnswer(isCorrect, this.hasBeenCheckedForTask);
                 
                 console.log('[QuickStart] onAnswerChecked:', isCorrect, 'Answered:', this.questionsAnswered, '/', this.totalQuestions);
                 
@@ -8926,6 +9317,7 @@ Gerät:
                     if (r1e && r1e.mode === 'probe') {
                         const t = r1e.probeTypes[r1e.probeIdx];
                         r1e.mode = 'cases';
+                        quickStart._probeMiss = true;
                         r1e.caseTypes = [t, ...['dotted-half', 'dotted-quarter', 'dotted-eighth', 'dotted-quarter-rest'].filter(x => x !== t)];
                         r1e.caseIdx = 0;
                         quickStart.showTaskInstruction(`${this._dotCaseText(t)} Wie viele Viertel ist sie wert?`);
