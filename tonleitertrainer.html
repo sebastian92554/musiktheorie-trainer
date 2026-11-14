@@ -2996,7 +2996,7 @@
             + optionsFor(c).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
             + '<button class="wq-opt secondary" data-k="klick">Ich habe mich verklickt.</button>'
             + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div>';
-        panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => answer(b.dataset.k, c));
+        panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => { try { answer(b.dataset.k, c); } catch (e) { wqError('answer', e); } });
         const fb = anchorEl(c);
         fb.parentNode.insertBefore(panel, fb.nextSibling);
         document.body.classList.add('wq-open');
@@ -3068,7 +3068,23 @@
         try { tracker.selfAssess(p); } catch (e) {}
     }
 
-    return {
+    // Absicherung: Ein Fehler im Feld darf die Antwortverarbeitung des Quiz nie abbrechen.
+    // Er wird gemeldet (wq_error, höchstens 3× je Seitenaufruf), das Feld bleibt dann weg.
+    let wqErrors = 0;
+    function wqError(where, e) {
+        try { closePanel(); } catch (e2) {}
+        if (wqErrors++ >= 3) return;
+        try { const c = ctx() || {}; tracker._send('wq_error', { where, msg: String((e && e.message) || e).slice(0, 200), level: c.lvl, subskill: c.sub }); } catch (e3) {}
+    }
+    function guardApi(api) {
+        const out = {};
+        Object.keys(api).forEach(k => {
+            out[k] = function () { try { return api[k].apply(this, arguments); } catch (e) { wqError(k, e); return k === 'ready' ? false : undefined; } };
+        });
+        return out;
+    }
+
+    return guardApi({
         // Fehlversuch festhalten (Zustand der Aufgabe in diesem Moment)
         record() { const c = ctx(); if (!c.mode) return; const at = attemptOf(c); if (at) attempts.push(at); },
         ready() { return attempts.length >= 2; },
@@ -3079,7 +3095,7 @@
             if (ok) { if (!isRetry) attempts = []; closePanel(); }
         },
         reset() { attempts = []; outcomeCtx = null; closePanel(); }
-    };
+    });
     })();
 
 

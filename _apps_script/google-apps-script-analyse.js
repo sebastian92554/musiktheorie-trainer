@@ -731,6 +731,23 @@ function runAnalyse() {
   push('  Lesehilfe Antwortquote', 'Niedrig = Feld wird weggeklickt (zu lang, falscher Moment). „Danach richtig“ vergleichen mit der normalen Quote nach zwei Fehlern.');
   push('');
 
+  // FEHLER IM FELD (wq_error) — abgefangene Fehler von „Woran liegt es?“. Das Quiz läuft
+  // dabei weiter, nur das Feld fehlt. Jeder Eintrag hier ist ein Bug mit Fundstelle.
+  push('— FEHLER IM FELD „WORAN LIEGT ES?“ (wq_error, alle Segmente) —');
+  const wqe = {};
+  sessions.forEach(s => {
+    (s.evAll || []).forEach(e => {
+      if (e.eventType !== 'wq_error') return;
+      const p = e.payload || {};
+      const k = _sk(s.trainer, p.level, p.subskill) + ' · ' + (p.where || '?') + ' · ' + (p.msg || '?');
+      wqe[k] = (wqe[k] || 0) + 1;
+    });
+  });
+  const wqeKeys = Object.keys(wqe).sort((x, y) => wqe[y] - wqe[x]);
+  wqeKeys.slice(0, 20).forEach(k => push('  ' + k, wqe[k]));
+  if (!wqeKeys.length) push('  (keine Fehler gemeldet)');
+  push('');
+
   // HILFE-KNOPF (help_open, seit 14.11.2026) — Hilfe aktiv geöffnet, im Quiz oder im Menü
   push('— HILFE-KNOPF (help_open, alle Segmente) —');
   const ho = {};
@@ -1235,7 +1252,7 @@ function installAnalyseTrigger() {
 //  top_trainer | top_trainer_n
 //  median_dur_engaged_s | median_quizzes_per_active
 //  n_help_nudge | n_help_nudge_followed
-//  n_wq_shown | n_wq_choice | n_wq_outcome | n_wq_outcome_ok | n_help_open | n_tip_open  (seit 14.11.2026)
+//  n_wq_shown | n_wq_choice | n_wq_outcome | n_wq_outcome_ok | n_help_open | n_tip_open | n_wq_error  (seit 14.11.2026)
 //
 // Beim Erweitern der Spalten: Ist der Tab schmaler als DAILY_HEADERS, ergänzt
 // _runDailyAggregates die Kopfzeile selbst (seit 14.11.2026). Neue Spalten nur
@@ -1250,7 +1267,7 @@ const DAILY_HEADERS = ['date', 'frozen', 'sessions_total', 'sessions_organik',
   'devices_mobile', 'devices_other', 'top_trainer', 'top_trainer_n',
   'median_dur_engaged_s', 'median_quizzes_per_active',
   'n_help_nudge', 'n_help_nudge_followed',
-  'n_wq_shown', 'n_wq_choice', 'n_wq_outcome', 'n_wq_outcome_ok', 'n_help_open', 'n_tip_open'];
+  'n_wq_shown', 'n_wq_choice', 'n_wq_outcome', 'n_wq_outcome_ok', 'n_help_open', 'n_tip_open', 'n_wq_error'];
 
 function _runDailyAggregates(sessions) {
   const ss = _ss();
@@ -1488,6 +1505,6 @@ function _dailyAggregateRow(date, daySessions, dayEvents, isFluid) {
     evN('help_nudge'), evN('help_nudge_followed'),
     wqN('shown'), wqN('choice'), wqN('outcome'),
     dayEvents.filter(e => e.eventType === 'self_assess' && (e.payload || {}).phase === 'outcome' && (e.payload || {}).ok).length,
-    evN('help_open'), evN('tip_open')
+    evN('help_open'), evN('tip_open'), evN('wq_error')
   ];
 }
