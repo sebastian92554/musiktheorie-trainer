@@ -6523,8 +6523,8 @@
             } else if (highestOpt === 'verwandte') {
                 merksatz = 'Direkte Nachbarn im Quintenzirkel = ±1 Vorzeichen Unterschied';
             } else if (highestOpt === 'enharmonisch') {
-                // Hinweis: Halbtonschritte zählen hilft
-                merksatz = 'Zähle die <b>Halbtonschritte</b> von C aus — derselbe Ton hat zwei Namen';
+                // Gleiche Taste, anderer Stammton (nicht über das Zählen von Halbtonschritten)
+                merksatz = 'Eine Taste, zwei Namen: den Stammton links daneben erhöhen oder den Stammton rechts daneben erniedrigen';
             }
 
             if (merksatz) {
@@ -8357,19 +8357,20 @@
 
             html += '</div>';
 
-            // C-markers with Helmholtz notation
-            // C1=C,, C2=C, C3=C (große Okt.), c4=c, c5=c', c6=c''
+            // C-markers with Helmholtz notation (oct wie noteToMidi: c4 = MIDI 60 = c')
+            // C0=C,, C1=C, (Kontra), C2=C (große Okt.), c3=c, c4=c', c5=c'', c6=c'''
             whiteKeys.forEach((key, idx) => {
                 if (key.name === 'C') {
                     const markerX = idx * (whiteKeyWidth + gap) + whiteKeyWidth / 2;
                     let label;
-                    if (key.oct <= 1) label = 'C,,';
-                    else if (key.oct === 2) label = 'C,';
-                    else if (key.oct === 3) label = 'C';
-                    else if (key.oct === 4) label = 'c';
-                    else if (key.oct === 5) label = "c'";
-                    else if (key.oct === 6) label = "c''";
-                    else label = "c'''";
+                    if (key.oct <= 0) label = 'C,,';
+                    else if (key.oct === 1) label = 'C,';
+                    else if (key.oct === 2) label = 'C';
+                    else if (key.oct === 3) label = 'c';
+                    else if (key.oct === 4) label = "c'";
+                    else if (key.oct === 5) label = "c''";
+                    else if (key.oct === 6) label = "c'''";
+                    else label = "c''''";
                     const fontSize = isMobilePortrait ? '0.65rem' : (isMobileLandscape ? '0.8rem' : '0.95rem');
                     html += `<div style="position:absolute; bottom:8%; left:${markerX}px; transform:translateX(-50%); font-size:${fontSize}; color:#0891b2; font-weight:bold; background:rgba(255,255,255,0.9); padding:2px 4px; border-radius:4px; pointer-events:none;">${label}</div>`;
                 }
@@ -9262,6 +9263,9 @@
 
             if (allCorrect) {
                 this.showFeedback(true, `Gut! Diese Tonleiter war ${this.currentScale.displayName}. Weiter geht's!`);
+                // Die Aufgabe ist damit erledigt: Wiederholung beenden wie bei einer richtigen
+                // Wiederholung, sonst zählte die erste Antwort der nächsten Aufgabe nicht als neue Frage
+                if (quickStart.isActive && quickStart.isRetry) quickStart.handleAnswer(true);
 
                 setTimeout(() => {
                     this.exitFallbackMode();
