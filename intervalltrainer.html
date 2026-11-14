@@ -463,6 +463,29 @@
         }
         .vz-sharp svg, .vz-flat svg { display: block; }
 
+        /* „Woran liegt es?“ nach zwei Fehlversuchen (woranPanel) */
+        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #fed7aa; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(234,88,12,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1f2937; animation: wqIn 0.25s ease-out; }
+        @keyframes wqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .wq-q { font-weight: 700; margin: 0 0 10px; color: #9a3412; }
+        .wq-opts { display: flex; flex-direction: column; gap: 6px; }
+        .wq-opt { text-align: left; border: 1.5px solid #fed7aa; background: #fff7ed; color: #7c2d12; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+        .wq-opt:hover { background: #ffedd5; }
+        .wq-opt.secondary { background: #fff; border-color: #e5e7eb; color: #4b5563; }
+        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #9a3412; font-size: 0.88rem; }
+        .wq-cases { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .wq-cases.wq-col { flex-direction: column; }
+        .wq-case { flex: 1 1 0; min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px; text-align: center; }
+        .wq-case svg { width: 100% !important; height: auto !important; max-height: 110px; }
+        .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
+        .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
+        .wq-wrong { color: #dc2626; }
+        .wq-full { width: 100%; text-align: left; }
+        .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
+        .wq-kb .selected { background: #fca5a5 !important; border-color: #dc2626 !important; }
+        .wq-cmp { border-color: #fdba74; }
+        body.wq-open #feedback, body.wq-open #helpBtn, body.wq-open .int4-feedback { display: none !important; }
+        .wq-go { display: block; width: 100%; margin-top: 12px; background: #ea580c; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+
         /* int4 Aufgaben-Bereich */
         .int4-task-area {
             background: #fff7ed;
@@ -2059,6 +2082,9 @@
             subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
             tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
+            // „Woran liegt es?“: gewählte Vermutung (choice), beobachtete Fehlerart (observed),
+            // beide Fehlerarten (errors), match; opened = aufgeklappte Rückfrage.
+            selfAssess(p) { this._send('self_assess', p); },
             // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
             // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
             // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
@@ -2090,6 +2116,408 @@
             const octs = ['kontra', 'gross', 'klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
             return _itHelmFromName(names[pc], octs[octBucket] || 'eingestrichen');
         }
+
+        // ── „Woran liegt es?“ (ersetzt den Hilfe-Nudge, Nov 2026) ──
+        // Nach zwei Fehlversuchen in Folge, einmal pro Durchgang: Der Schüler wählt eine Vermutung,
+        // sieht seine beiden Versuche (Aufgabe + eigene Antwort, Fehler rot), klappt den Vergleich
+        // „Was haben deine beiden Fehler gemeinsam?“ und Hilfen zu den beobachteten Fehlern auf.
+        // Verrät nie die Lösung. Mock: _entwicklung/mock_it_woran.html (Problemfälle zum Durchspielen).
+        const woranPanel = (function () {
+        const SHARP = '♯', FLAT = '♭';
+        const NAMES = ['', 'Prime', 'Sekunde', 'Terz', 'Quarte', 'Quinte', 'Sexte', 'Septime', 'Oktave', 'None', 'Dezime', 'Undezime', 'Duodezime', 'Tredezime'];
+        const QW = { rein: 'rein', 'groß': 'groß', klein: 'klein', 'übermäßig': 'übermäßig', vermindert: 'vermindert' };
+        const QADJ = { rein: 'reine', 'groß': 'große', klein: 'kleine', 'übermäßig': 'übermäßige', vermindert: 'verminderte' };
+        const ask = (q, a, key) => {
+            let more = '';
+            if (key && key.startsWith('nt:')) more = ` <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=${key.slice(3)}', '_blank'); return false">Ausführlich im Notentrainer ↗</a>`;
+            else if (key) more = ` <a class="lk-ask-more" href="#" onclick="app.showLernkarte('${key}', false); return false">Ausführlich nachlesen ›</a>`;
+            return `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}${more}</div></details>`;
+        };
+        const stammOf = n => (n || '').replace(/is|es/g, '').replace('As', 'A').replace('Es', 'E').replace('B', 'H').charAt(0) || n;
+        const accOf = n => /is$/.test(n) ? 'sharp' : (/es$/.test(n) || n === 'As' || n === 'Es' || n === 'B') ? 'flat' : null;
+
+        // ---- Vermutungen je Übung: Text + Fehlerart, zu der sie passt ----
+        function options(c) {
+            const o = [];
+            if (c.mode === 'kn4') {
+                const t = app._int4Task;
+                if (t.type === 'bidirektional' && t.direction === 'nameToHt') {
+                    o.push(['wissen', 'Ich weiß die Halbtonschritte dieses Intervalls nicht sicher.']);
+                    o.push(['ht', 'Ich verzähle mich beim Abzählen der Halbtonschritte.']);
+                } else if (t.type === 'bidirektional') {
+                    o.push(['rahmen', 'Ich finde das Rahmenintervall nicht.']);
+                    o.push(['fein', 'Ich bin unsicher bei der Feinbestimmung.']);
+                } else if (t.type === 'komplement') {
+                    o.push(['kompl', 'Ich weiß nicht, wie man das Komplementärintervall bildet.']);
+                    o.push(['ht', 'Ich verrechne mich bei den Halbtonschritten.']);
+                    o.push(['fein', 'Ich bin unsicher, wie sich die Feinbestimmung ändert.']);
+                } else {
+                    o.push(['fein', 'Übermäßig und vermindert bringen mich durcheinander.']);
+                    o.push(['wissen', 'Ich weiß nicht, wie viele Halbtonschritte das reine, große oder kleine Intervall hat.']);
+                }
+                return o;
+            }
+            if (c.mode === 'rahmen') {
+                o.push(['rahmen', 'Ich verzähle mich beim Abzählen der Stufen.']);
+                if (c.opts.includes('extended')) o.push(['oktave', 'Ich verzähle mich über die Oktave hinaus.']);
+                o.push(['vz', 'Die Vorzeichen bringen mich durcheinander.']);
+            } else if (c.mode === 'ht') {
+                o.push(['ht', 'Ich verzähle mich beim Zählen der Halbtonschritte.']);
+                o.push(['tasten', 'Ich finde die Töne auf der Tastatur nicht.']);
+                if (c.opts.includes('augdim')) o.push(['vz', 'Die Vorzeichen bringen mich durcheinander.']);
+            } else if (c.mode === 'name') {
+                o.push(['rahmen', 'Ich verzähle mich beim Rahmenintervall.']);
+                o.push(['fein', 'Ich bin unsicher bei der Feinbestimmung (rein, groß, klein).']);
+                if (c.opts.includes('augdim')) o.push(['fein', 'Übermäßig und vermindert bringen mich durcheinander.']);
+            } else if (c.mode === 'tasten') {
+                o.push(['tasten', 'Ich finde die Töne auf der Tastatur nicht.']);
+                o.push(['lesen', 'Ich lese die Noten falsch.']);
+                o.push(['lage', 'Ich treffe die richtige Lage nicht.']);
+            } else {
+                o.push(['rahmen', 'Ich verzähle mich beim Abzählen der Stufen.']);
+                o.push(['fein', 'Ich bin unsicher, wie viele Halbtonschritte das Intervall hat.']);
+                if (c.mode === 'bilden_staff') o.push(['vz', 'Ich weiß nicht, wann ich ein Vorzeichen brauche.']);
+            }
+            return o.slice(0, 3);
+        }
+        // Welche Vermutung zu welcher beobachteten Fehlerart passt
+        const FITS = {
+            rahmen: ['rahmen', 'oktave'], ht: ['ht', 'tasten', 'vz', 'wissen', 'kompl'], fein: ['fein', 'vz', 'wissen'],
+            ton: ['tasten', 'lesen'], lage: ['lage']
+        };
+        const PART = { kompl: 'die Halbtonzahl des Komplementärintervalls', rahmen: 'das Rahmenintervall', ht: 'die Zahl der Halbtonschritte', fein: 'die Feinbestimmung', ton: 'die Töne', lage: 'die Lage' };
+
+        function ctx() {
+            const lvl = quickStart.currentLevel;
+            const opts = quickStart.currentOptions || ['basis'];
+            const mode = { meister: 'kn4', einsteiger: 'rahmen', profi: 'ht', experte: 'name', aufsteiger: 'tasten', bilden_tastatur: 'bilden_tast', bilden_staff: 'bilden_staff' }[lvl];
+            return { lvl, opts, mode, sub: opts[opts.length - 1] };
+        }
+
+        // Lage eines Tons im System (Position 0 = unterste Linie)
+        function posOf(n) {
+            const p = app.notePositions[`${stammOf(n.name)}-${n.octave}-${n.clef}`];
+            return p === undefined ? null : p;
+        }
+        function posPhrase(pos) {
+            if (pos === null) return '';
+            if (pos >= 0 && pos <= 8) {
+                if (pos % 2 === 0) { const n = pos / 2 + 1; return n === 1 ? 'auf der untersten Linie' : n === 5 ? 'auf der obersten Linie' : `auf der ${n}. Linie von unten`; }
+                return `im ${(pos + 1) / 2}. Zwischenraum`;
+            }
+            if (pos === -1) return 'direkt unter der untersten Linie';
+            if (pos === 9) return 'direkt über der obersten Linie';
+            if (pos < -1) return pos % 2 === 0 ? `auf der ${-pos / 2}. Hilfslinie unter dem System` : `unter der ${(-pos - 1) / 2}. Hilfslinie`;
+            return pos % 2 === 0 ? `auf der ${(pos - 8) / 2}. Hilfslinie über dem System` : `über der ${(pos - 9) / 2}. Hilfslinie`;
+        }
+
+        // Aufgabenbild: Notensystem, bei Tastatur-Aufgaben mit Tastatur (gewählte Tasten rot)
+        function snapshot(c) {
+            const st = document.getElementById('staffContainer');
+            let img = st ? st.innerHTML.replace(/\sid="[^"]*"/g, '') : '';
+            if (c.mode === 'bilden_staff' && app.buildingStaffNote) {
+                const p = app.buildingStaffNote;
+                const black = app._drawBuildingNoteAt(p.noteName, p.octave, 245, '#1f2937', false);
+                if (black) img = img.split(black).join('');
+                img = img.replace(/<circle[^>]*fill="#d1d5db"[^>]*\/>/g, '').replace('</svg>', app._drawBuildingNoteAt(p.noteName, p.octave, 245, '#dc2626', false) + '</svg>');
+            }
+            if (c.mode === 'bilden_tast' && app.buildingSelectedKey) {
+                const k = app.buildingSelectedKey;
+                const cyan = app._drawBuildingNoteAt(k.name, k.oct, 245, '#0891b2', false);
+                if (cyan) img = img.split(cyan).join(app._drawBuildingNoteAt(k.name, k.oct, 245, '#dc2626', false));
+            }
+            let kb = '';
+            if (c.mode === 'tasten' || c.mode === 'bilden_tast') {
+                const el = document.getElementById('keyboardContainer');
+                kb = `<div class="wq-kb">${el ? el.innerHTML.replace(/\sid="[^"]*"/g, '').replace(/\sonclick="[^"]*"/g, '') : ''}</div>`;
+            }
+            return { img, kb };
+        }
+
+        // ---- Fehlversuch festhalten: Aufgabe, Antwort, welcher Teil nicht stimmte ----
+        function attemptOf(c) {
+            const { img, kb } = snapshot(c);
+            const ti = document.getElementById('taskInstructionText');
+            const base = { id: quickStart.questionsAnswered, img, kb, instr: ti ? ti.innerText.trim() : '' };
+            if (c.mode === 'kn4') {
+                const t = app._int4Task;
+                if (!t) return null;
+                const ii = document.getElementById('intervalInput'), si = document.getElementById('semitonesInput');
+                const htw = v => `${v || '?'} ${String(v).trim() === '1' ? 'Halbtonschritt' : 'Halbtonschritte'}`;
+                const parse = v => {
+                    const low = (v || '').trim().toLowerCase();
+                    const m = low.match(/^([rgküv])(\d+)$/);
+                    const QS = { r: 'rein', g: 'groß', k: 'klein', 'ü': 'übermäßig', v: 'vermindert' };
+                    if (m) return { q: QS[m[1]], size: parseInt(m[2]) };
+                    const size = NAMES.findIndex((n, i) => i > 0 && low.includes(n.toLowerCase().slice(0, 4)));
+                    const q = /überm|ueberm/.test(low) ? 'übermäßig' : /verm/.test(low) ? 'vermindert' : /gro/.test(low) ? 'groß' : /klein/.test(low) ? 'klein' : /rein/.test(low) ? 'rein' : null;
+                    return { q, size: size > 0 ? size : null };
+                };
+                const nameKind = (v, target) => { const p = parse(v); return p.size !== target.size ? 'rahmen' : 'fein'; };
+                if (t.type === 'bidirektional' && t.direction === 'nameToHt') {
+                    return { ...base, kind: 'ht', user: htw(ii.value), verb: 'eingegeben', t, target: t.interval };
+                }
+                if (t.type === 'bidirektional') {
+                    return { ...base, kind: nameKind(ii.value, t.interval), user: ii.value || '?', verb: 'eingegeben', t, target: t.interval, uq: parse(ii.value).q };
+                }
+                if (t.type === 'komplement') {
+                    const htOk = parseInt(si.value) === t.answerHT;
+                    const nameShown = ii && ii.offsetParent;
+                    const kind = !htOk ? 'kompl' : nameShown ? nameKind(ii.value, t.answer) : 'kompl';
+                    const user = htw(si.value) + (nameShown ? ', ' + (ii.value || '?') : '');
+                    return { ...base, kind, user, verb: 'eingegeben', t, target: t.answer, uq: nameShown ? parse(ii.value).q : null };
+                }
+                return { ...base, kind: nameKind(ii.value, t.answer), user: ii.value || '?', verb: 'eingegeben', t, target: t.answer, uq: parse(ii.value).q };
+            }
+            if (c.mode === 'bilden_tast' || c.mode === 'bilden_staff') {
+                const t = app.buildingCurrentTask;
+                const sel = c.mode === 'bilden_tast' ? app.buildingSelectedKey : (app.buildingStaffNote && { name: app.buildingStaffNote.noteName, oct: app.buildingStaffNote.octave });
+                if (!t || !sel) return null;
+                const steps = (sel.oct - t.startNote.oct) * 7 + app._getStaffPos(sel.name) - app._getStaffPos(t.startNote.name) + 1;
+                const kind = steps !== t.interval.steps ? 'rahmen' : 'fein';
+                return { ...base, kind, user: _itHelmFromName(sel.name, app._octNumToName(sel.oct)), verb: c.mode === 'bilden_tast' ? 'angeklickt' : 'geschrieben',
+                    steps, task: t, tacc: accOf(t.targetNote.name), interval: t.interval.name };
+            }
+            const iv = app.currentInterval;
+            if (!iv) return null;
+            const info = { n1: iv.note1, n2: iv.note2, p1: posOf(iv.note1), p2: posOf(iv.note2), acc: [accOf(iv.note1.name), accOf(iv.note2.name)], iv };
+            if (c.mode === 'tasten') {
+                const keys = (app.selectedKeys || []).slice().sort((a, b) => a - b);
+                if (keys.length < 2) return null;
+                const pc = x => ((x % 12) + 12) % 12;
+                const pit = n => app._noteToMidi({ name: n.name, octave: n.octave }) - 24;
+                const t1 = pit(iv.note1), t2 = pit(iv.note2);
+                const loOk = pc(keys[0]) === pc(t1), hiOk = pc(keys[1]) === pc(t2);
+                return { ...base, ...info, kind: loOk && hiOk ? 'lage' : 'ton', loOk, hiOk, keys, user: keys.map(k => _itHelmFromPitch(k)).join(' und '), verb: 'angeklickt' };
+            }
+            if (c.mode === 'ht') {
+                const v = (document.getElementById('semitonesInput') || {}).value;
+                if (!v) return null;
+                return { ...base, ...info, kind: 'ht', user: v, verb: 'Halbtonschritte eingegeben' };
+            }
+            if (c.mode === 'rahmen') {
+                const dd = document.getElementById('intervalDropdown');
+                const raw = dd ? NAMES[parseInt(dd.value)] : (document.getElementById('intervalInput') || {}).value;
+                if (!raw) return null;
+                return { ...base, ...info, kind: 'rahmen', user: raw, verb: dd ? 'gewählt' : 'eingegeben' };
+            }
+            // Präzise: Rahmenintervall und Feinbestimmung aus der Eingabe lesen
+            const raw = ((document.getElementById('intervalInput') || {}).value || '').trim();
+            if (!raw) return null;
+            const low = raw.toLowerCase();
+            const size = NAMES.findIndex((n, i) => i > 0 && low.includes(n.toLowerCase().slice(0, 4))) || null;
+            const q = /überm|ueberm/.test(low) ? 'übermäßig' : /verm/.test(low) ? 'vermindert' : /gro|gr\b/.test(low) ? 'groß' : /klein|kl\b/.test(low) ? 'klein' : /rein/.test(low) ? 'rein' : null;
+            const kind = size !== iv.size ? 'rahmen' : 'fein';
+            return { ...base, ...info, kind, user: raw, verb: 'eingegeben', usize: size, uq: q };
+        }
+
+        // ---- Vergleich: was bei beiden gleich war ----
+        function common(two, c, one) {
+            const [a, b] = two;
+            const nm = x => `„${x}“`;
+            if (c.mode === 'kn4') {
+                if (a.kind !== b.kind) return `Nicht gestimmt hat ${one ? 'beim 1. Versuch' : 'bei der 1. Aufgabe'} ${PART[a.kind]}, ${one ? 'beim 2. Versuch' : 'bei der 2. Aufgabe'} ${PART[b.kind]}.`;
+                if (a.kind === 'ht') return 'Beide Male stimmte die Zahl der Halbtonschritte nicht.';
+                if (a.kind === 'kompl') return 'Beide Male stimmte die Halbtonzahl des Komplementärintervalls nicht.';
+                if (a.kind === 'rahmen') return 'Beide Male stimmte das Rahmenintervall nicht.';
+                const qs = [...new Set(two.map(x => x.uq).filter(Boolean))].map(q => nm(QW[q]));
+                return `Das Rahmenintervall ${NAMES[a.target.size]} stimmte beide Male, die Feinbestimmung${qs.length ? ' ' + qs.join(' und ') : ''} nicht.`;
+            }
+            if (a.kind !== b.kind) {
+                const which = (x, i) => `${one ? `beim ${i}. Versuch` : `bei der ${i}. Aufgabe`} ${PART[x.kind]}`;
+                return `Nicht gestimmt hat ${which(a, 1)}, ${which(b, 2)}.`;
+            }
+            switch (a.kind) {
+                case 'rahmen':
+                    if (c.mode === 'bilden_tast' || c.mode === 'bilden_staff') {
+                        const mine = two.map(x => `eine ${NAMES[x.steps] || '?'}`);
+                        const st = a.task.startNote.name;
+                        return one
+                            ? `Gesucht war eine ${a.interval.split(' ').pop()} von ${st} aus. ${mine[0] === mine[1] ? `Dein Ton bildet mit ${st} beide Male ${mine[0]}` : `Dein Ton bildet mit ${st} erst ${mine[0]}, dann ${mine[1]}`}. Das Rahmenintervall stimmte nicht.`
+                            : 'Beide Male stimmte das Rahmenintervall nicht.';
+                    }
+                    return 'Beide Male stimmte das Rahmenintervall nicht.';
+                case 'fein': {
+                    if (c.mode === 'bilden_tast' || c.mode === 'bilden_staff') {
+                        const iv = a.interval.split(' ');
+                        return `Das Rahmenintervall ${iv[iv.length - 1]} stimmte beide Male, die Feinbestimmung „${iv.slice(0, -1).join(' ').replace(/e$/, '')}“ nicht.`;
+                    }
+                    const qs = [...new Set(two.map(x => x.uq).filter(Boolean))].map(q => nm(QW[q]));
+                    return `Das Rahmenintervall ${NAMES[a.iv.size]} stimmte beide Male, die Feinbestimmung${qs.length ? ' ' + qs.join(' und ') : ''} nicht.`;
+                }
+                case 'ht': return 'Beide Male stimmte die Zahl der Halbtonschritte nicht.';
+                case 'ton': {
+                    const t = x => x.loOk ? 'den unteren Ton hast du gefunden, den oberen nicht' : x.hiOk ? 'den oberen Ton hast du gefunden, den unteren nicht' : 'beide Töne stimmten nicht';
+                    const s = t(a) === t(b) ? `Beide Male: ${t(a)}.` : `Beim 1. Versuch: ${t(a)}. Beim 2.: ${t(b)}.`;
+                    return s.replace(': d', ': D').replace(': b', ': B');
+                }
+                case 'lage': {
+                    // Schreibweise der eigenen Tasten entschlüsseln (Lage steckt in Groß/klein und den Ziffern)
+                    const OCTW = ['Kontra-Oktave', 'großen Oktave', 'kleinen Oktave', 'eingestrichenen Oktave', 'zweigestrichenen Oktave', 'dreigestrichenen Oktave'];
+                    const keys = [...new Set(two.flatMap(x => x.keys))].sort((p, q) => p - q);
+                    const desc = keys.map(k => `<strong>${_itHelmFromPitch(k)}</strong> liegt in der ${OCTW[Math.floor(k / 12)] || '?'}`).join(', ');
+                    return `Beide Töne hast du gefunden, nur nicht in der richtigen Lage. ${desc}.`;
+                }
+            }
+            return '';
+        }
+
+        // ---- Hilfen passend zur Aufgabe (nie die Lösung) ----
+        function helpFor(keys, c, two) {
+            const out = [], seen = new Set();
+            const add = (q, a, key) => { if (!seen.has(q)) { seen.add(q); out.push(ask(q, a, key)); } };
+            const a = two[two.length - 1];
+            const anyAcc = two.some(x => x.acc && (x.acc[0] || x.acc[1])) || two.some(x => x.tacc);
+            const bass = two.some(x => x.n1 && x.n1.clef === 'bass');
+            if (c.mode === 'kn4') {
+                const tg = a.target;
+                const tLabel = `${QADJ[tg.quality] || ''} ${NAMES[tg.size]}`.trim();
+                const REIN = [['reine Quarte', 5], ['reine Quinte', 7], ['reine Oktave', 12]].filter(x => x[0] !== tLabel);
+                const GK = [['kleine Terz', 3], ['große Terz', 4], ['kleine Sexte', 8], ['große Sexte', 9]].filter(x => x[0] !== tLabel);
+                const list = arr => arr.map(x => `${x[0]} ${x[1]}`).join(', ');
+                const perfect = [1, 4, 5, 8].includes(tg.size);
+                keys.forEach(k => {
+                    if (k === 'ht' || k === 'rahmen' || k === 'fein') {
+                        if (perfect) add('Unsicher bei den reinen Intervallen?', `Rein können nur Prime, Quarte, Quinte und Oktave sein. Zum Beispiel: ${list(REIN)} Halbtonschritte.`, 'int4_rein');
+                        else add('Unsicher bei groß und klein?', `Groß hat einen Halbtonschritt mehr als klein. Zum Beispiel: ${list(GK)} Halbtonschritte.`, 'int4_grossklein');
+                    }
+                    if (k === 'ht' && a.t.type === 'bidirektional') add('Unsicher beim Abzählen der Halbtonschritte?', 'Zähle auf der Tastatur Taste für Taste, schwarze Tasten mit, die Starttaste nicht.', 'int3_basis');
+                    if (k === 'kompl' || (a.t.type === 'komplement' && k === 'fein')) add('Unsicher beim Komplementärintervall?', 'Beide Intervalle ergeben zusammen eine Oktave, also 12 Halbtonschritte. Rein bleibt rein, groß wird klein, klein wird groß.', 'int4_komplement');
+                    if (a.t.type === 'augdim' || (k === 'fein' && c.opts.includes('augdim'))) add('Unsicher bei übermäßig und vermindert?', 'Übermäßig ist einen Halbtonschritt mehr als rein oder groß, vermindert einen weniger als rein oder klein.', 'int4_augdim');
+                });
+                return out;
+            }
+            keys.forEach(k => {
+                if (k === 'rahmen' || k === 'lesen' || k === 'oktave') {
+                    // Fürs Rahmenintervall zählt nur das Abzählen von Linien und Zwischenräumen, nicht der Notenname.
+                    // Beispiel nie mit dem gesuchten Rahmenintervall.
+                    const sizes = two.map(x => x.iv ? x.iv.size : (x.task ? x.task.interval.steps : 0));
+                    const ex = [[5, 'Von F bis C sind es F, G, A, H, C, also fünf Stufen, eine Quinte.'], [3, 'Von C bis E sind es C, D, E, also drei Stufen, eine Terz.'], [4, 'Von D bis G sind es D, E, F, G, also vier Stufen, eine Quarte.']].find(e => !sizes.includes(e[0]));
+                    add('Unsicher beim Abzählen der Stufen?', `Zähle beide Töne mit und jede Linie und jeden Zwischenraum dazwischen: ${ex[1]}`, 'int1_basis');
+                    if (c.opts.includes('extended') || c.opts.includes('erweitert') || k === 'oktave') add('Unsicher beim Zählen über die Oktave?', 'Zähle einfach weiter: Von C bis zum übernächsten E sind es zehn Stufen, eine Dezime.', 'int1_extended');
+                    if (anyAcc && c.mode !== 'bilden_tast' && c.mode !== 'bilden_staff') add('Ändert ein Vorzeichen das Rahmenintervall?', 'Nein. Das Rahmenintervall hängt nur an den Stammtönen: F–C und F–Cis sind beide Quinten.');
+                }
+                if (k === 'ht' || k === 'fein' || (k === 'tasten' && c.mode === 'ht')) {
+                    // Beispiel nie mit dem Rahmenintervall der Aufgabe (C–E ist eine Terz)
+                    const hasTerz = two.some(x => (x.iv && x.iv.size === 3) || (x.task && x.task.interval.steps === 3));
+                    add('Unsicher beim Zählen der Halbtonschritte?', `Zähle Taste für Taste, schwarze Tasten mit, die Starttaste nicht: ${hasTerz ? 'Von C bis A sind es 9 Halbtonschritte.' : 'Von C bis E sind es 4 Halbtonschritte.'}`, 'int3_basis');
+                }
+                if (k === 'ton') add(bass ? 'Unsicher im Bassschlüssel?' : 'Unsicher beim Ablesen der Noten?',
+                    bass ? 'Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten.' : 'Anker im Violinschlüssel ist die G-Linie (2. Linie von unten). Lies zuerst beide Töne.', bass ? 'nt:noten2_basis' : 'nt:basis');
+                if (k === 'tasten' || k === 'ton' || (k === 'ht' && c.mode === 'ht')) {
+                    add('Unsicher, wo ein Ton auf der Tastatur liegt?', 'Suche zuerst C (links neben den zwei schwarzen Tasten) oder F (links neben den drei schwarzen Tasten) und zähle von dort.', 'int2_basis');
+                }
+                if ((k === 'vz' || k === 'ht' || k === 'ton' || k === 'tasten') && anyAcc && c.mode !== 'bilden_staff') {
+                    add('Unsicher bei Vorzeichen auf der Tastatur?', `${SHARP} heißt eine Taste nach rechts, ${FLAT} eine nach links. Das ist nicht immer eine schwarze Taste.`, 'int2_augdim');
+                }
+                if (k === 'fein') {
+                    // Nach dem Rahmenintervall richten (ist hier schon richtig, verrät also nichts):
+                    // Prime, Quarte, Quinte, Oktave (+ Undezime, Duodezime) können rein sein, die anderen groß oder klein.
+                    // Beim Bilden steht die Feinbestimmung ohnehin in der Aufgabe.
+                    const bildenF = c.mode === 'bilden_tast' || c.mode === 'bilden_staff';
+                    const size = bildenF ? a.task.interval.steps : a.iv.size;
+                    const perfect = [1, 4, 5, 8, 11, 12].includes(size);
+                    const q = bildenF ? a.interval.split(' ')[0] : null;
+                    const augdim = bildenF ? /übermäßig|vermindert/.test(q) : c.opts.includes('augdim');
+                    if (perfect) add('Unsicher bei den reinen Intervallen?', 'Rein können nur Prime, Quarte, Quinte und Oktave sein: reine Quarte 5, reine Quinte 7, reine Oktave 12 Halbtonschritte.', 'int4_rein');
+                    else add('Unsicher bei groß und klein?', `Groß hat einen Halbtonschritt mehr als klein: ${size === 3 || size === 10 ? 'kleine Sexte 8, große Sexte 9' : 'kleine Terz 3, große Terz 4'}.`, 'int4_grossklein');
+                    if (augdim) add('Unsicher bei übermäßig und vermindert?', 'Übermäßig ist einen Halbtonschritt mehr als rein oder groß, vermindert einen weniger als rein oder klein.', 'int4_augdim');
+                }
+                if ((k === 'vz' || k === 'fein') && c.mode === 'bilden_staff') {
+                    add('Unsicher, wann ein Vorzeichen nötig ist?', 'Zähle die Halbtonschritte vom Startton zu deiner Note: Von H bis F sind es nur 6, die reine Quinte braucht 7, also Fis.', 'int6_rein');
+                }
+                if (k === 'lage') {
+                    add('Unsicher bei der Lage auf der Tastatur?', 'Die C-Tasten sind beschriftet. Suche zuerst das C der Lage, in der der untere Ton steht, und zähle von dort weiter.', 'nt:noten3_lagen');
+                }
+            });
+            return out;
+        }
+
+        let attempts = [], panel = null, spent = false;
+        function closePanel() { if (panel) { panel.remove(); panel = null; } document.body.classList.remove('wq-open'); }
+
+        function showPanel() {
+            const c = ctx();
+            closePanel();
+            panel = document.createElement('div');
+            panel.className = 'wq-panel';
+            panel.innerHTML = `<p class="wq-q">Zweimal daneben. Was glaubst du: Woran liegt es?</p><div class="wq-opts">`
+                + options(c).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
+                + '<button class="wq-opt secondary" data-k="klick">Ich habe mich verklickt.</button>'
+                + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div>';
+            panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => answer(b.dataset.k, c));
+            const fb = [...document.querySelectorAll('#feedback')].pop();
+            fb.parentNode.insertBefore(panel, fb.nextSibling);
+            document.body.classList.add('wq-open');
+        }
+
+        function answer(choice, c) {
+            const two = attempts.slice(-2);
+            const kinds = two.map(x => x.kind);
+            const same = kinds[0] === kinds[1];
+            const observed = same ? kinds[0] : null;
+            const one = two[0].id === two[1].id;
+
+            let rel = '';
+            const allNoAcc = two.every(x => x.acc ? !x.acc[0] && !x.acc[1] : !x.tacc);
+            if (choice === 'klick') rel = same ? 'Zweimal an derselben Stelle verklickt man sich selten.' : 'Gut möglich, dass du dich verklickt hast.';
+            else if (choice === 'vz' && allNoAcc && c.mode !== 'bilden_staff') rel = 'Die Töne haben aber keine Vorzeichen.';
+            else if (choice === 'vz' && observed === 'rahmen' && c.mode !== 'bilden_staff') rel = 'Vorzeichen ändern am Rahmenintervall aber nichts.';
+            else if (choice === 'weiss') rel = '';
+            else if (same && (FITS[observed] || []).includes(choice)) rel = (observed === 'rahmen' && c.mode === 'rahmen') || (observed === 'ht') ? '' : 'Das passt zu deiner Vermutung.';
+            else if (kinds.some(k => (FITS[k] || []).includes(choice))) rel = same ? '' : 'Einer der beiden Fehler passt zu deiner Vermutung.';
+
+            const wrong = x => `<strong class="wq-wrong">${x}</strong>`;
+            const bild = c.mode === 'bilden_tast' || c.mode === 'bilden_staff';
+            const textTask = bild || c.mode === 'kn4'; // Aufgabe steckt im Text
+            let cases;
+            if (one && !textTask && c.mode !== 'tasten') {
+                const said = two[0].user === two[1].user ? `zweimal ${wrong(two[0].user)}` : `erst ${wrong(two[0].user)}, dann ${wrong(two[1].user)}`;
+                cases = `<div class="wq-case">${two[1].img}<div class="wq-case-u">Du hast ${said} ${two[1].verb}.</div></div>`;
+            } else if (one && two[0].user === two[1].user) {
+                // Zweimal dieselbe Antwort: ein Bild reicht
+                const task = bild || c.mode === 'kn4' ? `<div class="wq-case-h">${two[1].instr.replace(/!.*$/, '').replace(/\.$/, '')}</div>` : '';
+                cases = `<div class="wq-case">${task}${two[1].img}${two[1].kb}<div class="wq-case-u">Du hast zweimal ${wrong(two[1].user)} ${two[1].verb}.</div></div>`;
+            } else if (one && c.mode === 'tasten') {
+                cases = `<div class="wq-case">${two[1].img}` + two.map((x, i) => `<div class="wq-case-h">${i + 1}. Versuch</div>${x.kb}<div class="wq-case-u">Du hast ${wrong(x.user)} ${x.verb}.</div>`).join('') + '</div>';
+            } else {
+                // Bilden: der gesuchte Ton steht nur im Aufgabentext → Aufgabe mit Verb mitgeben
+                const task = x => textTask ? x.instr.replace(/!.*$/, '.').replace(/\.$/, '') : '';
+                cases = (one ? `<div class="wq-case-h wq-full">${task(two[1])}</div>` : '')
+                    + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${one ? i + 1 + '. Versuch' : i + 1 + '. Aufgabe'}${!one && task(x) ? ': ' + task(x) : ''}</div>${x.img}${x.kb}`
+                    + `<div class="wq-case-u">Du hast ${wrong(x.user)} ${x.verb}.</div></div>`).join('');
+            }
+            // Hilfen nur zu den Kompetenzen, die die beobachteten Fehler betreffen
+            const keys = [];
+            kinds.forEach(k => keys.includes(k) || keys.push(k));
+            const asks = helpFor(keys, c, two);
+            const col = c.mode === 'tasten' || c.mode === 'bilden_tast';
+            panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${col ? ' wq-col' : ''}">${cases}</div>`
+                + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>Was haben deine beiden Fehler gemeinsam?</summary><div class="lk-ask-a">${common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
+                + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                + '<button class="wq-go">Weiter üben</button>';
+            panel.querySelector('.wq-go').onclick = closePanel;
+            panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
+            send(c, choice, observed, kinds);
+        }
+
+        function send(c, choice, observed, kinds, opened) {
+            const p = { level: c.lvl, subskill: c.sub, choice, observed, errors: kinds, match: observed && !['klick', 'weiss'].includes(choice) ? (FITS[observed] || []).includes(choice) : null };
+            if (opened) p.opened = opened;
+            try { tracker.selfAssess(p); } catch (e) {}
+        }
+
+
+        return {
+            // Fehlversuch festhalten (Zustand der Aufgabe in diesem Moment)
+            record() { const c = ctx(); if (!c.mode) return; const at = attemptOf(c); if (at) attempts.push(at); },
+            ready() { return attempts.length >= 2; },
+            show: showPanel,
+            // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
+            onAnswer(ok, isRetry) { if (ok) { if (!isRetry) attempts = []; closePanel(); } },
+            reset() { attempts = []; closePanel(); }
+        };
+        })();
 
         // ===================================
         // ErrorTracker IT — kopflose Fehlerzerlegung (Pfad B, kein UI)
@@ -3357,6 +3785,7 @@
                 this._nudgeWrongInARow = 0;
                 this._nudgeSpent = false;
                 this.clearHelpNudge();
+                woranPanel.reset();
             },
 
             // Hilfe geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
@@ -3373,16 +3802,20 @@
             },
 
             // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
+            // Statt des Hilfe-Nudges erscheint nach zwei Fehlversuchen „Woran liegt es?“.
             registerWrongAttempt(trigger) {
+                woranPanel.record();
                 this._nudgeWrongInARow++;
-                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
-                    this.triggerHelpNudge(trigger);
+                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD && woranPanel.ready()) {
+                    this._nudgeSpent = true;
+                    woranPanel.show();
                 }
             },
 
             // ---- Handle Answer ----
             handleAnswer(isCorrect) {
                 if (!this.isActive) return;
+                woranPanel.onAnswer(isCorrect, this.isRetry);
 
                 if (this.isRetry) {
                     if (isCorrect) {
