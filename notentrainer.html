@@ -2437,7 +2437,7 @@
                 if (kind === 'stamm' || kind === 'taste') {
                     // Tastatur: andere Taste kann auch ein Lesefehler sein → Lesehilfen dazu
                     if (kind === 'taste') add('Unsicher, wo eine Taste liegt?', 'Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.', cardKey(c, x, 'basis_tastatur'));
-                    if (c.mode === 'bilden' || !x.ledger) add(`Unsicher im ${K.name}?`, K.anchor, cardKey(c, x, 'basis'));
+                    add(`Unsicher im ${K.name}?`, K.anchor, cardKey(c, x, 'basis'));
                     if (c.mode === 'bilden') {
                         add('Unsicher, welcher Stammton auf welcher Linie liegt?', K.lines);
                         add('Unsicher, welcher Stammton in welchem Zwischenraum liegt?', K.spaces);
