@@ -1637,6 +1637,33 @@
             line-height: 0;
         }
         .vz-sharp svg, .vz-flat svg { display: block; }
+
+        /* „Woran liegt es?“ nach zwei Fehlversuchen (woranPanel) */
+        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #a7f3d0; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(16,185,129,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1f2937; animation: wqIn 0.25s ease-out; }
+        @keyframes wqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .wq-q { font-weight: 700; margin: 0 0 10px; color: #065f46; }
+        .wq-opts { display: flex; flex-direction: column; gap: 6px; }
+        .wq-opt { text-align: left; border: 1.5px solid #a7f3d0; background: #ecfdf5; color: #064e3b; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+        .wq-opt:hover { background: #d1fae5; }
+        .wq-opt.secondary { background: #fff; border-color: #e5e7eb; color: #4b5563; }
+        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #065f46; font-size: 0.88rem; }
+        .wq-cases { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .wq-cases.wq-col { flex-direction: column; }
+        .wq-case.wq-task { flex: 1 1 100%; }
+        .wq-kbsvg { display: block; margin: 4px auto 0; width: 100%; max-width: 360px; height: auto; }
+        .wq-case { flex: 1 1 0; min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px; text-align: center; }
+        .wq-case svg { width: 100% !important; height: auto !important; max-height: 120px; }
+        .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
+        .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
+        .wq-wrong { color: #dc2626; }
+        .wq-right { color: #16a34a; }
+        .wq-full { width: 100%; text-align: left; }
+        .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
+        .wq-kb .wq-bad { background: #fca5a5 !important; border-color: #dc2626 !important; }
+        .wq-kb .wq-good { background: #86efac !important; border-color: #16a34a !important; }
+        .wq-cmp { border-color: #6ee7b7; }
+        body.wq-open #feedback, body.wq-open #buildingFeedback, body.wq-open #helpBtn { display: none !important; }
+        .wq-go { display: block; width: 100%; margin-top: 12px; background: #10b981; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -2183,6 +2210,9 @@
             subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
             tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
+            // „Woran liegt es?“: gewählte Vermutung (choice), beobachtete Fehlerart (observed),
+            // beide Fehlerarten (errors), match; opened = aufgeklappte Rückfrage.
+            selfAssess(p) { this._send('self_assess', p); },
             // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
             // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
             // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
@@ -2261,6 +2291,453 @@
             getErrorPattern() { return null; }
         }
         const errorTracker = new ErrorTracker();
+
+        // ── „Woran liegt es?“ (ersetzt den Hilfe-Nudge, Nov 2026) ──
+        // Nach zwei Fehlversuchen in Folge, einmal pro Durchgang: Der Schüler wählt eine Vermutung,
+        // sieht seine beiden Versuche (Aufgabe + eigene Antwort, Fehler rot), klappt den Vergleich
+        // „Was haben deine beiden Fehler gemeinsam?“ und Hilfen zu den beobachteten Fehlern auf.
+        // Verrät nie die Lösung. Mock: _entwicklung/mock_dt_woran.html (Problemfälle zum Durchspielen).
+        const woranPanel = (function () {
+        const SHARP = '♯', FLAT = '♭';
+        const ask = (q, a, key) => {
+            let more = '';
+            if (key && key.startsWith('nt:')) more = ` <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=${key.slice(3)}', '_blank'); return false">Ausführlich im Notentrainer ↗</a>`;
+            else if (key && key.startsWith('it:')) more = ` <a class="lk-ask-more" href="#" onclick="window.open('intervalltrainer.html?lernkarte=${key.slice(3)}', '_blank'); return false">Ausführlich im Intervalltrainer ↗</a>`;
+            else if (key) more = ` <a class="lk-ask-more" href="#" onclick="app.showLernkarte('${key}', false); return false">Ausführlich nachlesen ›</a>`;
+            return `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}${more}</div></details>`;
+        };
+        const baseOf = n => (n || '').replace(/isis|eses|is|es/g, '').replace('As', 'A').replace('Es', 'E').replace('B', 'H').charAt(0) || (n || '').charAt(0);
+        const accOf = n => /isis$/.test(n) ? 'sharp2' : /is$/.test(n) ? 'sharp' : (/eses$|^Asas$|^Heses$/.test(n)) ? 'flat2' : (/es$/.test(n) || n === 'As' || n === 'Es' || n === 'B') ? 'flat' : null;
+        const accSym = a => a === 'sharp' ? SHARP : a === 'flat' ? FLAT : a === 'sharp2' ? '𝄪' : a === 'flat2' ? '𝄫' : '';
+        const pc = x => ((x % 12) + 12) % 12;
+        const OCTW = { kontra: 1, gross: 2, klein: 3, eingestrichen: 4, zweigestrichen: 5, dreigestrichen: 6 };
+        // Lagen im Text mit Strichen wie auf den Tasten (c', c'')
+        function helm(name, oct) {
+            const o = typeof oct === 'number' ? oct : OCTW[oct];
+            const lc = name.charAt(0).toLowerCase() + name.slice(1);
+            if (o === 1) return name + ','; if (o === 2) return name; if (o === 3) return lc;
+            return lc + "'".repeat(o - 3);
+        }
+        function helmFromMidi(m) {
+            const NM = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H'];
+            return helm(NM[pc(m)], Math.floor(m / 12) - 1);
+        }
+        const TYPEW = { dur: 'Dur', moll: 'Moll', 'übermäßig': 'übermäßig', vermindert: 'vermindert' };
+        // Begriffe wie in den Lernkarten: Grundton, Terzton, Quintton
+        const ROLE = ['den Grundton', 'den Terzton', 'den Quintton'];
+        // Antwortteile: richtig grün, falsch rot
+        // ok === 'vz' (nur das Vorzeichen falsch): im Text trotzdem der ganze Name rot – ein Notenname ist eine Einheit
+        const colorParts = parts => parts.map(([t, ok]) => ok === null ? `<strong>${t}</strong>` : `<strong class="${ok === true ? 'wq-right' : 'wq-wrong'}">${t}</strong>`).join(', ');
+
+        function ctx() {
+            const lvl = quickStart.currentLevel;
+            const opts = quickStart.currentOptions || ['basis'];
+            const mode = { einsteiger: 'finden', aufsteiger: 'hs', profi: 'benennen', meister: 'umk', bilden_key: 'bilden_key', bilden_staff: 'bilden_staff', bilden_umk_key: 'bilden_key', bilden_umk_staff: 'bilden_staff' }[lvl];
+            return { lvl, opts, mode, sub: opts[opts.length - 1], inv: lvl.includes('_umk_') };
+        }
+
+        // ---- Vermutungen je Übung ----
+        function options(c) {
+            const o = [];
+            if (c.mode === 'finden') {
+                if (c.opts.includes('range')) o.push(['hilf', 'Ich verzähle mich bei den Hilfslinien.']);
+                if (c.opts.includes('vorzeichen')) o.push(['vz', 'Ich weiß nicht, welche Taste zum Vorzeichen gehört.']);
+                o.push(['lesen', 'Ich lese die Noten falsch.']);
+                o.push(['tasten', 'Ich finde die Tasten nicht.']);
+            } else if (c.mode === 'hs') {
+                o.push(['hs', 'Ich verzähle mich bei den Halbtonschritten.']);
+                o.push(['art', 'Ich verwechsle das Muster von Dur und Moll.']);
+                if (c.opts.includes('augmented')) o.push(['art', 'Übermäßig und vermindert bringen mich durcheinander.']);
+            } else if (c.mode === 'benennen' || c.mode === 'umk') {
+                if (c.mode === 'umk') o.push(['stellung', 'Ich erkenne die Umkehrung nicht.']);
+                o.push(['gt', 'Ich finde den Grundton nicht.']);
+                o.push(['art', c.opts.includes('augmented') ? 'Ich bin unsicher bei der Art (Dur, Moll, übermäßig, vermindert).' : 'Ich bin unsicher, ob es Dur oder Moll ist.']);
+                if (c.mode === 'benennen' && c.opts.includes('vorzeichen')) o.push(['vz', 'Ich verwechsle „is“ und „es“.']);
+            } else {
+                if (c.inv) o.push(['stellung', 'Ich bin unsicher bei den Umkehrungen.']);
+                o.push(['hs', 'Ich verzähle mich bei den Halbtonschritten.']);
+                o.push(['art', 'Ich verwechsle das Muster von Dur und Moll.']);
+                if (c.mode === 'bilden_staff') o.push(['vz', 'Ich weiß nicht, welches Vorzeichen ich brauche.']);
+            }
+            return o.slice(0, 3);
+        }
+        // Welche Vermutung zu welcher beobachteten Fehlerart passt
+        const FITS = {
+            ton: ['lesen', 'tasten'], tonhilf: ['hilf', 'lesen', 'tasten'], tonvz: ['vz'],
+            hs1: ['hs'], hs2: ['hs'], art: ['art'],
+            gt: ['gt'], gtvz: ['vz', 'gt'], stellung: ['stellung'],
+            rolle: ['hs', 'art'], rollevz: ['vz', 'hs', 'art'], schreib: ['vz'], lage: ['stellung']
+        };
+        // Lesehilfe und Tastatur-Hilfe lassen sich bei „Töne finden“ nicht trennen → kein Urteil
+        const OPEN = ['ton', 'tonhilf'];
+
+        // Notenposition: Position 0 = unterste Linie (app.notePositions)
+        function posOf(n) { const p = app.notePositions[`${baseOf(n.name)}-${n.octave}-${n.clef}`]; return p === undefined ? null : p; }
+        function posPhrase(pos) {
+            if (pos === null) return '';
+            if (pos >= 0 && pos <= 8) {
+                if (pos % 2 === 0) { const n = pos / 2 + 1; return n === 1 ? 'auf der untersten Linie' : n === 5 ? 'auf der obersten Linie' : `auf der ${n}. Linie von unten`; }
+                return `im ${(pos + 1) / 2}. Zwischenraum`;
+            }
+            if (pos === -1) return 'direkt unter der untersten Linie';
+            if (pos === 9) return 'direkt über der obersten Linie';
+            if (pos < -1) return pos % 2 === 0 ? `auf der ${-pos / 2}. Hilfslinie unter dem System` : `unter der ${(-pos - 1) / 2}. Hilfslinie`;
+            return pos % 2 === 0 ? `auf der ${(pos - 8) / 2}. Hilfslinie über dem System` : `über der ${(pos - 9) / 2}. Hilfslinie`;
+        }
+
+        // ---- Bilder: Notensystem (eigene falsche Noten rot), Tastatur (falsch rot, richtig grün) ----
+        function kbSnapshot(good, bad) {
+            const el = document.getElementById('keyboardContainer');
+            if (!el) return '';
+            const tmp = document.createElement('div');
+            tmp.innerHTML = el.innerHTML;
+            tmp.querySelectorAll('.white-key, .black-key').forEach(b => {
+                // Gesperrte (richtige) Tasten haben kein onclick → Tonhöhe aus der Reihenfolge der Tasten
+                const m = (b.getAttribute('onclick') || '').match(/selectKey\((\d+)\)/);
+                const mm = m ? parseInt(m[1]) : (b.dataset.midi ? parseInt(b.dataset.midi) : null);
+                const cls = b.classList;
+                const isBad = cls.contains('wrong') || (mm !== null && bad.includes(mm));
+                const isGood = !isBad && (cls.contains('correct') || (mm !== null && good.includes(mm)) || (mm === null && cls.contains('selected')));
+                cls.remove('selected', 'correct', 'wrong', 'locked');
+                if (isBad) cls.add('wq-bad');
+                if (isGood) cls.add('wq-good');
+                b.removeAttribute('onclick'); b.removeAttribute('id');
+            });
+            return `<div class="wq-kb">${tmp.innerHTML.replace(/\sid="[^"]*"/g, '')}</div>`;
+        }
+        // allNotes (nur beim Bilden): übrige eigene Notenköpfe grün
+        function staffSnapshot(badNotes, accOnly, allNotes) {
+            const st = document.getElementById('staffContainer');
+            let img = st ? st.innerHTML.replace(/\sid="[^"]*"/g, '') : '';
+            const plain = [];
+            (badNotes || []).forEach(n => {
+                const pos = app.notePositions[`${baseOf(n.name)}-${n.oct}-treble`];
+                if (pos === undefined) return;
+                const y = 260 - pos * 10;
+                // Vorzeichen vergessen (Stammton richtig): im Bild nicht färben, der Text markiert es
+                if ((accOnly || []).includes(n) && !accOf(n.name)) { plain.push(y); return; }
+                if (!(accOnly || []).includes(n)) img = img.replace(new RegExp(`(cy="${y}" rx="12\\.5" ry="9\\.5" fill=")#000`, 'g'), '$1#dc2626');
+                img = img.replace(new RegExp(`(y="${y + 13}" font-size="42" font-family="serif" fill=")#000`, 'g'), '$1#dc2626');
+                img = img.replace(new RegExp(`(y="${y + 10}" font-size="38" font-family="serif" fill=")#000`, 'g'), '$1#dc2626');
+            });
+            (allNotes || []).forEach(n => {
+                const pos = app.notePositions[`${baseOf(n.name)}-${n.oct}-treble`];
+                if (pos === undefined || plain.includes(260 - pos * 10)) return;
+                img = img.replace(new RegExp(`(cy="${260 - pos * 10}" rx="12\\.5" ry="9\\.5" fill=")#000`, 'g'), '$1#16a34a');
+            });
+            return img;
+        }
+
+        // 2a: Gezählt wird auf der Tastatur → je Versuch eine Tastatur (wie IT 3/4, Funktion aus dem IT übernommen):
+        // Dreiklangstöne blau, darüber die gewählten Abstände als Klammern (richtig grün, falsch rot).
+        function wqKbSvg(keys, brackets) {
+            const W = 24, BW = 14, H = 80, BH = 50, Y = 34;
+            const ps = keys.map(k => k.p);
+            const start = Math.min(...ps) - pc(Math.min(...ps));
+            const end = Math.max(...ps) - pc(Math.max(...ps)) + 11;
+            const WHITE = [0, 2, 4, 5, 7, 9, 11];
+            const isW = p => WHITE.includes(pc(p));
+            const pos = {}; let wi = -1;
+            for (let p = start; p <= end; p++) { if (isW(p)) { wi++; pos[p] = { x: wi * W, cx: wi * W + W / 2 }; } else pos[p] = { x: wi * W + W - BW / 2, cx: wi * W + W }; }
+            const fill = p => (keys.find(k => k.p === p) || {}).fill;
+            let svg = `<svg class="wq-kbsvg" viewBox="-1 0 ${(wi + 1) * W + 2} ${Y + H + 2}" xmlns="http://www.w3.org/2000/svg">`;
+            for (let p = start; p <= end; p++) if (isW(p)) {
+                svg += `<rect x="${pos[p].x}" y="${Y}" width="${W}" height="${H}" rx="2" fill="${fill(p) || '#fff'}" stroke="#9ca3af"/>`;
+                if (pc(p) === 0) svg += `<text x="${pos[p].cx}" y="${Y + H - 6}" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">${helmFromMidi(p)}</text>`;
+            }
+            for (let p = start; p <= end; p++) if (!isW(p)) svg += `<rect x="${pos[p].x}" y="${Y}" width="${BW}" height="${BH}" rx="2" fill="${fill(p) || '#1f2937'}" stroke="#1f2937"/>`;
+            brackets.forEach(({ a, b, txt, col, tcol, i1 = 0, i2 = 0 }) => {
+                const x1 = pos[a].cx + i1, x2 = pos[b].cx - i2, by = Y - 6;
+                if (a !== b) svg += `<path d="M ${x1} ${by + 5} V ${by} H ${x2} V ${by + 5}" fill="none" stroke="${col}" stroke-width="2"/>`;
+                svg += `<text x="${(x1 + x2) / 2}" y="${by - 5}" font-size="12" font-weight="700" fill="${tcol}" text-anchor="middle">${txt}</text>`;
+            });
+            return svg + '</svg>';
+        }
+        function hsKb(ch, vals) {
+            const ms = [ch.note1, ch.note2, ch.note3].map(n => app._noteToMidi(n.name, n.octave)).sort((a, b) => a - b);
+            // Beide Klammern teilen sich den Terzton: dort je 2 px Abstand, damit es zwei Klammern bleiben
+            return wqKbSvg(ms.map(p => ({ p, fill: '#93c5fd' })), [[0, 1], [1, 2]].map(([i, j], k) => ({ a: ms[i], b: ms[j], i1: k === 1 ? 2 : 0, i2: k === 0 ? 2 : 0, txt: `${vals[k][0] || '?'} HS`, col: '#059669', tcol: vals[k][1] ? '#16a34a' : '#dc2626' })));
+        }
+
+        // ---- Fehlversuch festhalten ----
+        function attemptOf(c) {
+            const ti = document.getElementById('taskInstructionText');
+            const base = { id: quickStart.questionsAnswered, instr: ti ? ti.innerText.trim() : '' };
+            if (c.mode === 'bilden_key' || c.mode === 'bilden_staff') {
+                const t = app.buildingCurrentTask;
+                if (!t) return null;
+                const rootPc = pc(app._noteToMidi(t.root, t.rootOct));
+                const rolePcs = t.targetNotes.map(n => pc(n.midi));
+                const roleOf = p => { const iv = pc(p - rootPc); return iv === 0 ? 0 : (iv === 3 || iv === 4) ? 1 : 2; };
+                const targetByRole = [0, 1, 2].map(r => t.targetNotes.find(n => roleOf(n.midi) === r));
+                let user, userMidis, userNames;
+                if (c.mode === 'bilden_key') {
+                    // Namen wie im Trainer (bei passender Tonhöhe in der Schreibweise der Aufgabe, also es' statt dis')
+                    const sel = (app.buildingSelectedKeys || []).slice().sort((a, b) => a.midi - b.midi);
+                    userMidis = sel.map(k => k.midi);
+                    userNames = sel.map(k => helm(k.name, k.oct));
+                } else {
+                    const sel = app.buildingStaffNotes || [];
+                    userMidis = sel.map(n => app._noteToMidi(n.name, n.oct));
+                    userNames = sel.map(n => helm(n.name, n.oct));
+                }
+                if (userMidis.length < 3) return null;
+                const userPcs = userMidis.map(pc);
+                const missing = [0, 1, 2].filter(r => !userPcs.includes(pc(targetByRole[r].midi)));
+                // Schreibweise (Noten): gleicher Klang, anderer Stammton
+                let schreib = null;
+                if (c.mode === 'bilden_staff' && !missing.length) {
+                    const sel = app.buildingStaffNotes;
+                    schreib = sel.find(n => { const tn = t.targetNotes.find(x => pc(x.midi) === pc(app._noteToMidi(n.name, n.oct))); return tn && baseOf(tn.name) !== baseOf(n.name); });
+                }
+                let kind = missing.length ? 'rolle' : schreib ? 'schreib' : 'lage';
+                // Noten: falscher Ton mit richtigem Stammton → nur das Vorzeichen ist falsch
+                const stemOk = n => !rolePcs.includes(pc(app._noteToMidi(n.name, n.oct))) && t.targetNotes.some(x => baseOf(x.name) === baseOf(n.name));
+                const vzNotes = c.mode === 'bilden_staff' ? app.buildingStaffNotes.filter(stemOk) : [];
+                if (kind === 'rolle' && vzNotes.length && vzNotes.length === missing.length) kind = 'rollevz';
+                const badMidis = userMidis.filter(m => !rolePcs.includes(pc(m)));
+                const goodMidis = userMidis.filter(m => rolePcs.includes(pc(m)));
+                const badNotes = c.mode === 'bilden_staff' ? app.buildingStaffNotes.filter(n => !rolePcs.includes(pc(app._noteToMidi(n.name, n.oct))) || n === schreib) : [];
+                const low = userMidis.slice().sort((p, q) => p - q)[0];
+                // Stellungsfehler: alle Töne richtig, nur der unterste steht falsch → er ist rot, die anderen grün
+                const lowNote = c.mode === 'bilden_staff' ? app.buildingStaffNotes.find(n => app._noteToMidi(n.name, n.oct) === low) : null;
+                const img = c.mode === 'bilden_staff' ? staffSnapshot(kind === 'lage' ? [lowNote] : badNotes, vzNotes) : '';
+                const kb = c.mode === 'bilden_key' ? kbSnapshot(kind === 'lage' ? userMidis.filter(m => m !== low) : goodMidis, kind === 'lage' ? [low] : badMidis) : '';
+                const okOf = i => kind === 'lage' ? userMidis[i] !== low
+                    : (c.mode === 'bilden_staff' && vzNotes.includes(app.buildingStaffNotes[i])) ? 'vz'
+                    : (rolePcs.includes(pc(userMidis[i])) && !(schreib && c.mode === 'bilden_staff' && app.buildingStaffNotes[i] === schreib));
+                return { ...base, kind, missing, schreib, t, lowRole: roleOf(low), uhtml: colorParts(userNames.map((n, i) => [n, okOf(i)])), user: userNames.join(', '), verb: c.mode === 'bilden_key' ? 'angeklickt' : 'geschrieben', img, kb,
+                    taskText: `${c.mode === 'bilden_key' ? 'Klicke' : 'Schreibe'} ${t.label}` };
+            }
+            const ch = app.currentChord;
+            if (!ch) return null;
+            const notes = [ch.note1, ch.note2, ch.note3];
+            const st = document.getElementById('staffContainer');
+            const img = st ? st.innerHTML.replace(/\sid="[^"]*"/g, '') : '';
+            if (c.mode === 'finden') {
+                const sel = (app.selectedKeys || []).slice();
+                if (sel.length < 3) return null;
+                const tm = notes.map(n => app._noteToMidi(n.name, n.octave));
+                const selPcs = sel.map(pc);
+                const missing = [0, 1, 2].filter(i => !selPcs.includes(pc(tm[i])));
+                const i = missing[0];
+                const n = notes[i];
+                const pos = posOf(n);
+                const kind = n && accOf(n.name) ? 'tonvz' : (pos !== null && (pos <= -2 || pos >= 10)) ? 'tonhilf' : 'ton';
+                const good = sel.filter(m => tm.map(pc).includes(pc(m))), bad = sel.filter(m => !tm.map(pc).includes(pc(m)));
+                const sorted = sel.slice().sort((a, b) => a - b);
+                return { ...base, kind, missing, note: n, pos, notes, uhtml: colorParts(sorted.map(m => [helmFromMidi(m), tm.map(pc).includes(pc(m))])), user: sorted.map(helmFromMidi).join(', '), verb: 'angeklickt', img, kb: kbSnapshot(good, bad), ch };
+            }
+            if (c.mode === 'hs') {
+                const v1 = app.getHSValue('hsSelect1'), v2 = app.getHSValue('hsSelect2');
+                const a = document.getElementById('artSelect');
+                const ok1 = String(v1) === String(ch.interval1), ok2 = String(v2) === String(ch.interval2), okA = !a || a.value === ch.type;
+                const kind = !ok1 ? 'hs1' : !ok2 ? 'hs2' : 'art';
+                // Die Abstände stehen an den Klammern im Bild; im Text nur, was dort fehlt (die Art)
+                const parts = [[`Grundton–Terzton ${v1} HS`, ok1], [`Terzton–Quintton ${v2} HS`, ok2]]; if (a) parts.push([TYPEW[a.value] || a.value, okA]);
+                const shown = a ? [parts[2]] : [];
+                return { ...base, kind, ok1, ok2, okA, uhtml: colorParts(shown), noText: !a, user: parts.map(x => x[0]).join(', '), verb: 'gewählt', img: '', kb: hsKb(ch, [[v1, ok1], [v2, ok2]]), ch };
+            }
+            // Benennen / Umkehrungen: Grundton, Art, Stellung
+            const raw = ((document.getElementById('rootNoteInput') || {}).value || '').trim();
+            const name = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+            const type = (document.getElementById('chordTypeSelect') || {}).value;
+            const invEl = document.getElementById('inversionSelect');
+            const inv = invEl ? parseInt(invEl.value) : 0;
+            const gtOk = name === ch.rootNote, artOk = type === ch.type, invOk = !invEl || inv === ch.inversion;
+            const kind = !invOk ? 'stellung' : !gtOk ? (baseOf(name) === baseOf(ch.rootNote) ? 'gtvz' : 'gt') : 'art';
+            const INVW = ['Grundstellung', '1. Umkehrung', '2. Umkehrung'];
+            const parts = []; if (invEl) parts.push([INVW[inv] || '?', invOk]); parts.push([name || '?', gtOk ? true : (name && baseOf(name) === baseOf(ch.rootNote)) ? 'vz' : false]); parts.push([TYPEW[type] || type, artOk]);
+            return { ...base, kind, gtOk, artOk, invOk, uname: name, utype: type, uinv: inv, uhtml: colorParts(parts), user: parts.map(x => x[0]).join(', '), verb: 'eingegeben', img, kb: '', ch };
+        }
+
+        // ---- Vergleich ----
+        function common(two, c, one) {
+            const [a, b] = two;
+            const same = a.kind === b.kind;
+            if (c.mode === 'finden') {
+                const n = a.note;
+                if (!same || a.missing[0] !== b.missing[0]) return 'Bei den beiden Versuchen fehlte jeweils ein anderer Ton.';
+                const lbl = { 0: 'Der unterste Ton', 1: 'Der mittlere Ton', 2: 'Der oberste Ton' }[a.missing[0]];
+                if (a.kind === 'tonvz') return `${lbl} hat ein ${accSym(accOf(n.name))}. Diesen Ton hast du beide Male nicht gefunden.`;
+                return `${lbl} liegt ${posPhrase(a.pos)}. Diesen Ton hast du beide Male nicht gefunden.`;
+            }
+            if (c.mode === 'hs') {
+                const both = (k) => two.every(x => !x[k]), never = (k) => two.every(x => x[k]);
+                const ch = a.ch;
+                const nm = [ch.originalNote1 || ch.note1, ch.originalNote2 || ch.note2, ch.originalNote3 || ch.note3].map(n => helm(n.name, n.octave));
+                const d1 = `den Abstand zwischen Grundton (${nm[0]}) und Terzton (${nm[1]})`, d2 = `den Abstand zwischen Terzton (${nm[1]}) und Quintton (${nm[2]})`;
+                const one = a.id === b.id;
+                if (both('ok1') && never('ok2')) return `${one ? 'Du hast beide Male' : 'Du hast beide Male'} ${d2} richtig bestimmt, aber ${d1} nicht.`;
+                if (both('ok2') && never('ok1')) return `Du hast beide Male ${d1} richtig bestimmt, aber ${d2} nicht.`;
+                if (!same) return `Nicht gestimmt hat beim 1. Versuch ${partW(a)}, beim 2. Versuch ${partW(b)}.`;
+                if (a.kind === 'art') return `Du hast beide Male beide Abstände richtig bestimmt, aber die Art nicht.`;
+                return `Beide Male stimmten beide Abstände nicht.`;
+            }
+            if (c.mode === 'benennen' || c.mode === 'umk') {
+                const ch = a.ch;
+                const INVW = ['Grundstellung', '1. Umkehrung', '2. Umkehrung'];
+                if (!same) return `Nicht gestimmt hat beim 1. Versuch ${partW(a)}, beim 2. Versuch ${partW(b)}.`;
+                if (a.kind === 'stellung') return `Den Grundton ${ch.rootNote} und die Art „${TYPEW[ch.type]}“ hattest du beide Male richtig, die Stellung „${INVW[a.uinv]}“ nicht.`;
+                if (a.kind === 'art') return `Den Grundton ${ch.rootNote} hattest du beide Male richtig, die Art „${TYPEW[a.utype]}“ nicht.`;
+                if (a.kind === 'gtvz') return `Der Grundton hat ein ${accSym(accOf(ch.rootNote))}. Den Stammton hattest du beide Male richtig, das Vorzeichen nicht.`;
+                // Grundton-Stammton falsch: Lage nur in der Grundstellung nennen (in einer Umkehrung würde sie den Grundton verraten)
+                if (ch.inversion === 0) return `Der Grundton ist der unterste Ton und liegt ${posPhrase(posOf(ch.note1))}. Beide Male stimmte der Grundton nicht.`;
+                return 'Beide Male stimmte der Grundton nicht.';
+            }
+            // Bilden
+            const t = a.t;
+            if (!same) return `Nicht gestimmt hat beim 1. Versuch ${partW(a)}, beim 2. Versuch ${partW(b)}.`;
+            if (a.kind === 'rolle') {
+                const ok = [0, 1, 2].filter(r => !a.missing.includes(r) && !b.missing.includes(r)).map(r => ROLE[r].replace(/^den /, 'den ').replace(/^die /, 'die '));
+                const bad = [...new Set([...a.missing, ...b.missing])].map(r => ROLE[r]);
+                const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+                return ok.length ? `${cap(ok.join(' und '))} hattest du beide Male richtig, ${bad.join(' und ')} nicht.` : 'Beide Male stimmte keiner der Töne.';
+            }
+            if (a.kind === 'rollevz') {
+                const bad = [...new Set([...a.missing, ...b.missing])].map(r => ROLE[r].replace(/^den /, 'des ').replace('Grundton', 'Grundtons').replace('Terzton', 'Terztons').replace('Quintton', 'Quinttons'));
+                return `Den Stammton ${bad.join(' und ')} hattest du beide Male richtig, das Vorzeichen nicht.`;
+            }
+            if (a.kind === 'schreib') return `Die Töne klingen richtig, aber ${helm(a.schreib.name, a.schreib.oct)} ist mit dem falschen Stammton geschrieben.`;
+            const ROLEN = ['der Grundton', 'der Terzton', 'der Quintton'];
+            return `Die Töne stimmen, aber nicht die Stellung „${t.label.split(', ')[1] || 'Grundstellung'}“: Bei dir liegt ${a.lowRole === b.lowRole ? 'beide Male ' : ''}${ROLEN[a.lowRole]} unten${a.lowRole === b.lowRole ? '' : `, beim 2. Versuch ${ROLEN[b.lowRole]}`}.`;
+        }
+        function partW(x) {
+            return { stellung: 'die Stellung', gt: 'der Grundton', gtvz: 'das Vorzeichen des Grundtons', art: 'die Art', rolle: x.missing ? x.missing.map(r => ROLE[r].replace(/^den /, 'der ')).join(' und ') : 'ein Ton', rollevz: 'das Vorzeichen ' + (x.missing ? x.missing.map(r => ROLE[r].replace(/^den /, 'des ').replace(/ton$/, 'tons')).join(' und ') : 'eines Tons'), schreib: 'die Schreibweise', lage: 'die Stellung', hs1: 'der Abstand Grundton–Terzton', hs2: 'der Abstand Terzton–Quintton' }[x.kind] || 'ein Teil';
+        }
+
+        // ---- Hilfen: nur zu den beobachteten Fehlern, passend zur Aufgabe ----
+        function helpFor(two, c) {
+            const out = [], seen = new Set();
+            const add = (q, a, key) => { if (!seen.has(q)) { seen.add(q); out.push(ask(q, a, key)); } };
+            const a = two[two.length - 1];
+            const bass = (a.ch && a.ch.clef === 'bass');
+            const kinds = [...new Set(two.map(x => x.kind))];
+            // Muster-Beispiel nie mit dem Dreiklang der Aufgabe
+            const rootName = a.ch ? a.ch.rootNote : a.t ? a.t.root : '';
+            const exDur = rootName === 'C' ? 'F-Dur: F, A, C (4 + 3)' : 'C-Dur: C, E, G (4 + 3)';
+            const exMoll = rootName === 'A' ? 'D-Moll: D, F, A (3 + 4)' : 'a-Moll: A, C, E (3 + 4)';
+            const anyAcc = two.some(x => x.ch ? [x.ch.note1, x.ch.note2, x.ch.note3].some(n => accOf(n.name)) : x.t.targetNotes.some(n => accOf(n.name)));
+            kinds.forEach(k => {
+                if (k === 'ton' || k === 'tonhilf') {
+                    const x = two.find(y => y.kind === k);
+                    if (k === 'tonhilf') add(`Unsicher bei Hilfslinien ${x.pos <= -2 ? 'unter' : 'über'} dem System?`, 'Hilfslinien zählen wie die Linien im System: Linie und Zwischenraum wechseln sich ab. Zähle von der nächsten Linie des Systems Schritt für Schritt weiter.', 'nt:hilfslinien');
+                    else add(bass ? 'Unsicher im Bassschlüssel?' : 'Unsicher im Violinschlüssel?', bass ? 'Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten.' : 'Anker ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet.', bass ? 'nt:noten2_basis' : 'nt:basis');
+                    add('Unsicher, wo die Töne auf der Tastatur liegen?', 'Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.', 'nt:noten3_basis');
+                }
+                if (k === 'tonvz') {
+                    const x = two.find(y => y.kind === k);
+                    const s = accOf(x.note.name);
+                    add(`Unsicher, in welche Richtung ${accSym(s)} geht?`, `Mit ${accSym(s)} gehst du vom Stammton eine Taste nach ${/flat/.test(s) ? 'links' : 'rechts'}. Das ist meist eine schwarze Taste, aber nicht immer.`, 'nt:noten3_vorzeichen');
+                    if (/^(Fes|Ces|Eis|His)$/.test(x.note.name)) add('Unsicher, ob es eine schwarze Taste sein muss?', 'Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Fes die Taste E, Eis die Taste F, Ces die Taste H und His die Taste C.');
+                }
+                if (k === 'rollevz') add('Unsicher, welches Vorzeichen der Ton braucht?', 'Zähle die Halbtonschritte vom Grundton aus und wähle dann das Vorzeichen, das den Stammton auf diese Taste bringt: ♯ eine Taste nach rechts, ♭ eine nach links.', 'drei6_vorzeichen');
+                // Benennen/Umkehrungen: Die Art ergibt sich aus der Halbtonschrittanzahl → Zählhilfe auch dort
+                if (k === 'hs1' || k === 'hs2' || k === 'rolle' || k === 'rollevz' || (k === 'art' && (c.mode === 'benennen' || c.mode === 'umk'))) {
+                    // Beispiel nie mit dem Grundton der Aufgabe
+                    const exHS = /^D/.test(rootName) ? 'Von F bis A sind es 4 Halbtonschritte.' : 'Von D bis Fis sind es 4 Halbtonschritte.';
+                    add('Unsicher beim Zählen der Halbtonschritte?', `Zähle Taste für Taste, schwarze Tasten mit, die Starttaste nicht: ${exHS}`, 'drei2_basis');
+                    if (anyAcc && c.mode === 'hs') add('Unsicher bei den Vorzeichen?', `${SHARP} erhöht um eine Taste nach rechts, ${FLAT} erniedrigt um eine Taste nach links.`, 'nt:vorzeichen');
+                }
+                if (k === 'rolle' || k === 'rollevz' || k === 'art' || (k === 'hs1' || k === 'hs2') && c.opts.includes('augmented')) {
+                    add('Unsicher beim Muster von Dur und Moll?', `Dur hat unten den großen Abstand, Moll unten den kleinen: ${exDur}, ${exMoll}.`, 'drei2_basis');
+                    if (c.opts.includes('augmented') || c.opts.includes('augdim')) add('Unsicher bei übermäßig und vermindert?', 'Übermäßig: zweimal 4 Halbtonschritte (4 + 4). Vermindert: zweimal 3 (3 + 3).', 'drei2_augmented');
+                }
+                if (k === 'gt') {
+                    if (a.ch && a.ch.inversion > 0) add('Unsicher, wo der Grundton steht?', 'Suche die Quarte: Bei einer Terz liegen beide Töne auf Linien oder beide in Zwischenräumen, bei der Quarte einer auf einer Linie, einer im Zwischenraum. Der obere Ton der Quarte ist der Grundton.', 'drei4_basis');
+                    else {
+                        add(bass ? 'Unsicher im Bassschlüssel?' : 'Unsicher im Violinschlüssel?', bass ? 'Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten.' : 'Anker ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet.', bass ? 'nt:noten2_basis' : 'nt:basis');
+                    }
+                }
+                if (k === 'gtvz') add('Unsicher bei den Vorzeichennamen?', `Mit ${SHARP} hängst du „is“ an, mit ${FLAT} „es“. Ausnahmen: Es, As, B.`, 'nt:vorzeichen');
+                if (k === 'stellung' || k === 'lage') add('Unsicher bei den Umkehrungen?', 'Grundstellung: Grundton unten. 1. Umkehrung: Terzton unten. 2. Umkehrung: Quintton unten. In jeder Umkehrung steckt eine Quarte, ihr oberer Ton ist der Grundton.', c.mode === 'umk' ? 'drei4_basis' : 'drei7_basis');
+                if (k === 'schreib') {
+                    add('Unsicher beim Vorzeichen-Werkzeug?', 'Erst ♯ oder ♭ wählen, dann auf die Linie oder den Zwischenraum des Stammtons tippen.', 'nt:noten4_vorzeichen');
+                    add('Unsicher, welcher Stammton zum Ton gehört?', 'Jeder Dreiklangston steht auf einem eigenen Stammton im Terzabstand: Grundton, dann zwei Stammtöne weiter der Terzton, wieder zwei weiter der Quintton (C – E – G).', 'drei6_vorzeichen');
+                }
+            });
+            return out;
+        }
+
+        let attempts = [], panel = null;
+        function closePanel() { if (panel) { panel.remove(); panel = null; } document.body.classList.remove('wq-open'); }
+        function anchorEl(c) { return (c.mode === 'bilden_key' || c.mode === 'bilden_staff') ? (document.getElementById('buildingFeedback') || document.getElementById('feedback')) : document.getElementById('feedback'); }
+
+        function showPanel() {
+            const c = ctx();
+            closePanel();
+            panel = document.createElement('div');
+            panel.className = 'wq-panel';
+            panel.innerHTML = `<p class="wq-q">Zweimal daneben. Was glaubst du: Woran liegt es?</p><div class="wq-opts">`
+                + options(c).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
+                + '<button class="wq-opt secondary" data-k="klick">Ich habe mich verklickt.</button>'
+                + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div>';
+            panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => answer(b.dataset.k, c));
+            const fb = anchorEl(c);
+            fb.parentNode.insertBefore(panel, fb.nextSibling);
+            document.body.classList.add('wq-open');
+        }
+
+        function answer(choice, c) {
+            const two = attempts.slice(-2);
+            const kinds = two.map(x => x.kind);
+            const same = kinds[0] === kinds[1];
+            const observed = same ? kinds[0] : null;
+            const one = two[0].id === two[1].id;
+
+            let rel = '';
+            const noAcc = two.every(x => x.ch ? ![x.ch.note1, x.ch.note2, x.ch.note3].some(n => accOf(n.name)) : !x.t.targetNotes.some(n => accOf(n.name)));
+            if (choice === 'klick') rel = same ? 'Zweimal an derselben Stelle verklickt man sich selten.' : 'Gut möglich, dass du dich verklickt hast.';
+            else if (choice === 'weiss' || (observed && OPEN.includes(observed))) rel = '';
+            else if (choice === 'vz' && noAcc) rel = 'Die Töne haben aber keine Vorzeichen.';
+            else if (choice === 'hilf' && !two.some(x => x.kind === 'tonhilf') && same) rel = '';
+            else if (same && (FITS[observed] || []).includes(choice)) rel = 'Das passt zu deiner Vermutung.';
+            else if (kinds.some(k => (FITS[k] || []).includes(choice))) rel = same ? '' : 'Einer der beiden Fehler passt zu deiner Vermutung.';
+
+            const wrong = x => `<strong class="wq-wrong">${x}</strong>`;
+            const bild = c.mode === 'bilden_key' || c.mode === 'bilden_staff';
+            const kbMode = c.mode === 'finden' || c.mode === 'bilden_key';
+            // Immer beide Versuche nebeneinander, auch bei zweimal derselben Antwort (Vergleich).
+            // Dieselbe Aufgabe: Aufgabentext bzw. Aufgabenbild (Notensystem beim Finden, Benennen, Umkehrungen)
+            // einmal oben; im Kasten je Versuch das Bild der eigenen Antwort (Tasten, gebaute Noten, Abstände).
+            let cases;
+            const ownImg = bild;
+            const u = x => x.noText ? '' : `<div class="wq-case-u">Du hast ${x.uhtml} ${x.verb}.</div>`;
+            if (one) {
+                const shared = !ownImg && two[1].img ? `<div class="wq-case wq-task">${two[1].img}</div>` : '';
+                cases = (bild ? `<div class="wq-case-h wq-full">${two[1].taskText}</div>` : '') + shared
+                    + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Versuch</div>${ownImg ? x.img : ''}${x.kb}${u(x)}</div>`).join('');
+            } else {
+                cases = two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Aufgabe${bild ? ': ' + x.taskText : ''}</div>${x.img}${x.kb}${u(x)}</div>`).join('');
+            }
+            const asks = helpFor(two, c);
+            panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${kbMode || c.mode === 'hs' ? ' wq-col' : ''}">${cases}</div>`
+                + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>Was haben deine beiden Fehler gemeinsam?</summary><div class="lk-ask-a">${common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
+                + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                + '<button class="wq-go">Weiter üben</button>';
+            panel.querySelector('.wq-go').onclick = closePanel;
+            panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
+            send(c, choice, observed, kinds);
+        }
+
+        function send(c, choice, observed, kinds, opened) {
+            const p = { level: c.lvl, subskill: c.sub, choice, observed, errors: kinds, match: observed && !['klick', 'weiss'].includes(choice) && !OPEN.includes(observed) ? (FITS[observed] || []).includes(choice) : null };
+            if (opened) p.opened = opened;
+            try { tracker.selfAssess(p); } catch (e) {}
+        }
+
+
+        return {
+            // Fehlversuch festhalten (Zustand der Aufgabe in diesem Moment)
+            record() { const c = ctx(); if (!c.mode) return; const at = attemptOf(c); if (at) attempts.push(at); },
+            ready() { return attempts.length >= 2; },
+            show: showPanel,
+            // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
+            onAnswer(ok, isRetry) { if (ok) { if (!isRetry) attempts = []; closePanel(); } },
+            reset() { attempts = []; closePanel(); }
+        };
+        })();
+
 
         // ===================================
         // GF-ONTOLOGIE (Skill-DAG) — zentrale Map trainer.dim → {domäne, achse}
@@ -3432,6 +3909,7 @@
                 this._nudgeWrongInARow = 0;
                 this._nudgeSpent = false;
                 this.clearHelpNudge();
+                woranPanel.reset();
             },
 
             // Hilfe geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
@@ -3448,15 +3926,22 @@
             },
 
             // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
+            // Statt des Hilfe-Nudges erscheint nach zwei Fehlversuchen „Woran liegt es?“.
             registerWrongAttempt(trigger) {
+                // Misslungene Regel-Probe (2a) ist kein Fehlversuch: Sie zeigt nur, dass die Regel noch fehlt,
+                // und führt in die Fälle. Erst Fehler dort zählen für „Woran liegt es?“.
+                if (this._probeMiss) { this._probeMiss = false; return; }
+                woranPanel.record();
                 this._nudgeWrongInARow++;
-                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
-                    this.triggerHelpNudge(trigger);
+                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD && woranPanel.ready()) {
+                    this._nudgeSpent = true;
+                    woranPanel.show();
                 }
             },
 
             handleAnswer(isCorrect) {
                 if (!this.isActive) return;
+                woranPanel.onAnswer(isCorrect, this.isRetry);
 
                 if (this.isRetry) {
                     if (isCorrect) {
@@ -8438,6 +8923,7 @@ const _lernkartenContent = {
                         // Probe misslungen → Fälle: dieser Dreiklang ist der erste, die Art wird genannt
                         const t = correctType, o = (t === 'dur') ? 'moll' : 'dur';
                         r2a.mode = 'cases';
+                        quickStart._probeMiss = true;
                         r2a.caseTypes = [t, t, o, o];
                         r2a.caseIdx = 0;
                         this._drei2Case = true;
