@@ -678,6 +678,8 @@ function runAnalyse() {
   //   choice  = Vermutung gewählt (choice, observed, match = Vermutung passt zum Befund)
   //   open    = Hilfe bzw. Vergleich aufgeklappt (opened = Beschriftung)
   //   outcome = nächste Antwort danach (ok)
+  //   end     = Endbildschirm unter 80 %: „Woran lag es?“ gewählt (choice, observed = häufigste
+  //             Fehlerart, errors = {Fehlerart: Anzahl}, match; seit 14.11.2026, zuerst NT)
   // Ältere Events ohne phase stammen aus der Wahl → zählen als choice.
   // Fragen: Wo hängen Schüler (Fehlerarten)? Erkennen sie ihren Fehler selbst
   // (Trefferquote, Kegan-Brücke)? Wird das Feld genutzt (Antwortquote)? Hilft es (outcome)?
@@ -687,11 +689,26 @@ function runAnalyse() {
   const wqOpen = {};        // aufgeklappte Hilfe → Anzahl
   const WQ0 = () => ({ shown: 0, choice: 0, matchT: 0, matchF: 0, klick: 0, weiss: 0, outOk: 0, outN: 0 });
   const wqAll = WQ0();
+  const wqEnd = {};         // Trainer → {failed, n, matchT, matchF, weiss, obs: {Fehlerart: Anzahl}}
   sessions.forEach(s => {
     (s.evAll || []).forEach(e => {
+      // Nicht bestandene Quizze = Gelegenheiten für die Endbildschirm-Frage
+      if (e.eventType === 'quiz_complete' && (e.payload || {}).pct != null && e.payload.pct < 80) {
+        const t = wqEnd[s.trainer] = wqEnd[s.trainer] || { failed: 0, n: 0, matchT: 0, matchF: 0, weiss: 0, obs: {} };
+        t.failed++;
+      }
       if (e.eventType !== 'self_assess') return;
       const p = e.payload || {};
       const ph = p.phase || (p.opened ? 'open' : 'choice');
+      if (ph === 'end') {
+        const t = wqEnd[s.trainer] = wqEnd[s.trainer] || { failed: 0, n: 0, matchT: 0, matchF: 0, weiss: 0, obs: {} };
+        t.n++;
+        if (p.match === true) t.matchT++;
+        if (p.match === false) t.matchF++;
+        if (p.choice === 'weiss') t.weiss++;
+        Object.keys(p.errors || {}).forEach(k => { t.obs[k] = (t.obs[k] || 0) + (p.errors[k] || 0); });
+        return;
+      }
       const k = _sk(s.trainer, p.level, p.subskill);
       const a = wq[k] = wq[k] || WQ0();
       [a, wqAll].forEach(x => {
@@ -729,6 +746,15 @@ function runAnalyse() {
   push('');
   push('  Lesehilfe Trefferquote', 'Steigt sie über die Wochen, lernen Schüler, ihre Fehler selbst einzuordnen. Niedrig + viel „Weiß ich nicht“ = Fehlerarten im Feld zu abstrakt formuliert.');
   push('  Lesehilfe Antwortquote', 'Niedrig = Feld wird weggeklickt (zu lang, falscher Moment). „Danach richtig“ vergleichen mit der normalen Quote nach zwei Fehlern.');
+  push('');
+  push('  Endbildschirm „Woran lag es?“ (phase end, nur Trainer mit dem Feature)', '');
+  Object.keys(wqEnd).filter(tr => wqEnd[tr].n).forEach(tr => {
+    const t = wqEnd[tr];
+    const obs = Object.keys(t.obs).sort((x, y) => t.obs[y] - t.obs[x]).map(k => k + ' ' + t.obs[k]).join(', ');
+    push('    ' + tr, 'gewählt ' + t.n + ' (' + _pct(t.n, t.failed) + '% von ' + t.failed + ' nicht bestandenen) | Treffer ' + _pct(t.matchT, t.matchT + t.matchF) + '% | weiß nicht ' + t.weiss + ' | Fehler: ' + obs);
+  });
+  if (!Object.keys(wqEnd).some(tr => wqEnd[tr].n)) push('    (noch keine end-Events)');
+  push('  Lesehilfe Endbildschirm', 'Trefferquote am Ende mit der im Feld vergleichen: Beim Rückblick auf alle Fehler sollte sie höher liegen. „Gewählt“ unter den nicht bestandenen Quizzen = wie oft die Frage beantwortet statt übersprungen wird.');
   push('');
 
   // FEHLER IM FELD (wq_error) — abgefangene Fehler von „Woran liegt es?“. Das Quiz läuft

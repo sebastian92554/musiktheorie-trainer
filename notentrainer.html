@@ -1418,6 +1418,8 @@
         .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
         .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
         .wq-wrong { color: #dc2626; }
+        #successMessage .wq-panel { margin-top: 14px; }
+        .wq-find { margin: 0 0 8px; }
         .wq-full { width: 100%; text-align: left; }
         .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
         .wq-cases.wq-col { flex-direction: column; }
@@ -2166,7 +2168,8 @@
                     'dreigestrichen': "'''"
                 };
                 const isGross = octave === 'gross' || octave === 'kontra';
-                let display = isGross ? n.toUpperCase() : n.toLowerCase();
+                // Große Oktave: nur der Anfangsbuchstabe groß (Fis, nicht FIS)
+                let display = isGross ? n.charAt(0).toUpperCase() + n.slice(1).toLowerCase() : n.toLowerCase();
                 if (octave === 'kontra') display += ',';
                 else if (octaveMarks[octave]) display += octaveMarks[octave];
                 return display;
@@ -2796,6 +2799,150 @@
         }
 
 
+        // ---- Endbildschirm „Noch nicht ganz“: Fehlerliste → „Woran lag es?“ → Befund ----
+        // Erst nach der Wahl: was die Fehler zeigen (gezählt, am eigenen Fehler), Bezug zur
+        // Vermutung, Hilfen nur zu den beobachteten Fehlerarten, Übungsknöpfe.
+        const LET = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+        const redT = t => `<strong class="wq-wrong">${t}</strong>`;
+        const H = (n, o) => ErrorTracker.toHelmholtz(n, o);
+        const askEnd = (q, a, key) => `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}`
+            + (key ? ` <a class="lk-ask-more" href="#" onclick="app.showLernkarteMitWahl('${key}', 'Schließen'); return false">Ausführlich nachlesen ›</a>` : '') + '</div></details>';
+        // Ein Fehler aus errorTracker.answers → Fehlerart und Daten für Text und Hilfen
+        function classifyEnd(a, c) {
+            const st = errorTracker._extractStammton(a.correctNote), ust = errorTracker._extractStammton(a.userInput || '');
+            const acc = errorTracker._extractVZ(a.correctNote), uacc = errorTracker._extractVZ(a.userInput || '');
+            const pos = app.notePositions[`${st}-${a.octave}-${a.clef}`];
+            const ledger = pos !== undefined && (pos <= -2 || pos >= 10), below = pos !== undefined && pos < 0;
+            const uoct = a.userOctave || a.octave;
+            let kind;
+            if (a.tasOnly) kind = a.category === 'oktavlage_falsch' ? 'lage' : st.toUpperCase() === ust.toUpperCase() ? 'vz' : 'taste';
+            else if (st.toUpperCase() !== ust.toUpperCase()) kind = ledger && c.opts.includes('hilfslinien') ? 'hilf' : 'stamm';
+            else if (acc !== uacc) kind = 'vz';
+            else kind = 'lage';
+            // Stammtonfehler beim Lesen: passt die Antwort zum anderen Schlüssel?
+            let schl = false;
+            if ((kind === 'stamm' || kind === 'hilf') && c.mode === 'lesen') {
+                const i = LET.indexOf(st.toUpperCase());
+                schl = LET[(i + (a.clef === 'bass' ? -2 : 2) + 7) % 7] === ust.toUpperCase();
+            }
+            return { kind, schl, ledger, below, line: pos !== undefined && pos % 2 === 0, clef: a.clef, st, acc,
+                pair: `${H(a.correctNote, a.octave)} → ${redT(H(a.userInput || '?', uoct))}`, uname: H(a.userInput || '?', uoct), uoct };
+        }
+        function exampleNot(pairs, not) { const p = pairs.find(p => !not.includes(p[0])) || pairs[0]; return `${p[0]} wird ${p[1]}`; }
+        const numErr = n => n === 1 ? 'einem Fehler' : n + ' Fehlern';
+        const listErr = xs => xs.slice(0, 4).map(x => x.pair).join(', ') + (xs.length > 4 ? ' …' : '');
+
+        // Was die Fehler zeigen: je Fehlerart ein Satz, gezählt und an den eigenen Fehlern gezeigt
+        function findingEnd(kind, xs, c, total) {
+            const n = xs.length;
+            const bei = n === total && n > 1 ? 'Bei allen Fehlern' : 'Bei ' + numErr(n);
+            if (kind === 'stamm' || kind === 'hilf') {
+                let s = kind === 'hilf'
+                    ? `${bei} stand die Note auf Hilfslinien ${xs.every(x => x.below) ? 'unter' : xs.every(x => !x.below) ? 'über' : 'unter oder über'} dem System, und der Stammton stimmte nicht (${listErr(xs)}).`
+                    : `${bei} stimmte der Stammton nicht (${listErr(xs)}).`;
+                if (n >= 2 && xs.every(x => x.schl)) {
+                    const other = xs[0].clef === 'bass' ? 'Violinschlüssel' : 'Bassschlüssel';
+                    s += ` Deine Antworten passen alle zum ${other}: Du hast die Noten so gelesen, als stünde ein ${other} davor.`;
+                }
+                return s;
+            }
+            if (kind === 'vz') return `${bei} stimmte der Stammton, das Vorzeichen nicht (${listErr(xs)}).`;
+            if (kind === 'taste') return `${bei} hast du eine andere Taste angeklickt (${listErr(xs)}).`;
+            // Lage: eigene Schreibweise entschlüsseln, ohne die richtige Lage zu nennen
+            let s = `${bei} stimmten Stammton und Vorzeichen, nur die Lage nicht (${listErr(xs)}).`;
+            if (c.mode !== 'tastatur') {
+                const seen = new Set();
+                xs.forEach(x => { if (seen.has(x.uoct) || seen.size >= 3) return; seen.add(x.uoct); const m = OCT_MEAN[x.uoct]; if (m) s += ` <strong>${x.uname}</strong> – ${m[0]} – heißt ${m[1]}.`; });
+            }
+            return s;
+        }
+        // Hilfen nur zu den beobachteten Fehlerarten, Texte wie im Feld
+        function helpsEnd(kinds, by, c) {
+            const out = [], seen = new Set();
+            const add = (q, a, key) => { if (!seen.has(q)) { seen.add(q); out.push(askEnd(q, a, key)); } };
+            const errSt = [].concat(...Object.values(by)).map(x => x.st.toUpperCase());
+            kinds.forEach(kind => by[kind].forEach(x => {
+                const K = CLEF[x.clef] || CLEF.treble;
+                if (kind === 'stamm' || kind === 'taste') {
+                    if (kind === 'taste') add('Unsicher, wo eine Taste liegt?', 'Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.', cardKey(c, x, 'basis_tastatur'));
+                    if (x.schl && by[kind].length >= 2 && by[kind].every(y => y.schl)) add('Unsicher, welcher Schlüssel davor steht?', 'Schau zuerst auf den Schlüssel. Im Violinschlüssel liegt auf der untersten Linie E, im Bassschlüssel G.');
+                    add(`Unsicher im ${K.name}?`, K.anchor, cardKey(c, x, 'basis'));
+                    if (c.mode === 'bilden' || x.line) add('Unsicher, welcher Stammton auf welcher Linie liegt?', K.lines);
+                    if (c.mode === 'bilden' || !x.line) add('Unsicher, welcher Stammton in welchem Zwischenraum liegt?', K.spaces);
+                } else if (kind === 'hilf') {
+                    add(`Unsicher bei Hilfslinien ${x.below ? 'unter' : 'über'} dem System?`,
+                        `Hilfslinien zählen wie die Linien im System: Linie und Zwischenraum wechseln sich ab. Zähle von der ${x.below ? 'untersten' : 'obersten'} Linie (${x.below ? K.bottom : K.top}) Schritt für Schritt ${x.below ? 'abwärts' : 'aufwärts'}: ${x.below ? K.down : K.up}.`,
+                        cardKey(c, x, 'hilfslinien'));
+                } else if (kind === 'vz') {
+                    const flat = x.acc === 'es' || x.acc === 's' || /^(B|Es|As)$/.test(x.st);
+                    if (c.mode === 'tastatur') {
+                        add(`Unsicher, in welche Richtung ${flat ? FLAT : SHARP} geht?`, `Mit ${flat ? FLAT : SHARP} gehst du vom Stammton eine Taste nach ${flat ? 'links' : 'rechts'}. Das ist meist eine schwarze Taste, aber nicht immer.`, cardKey(c, x, 'vorzeichen'));
+                    } else if (c.mode === 'bilden') {
+                        add('Unsicher, welches Vorzeichen du setzen musst?', `„is“ heißt ${SHARP}, „es“ heißt ${FLAT}. Auch Es, As und B bekommen ${FLAT}.`, cardKey(c, x, 'vorzeichen'));
+                    } else if (flat) {
+                        add(`Unsicher, wie die Note mit ${FLAT} heißt?`, `Mit ${FLAT} hängst du „es“ an den Stammton: ${exampleNot([['D', 'Des'], ['G', 'Ges'], ['C', 'Ces']], errSt)}. Ausnahmen: E wird Es, A wird As, H wird B.`, cardKey(c, x, 'vorzeichen'));
+                    } else {
+                        add(`Unsicher, wie die Note mit ${SHARP} heißt?`, `Mit ${SHARP} hängst du „is“ an den Stammton: ${exampleNot([['F', 'Fis'], ['C', 'Cis'], ['G', 'Gis']], errSt)}.`, cardKey(c, x, 'vorzeichen'));
+                    }
+                } else if (kind === 'lage') {
+                    if (c.mode === 'tastatur') add('Unsicher, wo die richtige Lage liegt?', 'Die C-Tasten sind beschriftet (C, c, c\', c\'\'). Suche zuerst das C der richtigen Lage und zähle von dort weiter.', cardKey(c, x, 'lagen'));
+                    else add('Unsicher, in welcher Lage der Ton liegt?', K.lage[x.ledger ? (x.below ? 'unten' : 'oben') : 'system'], cardKey(c, x, 'lagen'));
+                }
+            }));
+            return out;
+        }
+        // Übungsknöpfe je Fehlerart, erst ab zwei Fehlern derselben Art und nur, wenn sie
+        // zu einer anderen Übung führen als der eben gemachten
+        function recosEnd(kinds, by, c) {
+            const all = quickStart.getOptionsForLevel(c.lvl), cur = c.opts.join(',');
+            const upTo = o => all.slice(0, all.indexOf(o) + 1);
+            const T = { stamm: [c.lvl, ['basis'], 'Stammtöne üben'], vz: [c.lvl, upTo('vorzeichen'), 'Vorzeichen üben'],
+                lage: [c.lvl, upTo('lagen'), 'Lagen üben'], taste: ['profi', ['basis'], 'Tastatur üben'] };
+            const seen = new Set([c.lvl + '|' + cur]);
+            let h = '';
+            kinds.forEach(k => { const t = T[k]; if (!t || by[k].length < 2) return; const id = t[0] + '|' + t[1].join(','); if (seen.has(id)) return; seen.add(id);
+                h += `<button class="reco-item" onclick="quickStart.goToRecommendedLevel('${t[0]}','${t[1].join(',')}')">${t[2]}</button>`; });
+            return h + '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+        }
+        // Ersetzt Nachricht und Empfehlungen des Endbildschirms; false, wenn keine Fehler protokolliert sind
+        function endScreen(msg, rec, cardHtml) {
+            const c = ctx();
+            const xs = errorTracker.getErrors().filter(a => a.category !== 'building_note_falsch' && a.category !== 'building_vz_falsch').map(a => classifyEnd(a, c));
+            if (!xs.length) return false;
+            const verb = c.mode === 'tastatur' ? 'angeklickt' : c.mode === 'bilden' ? 'geschrieben' : 'eingegeben';
+            const pre = c.mode === 'bilden' ? 'Schreibe ' : '';
+            const listHtml = '<p>Diese Fehler sind aufgetreten:</p><ul class="gf-errlist">'
+                + xs.slice(0, 5).map(x => `<li>${pre}${x.pair.replace(' → ', ' → du hast ')} ${verb}</li>`).join('') + '</ul>';
+            msg.innerHTML = listHtml + `<div class="wq-panel"><p class="wq-q">Schau dir deine Fehler an. Woran lag es?</p><div class="wq-opts">`
+                + inScope(c).map(k => `<button class="wq-opt" data-k="${k}">${WQ[k].opt[c.mode] || WQ[k].opt.lesen}</button>`).join('')
+                + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div></div>';
+            rec.innerHTML = '';
+            msg.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => { try { choose(b.dataset.k); } catch (e) { wqError('endChoose', e); } });
+
+            function choose(choice) {
+                const by = {};
+                xs.forEach(x => (by[x.kind] = by[x.kind] || []).push(x));
+                const kinds = Object.keys(by).sort((a, b) => by[b].length - by[a].length);
+                const top = kinds[0];
+                const part = k => k === 'hilf' ? 'stamm' : k;
+                let rel = '';
+                if (choice === 'weiss') rel = '';
+                else if (part(choice) === part(top) && (kinds.length === 1 || by[top].length > by[kinds[1]].length)) rel = 'Das passt zu deiner Vermutung.';
+                else if (kinds.some(k => part(k) === part(choice))) rel = 'Ein Teil deiner Fehler passt zu deiner Vermutung.';
+                else if (choice === 'vz' && !xs.some(x => x.acc)) rel = xs.length === 1 ? 'Die Note hatte aber kein Vorzeichen.' : 'Die Noten deiner Fehler hatten aber keine Vorzeichen.';
+                else if (choice === 'hilf' && !xs.some(x => x.ledger)) rel = xs.length === 1 ? 'Die Note stand aber nicht auf Hilfslinien.' : 'Die Noten deiner Fehler standen aber nicht auf Hilfslinien.';
+                const asks = helpsEnd(kinds, by, c);
+                msg.innerHTML = listHtml + '<div class="wq-panel"><p class="wq-q">Das zeigen deine Fehler:</p>'
+                    + kinds.map(k => `<p class="wq-find">${findingEnd(k, by[k], c, xs.length)}</p>`).join('')
+                    + (rel ? `<p class="wq-find"><em>${rel}</em></p>` : '')
+                    + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                    + '</div>' + (cardHtml || '');
+                rec.innerHTML = recosEnd(kinds, by, c);
+                try { tracker.selfAssess({ phase: 'end', level: c.lvl, subskill: c.sub, choice, observed: top, errors: Object.fromEntries(kinds.map(k => [k, by[k].length])), match: choice === 'weiss' ? null : part(choice) === part(top) }); } catch (e) {}
+            }
+            return true;
+        }
+
         // Absicherung: Ein Fehler im Feld darf die Antwortverarbeitung des Quiz nie abbrechen.
         // Er wird gemeldet (wq_error, höchstens 3× je Seitenaufruf), das Feld bleibt dann weg.
         let wqErrors = 0;
@@ -2822,7 +2969,8 @@
                 if (outcomeCtx) { sendPhase(outcomeCtx, 'outcome', { ok: !!ok, retry: !!isRetry }); outcomeCtx = null; }
                 if (ok) { if (!isRetry) attempts = []; closePanel(); }
             },
-            reset() { attempts = []; outcomeCtx = null; closePanel(); }
+            reset() { attempts = []; outcomeCtx = null; closePanel(); },
+            endScreen
         });
         })();
 
@@ -3866,6 +4014,8 @@
                     });
                     recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
                     _rec.innerHTML = recos;
+                    // Mit protokollierten Fehlern: Fehlerliste → „Woran lag es?“ → Befund (ersetzt Nachricht und Empfehlungen)
+                    woranPanel.endScreen(_msg, _rec, this._cardHintHtml(_lastSub));
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 }
 
@@ -4268,10 +4418,14 @@
                     : { label: 'Zurück zum Menü' });
             },
 
-            // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
-            showLernkarteMitWahl(key) {
+            // Sprung aus „Woran liegt es?“ oder vom Endbildschirm: Karte mit Wahl
+            // „Zurück zur Aufgabe“ bzw. label / „Erst hier üben“
+            showLernkarteMitWahl(key, label) {
+                // Der Endbildschirm blendet #originalApp aus → Karte wie beim Deep-Link nach body holen
+                const ov = document.getElementById('lernkarteOverlay');
+                if (ov.closest('#originalApp') && !document.getElementById('originalApp').classList.contains('active')) document.body.appendChild(ov);
                 if (!this.showLernkarte(key, false)) return;
-                this._appendNextChoice(key, { label: quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen' });
+                this._appendNextChoice(key, { label: label || (quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen') });
             },
             // Wahl am Kartenende statt „Verstanden“: zurück (back.after danach)
             // oder „Erst hier üben“ (startet das Quiz zu dem Sub-Skill, dessen Lernkarte key ist).
@@ -5559,7 +5713,8 @@
                     allCorrect: false,
                     hasBeenChecked: false,
                     qsNoteCorrect: null,    // Quick-Start Lagen-Modus
-                    qsOctaveCorrect: null   // Quick-Start Lagen-Modus
+                    qsOctaveCorrect: null,  // Quick-Start Lagen-Modus
+                    qsUserOctave: ''        // Quick-Start Lagen-Modus: gewählte Lage
                 };
                 
                 // Reset visual indicators (null-safe: Elemente existieren nur in bestimmten Modi)
@@ -6109,6 +6264,7 @@
                         // Speichere Details für Feedback
                         this.validationState.qsNoteCorrect = qsNoteCorrect;
                         this.validationState.qsOctaveCorrect = qsOctaveCorrect;
+                        this.validationState.qsUserOctave = selectedOctave || '';   // eigene Lage für die Fehlerliste
                         
                         // Visuelle Markierung - BEIDE unabhängig prüfen
                         // Textfeld
@@ -6169,7 +6325,7 @@
                     // Count score only on first successful completion
                     if (isFirstCheck) {
                         tracker.activity();
-                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect, tastaturActive: this.settings.requireKeyboard, tastaturCorrect: this.validationState && this.validationState.keyboard === true }); } catch (e) {} }
+                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: true, correctNote: this.currentNote.name, userInput: userInput, userOctave: this.validationState && this.validationState.qsUserOctave, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect, tastaturActive: this.settings.requireKeyboard, tastaturCorrect: this.validationState && this.validationState.keyboard === true }); } catch (e) {} }
 
                         // QUICK-START: Nur handleAnswer, KEIN Score-Update
                         if (this.quickStartMode) {
@@ -6207,7 +6363,7 @@
                     // Count as failure ONLY on first check
                     if (isFirstCheck) {
                         tracker.activity();
-                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: userInput, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect, tastaturActive: this.settings.requireKeyboard, tastaturCorrect: this.validationState && this.validationState.keyboard === true }); } catch (e) {} }
+                        if (this.quickStartMode) { try { errorTracker.logAnswer({ isCorrect: false, correctNote: this.currentNote.name, userInput: userInput, userOctave: this.validationState && this.validationState.qsUserOctave, clef: this.currentNote.clef, octave: this.currentNote.octave, options: quickStart.currentOptions, category: '', lageCorrect: this.validationState && this.validationState.qsOctaveCorrect, tastaturActive: this.settings.requireKeyboard, tastaturCorrect: this.validationState && this.validationState.keyboard === true }); } catch (e) {} }
 
                         // QUICK-START: Nur handleAnswer, KEIN Score-Update
                         if (this.quickStartMode) {
@@ -7156,6 +7312,13 @@ Gerät:
                     : '⚠️ Prüfe nochmal — versuch es nochmal.';
                 feedbackEl.classList.remove('hidden');
             }
+        }
+
+        // Fehlerliste und Endbildschirm: nur der erste Versuch je Aufgabe (wie beim Lesen)
+        // (Lagen beim Schreiben als Zahl 1–6, im errorTracker als Name wie beim Lesen)
+        if (quickStart.isActive && !quickStart.isRetry) {
+            const OCT = { 1: 'kontra', 2: 'gross', 3: 'klein', 4: 'eingestrichen', 5: 'zweigestrichen', 6: 'dreigestrichen' };
+            try { errorTracker.logAnswer({ isCorrect: correct, correctNote: this.currentBuildingNote.name, userInput: placed.noteName, userOctave: requireOctave ? OCT[placed.octave] : '', clef: this.useBassClef ? 'bass' : 'treble', octave: OCT[this.currentBuildingNote.oct], options: activeOptions, category: 'bilden', lageCorrect: placed.octave === this.currentBuildingNote.oct }); } catch (e) {}
         }
 
         // handleAnswer IMMER aufrufen (1:1 wie im TT) — Retry-Logik lebt in handleAnswer
