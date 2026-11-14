@@ -1554,9 +1554,8 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #7c3aed; }
-        /* Deep-Link aus einem anderen Trainer: „Wie geht es weiter?“ am Kartenende */
+        /* Wahl am Kartenende (Deep-Link, Sprung aus einer Karte oder aus „Woran liegt es?“) */
         .lk-next { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
-        .lk-next-q { font-size: 0.88rem; font-weight: 600; color: #334155; margin-bottom: -6px; }
         .lernkarte button.lk-btn-secondary { background: #fff; color: #7c3aed; border: 2px solid #7c3aed; margin-top: 8px; }
         .lernkarte button.lk-btn-secondary:hover { background: #f5f3ff; }
         .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
@@ -1616,6 +1615,8 @@
            Aufgabe, das selbst scrollt (wie die Lernkarten) */
         .wq-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 12px; }
         .wq-overlay .wq-panel { margin: 0; width: 100%; max-height: 88vh; overflow-y: auto; }
+        /* „Ausführlich nachlesen“ aus dem Feld: Lernkarte über dem Feld-Fenster, nicht dahinter */
+        body.wq-open .lernkarte-overlay { z-index: 2100; }
         .wq-go { display: block; width: 100%; margin-top: 12px; background: #8b5cf6; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     </style>
 </head>
@@ -2372,7 +2373,7 @@
         const woranPanel = (function () {
         const lkExists = k => !!((app.lernkartenContent || {})[k]);
         const ask = (q, a, key) => {
-            const more = key && lkExists(key) ? ` <a class="lk-ask-more" href="#" onclick="app.showLernkarte('${key}', false); return false">Ausführlich nachlesen ›</a>` : '';
+            const more = key && lkExists(key) ? ` <a class="lk-ask-more" href="#" onclick="app.showLernkarteMitWahl('${key}'); return false">Ausführlich nachlesen ›</a>` : '';
             return `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}${more}</div></details>`;
         };
         const red = t => `<strong class="wq-wrong">${t}</strong>`;
@@ -9445,10 +9446,17 @@ Gerät:
                     : { label: 'Zurück zum Menü' });
             },
 
-            // „Wie geht es weiter?“ am Kartenende statt „Verstanden“: zurück (back.after danach)
+            // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
+            showLernkarteMitWahl(key) {
+                if (!this.showLernkarte(key, false)) return;
+                this._appendNextChoice(key, { label: quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen' });
+            },
+            // Wahl am Kartenende statt „Verstanden“: zurück (back.after danach)
             // oder „Erst hier üben“ (startet das Quiz zu dem Sub-Skill, dessen Lernkarte key ist).
             // Für Deep-Links aus anderen Trainern und für Sprünge über „Ausführlich nachlesen“.
             _appendNextChoice(key, back) {
+                // Voller Schlüssel ('rhy1_8tel') → Name in der Sub-Skill-Liste (Knoten 1 ohne Präfix: '8tel')
+                if (/^[a-z]+\d_/.test(key)) key = this.getLernkarteKey(key);
                 const target = this._findSubForKey(key);
                 const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
                 // Sprung innerhalb des laufenden Quiz auf die eigene Karte: kein „Erst hier üben“
@@ -9460,8 +9468,7 @@ Gerät:
                 btn.style.display = 'none';
                 const box = document.createElement('div');
                 box.className = 'lk-next';
-                box.innerHTML = '<div class="lk-next-q">Wie geht es weiter?</div>' +
-                    `<button type="button" data-act="back">${back.label}</button>` +
+                box.innerHTML = `<button type="button" data-act="back">${back.label}</button>` +
                     (sub && !same ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
                 card.appendChild(box);
                 box.querySelector('[data-act="back"]').onclick = () => {

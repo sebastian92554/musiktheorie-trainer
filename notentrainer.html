@@ -1375,9 +1375,8 @@
             margin-top: 14px;
         }
         .lernkarte button:hover { background: #4338ca; }
-        /* Deep-Link aus einem anderen Trainer: „Wie geht es weiter?“ am Kartenende */
+        /* Wahl am Kartenende (Deep-Link, Sprung aus einer Karte oder aus „Woran liegt es?“) */
         .lk-next { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
-        .lk-next-q { font-size: 0.88rem; font-weight: 600; color: #334155; margin-bottom: -6px; }
         .lernkarte button.lk-btn-secondary { background: #fff; color: #4f46e5; border: 2px solid #4f46e5; margin-top: 8px; }
         .lernkarte button.lk-btn-secondary:hover { background: #eef2ff; }
         .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
@@ -2395,7 +2394,7 @@
         // Im Fließtext des Feldes Schriftzeichen statt SVG (SVG bricht die Zeilen in <summary> auseinander)
         const SHARP = '♯', FLAT = '♭';
         const ask = (q, a, key) => `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}`
-            + (key ? ` <a class="lk-ask-more" href="#" onclick="app.showLernkarte('${key}', false); return false">Ausführlich nachlesen ›</a>` : '') + '</div></details>';
+            + (key ? ` <a class="lk-ask-more" href="#" onclick="app.showLernkarteMitWahl('${key}'); return false">Ausführlich nachlesen ›</a>` : '') + '</div></details>';
         const WQ = {
             stamm: { part: 'der Stammton', opt: { lesen: 'Ich bin unsicher, welcher Stammton auf welcher Linie oder in welchem Zwischenraum liegt.', bilden: 'Ich bin unsicher, auf welche Linie oder in welchen Zwischenraum der Stammton gehört.', tastatur: 'Ich bin unsicher, welcher Stammton auf welcher Linie oder in welchem Zwischenraum liegt.' } },
             hilf: { part: 'der Stammton', opt: { lesen: 'Ich verzähle mich bei den Hilfslinien.', bilden: 'Ich verzähle mich bei den Hilfslinien.', tastatur: 'Ich verzähle mich bei den Hilfslinien.' } },
@@ -4269,10 +4268,17 @@
                     : { label: 'Zurück zum Menü' });
             },
 
-            // „Wie geht es weiter?“ am Kartenende statt „Verstanden“: zurück (back.after danach)
+            // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
+            showLernkarteMitWahl(key) {
+                if (!this.showLernkarte(key, false)) return;
+                this._appendNextChoice(key, { label: quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen' });
+            },
+            // Wahl am Kartenende statt „Verstanden“: zurück (back.after danach)
             // oder „Erst hier üben“ (startet das Quiz zu dem Sub-Skill, dessen Lernkarte key ist).
             // Für Deep-Links aus anderen Trainern und für Sprünge über „Ausführlich nachlesen“.
             _appendNextChoice(key, back) {
+                // Voller Schlüssel ('noten1_vorzeichen') → Name in der Sub-Skill-Liste (Knoten 1 ohne Präfix: 'vorzeichen')
+                if (/^[a-z]+\d_/.test(key)) key = this.getLernkarteKey(key);
                 const target = this._findSubForKey(key);
                 const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
                 // Sprung innerhalb des laufenden Quiz auf die eigene Karte: kein „Erst hier üben“
@@ -4284,8 +4290,7 @@
                 btn.style.display = 'none';
                 const box = document.createElement('div');
                 box.className = 'lk-next';
-                box.innerHTML = '<div class="lk-next-q">Wie geht es weiter?</div>' +
-                    `<button type="button" data-act="back">${back.label}</button>` +
+                box.innerHTML = `<button type="button" data-act="back">${back.label}</button>` +
                     (sub && !same ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
                 card.appendChild(box);
                 box.querySelector('[data-act="back"]').onclick = () => {
