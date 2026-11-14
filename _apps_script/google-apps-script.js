@@ -35,6 +35,9 @@ const SCHOOL_MARKER_TOKEN = 'mt-2026-k7zQ9pX4vB8nL3cF';
 // sendet und der hier FEHLT, fällt in den Alt-Pfad und landet dort im
 // LEGACY-Zweig — der schreibt eine unbrauchbare Zeile ("undefined%") in das
 // aktive Sheet. Bei jedem neuen Event im Tracker hier mit eintragen.
+// help_nudge / help_nudge_followed senden die Trainer seit 14.11.2026 nicht mehr (ersetzt durch
+// self_assess „Woran liegt es?“). Bleiben in der Liste, damit noch offene alte Trainer-Fassungen
+// (Cache, lange offene Tabs) keine Müllzeilen im Alt-Pfad erzeugen. Frühestens nach einigen Wochen entfernen.
 const EVENTS_TYPES = ['page_view', 'quiz_start', 'quiz_complete', 'heartbeat',
   'node_select', 'card_view', 'quiz_abandon', 'landing_click', 'card_dismiss',
   'subskill_dismiss', 'help_nudge', 'help_nudge_followed', 'tip_open', 'self_assess',
