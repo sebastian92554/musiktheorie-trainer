@@ -2636,8 +2636,6 @@
             const [a, b] = two;
             // Schlüssel nur nennen, wenn die Antwort zum anderen Schlüssel passt (Schlüsselfehler)
             const clefIn = x => x.clefErr ? `im ${x.clef === 'bass' ? 'Bassschlüssel' : 'Violinschlüssel'} ` : '';
-            // Vorzeichen nennen, obwohl es im Bild steht: Der Satz stellt die Verbindung zum Bild her
-            const accTxt = x => x.acc === 'flat' ? ` und hat ein ${FLAT}` : x.acc === 'sharp' ? ` und hat ein ${SHARP}` : '';
             let where;
             const placedOk = k => k === 'vz' || k === 'lage';
             if (placedOk(a.kind) && placedOk(b.kind)) {
@@ -2650,7 +2648,7 @@
                     : a.ppos === b.ppos ? `Du hast den Ton ${clefIn(a)}beide Male ${posPhrase(a.ppos, true)} gesetzt. `
                     : `Du hast den Ton ${clefIn(a)}erst ${posPhrase(a.ppos, true)}, dann ${posPhrase(b.ppos, true)} gesetzt. `;
             } else if (one || (a.pos === b.pos && a.clef === b.clef)) {
-                where = `${one ? 'Die Note liegt' : 'Beide Noten liegen'} ${clefIn(a)}${posPhrase(a.pos)}${one ? accTxt(a) : ''}. `;
+                where = `${one ? 'Die Note liegt' : 'Beide Noten liegen'} ${clefIn(a)}${posPhrase(a.pos)}. `;
             } else {
                 where = `Die erste Note liegt ${clefIn(a)}${posPhrase(a.pos)}, die zweite ${clefIn(b)}${posPhrase(b.pos)}. `;
             }
