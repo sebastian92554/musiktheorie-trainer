@@ -3919,8 +3919,8 @@
                 woranPanel.reset();
             },
 
-            // Hilfe geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
-            // _nudgeSpent verhindert erneutes Auslösen im selben Durchgang.
+            // Hilfe geöffnet: melden und ein noch laufendes Nudge-Signal löschen. Fehlerfolge und
+            // _nudgeSpent bleiben unberührt – frühe Hilfe soll „Woran liegt es?“ nicht aushebeln.
             noteHelpOpened() {
                 try { tracker.helpOpen({ level: this.isActive ? this.currentLevel : null, subskill: this.isActive ? this._nudgeSubskill() : null, where: this.isActive ? 'quiz' : 'menu' }); } catch (e) {}
                 if (this._nudgeActive) {
@@ -3929,8 +3929,6 @@
                     } catch (e) {}
                 }
                 this.clearHelpNudge();
-                this._nudgeSpent = true;
-                this._nudgeWrongInARow = 0;
             },
 
             // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
