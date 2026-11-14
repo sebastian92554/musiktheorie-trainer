@@ -5997,6 +5997,7 @@ Gerät:
             },
 
             checkTimeSignatureAnswer(selected) {
+                this._lastTsAnswer = selected; // für „Woran liegt es?“
                 const correct = this.currentTask.correctTimeSignature;
                 const isCorrect = selected === correct;
                 const container = document.getElementById('tsButtonContainer');
@@ -6353,6 +6354,7 @@ Gerät:
                 if (!task || this.gapFillAnswered) return;
 
                 const selected = task.options[optionIndex];
+                this._lastGapAnswer = selected; // für „Woran liegt es?“
                 const correct = task.removedNote;
                 const isCorrect = Math.abs(selected.value - correct.value) < 0.001;
 
@@ -6667,12 +6669,11 @@ Gerät:
                     // Wird VOR hasBeenChecked=true aufgerufen — NEIN, hasBeenChecked ist schon true
                     // Stattdessen: Beim ERSTEN checkDictation-Aufruf den QuickStart informieren
                 }
-                // Beim ersten Fehlversuch: QuickStart muss wissen dass Frage beantwortet wurde
-                if (!isCorrect && !this._dictFirstAttemptReported) {
+                // Jede falsche Prüfung melden: onAnswerChecked zählt nur den Erstversuch für den
+                // Punktestand, Wiederholungen aber als Fehlversuch (wie in den anderen Übungen)
+                if (!isCorrect && quickStart.isActive && quickStart.currentLevel) {
                     this._dictFirstAttemptReported = true;
-                    if (quickStart.isActive && quickStart.currentLevel) {
-                        quickStart.onAnswerChecked(false); // Zählt als Erstversuch falsch
-                    }
+                    quickStart.onAnswerChecked(false);
                 }
 
                 if (isCorrect) {
@@ -7149,6 +7150,7 @@ Gerät:
             },
 
             generateNewTask() {
+                this._wrongLock = false;
                 // Separater Generator für andere Aufgabentypen
                 if (this.settings.taskType === 'note-addition') {
                     this.generateAdditionTask();
@@ -8650,6 +8652,9 @@ Gerät:
             },
 
             checkAnswer() {
+                // Nach einem Fehlversuch gesperrt, bis das Feld zurückgesetzt ist (sonst zählte ein
+                // zweites Enter als weiterer Fehlversuch)
+                if (this._wrongLock) return;
                 // Addition-Aufgabe: Separater Check
                 if (this.settings.taskType === 'note-addition') {
                     this.checkAdditionAnswer();
@@ -8786,25 +8791,17 @@ Gerät:
                     startStatus.className = 'input-status-icon incorrect';
                     startStatus.textContent = '✗';
                     
-                    // QUICK-START HOOK: Quiz-System (auch bei falsch!)
-                    if (quickStart.currentLevel) {
-                        setTimeout(() => {
-                            quickStart.onAnswerChecked(false);
-                        }, 1500);
-                        // NICHT return - Feedback soll noch angezeigt werden
-                    }
-                    
-                    // Formatiere korrekte Antwort für Anzeige
-                    const displayAnswer = isCountingTime 
-                        ? this.currentTask.correctStartCounting 
-                        : this.currentTask.correctRhythmSyllable;
-                    
                     feedback.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>Eingabe: <span style="color:#ef4444;">✗</span>`;
                     feedback.className = 'feedback incorrect';
                     feedback.classList.remove('hidden');
-                    
+
+                    // QUICK-START HOOK: Fehlversuch sofort melden (die Eingabe steht noch im Feld)
+                    this._wrongLock = true;
+                    if (quickStart.currentLevel) quickStart.onAnswerChecked(false);
+
                     // Feld nach 2.5s für neuen Versuch zurücksetzen
                     setTimeout(() => {
+                        this._wrongLock = false;
                         startInput.value = '';
                         startInput.classList.remove('input-validated-incorrect');
                         startStatus.className = 'input-status-icon pending';
@@ -8822,8 +8819,9 @@ Gerät:
                 const input = document.getElementById('additionInput');
                 const status = document.getElementById('additionStatus');
                 const feedback = document.getElementById('additionFeedback');
-                // Nach richtiger Antwort gesperrt: zweites Prüfen (Doppelklick) nicht erneut zählen
-                if (input.disabled) return;
+                // Nach richtiger Antwort gesperrt: zweites Prüfen (Doppelklick) nicht erneut zählen;
+                // nach einem Fehlversuch bis zum Zurücksetzen des Feldes
+                if (input.disabled || this._wrongLock) return;
                 
                 // Leere Eingabe: Hinweis statt Fehler
                 if (!input.value.trim()) {
@@ -8916,14 +8914,6 @@ Gerät:
                     status.className = 'input-status-icon incorrect';
                     status.textContent = '✗';
                     
-                    // QUICK-START HOOK: Quiz-System (auch bei falsch!)
-                    if (quickStart.currentLevel) {
-                        setTimeout(() => {
-                            quickStart.onAnswerChecked(false);
-                        }, 1500);
-                        // NICHT return - Feedback soll noch angezeigt werden
-                    }
-                    
                     // Formatiere korrekte Summe (runde bei Triolen)
                     let displaySum = correctSum;
                     if (Math.abs(correctSum - Math.round(correctSum * 100) / 100) > 0.001) {
@@ -8945,9 +8935,15 @@ Gerät:
                     }
                     feedback.className = 'feedback incorrect';
                     feedback.classList.remove('hidden');
-                    
+
+                    // QUICK-START HOOK: Fehlversuch sofort melden (nach der Probe-Weiche oben,
+                    // die Eingabe steht noch im Feld); bis zum Zurücksetzen keine weitere Prüfung
+                    this._wrongLock = true;
+                    if (quickStart.currentLevel) quickStart.onAnswerChecked(false);
+
                     // Feld nach 2.5s für neuen Versuch zurücksetzen
                     setTimeout(() => {
+                        this._wrongLock = false;
                         input.value = '';
                         input.classList.remove('input-validated-incorrect');
                         status.className = 'input-status-icon pending';
