@@ -2434,8 +2434,10 @@
             kinds.forEach(kind => cases.filter(x => x.kind === kind || !cases.some(y => y.kind === kind)).forEach(x => {
                 const K = CLEF[x.clef] || CLEF.treble;
                 const st = errorTracker._extractStammton(x.tname);
-                if (kind === 'stamm') {
-                    add(`Unsicher im ${K.name}?`, K.anchor, cardKey(c, x, 'basis'));
+                if (kind === 'stamm' || kind === 'taste') {
+                    // Tastatur: andere Taste kann auch ein Lesefehler sein → Lesehilfen dazu
+                    if (kind === 'taste') add('Unsicher, wo eine Taste liegt?', 'Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.', cardKey(c, x, 'basis_tastatur'));
+                    if (c.mode === 'bilden' || !x.ledger) add(`Unsicher im ${K.name}?`, K.anchor, cardKey(c, x, 'basis'));
                     if (c.mode === 'bilden') {
                         add('Unsicher, welcher Stammton auf welcher Linie liegt?', K.lines);
                         add('Unsicher, welcher Stammton in welchem Zwischenraum liegt?', K.spaces);
@@ -2479,8 +2481,6 @@
                     } else {
                         add('Unsicher, in welcher Lage der Ton liegt?', K.lage[x.ledger ? (x.below ? 'unten' : 'oben') : 'system'], cardKey(c, x, 'lagen'));
                     }
-                } else if (kind === 'taste') {
-                    add('Unsicher, wo eine Taste liegt?', 'Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.', cardKey(c, x, 'basis_tastatur'));
                 }
             }));
             return out;
@@ -2543,6 +2543,14 @@
                 at.clef = c.mode === 'bilden' ? c.clef : app.currentNote.clef;
                 const vz = errorTracker._extractVZ(tn);
                 at.acc = vz === 'is' ? 'sharp' : vz === 'es' ? 'flat' : null;
+                // Schlüsselfehler (Übungen mit beiden Schlüsseln): Die Antwort passt zum anderen Schlüssel
+                if (app.settings.clef === 'both' && ['stamm', 'hilf', 'taste'].includes(at.kind)) {
+                    const other = at.clef === 'bass' ? 'treble' : 'bass';
+                    const letterAt = pos => { for (const [k, v] of Object.entries(app.notePositions)) { const p = k.split('-'); if (p[2] === other && v === pos) return p[0]; } return null; };
+                    at.clefErr = c.mode === 'bilden'
+                        ? at.ppos !== undefined && letterAt(at.ppos) === errorTracker._extractStammton(tn)
+                        : at.pos !== undefined && letterAt(at.pos) === at.ustamm;
+                }
             }
             return at;
         }
@@ -2582,7 +2590,7 @@
                 const vzErr = !!vzT && (pc(app.selectedKey) === pc(stPitch) || pc(app.selectedKey) === pc(stPitch + (vzT === 'is' ? -1 : 1)));
                 const kbEl = document.getElementById('keyboard');
                 const kb = `<div class="wq-kb">${kbEl ? kbEl.innerHTML.replace(/\sid="[^"]*"/g, '').replace(/\sonclick="[^"]*"/g, '') : ''}</div>`;
-                return { kind: samePc ? 'lage' : vzErr ? 'vz' : 'taste', user: 'die Taste ' + keyName, verb: 'angeklickt', uname: keyName, uoct: k.octave, img, kb, hasVz, ...info };
+                return { kind: samePc ? 'lage' : vzErr ? 'vz' : 'taste', user: 'die Taste ' + keyName, verb: 'angeklickt', uname: keyName, uoct: k.octave, ustamm: errorTracker._extractStammton(k.name), img, kb, hasVz, ...info };
             }
             const raw = (document.getElementById('noteInput').value || '').trim();
             if (!raw) return null;
@@ -2597,7 +2605,7 @@
             const stOk = errorTracker._extractStammton(name).toLowerCase() === errorTracker._extractStammton(t.name).toLowerCase();
             const vzOk = errorTracker._extractVZ(name) === errorTracker._extractVZ(t.name);
             const kind = !stOk ? (info.ledger ? 'hilf' : 'stamm') : !vzOk ? 'vz' : 'lage';
-            return { kind, user, verb: 'eingegeben', uname: user, uoct: octSel && octSel.value ? octSel.value : null, img, hasVz, ...info };
+            return { kind, user, verb: 'eingegeben', uname: user, uoct: octSel && octSel.value ? octSel.value : null, ustamm: errorTracker._extractStammton(name), img, hasVz, ...info };
         }
 
         // Genaue Lage im Notensystem (Position 0 = unterste Linie). akk = wohin gesetzt (Schreiben).
@@ -2626,13 +2634,14 @@
         // Was beide Fälle gemeinsam haben: genaue Lage der Note + welcher Teil der Antwort nicht stimmte
         function common(two, c, one) {
             const [a, b] = two;
-            // Wechselt der Schlüssel in der Übung, gehört er zur Lage dazu
-            const clefIn = x => app.settings.clef === 'both' ? `im ${x.clef === 'bass' ? 'Bassschlüssel' : 'Violinschlüssel'} ` : '';
+            // Schlüssel nur nennen, wenn die Antwort zum anderen Schlüssel passt (Schlüsselfehler)
+            const clefIn = x => x.clefErr ? `im ${x.clef === 'bass' ? 'Bassschlüssel' : 'Violinschlüssel'} ` : '';
+            // Vorzeichen nennen, obwohl es im Bild steht: Der Satz stellt die Verbindung zum Bild her
             const accTxt = x => x.acc === 'flat' ? ` und hat ein ${FLAT}` : x.acc === 'sharp' ? ` und hat ein ${SHARP}` : '';
             let where;
             const placedOk = k => k === 'vz' || k === 'lage';
             if (placedOk(a.kind) && placedOk(b.kind)) {
-                // Stammton stimmt: die Position im System ist kein Thema
+                // Stammton stimmt: die Position im System ist kein Thema, das Vorzeichen schon
                 where = a.kind === 'vz' && b.kind === 'vz' && one && c.mode !== 'bilden' && a.acc ? `Die Note hat ein ${a.acc === 'flat' ? FLAT : SHARP}. ` : '';
             } else if (c.mode === 'bilden') {
                 // Gesuchte Lage nicht verraten: beschreiben, wohin der Schüler gesetzt hat
@@ -2718,7 +2727,7 @@
             if (choice === 'klick') rel = same ? 'Zweimal an derselben Stelle verklickt man sich selten.' : 'Gut möglich, dass du dich verklickt hast.';
             else if (tasteOpen) rel = '';
             else if (choice === 'weiss') rel = '';
-            else if (choice === 'hilf' && !two.some(x => x.ledger)) rel = two[0].id === two[1].id || two.length < 2
+            else if (choice === 'hilf' && !two.some(x => x.ledger) && two.every(x => x.kind === 'vz' || x.kind === 'lage')) rel = two[0].id === two[1].id || two.length < 2
                 ? 'Die Note steht aber nicht auf einer Hilfslinie.' : 'Die Noten stehen aber nicht auf Hilfslinien.';
             else if (choice === 'vz' && !two.some(x => x.acc)) rel = two[0].id === two[1].id
                 ? 'Die Note hat aber kein Vorzeichen.' : 'Die Noten haben aber keine Vorzeichen.';
@@ -2732,14 +2741,18 @@
             // Aufgabentext nur, wo er Information trägt: beim Schreiben steckt der gesuchte Ton im Text,
             // beim Lesen und an der Tastatur zeigt das Bild schon alles.
             const taskText = (a, c) => c.mode === 'bilden' ? `Schreibe ${a.task}` : '';
-            if (one && c.mode === 'tastatur') {
+            if (one && c.mode !== 'lesen' && two[0].user === two[1].user) {
+                // Zweimal dieselbe Antwort: ein Bild reicht
+                const head = taskText(two[1], c) ? `<div class="wq-case-h">${taskText(two[1], c)}</div>` : '';
+                cases = `<div class="wq-case">${head}${two[1].img}${two[1].kb || ''}<div class="wq-case-u">Du hast zweimal ${c.mode === 'bilden' ? 'ein ' : ''}${wrong(two[1].user)} ${two[1].verb}.</div></div>`;
+            } else if (one && c.mode === 'tastatur') {
                 // Eine Note, zwei geklickte Tasten
                 cases = `<div class="wq-case">${two[1].img}`
                     + two.map((a, i) => `<div class="wq-case-h">${i + 1}. Versuch</div>${a.kb}<div class="wq-case-u">Du hast ${wrong(a.user)} ${a.verb}.</div>`).join('') + '</div>';
             } else if (one && c.mode === 'lesen') {
                 // Erster Versuch + Wiederholung: eine Aufgabe, zwei Antworten
                 cases = `<div class="wq-case">${two[1].img}`
-                    + `<div class="wq-case-u">Du hast erst ${wrong(two[0].user)}, dann ${wrong(two[1].user)} ${two[1].verb}.</div></div>`;
+                    + `<div class="wq-case-u">Du hast ${two[0].user === two[1].user ? `zweimal ${wrong(two[1].user)}` : `erst ${wrong(two[0].user)}, dann ${wrong(two[1].user)}`} ${two[1].verb}.</div></div>`;
             } else {
                 if (one) cases = `<div class="wq-case-h wq-full">${taskText(two[1], c)}</div>`;
                 // Schreiben: die gesetzte Note rot im System. Aufgabentext nur bei verschiedenen Aufgaben
@@ -2748,10 +2761,9 @@
                     + `<div class="wq-case-u">Du hast ${c.mode === 'bilden' ? 'ein ' : ''}${wrong(a.user)} ${a.verb}.</div></div>`).join('');
             }
 
-            // Rückfragen: zuerst zum Befund, dann zur eigenen Vermutung
+            // Hilfen nur zu den Kompetenzen, die die beobachteten Fehler betreffen
             const keys = [];
             kinds.forEach(k => keys.includes(k) || keys.push(k));
-            if (WQ[choice] && !keys.includes(choice)) keys.push(choice);
             const asks = helpFor(keys, c, two);
 
             panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${c.mode === 'tastatur' ? ' wq-col' : ''}">${cases}</div>`
