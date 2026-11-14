@@ -2098,15 +2098,16 @@
             activity() { this.lastActivity = Date.now(); }
         };
 
-        // Helmholtz-Helper (IT) — für Fehlerlisten im GF-Screen.
-        // 'eingestrichen' → ¹, 'zweigestrichen' → ², usw.
+        // Helmholtz-Helper (IT) — für Fehlerlisten und „Woran liegt es?“.
+        // Schreibweise mit Strichen wie auf den Tasten und im Notentrainer: c', c'', c''', Kontra mit Komma (C,).
         function _itHelmFromName(name, octave) {
             const lc = (name || '').charAt(0).toLowerCase() + (name || '').slice(1);
-            if (octave === 'kontra' || octave === 'gross') return (name || '');
+            if (octave === 'kontra') return (name || '') + ',';
+            if (octave === 'gross') return (name || '');
             if (octave === 'klein') return lc;
-            if (octave === 'eingestrichen') return lc + '¹';
-            if (octave === 'zweigestrichen') return lc + '²';
-            if (octave === 'dreigestrichen') return lc + '³';
+            if (octave === 'eingestrichen') return lc + "'";
+            if (octave === 'zweigestrichen') return lc + "''";
+            if (octave === 'dreigestrichen') return lc + "'''";
             return (name || '');
         }
         function _itHelmFromPitch(p) {
@@ -2853,7 +2854,7 @@
                             setM('aufsteiger', []); q.questionsAnswered = 10; q.questionsCorrect = 3;
                             E.reset();
                             // Beispiel-Fehlerzeilen für den Preview (analog NTs gfPreview)
-                            var _cErr = ['c¹–g¹ → du hast c¹–a¹ geklickt', 'd¹–a¹ → du hast d¹–h¹ geklickt'];
+                            var _cErr = ["c'–g' → du hast c'–a' geklickt", "d'–a' → du hast d'–h' geklickt"];
                             for (var i = 0; i < 4; i++) { E.logAnswer({ isCorrect: false, onsOk: false, tastaturOk: false, errLine: _cErr[i % _cErr.length] }); }
                             T.gfSession = [{ trainer: 'Intervalltrainer', level: 'aufsteiger', subskill: 'basis', mode: 'erkennen', inputType: 'tastatur', dims: { notensystem: { correct: 0, total: 4 }, tastatur: { correct: 0, total: 4 } } }];
                         } else {
