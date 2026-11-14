@@ -2663,7 +2663,7 @@
             const half = isHalfStep(n1, sc.octaves[i], n2, sc.octaves[i + 1]);
             const user = half ? 'Ganzton' : 'Halbton';
             const m1 = noteToMidi(n1, sc.octaves[i]), m2 = noteToMidi(n2, sc.octaves[i + 1]);
-            return { ...base, kind: 'gtht', user, uhtml: red(user), verb: 'gewählt', img: staffImg(), own: wqKbSvg([{ p: m1, fill: TASK }, { p: m2, fill: TASK }], [{ a: m1, b: m2, txt: user, col: '#0891b2', tcol: '#dc2626' }]),
+            return { ...base, kind: 'gtht', user, uhtml: red(user), verb: 'gewählt', img: staffImg(), own: wqKbSvg([{ p: m1, fill: TASK }, { p: m2, fill: TASK }], [{ a: m1, b: m2, txt: user + '?', col: '#0891b2', tcol: '#dc2626' }]),
                 n1: helm(n1, sc.octaves[i]), n2: helm(n2, sc.octaves[i + 1]), acc: hasAcc(n1) || hasAcc(n2) };
         }
         if (c.mode === 'mark') {

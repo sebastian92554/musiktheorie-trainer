@@ -2456,7 +2456,7 @@
         function hsKb(ch, vals) {
             const ms = [ch.note1, ch.note2, ch.note3].map(n => app._noteToMidi(n.name, n.octave)).sort((a, b) => a - b);
             // Beide Klammern teilen sich den Terzton: dort je 2 px Abstand, damit es zwei Klammern bleiben
-            return wqKbSvg(ms.map(p => ({ p, fill: '#93c5fd' })), [[0, 1], [1, 2]].map(([i, j], k) => ({ a: ms[i], b: ms[j], i1: k === 1 ? 2 : 0, i2: k === 0 ? 2 : 0, txt: `${vals[k][0] || '?'} HS`, col: '#059669', tcol: vals[k][1] ? '#16a34a' : '#dc2626' })));
+            return wqKbSvg(ms.map(p => ({ p, fill: '#93c5fd' })), [[0, 1], [1, 2]].map(([i, j], k) => ({ a: ms[i], b: ms[j], i1: k === 1 ? 2 : 0, i2: k === 0 ? 2 : 0, txt: `${vals[k][0] || '?'} HS${vals[k][1] ? '' : '?'}`, col: '#059669', tcol: vals[k][1] ? '#16a34a' : '#dc2626' })));
         }
 
         // Bilden: eigene Töne auf der Tastatur (falsche rot), darüber die Halbtonschritte zwischen ihnen.

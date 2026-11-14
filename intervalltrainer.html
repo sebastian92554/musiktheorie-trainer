@@ -2231,6 +2231,7 @@
         // Zählaufgaben (IT 3, 4a/4b, 4c): Gezählt wird auf der Tastatur → je Versuch eine Tastatur.
         // keys: [{ p: MIDI, fill }], brackets: [{ a, b, txt, col, tcol }] über den Tasten (a === b: nur Beschriftung).
         // Die Klammer zeigt, was gezählt wird, mit der eigenen Zahl (grün/rot), nie die Zielzahl.
+        // Eine falsche eigene Zahl steht als Frage da („11 HS?“), damit sie nicht wie die Lösung wirkt.
         function wqKbSvg(keys, brackets) {
             const W = 24, BW = 14, H = 80, BH = 50, Y = 34;
             const ps = keys.map(k => k.p);
@@ -2268,7 +2269,7 @@
             const m = ivMidis();
             if (!m) return '';
             return wqKbSvg([{ p: m[0], fill: BLUE }, { p: m[1], fill: BLUE }],
-                [{ a: m[0], b: m[1], txt: hsTxt(val), col: given ? '#3b82f6' : '#ea580c', tcol: given ? '#1d4ed8' : ok ? '#16a34a' : '#dc2626' }]);
+                [{ a: m[0], b: m[1], txt: hsTxt(val) + (given || ok ? '' : '?'), col: given ? '#3b82f6' : '#ea580c', tcol: given ? '#1d4ed8' : ok ? '#16a34a' : '#dc2626' }]);
         }
         // 4c: gegebenes Intervall blau mit seiner Zahl, das Komplementärintervall bis zur Oktave mit der eigenen Zahl
         function komplKb(val, ok, srcHT) {
@@ -2277,7 +2278,7 @@
             const [lo, hi] = m, top = lo + 12;
             return wqKbSvg([{ p: lo, fill: BLUE }, { p: hi, fill: BLUE }, { p: top, fill: ORANGE }],
                 [{ a: lo, b: hi, txt: hsTxt(srcHT), col: '#3b82f6', tcol: '#1d4ed8' },
-                 { a: hi, b: top, txt: hsTxt(val), col: '#ea580c', tcol: ok ? '#16a34a' : '#dc2626' }]);
+                 { a: hi, b: top, txt: hsTxt(val) + (ok ? '' : '?'), col: '#ea580c', tcol: ok ? '#16a34a' : '#dc2626' }]);
         }
 
         // Tasten im Feld nach der eigenen Antwort färben: richtig grün, falsch rot (Tonhöhe aus data-pitch)
