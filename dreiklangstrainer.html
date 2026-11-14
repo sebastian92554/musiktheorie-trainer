@@ -2219,6 +2219,8 @@
             // nacheinander im Erstversuch falsch.
             helpNudge(p) { this._send('help_nudge', { level: p.level, subskill: p.subskill, trigger: p.trigger }); },
             helpNudgeFollowed(p) { this._send('help_nudge_followed', { level: p.level, subskill: p.subskill, trigger: p.trigger }); },
+            // Hilfe-Knopf geöffnet (where: 'quiz' oder 'menu'); seit „Woran liegt es?“ ohne Hilfe-Nudge
+            helpOpen(p) { this._send('help_open', { level: p.level, subskill: p.subskill, where: p.where }); },
             cardDismiss(p) {
                 this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart });
                 this._lastDismiss = { nodeId: p.nodeId, ms: p.ms_visible || 0, ts: Date.now() };
@@ -2689,6 +2691,8 @@
             const fb = anchorEl(c);
             fb.parentNode.insertBefore(panel, fb.nextSibling);
             document.body.classList.add('wq-open');
+            sendPhase(c, 'shown');
+            outcomeCtx = c;
         }
 
         function answer(choice, c) {
@@ -2735,7 +2739,15 @@
 
         function send(c, choice, observed, kinds, opened) {
             const p = { level: c.lvl, subskill: c.sub, choice, observed, errors: kinds, match: observed && !['klick', 'weiss'].includes(choice) && !OPEN.includes(observed) ? (FITS[observed] || []).includes(choice) : null };
+            p.phase = opened ? 'open' : 'choice';
             if (opened) p.opened = opened;
+            try { tracker.selfAssess(p); } catch (e) {}
+        }
+
+        // Feld angezeigt (auch ohne Wahl danach) und Ergebnis der nächsten Antwort danach
+        let outcomeCtx = null;
+        function sendPhase(c, phase, extra) {
+            const p = Object.assign({ level: c.lvl, subskill: c.sub, phase, errors: attempts.slice(-2).map(x => x.kind) }, extra || {});
             try { tracker.selfAssess(p); } catch (e) {}
         }
 
@@ -2746,8 +2758,11 @@
             ready() { return attempts.length >= 2; },
             show: showPanel,
             // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
-            onAnswer(ok, isRetry) { if (ok) { if (!isRetry) attempts = []; closePanel(); } },
-            reset() { attempts = []; closePanel(); }
+            onAnswer(ok, isRetry) {
+                if (outcomeCtx) { sendPhase(outcomeCtx, 'outcome', { ok: !!ok, retry: !!isRetry }); outcomeCtx = null; }
+                if (ok) { if (!isRetry) attempts = []; closePanel(); }
+            },
+            reset() { attempts = []; outcomeCtx = null; closePanel(); }
         };
         })();
 
@@ -3928,6 +3943,7 @@
             // Hilfe geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
             // _nudgeSpent verhindert erneutes Auslösen im selben Durchgang.
             noteHelpOpened() {
+                try { tracker.helpOpen({ level: this.isActive ? this.currentLevel : null, subskill: this.isActive ? this._nudgeSubskill() : null, where: this.isActive ? 'quiz' : 'menu' }); } catch (e) {}
                 if (this._nudgeActive) {
                     try {
                         tracker.helpNudgeFollowed({ level: this.currentLevel, subskill: this._nudgeSubskill(), trigger: this._nudgeTrigger });

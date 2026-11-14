@@ -37,7 +37,8 @@ const SCHOOL_MARKER_TOKEN = 'mt-2026-k7zQ9pX4vB8nL3cF';
 // aktive Sheet. Bei jedem neuen Event im Tracker hier mit eintragen.
 const EVENTS_TYPES = ['page_view', 'quiz_start', 'quiz_complete', 'heartbeat',
   'node_select', 'card_view', 'quiz_abandon', 'landing_click', 'card_dismiss',
-  'subskill_dismiss', 'help_nudge', 'help_nudge_followed', 'tip_open', 'self_assess'];
+  'subskill_dismiss', 'help_nudge', 'help_nudge_followed', 'tip_open', 'self_assess',
+  'help_open'];
 const EVENTS_HEADERS = ['ts', 'schema', 'env', 'eventType', 'trainer',
   'device', 'referrer', 'sessionId', 'payload'];
 

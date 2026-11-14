@@ -669,6 +669,103 @@ function runAnalyse() {
   push('');
   push('  Lesehilfe Auslöser', 'retry = in derselben Aufgabe festgehangen; erstversuch = zwei Aufgaben nacheinander im Erstversuch falsch');
   push('  Lesehilfe Quote', 'Hohe Nudge-Quote = Subskill zu schwer oder Aufgabe unklar. Niedrige Befolgt-Quote = Signal wird übersehen oder Hilfe gilt als nutzlos.');
+  push('  Hinweis', 'Seit 14.11.2026 ersetzt durch „Woran liegt es?“ (unten); hier nur noch Altdaten.');
+  push('');
+
+  // „WORAN LIEGT ES?“ — Selbsteinschätzung nach zwei Fehlversuchen (self_assess, seit 14.11.2026)
+  // Ersetzt den Hilfe-Nudge (oben, bleibt nur für Altdaten). Phasen im payload:
+  //   shown   = Feld erschienen (errors = die beiden beobachteten Fehlerarten)
+  //   choice  = Vermutung gewählt (choice, observed, match = Vermutung passt zum Befund)
+  //   open    = Hilfe bzw. Vergleich aufgeklappt (opened = Beschriftung)
+  //   outcome = nächste Antwort danach (ok)
+  // Ältere Events ohne phase stammen aus der Wahl → zählen als choice.
+  // Fragen: Wo hängen Schüler (Fehlerarten)? Erkennen sie ihren Fehler selbst
+  // (Trefferquote, Kegan-Brücke)? Wird das Feld genutzt (Antwortquote)? Hilft es (outcome)?
+  push('— WORAN LIEGT ES? (self_assess, alle Segmente) —');
+  const wq = {};            // key → {shown, choice, matchT, matchF, klick, weiss, outOk, outN}
+  const wqErr = {};         // Fehlerart → Anzahl (aus shown)
+  const wqOpen = {};        // aufgeklappte Hilfe → Anzahl
+  const WQ0 = () => ({ shown: 0, choice: 0, matchT: 0, matchF: 0, klick: 0, weiss: 0, outOk: 0, outN: 0 });
+  const wqAll = WQ0();
+  sessions.forEach(s => {
+    (s.evAll || []).forEach(e => {
+      if (e.eventType !== 'self_assess') return;
+      const p = e.payload || {};
+      const ph = p.phase || (p.opened ? 'open' : 'choice');
+      const k = _sk(s.trainer, p.level, p.subskill);
+      const a = wq[k] = wq[k] || WQ0();
+      [a, wqAll].forEach(x => {
+        if (ph === 'shown') x.shown++;
+        if (ph === 'choice') {
+          x.choice++;
+          if (p.match === true) x.matchT++;
+          if (p.match === false) x.matchF++;
+          if (p.choice === 'klick') x.klick++;
+          if (p.choice === 'weiss') x.weiss++;
+        }
+        if (ph === 'outcome') { x.outN++; if (p.ok) x.outOk++; }
+      });
+      if (ph === 'shown') (p.errors || []).forEach(t => { const kk = s.trainer + ' · ' + t; wqErr[kk] = (wqErr[kk] || 0) + 1; });
+      if (ph === 'open' && p.opened) { const kk = s.trainer + ' · ' + p.opened; wqOpen[kk] = (wqOpen[kk] || 0) + 1; }
+    });
+  });
+  push('  Feld angezeigt', wqAll.shown + (nQuizStart ? ' (' + _pct(wqAll.shown, nQuizStart) + '% der Quiz-Starts)' : ''));
+  push('  Vermutung gewählt', wqAll.choice + ' (' + _pct(wqAll.choice, wqAll.shown) + '% der angezeigten)');
+  push('  Trefferquote Vermutung', _pct(wqAll.matchT, wqAll.matchT + wqAll.matchF) + '% (' + wqAll.matchT + '/' + (wqAll.matchT + wqAll.matchF) + ', nur trennbare Fehlerarten)');
+  push('  „Weiß ich nicht“ / „verklickt“', wqAll.weiss + ' / ' + wqAll.klick);
+  push('  Nächste Antwort richtig', _pct(wqAll.outOk, wqAll.outN) + '% (' + wqAll.outOk + '/' + wqAll.outN + ')');
+  push('');
+  Object.keys(wq).sort((x, y) => wq[y].shown - wq[x].shown).forEach(k => {
+    const a = wq[k];
+    if (!a.shown && !a.choice) return;
+    push('  ' + k, 'angezeigt ' + a.shown + ' | gewählt ' + a.choice + ' | Treffer ' + _pct(a.matchT, a.matchT + a.matchF) + '% | weiß nicht ' + a.weiss + ' | danach richtig ' + _pct(a.outOk, a.outN) + '%');
+  });
+  if (!wqAll.shown && !wqAll.choice) push('  (keine self_assess-Events — Feature noch frisch oder Code.gs-Whitelist prüfen)');
+  push('');
+  push('  Häufigste Fehlerarten (beim Anzeigen)', '');
+  Object.keys(wqErr).sort((x, y) => wqErr[y] - wqErr[x]).slice(0, 15).forEach(k => push('    ' + k, wqErr[k]));
+  push('  Am häufigsten aufgeklappt', '');
+  Object.keys(wqOpen).sort((x, y) => wqOpen[y] - wqOpen[x]).slice(0, 15).forEach(k => push('    ' + k, wqOpen[k]));
+  push('');
+  push('  Lesehilfe Trefferquote', 'Steigt sie über die Wochen, lernen Schüler, ihre Fehler selbst einzuordnen. Niedrig + viel „Weiß ich nicht“ = Fehlerarten im Feld zu abstrakt formuliert.');
+  push('  Lesehilfe Antwortquote', 'Niedrig = Feld wird weggeklickt (zu lang, falscher Moment). „Danach richtig“ vergleichen mit der normalen Quote nach zwei Fehlern.');
+  push('');
+
+  // HILFE-KNOPF (help_open, seit 14.11.2026) — Hilfe aktiv geöffnet, im Quiz oder im Menü
+  push('— HILFE-KNOPF (help_open, alle Segmente) —');
+  const ho = {};
+  let hoQuiz = 0, hoMenu = 0;
+  sessions.forEach(s => {
+    (s.evAll || []).forEach(e => {
+      if (e.eventType !== 'help_open') return;
+      const p = e.payload || {};
+      if (p.where === 'menu') { hoMenu++; return; }
+      hoQuiz++;
+      const k = _sk(s.trainer, p.level, p.subskill);
+      ho[k] = (ho[k] || 0) + 1;
+    });
+  });
+  push('  geöffnet im Quiz / im Menü', hoQuiz + ' / ' + hoMenu);
+  push('  je Quiz-Start', _pct(hoQuiz, nQuizStart) + '%');
+  Object.keys(ho).sort((x, y) => ho[y] - ho[x]).slice(0, 15).forEach(k => push('  ' + k, ho[k]));
+  if (!hoQuiz && !hoMenu) push('  (keine help_open-Events — Feature noch frisch oder Code.gs-Whitelist prüfen)');
+  push('');
+
+  // RÜCKFRAGEN IN LERNKARTEN (tip_open) — welche benannten Unsicherheiten werden aufgeklappt?
+  push('— LERNKARTEN-RÜCKFRAGEN (tip_open, alle Segmente) —');
+  const tip = {};
+  sessions.forEach(s => {
+    (s.evAll || []).forEach(e => {
+      if (e.eventType !== 'tip_open') return;
+      const p = e.payload || {};
+      const k = s.trainer + ' · ' + (p.card || '?') + ' → ' + (p.target || '?');
+      tip[k] = (tip[k] || 0) + 1;
+    });
+  });
+  const tipKeys = Object.keys(tip).sort((x, y) => tip[y] - tip[x]);
+  tipKeys.slice(0, 20).forEach(k => push('  ' + k, tip[k]));
+  if (!tipKeys.length) push('  (keine tip_open-Events — Feature noch frisch oder Code.gs-Whitelist prüfen)');
+  push('  Lesehilfe', 'Karte → Ziel der Rückfrage. Häufig aufgeklappt = diese Vorkenntnis fehlt oft; dort Lernkarte/Übung davor stärken.');
   push('');
 
   // Engagement-Tiefe (Abschließer organik)
@@ -1138,12 +1235,12 @@ function installAnalyseTrigger() {
 //  top_trainer | top_trainer_n
 //  median_dur_engaged_s | median_quizzes_per_active
 //  n_help_nudge | n_help_nudge_followed
+//  n_wq_shown | n_wq_choice | n_wq_outcome | n_wq_outcome_ok | n_help_open | n_tip_open  (seit 14.11.2026)
 //
-// ACHTUNG beim Erweitern der Spalten: Die Kopfzeile wird nur geschrieben,
-// wenn der Tab NEU angelegt wird (isNew unten). Bei bestehendem Tab bleibt
-// sie stehen, während neue Zeilen bereits mehr Werte haben → Kopfzeile
-// einmalig von Hand ergänzen. Eingefrorene Tage werden nie neu geschrieben,
-// historische Zeilen bleiben in neuen Spalten also leer.
+// Beim Erweitern der Spalten: Ist der Tab schmaler als DAILY_HEADERS, ergänzt
+// _runDailyAggregates die Kopfzeile selbst (seit 14.11.2026). Neue Spalten nur
+// hinten anhängen. Eingefrorene Tage werden nie neu geschrieben, historische
+// Zeilen bleiben in neuen Spalten also leer.
 
 const DAILY_HEADERS = ['date', 'frozen', 'sessions_total', 'sessions_organik',
   'sessions_klassenraum', 'cat_abgeschlossen', 'cat_abgebrochen_aktiv',
@@ -1152,7 +1249,8 @@ const DAILY_HEADERS = ['date', 'frozen', 'sessions_total', 'sessions_organik',
   'n_quiz_abandon', 'n_landing_click', 'devices_desktop', 'devices_tablet',
   'devices_mobile', 'devices_other', 'top_trainer', 'top_trainer_n',
   'median_dur_engaged_s', 'median_quizzes_per_active',
-  'n_help_nudge', 'n_help_nudge_followed'];
+  'n_help_nudge', 'n_help_nudge_followed',
+  'n_wq_shown', 'n_wq_choice', 'n_wq_outcome', 'n_wq_outcome_ok', 'n_help_open', 'n_tip_open'];
 
 function _runDailyAggregates(sessions) {
   const ss = _ss();
@@ -1162,6 +1260,9 @@ function _runDailyAggregates(sessions) {
     tab = ss.insertSheet('Daily_Aggregates');
     tab.getRange(1, 1, 1, DAILY_HEADERS.length).setValues([DAILY_HEADERS]);
     tab.setFrozenRows(1);
+  } else if (tab.getLastColumn() < DAILY_HEADERS.length) {
+    // Neue Spalten: Kopfzeile ergänzen (historische Zeilen bleiben in den neuen Spalten leer)
+    tab.getRange(1, 1, 1, DAILY_HEADERS.length).setValues([DAILY_HEADERS]);
   }
 
   // Bestehende Zeilen einlesen — ALLE Tage (auch fluide), nicht nur frozen.
@@ -1344,6 +1445,9 @@ function _dailyAggregateRow(date, daySessions, dayEvents, isFluid) {
   const catN = (c) => daySessions.filter(s => s.cat === c).length;
   const evN = (t) => dayEvents.filter(e => e.eventType === t).length;
   const devN = (d) => dayEvents.filter(e => e.device === d).length;
+  // „Woran liegt es?“ nach Phase; alte self_assess-Events ohne phase = Wahl
+  const wqN = (ph) => dayEvents.filter(e => e.eventType === 'self_assess' &&
+    ((e.payload || {}).phase || ((e.payload || {}).opened ? 'open' : 'choice')) === ph).length;
 
   // Top-Trainer (über Events, nicht Sessions — robuster bei viele kurze)
   const trainers = {};
@@ -1381,6 +1485,9 @@ function _dailyAggregateRow(date, daySessions, dayEvents, isFluid) {
     dayEvents.filter(e => ['desktop', 'tablet', 'mobile'].indexOf(e.device) < 0).length,
     topTr, topN,
     medEng, medQc,
-    evN('help_nudge'), evN('help_nudge_followed')
+    evN('help_nudge'), evN('help_nudge_followed'),
+    wqN('shown'), wqN('choice'), wqN('outcome'),
+    dayEvents.filter(e => e.eventType === 'self_assess' && (e.payload || {}).phase === 'outcome' && (e.payload || {}).ok).length,
+    evN('help_open'), evN('tip_open')
   ];
 }
