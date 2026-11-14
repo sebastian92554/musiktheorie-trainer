@@ -479,9 +479,14 @@
         .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
         .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
         .wq-wrong { color: #dc2626; }
+        .wq-right { color: #16a34a; }
         .wq-full { width: 100%; text-align: left; }
         .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
         .wq-kb .selected { background: #fca5a5 !important; border-color: #dc2626 !important; }
+        .wq-kb .wq-bad { background: #fca5a5 !important; border-color: #dc2626 !important; }
+        .wq-kb .wq-good { background: #86efac !important; border-color: #16a34a !important; }
+        .wq-case.wq-task { flex: 1 1 100%; }
+        .wq-kbsvg { display: block; margin: 4px auto 0; width: 100%; max-width: 360px; height: auto; }
         .wq-cmp { border-color: #fdba74; }
         body.wq-open #feedback, body.wq-open #helpBtn, body.wq-open .int4-feedback { display: none !important; }
         .wq-go { display: block; width: 100%; margin-top: 12px; background: #ea580c; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
@@ -2186,7 +2191,7 @@
             rahmen: ['rahmen', 'oktave'], ht: ['ht', 'tasten', 'vz', 'wissen', 'kompl'], fein: ['fein', 'vz', 'wissen'],
             ton: ['tasten', 'lesen'], lage: ['lage']
         };
-        const PART = { kompl: 'die Halbtonzahl des Komplementärintervalls', rahmen: 'das Rahmenintervall', ht: 'die Zahl der Halbtonschritte', fein: 'die Feinbestimmung', ton: 'die Töne', lage: 'die Lage' };
+        const PART = { kompl: 'die Halbtonschrittanzahl des Komplementärintervalls', rahmen: 'das Rahmenintervall', ht: 'die Zahl der Halbtonschritte', fein: 'die Feinbestimmung', ton: 'die Töne', lage: 'die Lage' };
 
         function ctx() {
             const lvl = quickStart.currentLevel;
@@ -2213,19 +2218,93 @@
         }
 
         // Aufgabenbild: Notensystem, bei Tastatur-Aufgaben mit Tastatur (gewählte Tasten rot)
-        function snapshot(c) {
+        // Gesetzte Note im Bild. look: 'red' (Stammton falsch), 'acc' (nur das Vorzeichen falsch → Kopf grün,
+        // Vorzeichen rot; _drawBuildingNoteAt zeichnet das Vorzeichen vor dem Kopf) oder 'plain' (Vorzeichen
+        // vergessen: im Bild wäre jede Farbe missverständlich, der Text markiert es).
+        function wqNote(name, oct, look) {
+            if (look === 'plain') return app._drawBuildingNoteAt(name, oct, 245, '#1f2937', false);
+            const red = app._drawBuildingNoteAt(name, oct, 245, '#dc2626', false);
+            if (look !== 'acc') return red;
+            const green = app._drawBuildingNoteAt(name, oct, 245, '#16a34a', false);
+            return red.slice(0, red.indexOf('<ellipse')) + green.slice(green.indexOf('<ellipse'));
+        }
+        // Zählaufgaben (IT 3, 4a/4b, 4c): Gezählt wird auf der Tastatur → je Versuch eine Tastatur.
+        // keys: [{ p: MIDI, fill }], brackets: [{ a, b, txt, col, tcol }] über den Tasten (a === b: nur Beschriftung).
+        // Die Klammer zeigt, was gezählt wird, mit der eigenen Zahl (grün/rot), nie die Zielzahl.
+        function wqKbSvg(keys, brackets) {
+            const W = 24, BW = 14, H = 80, BH = 50, Y = 34;
+            const ps = keys.map(k => k.p);
+            const start = Math.min(...ps) - ((Math.min(...ps) % 12) + 12) % 12;
+            const end = Math.max(...ps) - ((Math.max(...ps) % 12) + 12) % 12 + 11;
+            const WHITE = [0, 2, 4, 5, 7, 9, 11];
+            const isW = p => WHITE.includes(((p % 12) + 12) % 12);
+            const pos = {}; let wi = -1;
+            for (let p = start; p <= end; p++) { if (isW(p)) { wi++; pos[p] = { x: wi * W, cx: wi * W + W / 2 }; } else pos[p] = { x: wi * W + W - BW / 2, cx: wi * W + W }; }
+            const fill = p => (keys.find(k => k.p === p) || {}).fill;
+            let svg = `<svg class="wq-kbsvg" viewBox="-1 0 ${(wi + 1) * W + 2} ${Y + H + 2}" xmlns="http://www.w3.org/2000/svg">`;
+            for (let p = start; p <= end; p++) if (isW(p)) {
+                svg += `<rect x="${pos[p].x}" y="${Y}" width="${W}" height="${H}" rx="2" fill="${fill(p) || '#fff'}" stroke="#9ca3af"/>`;
+                if (p % 12 === 0) svg += `<text x="${pos[p].cx}" y="${Y + H - 6}" font-size="9" font-weight="700" fill="#ea580c" text-anchor="middle">${_itHelmFromPitch(p - 24)}</text>`;
+            }
+            for (let p = start; p <= end; p++) if (!isW(p)) svg += `<rect x="${pos[p].x}" y="${Y}" width="${BW}" height="${BH}" rx="2" fill="${fill(p) || '#1f2937'}" stroke="#1f2937"/>`;
+            brackets.forEach(({ a, b, txt, col, tcol }) => {
+                const x1 = pos[a].cx, x2 = pos[b].cx, by = Y - 6;
+                if (a !== b) svg += `<path d="M ${x1} ${by + 5} V ${by} H ${x2} V ${by + 5}" fill="none" stroke="${col}" stroke-width="2"/>`;
+                svg += `<text x="${(x1 + x2) / 2}" y="${by - 5}" font-size="12" font-weight="700" fill="${tcol}" text-anchor="middle">${txt}</text>`;
+            });
+            return svg + '</svg>';
+        }
+        const BLUE = '#93c5fd', ORANGE = '#fdba74';
+        const hsTxt = v => `${v === '' || v == null ? '?' : v} HS`;
+        // Tonhöhen der beiden Intervalltöne (MIDI, tief → hoch)
+        function ivMidis() {
+            const iv = app.currentInterval;
+            if (!iv) return null;
+            const ms = [iv.note1, iv.note2].map(n => app._noteToMidi({ name: n.name, octave: n.octave }));
+            return [Math.min(...ms), Math.max(...ms)];
+        }
+        // Intervall mit Klammer: eigene Zahl (grün/rot) oder gegebene Zahl (blau, 4b)
+        function ivKb(val, ok, given) {
+            const m = ivMidis();
+            if (!m) return '';
+            return wqKbSvg([{ p: m[0], fill: BLUE }, { p: m[1], fill: BLUE }],
+                [{ a: m[0], b: m[1], txt: hsTxt(val), col: given ? '#3b82f6' : '#ea580c', tcol: given ? '#1d4ed8' : ok ? '#16a34a' : '#dc2626' }]);
+        }
+        // 4c: gegebenes Intervall blau mit seiner Zahl, das Komplementärintervall bis zur Oktave mit der eigenen Zahl
+        function komplKb(val, ok, srcHT) {
+            const m = ivMidis();
+            if (!m) return '';
+            const [lo, hi] = m, top = lo + 12;
+            return wqKbSvg([{ p: lo, fill: BLUE }, { p: hi, fill: BLUE }, { p: top, fill: ORANGE }],
+                [{ a: lo, b: hi, txt: hsTxt(srcHT), col: '#3b82f6', tcol: '#1d4ed8' },
+                 { a: hi, b: top, txt: hsTxt(val), col: '#ea580c', tcol: ok ? '#16a34a' : '#dc2626' }]);
+        }
+
+        // Tasten im Feld nach der eigenen Antwort färben: richtig grün, falsch rot (Tonhöhe aus data-pitch)
+        function colorKb(kb, good, bad) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = kb;
+            tmp.querySelectorAll('[data-pitch]').forEach(b => {
+                const p = parseInt(b.dataset.pitch);
+                b.classList.remove('selected', 'correct', 'wrong', 'validated-correct');
+                if (bad.includes(p)) b.classList.add('wq-bad');
+                else if (good.includes(p)) b.classList.add('wq-good');
+            });
+            return tmp.innerHTML;
+        }
+        function snapshot(c, look) {
             const st = document.getElementById('staffContainer');
             let img = st ? st.innerHTML.replace(/\sid="[^"]*"/g, '') : '';
             if (c.mode === 'bilden_staff' && app.buildingStaffNote) {
                 const p = app.buildingStaffNote;
                 const black = app._drawBuildingNoteAt(p.noteName, p.octave, 245, '#1f2937', false);
                 if (black) img = img.split(black).join('');
-                img = img.replace(/<circle[^>]*fill="#d1d5db"[^>]*\/>/g, '').replace('</svg>', app._drawBuildingNoteAt(p.noteName, p.octave, 245, '#dc2626', false) + '</svg>');
+                img = img.replace(/<circle[^>]*fill="#d1d5db"[^>]*\/>/g, '').replace('</svg>', wqNote(p.noteName, p.octave, look) + '</svg>');
             }
             if (c.mode === 'bilden_tast' && app.buildingSelectedKey) {
                 const k = app.buildingSelectedKey;
                 const cyan = app._drawBuildingNoteAt(k.name, k.oct, 245, '#0891b2', false);
-                if (cyan) img = img.split(cyan).join(app._drawBuildingNoteAt(k.name, k.oct, 245, '#dc2626', false));
+                if (cyan) img = img.split(cyan).join(wqNote(k.name, k.oct, look));
             }
             let kb = '';
             if (c.mode === 'tasten' || c.mode === 'bilden_tast') {
@@ -2233,6 +2312,27 @@
                 kb = `<div class="wq-kb">${el ? el.innerHTML.replace(/\sid="[^"]*"/g, '').replace(/\sonclick="[^"]*"/g, '') : ''}</div>`;
             }
             return { img, kb };
+        }
+
+        // ---- Antwort im Text: richtige Teile grün, falsche rot ----
+        const wqSpan = (t, ok) => `<span class="${ok ? 'wq-right' : 'wq-wrong'}">${t}</span>`;
+        const wqRed = t => `<strong class="wq-wrong">${t}</strong>`;
+        // Intervallname: Feinbestimmung und Rahmenintervall einzeln. Fehlt der falsche Teil in der Eingabe, alles rot.
+        function colorIv(raw, sizeOk, qOk) {
+            const t = (raw || '').trim();
+            const m = t.match(/^([rgküv])\s*(\d+)$/i);
+            if (m) return `<strong>${wqSpan(m[1], qOk)}${wqSpan(m[2], sizeOk)}</strong>`;
+            const QRE = /^(überm|ueberm|verm|gro|gr$|klein|kl$|rein)/i;
+            const toks = t.split(/(\s+)/);
+            const hasQ = toks.some(x => QRE.test(x));
+            if (!hasQ && !qOk && sizeOk) return wqRed(t);
+            return '<strong>' + toks.map(x => /^\s+$/.test(x) || !x ? x : wqSpan(x, QRE.test(x) ? qOk : sizeOk)).join('') + '</strong>';
+        }
+        // Notenname: Stammton(+Lage) grün, nur das Vorzeichen rot. Ohne geschriebenes Vorzeichen alles rot.
+        function colorAcc(tok) {
+            const m = (tok || '').match(/^([A-Ha-h])([a-z]+)([',]*)$/);
+            if (!m) return wqRed(tok);
+            return `<strong>${wqSpan(m[1], true)}${wqSpan(m[2], false)}${m[3] ? wqSpan(m[3], true) : ''}</strong>`;
         }
 
         // ---- Fehlversuch festhalten: Aufgabe, Antwort, welcher Teil nicht stimmte ----
@@ -2255,20 +2355,26 @@
                     return { q, size: size > 0 ? size : null };
                 };
                 const nameKind = (v, target) => { const p = parse(v); return p.size !== target.size ? 'rahmen' : 'fein'; };
+                const nameHtml = (v, target) => { const p = parse(v); return colorIv(v || '?', p.size === target.size, p.q === target.quality); };
                 if (t.type === 'bidirektional' && t.direction === 'nameToHt') {
+                    base.img = ''; base.kb = ivKb((ii.value || '').trim(), false);
                     return { ...base, kind: 'ht', user: htw(ii.value), verb: 'eingegeben', t, target: t.interval };
                 }
                 if (t.type === 'bidirektional') {
-                    return { ...base, kind: nameKind(ii.value, t.interval), user: ii.value || '?', verb: 'eingegeben', t, target: t.interval, uq: parse(ii.value).q };
+                    // Halbtonschrittanzahl steht in der Aufgabe → blau an der Klammer, der Name nur im Text
+                    base.img = ''; base.kb = ivKb(t.interval.ht, true, true);
+                    return { ...base, kind: nameKind(ii.value, t.interval), user: ii.value || '?', uhtml: nameHtml(ii.value, t.interval), verb: 'eingegeben', t, target: t.interval, uq: parse(ii.value).q };
                 }
                 if (t.type === 'komplement') {
                     const htOk = parseInt(si.value) === t.answerHT;
                     const nameShown = ii && ii.offsetParent;
                     const kind = !htOk ? 'kompl' : nameShown ? nameKind(ii.value, t.answer) : 'kompl';
                     const user = htw(si.value) + (nameShown ? ', ' + (ii.value || '?') : '');
-                    return { ...base, kind, user, verb: 'eingegeben', t, target: t.answer, uq: nameShown ? parse(ii.value).q : null };
+                    const uhtml = `<strong>${wqSpan(htw(si.value), htOk)}</strong>` + (nameShown ? ', ' + nameHtml(ii.value, t.answer) : '');
+                    base.img = ''; base.kb = komplKb((si.value || '').trim(), htOk, t.source.ht);
+                    return { ...base, kind, user, uhtml, verb: 'eingegeben', t, target: t.answer, uq: nameShown ? parse(ii.value).q : null };
                 }
-                return { ...base, kind: nameKind(ii.value, t.answer), user: ii.value || '?', verb: 'eingegeben', t, target: t.answer, uq: parse(ii.value).q };
+                return { ...base, kind: nameKind(ii.value, t.answer), user: ii.value || '?', uhtml: nameHtml(ii.value, t.answer), verb: 'eingegeben', t, target: t.answer, uq: parse(ii.value).q };
             }
             if (c.mode === 'bilden_tast' || c.mode === 'bilden_staff') {
                 const t = app.buildingCurrentTask;
@@ -2276,7 +2382,10 @@
                 if (!t || !sel) return null;
                 const steps = (sel.oct - t.startNote.oct) * 7 + app._getStaffPos(sel.name) - app._getStaffPos(t.startNote.name) + 1;
                 const kind = steps !== t.interval.steps ? 'rahmen' : 'fein';
-                return { ...base, kind, user: _itHelmFromName(sel.name, app._octNumToName(sel.oct)), verb: c.mode === 'bilden_tast' ? 'angeklickt' : 'geschrieben',
+                const uname = _itHelmFromName(sel.name, app._octNumToName(sel.oct));
+                // Rahmenintervall stimmt (richtiger Stammton): nur das Vorzeichen rot, im Text wie im Bild
+                if (kind === 'fein') base.img = snapshot(c, accOf(sel.name) ? 'acc' : 'plain').img;
+                return { ...base, kind, user: uname, uhtml: kind === 'fein' ? colorAcc(uname) : wqRed(uname), verb: c.mode === 'bilden_tast' ? 'angeklickt' : 'geschrieben',
                     steps, task: t, tacc: accOf(t.targetNote.name), interval: t.interval.name };
             }
             const iv = app.currentInterval;
@@ -2289,11 +2398,15 @@
                 const pit = n => app._noteToMidi({ name: n.name, octave: n.octave }) - 24;
                 const t1 = pit(iv.note1), t2 = pit(iv.note2);
                 const loOk = pc(keys[0]) === pc(t1), hiOk = pc(keys[1]) === pc(t2);
-                return { ...base, ...info, kind: loOk && hiOk ? 'lage' : 'ton', loOk, hiOk, keys, user: keys.map(k => _itHelmFromPitch(k)).join(' und '), verb: 'angeklickt' };
+                const uhtml = keys.map((k, i) => `<strong>${wqSpan(_itHelmFromPitch(k), k === [t1, t2][i])}</strong>`).join(' und ');
+                base.kb = colorKb(base.kb, keys.filter((k, i) => k === [t1, t2][i]), keys.filter((k, i) => k !== [t1, t2][i]));
+                return { ...base, ...info, kind: loOk && hiOk ? 'lage' : 'ton', loOk, hiOk, keys, user: keys.map(k => _itHelmFromPitch(k)).join(' und '), uhtml, verb: 'angeklickt' };
             }
             if (c.mode === 'ht') {
                 const v = (document.getElementById('semitonesInput') || {}).value;
                 if (!v) return null;
+                // Tastatur statt Notensystem: dort wird gezählt
+                base.img = ''; base.kb = ivKb(v, false);
                 return { ...base, ...info, kind: 'ht', user: v, verb: 'Halbtonschritte eingegeben' };
             }
             if (c.mode === 'rahmen') {
@@ -2309,7 +2422,7 @@
             const size = NAMES.findIndex((n, i) => i > 0 && low.includes(n.toLowerCase().slice(0, 4))) || null;
             const q = /überm|ueberm/.test(low) ? 'übermäßig' : /verm/.test(low) ? 'vermindert' : /gro|gr\b/.test(low) ? 'groß' : /klein|kl\b/.test(low) ? 'klein' : /rein/.test(low) ? 'rein' : null;
             const kind = size !== iv.size ? 'rahmen' : 'fein';
-            return { ...base, ...info, kind, user: raw, verb: 'eingegeben', usize: size, uq: q };
+            return { ...base, ...info, kind, user: raw, uhtml: colorIv(raw, size === iv.size, q === iv.quality), verb: 'eingegeben', usize: size, uq: q };
         }
 
         // ---- Vergleich: was bei beiden gleich war ----
@@ -2319,7 +2432,7 @@
             if (c.mode === 'kn4') {
                 if (a.kind !== b.kind) return `Nicht gestimmt hat ${one ? 'beim 1. Versuch' : 'bei der 1. Aufgabe'} ${PART[a.kind]}, ${one ? 'beim 2. Versuch' : 'bei der 2. Aufgabe'} ${PART[b.kind]}.`;
                 if (a.kind === 'ht') return 'Beide Male stimmte die Zahl der Halbtonschritte nicht.';
-                if (a.kind === 'kompl') return 'Beide Male stimmte die Halbtonzahl des Komplementärintervalls nicht.';
+                if (a.kind === 'kompl') return 'Beide Male stimmte die Halbtonschrittanzahl des Komplementärintervalls nicht.';
                 if (a.kind === 'rahmen') return 'Beide Male stimmte das Rahmenintervall nicht.';
                 const qs = [...new Set(two.map(x => x.uq).filter(Boolean))].map(q => nm(QW[q]));
                 return `Das Rahmenintervall ${NAMES[a.target.size]} stimmte beide Male, die Feinbestimmung${qs.length ? ' ' + qs.join(' und ') : ''} nicht.`;
@@ -2383,6 +2496,8 @@
                         else add('Unsicher bei groß und klein?', `Groß hat einen Halbtonschritt mehr als klein. Zum Beispiel: ${list(GK)} Halbtonschritte.`, 'int4_grossklein');
                     }
                     if (k === 'ht' && a.t.type === 'bidirektional') add('Unsicher beim Abzählen der Halbtonschritte?', 'Zähle auf der Tastatur Taste für Taste, schwarze Tasten mit, die Starttaste nicht.', 'int3_basis');
+                    // 4c: Die Halbtonschrittanzahl wird auf der Tastatur gezählt (wie im Bild: von der oberen Taste bis zur Oktave)
+                    if (k === 'kompl') add('Unsicher beim Abzählen der Halbtonschritte?', 'Zähle auf der Tastatur vom oberen Ton des gegebenen Intervalls bis zur Oktave, Taste für Taste, schwarze Tasten mit, die Starttaste nicht.', 'int3_basis');
                     if (k === 'kompl' || (a.t.type === 'komplement' && k === 'fein')) add('Unsicher beim Komplementärintervall?', 'Beide Intervalle ergeben zusammen eine Oktave, also 12 Halbtonschritte. Rein bleibt rein, groß wird klein, klein wird groß.', 'int4_komplement');
                     if (a.t.type === 'augdim' || (k === 'fein' && c.opts.includes('augdim'))) add('Unsicher bei übermäßig und vermindert?', 'Übermäßig ist einen Halbtonschritt mehr als rein oder groß, vermindert einen weniger als rein oder klein.', 'int4_augdim');
                 });
@@ -2468,31 +2583,30 @@
             else if (same && (FITS[observed] || []).includes(choice)) rel = (observed === 'rahmen' && c.mode === 'rahmen') || (observed === 'ht') ? '' : 'Das passt zu deiner Vermutung.';
             else if (kinds.some(k => (FITS[k] || []).includes(choice))) rel = same ? '' : 'Einer der beiden Fehler passt zu deiner Vermutung.';
 
-            const wrong = x => `<strong class="wq-wrong">${x}</strong>`;
+            const U = x => x.uhtml || wqRed(x.user);
             const bild = c.mode === 'bilden_tast' || c.mode === 'bilden_staff';
             const textTask = bild || c.mode === 'kn4'; // Aufgabe steckt im Text
+            // Immer beide Versuche nebeneinander, auch bei zweimal derselben Antwort (Vergleich).
+            // Dieselbe Aufgabe: Aufgabentext bzw. Aufgabenbild einmal oben; im Kasten je Versuch das Bild
+            // der eigenen Antwort (gesetzte Note, Tasten, 4c-Tastatur) und die Antwort.
+            const task = x => textTask ? x.instr.replace(/!.*$/, '.').replace(/\.$/, '') : '';
             let cases;
-            if (one && !textTask && c.mode !== 'tasten') {
-                const said = two[0].user === two[1].user ? `zweimal ${wrong(two[0].user)}` : `erst ${wrong(two[0].user)}, dann ${wrong(two[1].user)}`;
-                cases = `<div class="wq-case">${two[1].img}<div class="wq-case-u">Du hast ${said} ${two[1].verb}.</div></div>`;
-            } else if (one && two[0].user === two[1].user) {
-                // Zweimal dieselbe Antwort: ein Bild reicht
-                const task = bild || c.mode === 'kn4' ? `<div class="wq-case-h">${two[1].instr.replace(/!.*$/, '').replace(/\.$/, '')}</div>` : '';
-                cases = `<div class="wq-case">${task}${two[1].img}${two[1].kb}<div class="wq-case-u">Du hast zweimal ${wrong(two[1].user)} ${two[1].verb}.</div></div>`;
-            } else if (one && c.mode === 'tasten') {
-                cases = `<div class="wq-case">${two[1].img}` + two.map((x, i) => `<div class="wq-case-h">${i + 1}. Versuch</div>${x.kb}<div class="wq-case-u">Du hast ${wrong(x.user)} ${x.verb}.</div>`).join('') + '</div>';
+            if (one) {
+                const shared = !bild && two[1].img ? `<div class="wq-case wq-task">${two[1].img}</div>` : '';
+                cases = (task(two[1]) ? `<div class="wq-case-h wq-full">${task(two[1])}</div>` : '') + shared
+                    + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Versuch</div>${bild ? x.img : ''}${x.kb}`
+                    + `<div class="wq-case-u">Du hast ${U(x)} ${x.verb}.</div></div>`).join('');
             } else {
                 // Bilden: der gesuchte Ton steht nur im Aufgabentext → Aufgabe mit Verb mitgeben
-                const task = x => textTask ? x.instr.replace(/!.*$/, '.').replace(/\.$/, '') : '';
-                cases = (one ? `<div class="wq-case-h wq-full">${task(two[1])}</div>` : '')
-                    + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${one ? i + 1 + '. Versuch' : i + 1 + '. Aufgabe'}${!one && task(x) ? ': ' + task(x) : ''}</div>${x.img}${x.kb}`
-                    + `<div class="wq-case-u">Du hast ${wrong(x.user)} ${x.verb}.</div></div>`).join('');
+                cases = two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Aufgabe${task(x) ? ': ' + task(x) : ''}</div>${x.img}${x.kb}`
+                    + `<div class="wq-case-u">Du hast ${U(x)} ${x.verb}.</div></div>`).join('');
             }
             // Hilfen nur zu den Kompetenzen, die die beobachteten Fehler betreffen
             const keys = [];
             kinds.forEach(k => keys.includes(k) || keys.push(k));
             const asks = helpFor(keys, c, two);
-            const col = c.mode === 'tasten' || c.mode === 'bilden_tast';
+            // Tastaturen untereinander (Tasten, Bilden, Zählaufgaben mit Tastaturbild)
+            const col = c.mode === 'tasten' || c.mode === 'bilden_tast' || two.some(x => /wq-kbsvg/.test(x.kb || ''));
             panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${col ? ' wq-col' : ''}">${cases}</div>`
                 + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>Was haben deine beiden Fehler gemeinsam?</summary><div class="lk-ask-a">${common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
                 + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
@@ -3805,6 +3919,9 @@
             // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
             // Statt des Hilfe-Nudges erscheint nach zwei Fehlversuchen „Woran liegt es?“.
             registerWrongAttempt(trigger) {
+                // Misslungene Regel-Probe (4c) ist kein Fehlversuch: Sie zeigt nur, dass die Regel noch fehlt,
+                // und führt in die Fälle. Erst Fehler dort zählen für „Woran liegt es?“.
+                if (this._probeMiss) { this._probeMiss = false; return; }
                 woranPanel.record();
                 this._nudgeWrongInARow++;
                 if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD && woranPanel.ready()) {
@@ -6947,7 +7064,7 @@
                     if (stName) { stName.className = `input-status-icon ${nameCorrect ? 'correct' : 'incorrect'}`; stName.textContent = nameCorrect ? '✓' : '✗'; }
 
                     feedback = isCorrect ? '' : [
-                        htCorrect ? '' : 'Die Halbtonzahl stimmt nicht — beide Intervalle ergeben zusammen eine Oktave.',
+                        htCorrect ? '' : 'Die Halbtonschrittanzahl stimmt nicht — beide Intervalle ergeben zusammen eine Oktave.',
                         nameCorrect ? '' : nameHint(parsed, _aOk, _qOk)
                     ].filter(Boolean).join(' ');
 
@@ -6964,6 +7081,7 @@
                         } else {
                             const c = r4c.probeCats[r4c.probeIdx], o = (c === 'gk') ? 'rein' : 'gk';
                             r4c.mode = 'cases';
+                            quickStart._probeMiss = true;
                             r4c.caseCats = [c, c, o, o];
                             r4c.caseIdx = 0;
                             this._komplementCasePairs = [{ source: task.source, answer: answerFull }];
@@ -7466,7 +7584,7 @@
                     const isValidatedCorrect = keyboardValidatedCorrect && isSel && correctPCs.includes(keyPC);
                     const disabled = !isClickable || isValidatedCorrect;
 
-                    html += `<button class="white-key${isSel ? ' selected' : ''}${isCorr ? ' correct' : ''}${isWrong ? ' wrong' : ''}${isValidatedCorrect ? ' validated-correct' : ''}"
+                    html += `<button class="white-key${isSel ? ' selected' : ''}${isCorr ? ' correct' : ''}${isWrong ? ' wrong' : ''}${isValidatedCorrect ? ' validated-correct' : ''}" data-pitch="${key.pitch}"
                              ${disabled ? 'disabled' : `onclick="app.selectKey(${key.pitch})"`}
                              style="width: ${whiteKeyWidth}px"></button>`;
                 });
@@ -7482,7 +7600,7 @@
                     const isValidatedCorrect = keyboardValidatedCorrect && isSel && correctPCs.includes(keyPC);
                     const disabled = !isClickable || isValidatedCorrect;
 
-                    html += `<button class="black-key${isSel ? ' selected' : ''}${isCorr ? ' correct' : ''}${isWrong ? ' wrong' : ''}${isValidatedCorrect ? ' validated-correct' : ''}"
+                    html += `<button class="black-key${isSel ? ' selected' : ''}${isCorr ? ' correct' : ''}${isWrong ? ' wrong' : ''}${isValidatedCorrect ? ' validated-correct' : ''}" data-pitch="${key.pitch}"
                              ${disabled ? 'disabled' : `onclick="app.selectKey(${key.pitch})"`}
                              style="left: ${leftPos}px; width: ${blackKeyWidth}px"></button>`;
                 });
@@ -7625,7 +7743,7 @@
                 } else if (pcsMatch && !distanceMatch) {
                     // Richtige Töne, aber falsche Oktavlage (z.B. G3-C4 statt C4-G4)
                     feedbackEl.className = 'feedback incorrect';
-                    // Nicht die Lösung zeigen (keine gesuchte Halbtonzahl): nur sagen, welcher Teil nicht stimmt
+                    // Nicht die Lösung zeigen (keine gesuchte Halbtonschrittanzahl): nur sagen, welcher Teil nicht stimmt
                     feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong> Beide Töne stimmen, aber nicht die Lage.<br>` +
                         `<span style="font-size:0.9em;">Achte darauf, in welcher Oktave die Töne im Notensystem stehen.</span>`;
 
