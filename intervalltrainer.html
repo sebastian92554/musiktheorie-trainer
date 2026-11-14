@@ -2376,8 +2376,15 @@
                 const steps = (sel.oct - t.startNote.oct) * 7 + app._getStaffPos(sel.name) - app._getStaffPos(t.startNote.name) + 1;
                 const kind = steps !== t.interval.steps ? 'rahmen' : 'fein';
                 const uname = _itHelmFromName(sel.name, app._octNumToName(sel.oct));
-                // Rahmenintervall stimmt (richtiger Stammton): im Bild nur das Vorzeichen rot, im Text der ganze Name
-                if (kind === 'fein') base.img = snapshot(c, accOf(sel.name) ? 'acc' : 'plain').img;
+                // Rahmenintervall stimmt, Feinbestimmung nicht: Ursache sind die Halbtonschritte → Tastatur mit
+                // Startton (blau), eigenem Ton (rot) und der Halbtonschrittanzahl des eigenen Intervalls
+                if (kind === 'fein') {
+                    const m0 = app._noteToMidi({ name: t.startNote.name, octave: app._octNumToName(t.startNote.oct) });
+                    const m1 = app._noteToMidi({ name: sel.name, octave: app._octNumToName(sel.oct) });
+                    base.img = '';
+                    base.kb = wqKbSvg([{ p: m0, fill: BLUE }, { p: m1, fill: '#fca5a5' }],
+                        [{ a: Math.min(m0, m1), b: Math.max(m0, m1), txt: hsTxt(m1 - m0), col: '#ea580c', tcol: '#dc2626' }]);
+                }
                 return { ...base, kind, user: uname, uhtml: wqRed(uname), verb: c.mode === 'bilden_tast' ? 'angeklickt' : 'geschrieben',
                     steps, task: t, tacc: accOf(t.targetNote.name), interval: t.interval.name };
             }

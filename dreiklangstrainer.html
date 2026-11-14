@@ -2459,6 +2459,19 @@
             return wqKbSvg(ms.map(p => ({ p, fill: '#93c5fd' })), [[0, 1], [1, 2]].map(([i, j], k) => ({ a: ms[i], b: ms[j], i1: k === 1 ? 2 : 0, i2: k === 0 ? 2 : 0, txt: `${vals[k][0] || '?'} HS`, col: '#059669', tcol: vals[k][1] ? '#16a34a' : '#dc2626' })));
         }
 
+        // Bilden: eigene Töne auf der Tastatur (falsche rot), darüber die Halbtonschritte zwischen ihnen.
+        // Abstände, die nicht zum gesuchten Dreiklang passen, rot – so sieht man, wo das Muster bricht.
+        function buildKb(userMidis, badMidis, targetMidis) {
+            const u = userMidis.filter(Number.isFinite).sort((a, b) => a - b), tg = targetMidis.slice().sort((a, b) => a - b);
+            const keys = u.map(p => ({ p, fill: badMidis.includes(p) ? '#fca5a5' : '#93c5fd' }));
+            const br = [];
+            for (let i = 0; i + 1 < u.length; i++) {
+                const d = u[i + 1] - u[i], ok = tg.length === u.length && d === tg[i + 1] - tg[i];
+                br.push({ a: u[i], b: u[i + 1], i1: i > 0 ? 2 : 0, i2: i + 2 < u.length ? 2 : 0, txt: `${d} HS`, col: ok ? '#94a3b8' : '#dc2626', tcol: ok ? '#64748b' : '#dc2626' });
+            }
+            return wqKbSvg(keys, br);
+        }
+
         // ---- Fehlversuch festhalten ----
         function attemptOf(c) {
             const ti = document.getElementById('taskInstructionText');
@@ -2496,13 +2509,13 @@
                 const vzNotes = c.mode === 'bilden_staff' ? app.buildingStaffNotes.filter(stemOk) : [];
                 if (kind === 'rolle' && vzNotes.length && vzNotes.length === missing.length) kind = 'rollevz';
                 const badMidis = userMidis.filter(m => !rolePcs.includes(pc(m)));
-                const goodMidis = userMidis.filter(m => rolePcs.includes(pc(m)));
                 const badNotes = c.mode === 'bilden_staff' ? app.buildingStaffNotes.filter(n => !rolePcs.includes(pc(app._noteToMidi(n.name, n.oct))) || n === schreib) : [];
                 const low = userMidis.slice().sort((p, q) => p - q)[0];
-                // Stellungsfehler: alle Töne richtig, nur der unterste steht falsch → er ist rot, die anderen grün
-                const lowNote = c.mode === 'bilden_staff' ? app.buildingStaffNotes.find(n => app._noteToMidi(n.name, n.oct) === low) : null;
-                const img = c.mode === 'bilden_staff' ? staffSnapshot(kind === 'lage' ? [lowNote] : badNotes, vzNotes) : '';
-                const kb = c.mode === 'bilden_key' ? kbSnapshot(kind === 'lage' ? userMidis.filter(m => m !== low) : goodMidis, kind === 'lage' ? [low] : badMidis) : '';
+                // Stellungsfehler: alle Töne richtig, nur der unterste steht falsch → er ist rot
+                // Tastatur mit den Abständen; nur ein Schreibfehler (gleicher Klang, falscher Stammton) zeigt sich
+                // auf der Tastatur nicht → dann das Notensystem
+                const img = kind === 'schreib' ? staffSnapshot(badNotes, vzNotes) : '';
+                const kb = kind === 'schreib' ? '' : buildKb(userMidis, kind === 'lage' ? [low] : badMidis, t.targetNotes.map(n => n.midi));
                 const okOf = i => kind === 'lage' ? userMidis[i] !== low
                     : (c.mode === 'bilden_staff' && vzNotes.includes(app.buildingStaffNotes[i])) ? 'vz'
                     : (rolePcs.includes(pc(userMidis[i])) && !(schreib && c.mode === 'bilden_staff' && app.buildingStaffNotes[i] === schreib));
@@ -2711,7 +2724,7 @@
                 cases = two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Aufgabe${bild ? ': ' + x.taskText : ''}</div>${x.img}${x.kb}${u(x)}</div>`).join('');
             }
             const asks = helpFor(two, c);
-            panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${kbMode || c.mode === 'hs' ? ' wq-col' : ''}">${cases}</div>`
+            panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${kbMode || c.mode === 'hs' || c.mode === 'bilden_staff' ? ' wq-col' : ''}">${cases}</div>`
                 + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>Was haben deine beiden Fehler gemeinsam?</summary><div class="lk-ask-a">${common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
                 + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
                 + '<button class="wq-go">Weiter üben</button>';
