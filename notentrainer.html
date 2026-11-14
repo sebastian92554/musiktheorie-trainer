@@ -1403,6 +1403,29 @@
             line-height: 0;
         }
         .vz-sharp svg, .vz-flat svg { display: block; }
+
+        /* „Woran liegt es?“ nach zwei Fehlversuchen (woranPanel) */
+        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #c7d2fe; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(79,70,229,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1e1b4b; animation: wqIn 0.25s ease-out; }
+        @keyframes wqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .wq-q { font-weight: 700; margin: 0 0 10px; color: #3730a3; }
+        .wq-opts { display: flex; flex-direction: column; gap: 6px; }
+        .wq-opt { text-align: left; border: 1.5px solid #c7d2fe; background: #eef2ff; color: #312e81; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+        .wq-opt:hover { background: #e0e7ff; }
+        .wq-opt.secondary { background: #fff; border-color: #e5e7eb; color: #4b5563; }
+        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #3730a3; font-size: 0.88rem; }
+        .wq-cases { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .wq-case { flex: 1 1 0; min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px; text-align: center; }
+        .wq-case svg { width: 100% !important; height: auto !important; max-height: 110px; }
+        .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
+        .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
+        .wq-wrong { color: #dc2626; }
+        .wq-full { width: 100%; text-align: left; }
+        .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
+        .wq-cases.wq-col { flex-direction: column; }
+        .wq-kb .selected { background: #fca5a5 !important; border-color: #dc2626 !important; }
+        .wq-cmp { border-color: #a5b4fc; }
+        body.wq-open #feedback, body.wq-open #helpBtn { display: none !important; }
+        .wq-go { display: block; width: 100%; margin-top: 12px; background: #4f46e5; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -1889,6 +1912,9 @@
             subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
             cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
             tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
+            // „Woran liegt es?“: gewählte Vermutung (choice), beobachtete Fehlerart (observed),
+            // beide Fehlerarten (errors), match; opened = aufgeklappte Rückfrage.
+            selfAssess(p) { this._send('self_assess', p); },
             // Hilfe-Nudge: ausgelöst (help_nudge) und befolgt (help_nudge_followed).
             // Erst das Verhältnis beider zeigt, ob der Nudge wirkt. trigger:
             // 'retry' = in der Aufgabe festgehangen, 'erstversuch' = zwei Aufgaben
@@ -2355,6 +2381,405 @@
                 }
             }
         };
+
+        // ── „Woran liegt es?“ (ersetzt den Hilfe-Nudge, Nov 2026) ──
+        // Nach zwei Fehlversuchen in Folge, einmal pro Durchgang: Der Schüler wählt eine Vermutung,
+        // sieht seine beiden Versuche (Aufgabe + eigene Antwort, Fehler rot), klappt den Vergleich
+        // „Was haben deine beiden Fehler gemeinsam?“ und passende Hilfen auf. Verrät nie die Lösung.
+        // Mock: _entwicklung/mock_nt_woran.html (Problemfälle zum Durchspielen).
+        const woranPanel = (function () {
+        // ---- Fehlerarten: Antwort zum Auswählen (Schülersicht) und betroffener Teil der Antwort ----
+        // Im Fließtext des Feldes Schriftzeichen statt SVG (SVG bricht die Zeilen in <summary> auseinander)
+        const SHARP = '♯', FLAT = '♭';
+        const ask = (q, a, key) => `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}`
+            + (key ? ` <a class="lk-ask-more" href="#" onclick="app.showLernkarte('${key}', false); return false">Ausführlich nachlesen ›</a>` : '') + '</div></details>';
+        const WQ = {
+            stamm: { part: 'der Stammton', opt: { lesen: 'Ich bin unsicher, welcher Stammton auf welcher Linie oder in welchem Zwischenraum liegt.', bilden: 'Ich bin unsicher, auf welche Linie oder in welchen Zwischenraum der Stammton gehört.', tastatur: 'Ich bin unsicher, welcher Stammton auf welcher Linie oder in welchem Zwischenraum liegt.' } },
+            hilf: { part: 'der Stammton', opt: { lesen: 'Ich verzähle mich bei den Hilfslinien.', bilden: 'Ich verzähle mich bei den Hilfslinien.', tastatur: 'Ich verzähle mich bei den Hilfslinien.' } },
+            vz: { part: 'das Vorzeichen', opt: { lesen: 'Ich verwechsle „is“ und „es“.', bilden: 'Ich verwechsle „is“ und „es“.', tastatur: 'Ich bin unsicher, welche Taste zur Note mit Vorzeichen gehört.' } },
+            lage: { part: 'die Lage', opt: { lesen: 'Ich bin unsicher, in welcher Lage der Ton liegt.', bilden: 'Ich bin unsicher, in welcher Lage der Ton liegt.', tastatur: 'Ich finde die richtige Lage auf der Tastatur nicht.' } },
+            taste: { part: 'die Taste', opt: { tastatur: 'Ich finde die Taste nicht.' } }
+        };
+
+        // ---- Hilfen passend zur Aufgabe, an der der Schüler gerade hängt ----
+        // Nennt Schlüssel, Linie/Zwischenraum, Richtung über/unter dem System, Vorzeichen und Lage
+        // der Aufgabe, aber nie den gesuchten Ton. Beispiele schließen den Stammton der Aufgabe aus.
+        const CLEF = {
+            treble: { name: 'Violinschlüssel', anchor: 'Anker ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet.',
+                lines: 'Merksatz für die Linien von unten: <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß.',
+                spaces: 'Die Zwischenräume von unten ergeben das Wort <strong>F-A-C-E</strong>.',
+                bottom: 'E', top: 'F', down: 'E – D – C – H – A – G – F', up: 'F – G – A – H – C – D – E',
+                lage: { unten: 'Unter c\' (1. Hilfslinie unter dem System) beginnt die kleine Oktave.',
+                        system: 'Im System wechselt die Lage bei c\'\' im 3. Zwischenraum: darunter eingestrichen, ab c\'\' zweigestrichen.',
+                        oben: 'Ab c\'\'\' (2. Hilfslinie über dem System) beginnt die dreigestrichene Oktave, darunter ist alles zweigestrichen.' } },
+            bass: { name: 'Bassschlüssel', anchor: 'Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten.',
+                lines: 'Merksatz für die Linien von unten: <strong>G</strong>ute <strong>H</strong>unde <strong>D</strong>ürfen <strong>F</strong>utter <strong>A</strong>uswählen.',
+                spaces: 'Für die Zwischenräume: <strong>A</strong>lle <strong>C</strong>oolen <strong>E</strong>ssen <strong>G</strong>ummibärchen.',
+                bottom: 'G', top: 'A', down: 'G – F – E – D – C – H – A', up: 'A – H – C – D – E – F – G',
+                lage: { unten: 'Unter dem großen C (2. Hilfslinie unter dem System) beginnt die Kontra-Oktave.',
+                        system: 'Das kleine c liegt im 2. Zwischenraum: darunter große Oktave, ab dem kleinen c kleine Oktave.',
+                        oben: 'Ab c\' (1. Hilfslinie über dem System) beginnt die eingestrichene Oktave.' } }
+        };
+        function cardKey(c, x, topic) {
+            const n = c.mode === 'bilden' ? (x.clef === 'bass' ? 'noten5' : 'noten4')
+                : c.mode === 'tastatur' && (topic === 'lagen' || topic === 'vorzeichen' || topic === 'basis_tastatur') ? 'noten3'
+                : (x.clef === 'bass' ? 'noten2' : 'noten1');
+            return n + '_' + (topic === 'basis_tastatur' ? 'basis' : topic);
+        }
+        function example(pairs, notStamm) { const p = pairs.find(p => p[0] !== notStamm) || pairs[0]; return `${p[0]} wird ${p[1]}`; }
+
+        function helpFor(kinds, c, cases) {
+            const out = [], seen = new Set();
+            const add = (q, a, key) => { if (!seen.has(q)) { seen.add(q); out.push(ask(q, a, key)); } };
+            kinds.forEach(kind => cases.filter(x => x.kind === kind || !cases.some(y => y.kind === kind)).forEach(x => {
+                const K = CLEF[x.clef] || CLEF.treble;
+                const st = errorTracker._extractStammton(x.tname);
+                if (kind === 'stamm') {
+                    add(`Unsicher im ${K.name}?`, K.anchor, cardKey(c, x, 'basis'));
+                    if (c.mode === 'bilden') {
+                        add('Unsicher, welcher Stammton auf welcher Linie liegt?', K.lines);
+                        add('Unsicher, welcher Stammton in welchem Zwischenraum liegt?', K.spaces);
+                    } else if (x.ledger) {
+                        // Note auf/an Hilfslinien: Merksatz fürs System hilft nicht, Zählweg schon
+                        add(`Unsicher bei Hilfslinien ${x.below ? 'unter' : 'über'} dem System?`,
+                            `Hilfslinien zählen wie die Linien im System: Linie und Zwischenraum wechseln sich ab. Zähle von der ${x.below ? 'untersten' : 'obersten'} Linie (${x.below ? K.bottom : K.top}) Schritt für Schritt ${x.below ? 'abwärts' : 'aufwärts'}: ${x.below ? K.down : K.up}.`,
+                            cardKey(c, x, 'hilfslinien'));
+                    } else if (x.line) {
+                        add('Unsicher, welcher Stammton auf welcher Linie liegt?', K.lines);
+                    } else {
+                        add('Unsicher, welcher Stammton in welchem Zwischenraum liegt?', K.spaces);
+                    }
+                } else if (kind === 'hilf') {
+                    if (!x.ledger) return; // Note im System: Hilfslinien-Hilfe passt nicht
+                    const below = x.below;
+                    add(`Unsicher bei Hilfslinien ${below ? 'unter' : 'über'} dem System?`,
+                        `Hilfslinien zählen wie die Linien im System: Linie und Zwischenraum wechseln sich ab. Zähle von der ${below ? 'untersten' : 'obersten'} Linie (${below ? K.bottom : K.top}) Schritt für Schritt ${below ? 'abwärts' : 'aufwärts'}: ${below ? K.down : K.up}.`,
+                        cardKey(c, x, 'hilfslinien'));
+                } else if (kind === 'vz') {
+                    if (!x.acc) return; // Aufgabe ohne Vorzeichen: Hilfe dazu passt nicht
+                    const flat = x.acc === 'flat';
+                    if (c.mode === 'tastatur') {
+                        add(`Unsicher, in welche Richtung ${flat ? FLAT : SHARP} geht?`,
+                            `Mit ${flat ? FLAT : SHARP} gehst du vom Stammton eine Taste nach ${flat ? 'links' : 'rechts'}. Das ist meist eine schwarze Taste, aber nicht immer.`, cardKey(c, x, 'vorzeichen'));
+                        // Fes, Ces, Eis, His liegen auf weißen Tasten
+                        if (/^(Fes|Ces|Eis|His)$/.test(x.tname)) add('Unsicher, ob es eine schwarze Taste sein muss?', 'Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Fes die Taste E, Eis die Taste F, Ces die Taste H und His die Taste C.');
+                    } else if (c.mode === 'bilden') {
+                        add('Unsicher, welches Vorzeichen du setzen musst?',
+                            `„is“ heißt ${SHARP}, „es“ heißt ${FLAT}. Auch Es, As und B bekommen ${FLAT}.`, cardKey(c, x, 'vorzeichen'));
+                    } else if (flat) {
+                        add(`Unsicher, wie die Note mit ${FLAT} heißt?`,
+                            `Mit ${FLAT} hängst du „es“ an den Stammton: ${example([['D', 'Des'], ['G', 'Ges'], ['C', 'Ces']], st)}. Ausnahmen: E wird Es, A wird As, H wird B.`, cardKey(c, x, 'vorzeichen'));
+                    } else {
+                        add(`Unsicher, wie die Note mit ${SHARP} heißt?`,
+                            `Mit ${SHARP} hängst du „is“ an den Stammton: ${example([['F', 'Fis'], ['C', 'Cis'], ['G', 'Gis']], st)}.`, cardKey(c, x, 'vorzeichen'));
+                    }
+                } else if (kind === 'lage') {
+                    if (c.mode === 'tastatur') {
+                        add('Unsicher, wo die richtige Lage liegt?', 'Die C-Tasten sind beschriftet (C, c, c\', c\'\'). Suche zuerst das C der richtigen Lage und zähle von dort weiter.', cardKey(c, x, 'lagen'));
+                    } else {
+                        add('Unsicher, in welcher Lage der Ton liegt?', K.lage[x.ledger ? (x.below ? 'unten' : 'oben') : 'system'], cardKey(c, x, 'lagen'));
+                    }
+                } else if (kind === 'taste') {
+                    add('Unsicher, wo eine Taste liegt?', 'Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.', cardKey(c, x, 'basis_tastatur'));
+                }
+            }));
+            return out;
+        }
+
+        const OCT = { 1: 'kontra', 2: 'gross', 3: 'klein', 4: 'eingestrichen', 5: 'zweigestrichen', 6: 'dreigestrichen' };
+
+        function ctx() {
+            const lvl = quickStart.currentLevel;
+            const opts = quickStart.currentOptions || ['basis'];
+            const mode = lvl.startsWith('bild_') ? 'bilden' : lvl === 'profi' ? 'tastatur' : 'lesen';
+            const clef = mode === 'bilden' ? (app.useBassClef ? 'bass' : 'treble') : (app.currentNote && app.currentNote.clef) || 'treble';
+            return { lvl, opts, mode, clef, bass: clef === 'bass', sub: opts[opts.length - 1] };
+        }
+
+        // Fehlerarten, die in dieser Übung vorkommen können (neueste zuerst, höchstens 3)
+        function inScope(c) {
+            const s = [];
+            if (c.opts.includes('hilfslinien')) s.push('hilf');
+            if (c.opts.includes('lagen')) s.push('lage');
+            if (c.opts.includes('vorzeichen')) s.push('vz');
+            s.push(c.mode === 'tastatur' ? 'taste' : 'stamm');
+            if (c.mode === 'tastatur' && s.length < 3) s.push('stamm');
+            return s.slice(0, 3);
+        }
+
+        // Lage der Aufgabennote im System: Position 0 = unterste Linie (app.notePositions).
+        // Gerade = Linie, ungerade = Zwischenraum; ≤ -2 oder ≥ 10 = auf/an Hilfslinien.
+        function staffInfo(name, octave, clef) {
+            const pos = app.notePositions[`${errorTracker._extractStammton(name)}-${octave}-${clef}`];
+            if (pos === undefined) return {};
+            return { pos, line: pos % 2 === 0, ledger: pos <= -2 || pos >= 10, below: pos <= -2 };
+        }
+
+        // Bild der Aufgabe, wie der Schüler sie gesehen hat (Lesen: Note, Schreiben: seine gesetzte Note)
+        function snapshot(c) {
+            const el = c.mode === 'bilden' ? document.getElementById('staffSvg') : document.getElementById('staffContainer');
+            if (!el) return '';
+            if (c.mode !== 'bilden') return el.innerHTML.replace(/\sid="[^"]*"/g, '');
+            // Schreiben: System ohne Hilfspunkt/Vorschau, die gesetzte Note in Rot (drawNoteAt, baseY 260 wie drawStaff)
+            const p = app.buildingStaffNote;
+            let svg = el.outerHTML.replace(/\sid="[^"]*"/g, '');
+            if (p) {
+                const black = app.drawNoteAt(p.noteName, p.octave, p.x, 260, '#000');
+                if (black) svg = svg.split(black).join('');
+                svg = svg.replace('</svg>', app.drawNoteAt(p.noteName, p.octave, p.x, 260, '#dc2626') + '</svg>');
+            }
+            return svg.replace(/<circle[^>]*fill="#d1d5db"[^>]*\/>/g, '');
+        }
+
+        // Was beim Fehlversuch nicht stimmte + was eingegeben wurde
+        function lastAttempt(c) {
+            const at = attemptOf(c);
+            if (at) {
+                at.id = quickStart.questionsAnswered; // Wiederholung = gleiche Aufgabe
+                const ti = document.getElementById('taskInstructionText');
+                at.instr = ti ? ti.innerText.trim() : '';
+                const tn = c.mode === 'bilden' ? app.currentBuildingNote.name : app.currentNote.name;
+                at.tname = tn;
+                at.clef = c.mode === 'bilden' ? c.clef : app.currentNote.clef;
+                const vz = errorTracker._extractVZ(tn);
+                at.acc = vz === 'is' ? 'sharp' : vz === 'es' ? 'flat' : null;
+            }
+            return at;
+        }
+        function attemptOf(c) {
+            const img = snapshot(c);
+            if (c.mode === 'bilden') {
+                const p = app.buildingStaffNote, t = app.currentBuildingNote;
+                if (!p || !t) return null;
+                const info = staffInfo(t.name, OCT[t.oct], c.clef);
+                const stOk = errorTracker._extractStammton(p.noteName) === errorTracker._extractStammton(t.name);
+                const vzOk = errorTracker._extractVZ(p.noteName) === errorTracker._extractVZ(t.name);
+                const lagen = c.opts.includes('lagen');
+                const task = lagen ? noteToHelmholtz(t.name, t.oct) : noteToHelmholtz(t.name, t.oct).replace(/'+|,+/g, '');
+                const kind = !stOk ? (info.ledger ? 'hilf' : 'stamm') : !vzOk ? 'vz' : 'lage';
+                const ppos = staffInfo(p.noteName, OCT[p.octave], c.clef).pos;
+                const placed = lagen ? noteToHelmholtz(p.noteName, p.octave) : noteToHelmholtz(p.noteName, p.octave).replace(/'+|,+/g, '');
+                return { kind, user: placed, verb: 'geschrieben', uname: noteToHelmholtz(p.noteName, p.octave), uoct: OCT[p.octave], task, img, ppos, hasVz: !!errorTracker._extractVZ(t.name), ...info };
+            }
+            // errorTracker protokolliert nur den Erstversuch → Wiederholungen aus dem Zustand lesen
+            const t = app.currentNote;
+            if (!t) return null;
+            const info = staffInfo(t.name, t.octave, t.clef);
+            const hasVz = !!errorTracker._extractVZ(t.name);
+            if (c.mode === 'tastatur') {
+                if (app.selectedKey == null) return null;
+                const k = app.pitchToNote(app.selectedKey);
+                const target = app.getPitchForNote(t.name, t.octave);
+                const samePc = ((app.selectedKey - target) % 12 + 12) % 12 === 0;
+                const num = { kontra: 1, gross: 2, klein: 3, eingestrichen: 4, zweigestrichen: 5, dreigestrichen: 6 }[k.octave];
+                // Richtige Taste in falscher Lage: mit dem Namen der Aufgabe nennen (Ges, nicht Fis)
+                const nm = samePc ? t.name : k.name;
+                const keyName = c.opts.includes('lagen') ? noteToHelmholtz(nm, num) : nm;
+                // Vorzeichen-Fehler auf der Tastatur: Stammton-Taste (Vorzeichen vergessen) oder falsche Richtung
+                const pc = x => ((x % 12) + 12) % 12;
+                const vzT = errorTracker._extractVZ(t.name);
+                const stPitch = app.getPitchForNote(errorTracker._extractStammton(t.name), t.octave);
+                const vzErr = !!vzT && (pc(app.selectedKey) === pc(stPitch) || pc(app.selectedKey) === pc(stPitch + (vzT === 'is' ? -1 : 1)));
+                const kbEl = document.getElementById('keyboard');
+                const kb = `<div class="wq-kb">${kbEl ? kbEl.innerHTML.replace(/\sid="[^"]*"/g, '').replace(/\sonclick="[^"]*"/g, '') : ''}</div>`;
+                return { kind: samePc ? 'lage' : vzErr ? 'vz' : 'taste', user: 'die Taste ' + keyName, verb: 'angeklickt', uname: keyName, uoct: k.octave, img, kb, hasVz, ...info };
+            }
+            const raw = (document.getElementById('noteInput').value || '').trim();
+            if (!raw) return null;
+            const name = raw.charAt(0).toUpperCase() + raw.slice(1);
+            let user = name;
+            // Mit Lagen gehört die gewählte Oktave zur Antwort (Helmholtz wie im Trainer)
+            const octSel = document.getElementById('octaveDropdown');
+            if (c.opts.includes('lagen') && octSel) {
+                const num = { kontra: 1, gross: 2, klein: 3, eingestrichen: 4, zweigestrichen: 5, dreigestrichen: 6 }[octSel.value];
+                user = num ? noteToHelmholtz(user, num) : user + ' (ohne Lage)';
+            }
+            const stOk = errorTracker._extractStammton(name).toLowerCase() === errorTracker._extractStammton(t.name).toLowerCase();
+            const vzOk = errorTracker._extractVZ(name) === errorTracker._extractVZ(t.name);
+            const kind = !stOk ? (info.ledger ? 'hilf' : 'stamm') : !vzOk ? 'vz' : 'lage';
+            return { kind, user, verb: 'eingegeben', uname: user, uoct: octSel && octSel.value ? octSel.value : null, img, hasVz, ...info };
+        }
+
+        // Genaue Lage im Notensystem (Position 0 = unterste Linie). akk = wohin gesetzt (Schreiben).
+        function posPhrase(pos, akk) {
+            const art = (dat, ak) => akk ? ak : dat;
+            if (pos >= 0 && pos <= 8) {
+                if (pos % 2 === 0) {
+                    const n = pos / 2 + 1;
+                    const lin = n === 1 ? art('der untersten Linie', 'die unterste Linie') : n === 5 ? art('der obersten Linie', 'die oberste Linie')
+                        : art(`der ${n}. Linie von unten`, `die ${n}. Linie von unten`);
+                    return 'auf ' + lin;
+                }
+                const k = (pos + 1) / 2;
+                return art(`im ${k}. Zwischenraum`, `in den ${k}. Zwischenraum`);
+            }
+            if (pos === -1) return art('direkt unter der untersten Linie', 'direkt unter die unterste Linie');
+            if (pos === 9) return art('direkt über der obersten Linie', 'direkt über die oberste Linie');
+            if (pos < -1) return pos % 2 === 0
+                ? art(`auf der ${-pos / 2}. Hilfslinie unter dem System`, `auf die ${-pos / 2}. Hilfslinie unter dem System`)
+                : art(`unter der ${(-pos - 1) / 2}. Hilfslinie`, `unter die ${(-pos - 1) / 2}. Hilfslinie`);
+            return pos % 2 === 0
+                ? art(`auf der ${(pos - 8) / 2}. Hilfslinie über dem System`, `auf die ${(pos - 8) / 2}. Hilfslinie über dem System`)
+                : art(`über der ${(pos - 9) / 2}. Hilfslinie`, `über die ${(pos - 9) / 2}. Hilfslinie`);
+        }
+
+        // Was beide Fälle gemeinsam haben: genaue Lage der Note + welcher Teil der Antwort nicht stimmte
+        function common(two, c, one) {
+            const [a, b] = two;
+            // Wechselt der Schlüssel in der Übung, gehört er zur Lage dazu
+            const clefIn = x => app.settings.clef === 'both' ? `im ${x.clef === 'bass' ? 'Bassschlüssel' : 'Violinschlüssel'} ` : '';
+            const accTxt = x => x.acc === 'flat' ? ` und hat ein ${FLAT}` : x.acc === 'sharp' ? ` und hat ein ${SHARP}` : '';
+            let where;
+            const placedOk = k => k === 'vz' || k === 'lage';
+            if (placedOk(a.kind) && placedOk(b.kind)) {
+                // Stammton stimmt: die Position im System ist kein Thema
+                where = a.kind === 'vz' && b.kind === 'vz' && one && c.mode !== 'bilden' && a.acc ? `Die Note hat ein ${a.acc === 'flat' ? FLAT : SHARP}. ` : '';
+            } else if (c.mode === 'bilden') {
+                // Gesuchte Lage nicht verraten: beschreiben, wohin der Schüler gesetzt hat
+                where = a.ppos === undefined || b.ppos === undefined ? ''
+                    : a.clef !== b.clef ? `Du hast den Ton erst ${clefIn(a)}${posPhrase(a.ppos, true)}, dann ${clefIn(b)}${posPhrase(b.ppos, true)} gesetzt. `
+                    : a.ppos === b.ppos ? `Du hast den Ton ${clefIn(a)}beide Male ${posPhrase(a.ppos, true)} gesetzt. `
+                    : `Du hast den Ton ${clefIn(a)}erst ${posPhrase(a.ppos, true)}, dann ${posPhrase(b.ppos, true)} gesetzt. `;
+            } else if (one || (a.pos === b.pos && a.clef === b.clef)) {
+                where = `${one ? 'Die Note liegt' : 'Beide Noten liegen'} ${clefIn(a)}${posPhrase(a.pos)}${one ? accTxt(a) : ''}. `;
+            } else {
+                where = `Die erste Note liegt ${clefIn(a)}${posPhrase(a.pos)}, die zweite ${clefIn(b)}${posPhrase(b.pos)}. `;
+            }
+            if (WQ[a.kind].part !== WQ[b.kind].part) {
+                const which = (x, i) => one ? `beim ${i}. Versuch ${WQ[x.kind].part}` : `bei der ${i}. Note ${WQ[x.kind].part}`;
+                return `${where}Nicht gestimmt hat ${which(a, 1)}, ${which(b, 2)}.`;
+            }
+            switch (a.kind) {
+                case 'stamm': case 'hilf': return `${where}Beide Male stimmte der Stammton nicht.`;
+                case 'vz': return c.mode === 'tastatur'
+                    ? `${where}Beide Male hast du den Stammton gefunden, das Vorzeichen aber nicht richtig umgesetzt.`
+                    : `${where}Den Stammton hattest du beide Male richtig, das Vorzeichen nicht.`;
+                case 'lage': return lageText(two, c);
+                case 'taste': return `${where}Beide Male hast du eine andere Taste angeklickt.`;
+            }
+            return where;
+        }
+
+        // Lagefehler: Schüler sehen oft nicht, dass Fes und fes verschiedene Lagen sind.
+        // Darum die eigene Schreibweise entschlüsseln (ohne die richtige Lage zu nennen).
+        const OCT_MEAN = {
+            kontra: ['mit großem Anfangsbuchstaben und Komma', 'Kontra-Oktave'],
+            gross: ['mit großem Anfangsbuchstaben', 'große Oktave'],
+            klein: ['ganz klein geschrieben, ohne Strich', 'kleine Oktave'],
+            eingestrichen: ['klein mit einem Strich', 'eingestrichene Oktave'],
+            zweigestrichen: ['klein mit zwei Strichen', 'zweigestrichene Oktave'],
+            dreigestrichen: ['klein mit drei Strichen', 'dreigestrichene Oktave']
+        };
+        function lageText(two, c) {
+            const what = two.some(x => x.acc) ? 'Stammton und Vorzeichen stimmten' : 'Der Stammton stimmte';
+            const act = c.mode === 'tastatur' ? 'angeklickt' : c.mode === 'bilden' ? 'geschrieben' : 'angegeben';
+            let t = `${what} beide Male, nur die Lage nicht: Du hast den Ton in der falschen Oktave ${act}. `;
+            const seen = new Set();
+            two.forEach(x => {
+                if (!x.uoct) { t += 'Einmal hast du gar keine Lage gewählt. '; return; }
+                if (seen.has(x.uname)) return; seen.add(x.uname);
+                const m = OCT_MEAN[x.uoct];
+                if (m) t += `<strong>${x.uname}</strong> – ${m[0]} – heißt ${m[1]}. `;
+            });
+            return t.trim();
+        }
+
+        let attempts = [], panel = null, spent = false;
+
+        function closePanel() { if (panel) { panel.remove(); panel = null; } document.body.classList.remove('wq-open'); }
+
+        function showPanel() {
+            const c = ctx();
+            const scope = inScope(c);
+            closePanel();
+            panel = document.createElement('div');
+            panel.className = 'wq-panel';
+            panel.innerHTML = `<p class="wq-q">Zweimal daneben. Was glaubst du: Woran liegt es?</p><div class="wq-opts">`
+                + scope.map(k => `<button class="wq-opt" data-k="${k}">${WQ[k].opt[c.mode] || WQ[k].opt.lesen}</button>`).join('')
+                + '<button class="wq-opt secondary" data-k="klick">Ich habe mich verklickt.</button>'
+                + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button>'
+                + '</div>';
+            panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => answer(b.dataset.k, c, b.textContent));
+            const fb = document.getElementById('feedback');
+            fb.parentNode.insertBefore(panel, fb.nextSibling);
+            document.body.classList.add('wq-open');
+        }
+
+        function answer(choice, c, choiceText) {
+            const two = attempts.slice(-2);
+            const kinds = two.map(a => a.kind);
+            // Stammton im System und auf Hilfslinien ist derselbe Teil der Antwort
+            const same = WQ[kinds[0]].part === WQ[kinds[1]].part;
+            const observed = !same ? null : kinds[0] === kinds[1] ? kinds[0] : (kinds.includes(choice) ? choice : 'hilf');
+            const tasteOpen = c.mode === 'tastatur' && observed === 'taste' && (choice === 'stamm' || choice === 'taste');
+
+            // Bezug zur eigenen Vermutung
+            let rel = '';
+            if (choice === 'klick') rel = same ? 'Zweimal an derselben Stelle verklickt man sich selten.' : 'Gut möglich, dass du dich verklickt hast.';
+            else if (tasteOpen) rel = '';
+            else if (choice === 'weiss') rel = '';
+            else if (choice === 'hilf' && !two.some(x => x.ledger)) rel = two[0].id === two[1].id || two.length < 2
+                ? 'Die Note steht aber nicht auf einer Hilfslinie.' : 'Die Noten stehen aber nicht auf Hilfslinien.';
+            else if (choice === 'vz' && !two.some(x => x.acc)) rel = two[0].id === two[1].id
+                ? 'Die Note hat aber kein Vorzeichen.' : 'Die Noten haben aber keine Vorzeichen.';
+            else if (same && observed === choice || (same && choice === 'stamm' && observed === 'hilf')) rel = 'Das passt zu deiner Vermutung.';
+            // Sonst kein Urteil: Der Vergleich nennt schon, was stimmte und was nicht
+            else if (kinds.includes(choice)) rel = 'Einer der beiden Fehler passt zu deiner Vermutung.';
+
+            const one = two[0].id === two[1].id;
+            let cases;
+            const wrong = x => `<strong class="wq-wrong">${x}</strong>`;
+            // Aufgabentext nur, wo er Information trägt: beim Schreiben steckt der gesuchte Ton im Text,
+            // beim Lesen und an der Tastatur zeigt das Bild schon alles.
+            const taskText = (a, c) => c.mode === 'bilden' ? `Schreibe ${a.task}` : '';
+            if (one && c.mode === 'tastatur') {
+                // Eine Note, zwei geklickte Tasten
+                cases = `<div class="wq-case">${two[1].img}`
+                    + two.map((a, i) => `<div class="wq-case-h">${i + 1}. Versuch</div>${a.kb}<div class="wq-case-u">Du hast ${wrong(a.user)} ${a.verb}.</div>`).join('') + '</div>';
+            } else if (one && c.mode === 'lesen') {
+                // Erster Versuch + Wiederholung: eine Aufgabe, zwei Antworten
+                cases = `<div class="wq-case">${two[1].img}`
+                    + `<div class="wq-case-u">Du hast erst ${wrong(two[0].user)}, dann ${wrong(two[1].user)} ${two[1].verb}.</div></div>`;
+            } else {
+                if (one) cases = `<div class="wq-case-h wq-full">${taskText(two[1], c)}</div>`;
+                // Schreiben: die gesetzte Note rot im System. Aufgabentext nur bei verschiedenen Aufgaben
+                // (die frühere ist oben nicht mehr zu sehen).
+                cases = (cases || '') + two.map((a, i) => `<div class="wq-case"><div class="wq-case-h">${one ? i + 1 + '. Versuch' : i + 1 + '. Aufgabe'}${!one && taskText(a, c) ? ': ' + taskText(a, c) : ''}</div>${a.img}${a.kb || ''}`
+                    + `<div class="wq-case-u">Du hast ${c.mode === 'bilden' ? 'ein ' : ''}${wrong(a.user)} ${a.verb}.</div></div>`).join('');
+            }
+
+            // Rückfragen: zuerst zum Befund, dann zur eigenen Vermutung
+            const keys = [];
+            kinds.forEach(k => keys.includes(k) || keys.push(k));
+            if (WQ[choice] && !keys.includes(choice)) keys.push(choice);
+            const asks = helpFor(keys, c, two);
+
+            panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${c.mode === 'tastatur' ? ' wq-col' : ''}">${cases}</div>`
+                + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>Was haben deine beiden Fehler gemeinsam?</summary><div class="lk-ask-a">${common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
+                + `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>`
+                + '<button class="wq-go">Weiter üben</button>';
+            panel.querySelector('.wq-go').onclick = closePanel;
+            panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
+            send(c, choice, observed, kinds);
+        }
+
+        function send(c, choice, observed, kinds, opened) {
+            const p = { level: c.lvl, subskill: c.sub, choice, observed, errors: kinds, match: observed && WQ[choice] ? observed === choice : null };
+            if (opened) p.opened = opened;
+            try { tracker.selfAssess(p); } catch (e) {}
+        }
+
+
+        return {
+            // Fehlversuch festhalten (Zustand der Aufgabe in diesem Moment)
+            record() { const at = lastAttempt(ctx()); if (at) attempts.push(at); },
+            ready() { return attempts.length >= 2; },
+            show: showPanel,
+            // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
+            onAnswer(ok, isRetry) { if (ok) { if (!isRetry) attempts = []; closePanel(); } },
+            reset() { attempts = []; closePanel(); }
+        };
+        })();
 
         // Oktav-Lagen: interner Key → Anzeige-Label (Dropdown + Lagen-Feedback)
         const OCTAVE_LABELS = {
@@ -3177,6 +3602,7 @@
                 this._nudgeWrongInARow = 0;
                 this._nudgeSpent = false;
                 this.clearHelpNudge();
+                woranPanel.reset();
             },
 
             // Hilfe geöffnet → Nudge hat sein Ziel erreicht, Signal aus.
@@ -3193,10 +3619,13 @@
             },
 
             // Ein Fehlversuch mehr in Folge — egal ob Erstversuch oder Wiederholung.
+            // Statt des Hilfe-Nudges erscheint nach zwei Fehlversuchen „Woran liegt es?“.
             registerWrongAttempt(trigger) {
+                woranPanel.record();
                 this._nudgeWrongInARow++;
-                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD) {
-                    this.triggerHelpNudge(trigger);
+                if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD && woranPanel.ready()) {
+                    this._nudgeSpent = true;
+                    woranPanel.show();
                 }
             },
 
@@ -3204,6 +3633,7 @@
             handleAnswer(isCorrect) {
                 console.log('[handleAnswer] isCorrect:', isCorrect, 'isActive:', this.isActive, 'isRetry:', this.isRetry, 'answered:', this.questionsAnswered, '/', this.totalQuestions);
                 if (!this.isActive) { console.log('[handleAnswer] SKIP: not active'); return; }
+                woranPanel.onAnswer(isCorrect, this.isRetry);
 
                 if (this.isRetry) {
                     console.log('[handleAnswer] RETRY path, isCorrect:', isCorrect);
