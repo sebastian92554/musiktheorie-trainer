@@ -6561,17 +6561,18 @@
                     if (st) { st.className = `input-status-icon ${isCorrect ? 'correct' : 'incorrect'}`; st.textContent = isCorrect ? '✓' : '✗'; }
                 }
 
-                // Quiz-Zählung: Nur beim ersten Prüfen einer Aufgabe zählen
-                if (!this.validationState.hasBeenChecked) {
+                // Quiz-Logik wie in den anderen Knoten: Der Erstversuch zählt, bei Fehler bleibt die
+                // Aufgabe (Wiederholung), jeder weitere Fehlversuch zählt für den Hilfe-Hinweis.
+                const firstCheck = !this.validationState.hasBeenChecked;
+                if (firstCheck) {
                     this.validationState.hasBeenChecked = true;
-                    if (quickStart.isActive) {
-                        quickStart.questionsAnswered++;
-                        if (isCorrect) quickStart.questionsCorrect++;
-                        quickStart.updateQuizOverlay();
-                    }
                     if (this.quickStartMode && !quickStart.isRetry) {
                         try { errorTracker.logAnswer({ isCorrect, anzahlOk: _aOk, qualOk: _qOk, hsOk: _hOk, errLine: _errLine }); } catch (e) {}
                     }
+                }
+                if (quickStart.isActive) {
+                    if (firstCheck || isCorrect) quickStart.handleAnswer(isCorrect);
+                    else quickStart.registerWrongAttempt('retry');
                 }
                 this.validationState.allCorrect = isCorrect;
 
@@ -6579,13 +6580,10 @@
                     // Fehlermeldung des vorigen Versuchs entfernen, sonst bleibt sie für die nächste Aufgabe stehen
                     const oldFB = document.querySelector('#inputCard .int4-feedback');
                     if (oldFB) oldFB.remove();
-                    // Nächste Aufgabe nach kurzer Pause
+                    // Nächste Aufgabe nach kurzer Pause; nach der letzten zeigt handleAnswer das Ergebnis
+                    const quizDone = quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions;
                     setTimeout(() => {
-                        if (quickStart.isActive && quickStart.questionsAnswered >= quickStart.totalQuestions) {
-                            quickStart.showSuccess();
-                        } else {
-                            this.generateInt4Task();
-                        }
+                        if (!quizDone) this.generateInt4Task();
                     }, 600);
                 } else {
                     // Fehlerfeedback — Aufgabe bleibt (User korrigiert)
@@ -7193,9 +7191,9 @@
                 } else if (pcsMatch && !distanceMatch) {
                     // Richtige Töne, aber falsche Oktavlage (z.B. G3-C4 statt C4-G4)
                     feedbackEl.className = 'feedback incorrect';
-                    feedbackEl.innerHTML = `⚠️ <strong>Richtige Töne, falsche Oktavlage!</strong><br>` +
-                        `<span style="font-size:0.9em;">Du hast <strong>${note1.name}</strong> und <strong>${note2.name}</strong> gefunden, ` +
-                        `aber der Abstand stimmt nicht.<br>Gesucht: ${expectedDistance} Halbtonschritte — Gewählt: ${selectedDistance} Halbtonschritte</span>`;
+                    // Nicht die Lösung zeigen (keine gesuchte Halbtonzahl): nur sagen, welcher Teil nicht stimmt
+                    feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong> Beide Töne stimmen, aber nicht die Lage.<br>` +
+                        `<span style="font-size:0.9em;">Achte darauf, in welcher Oktave die Töne im Notensystem stehen.</span>`;
 
                     if (!this.validationState.hasBeenChecked) {
                         this.validationState.hasBeenChecked = true;
@@ -7213,31 +7211,17 @@
                         feedbackEl.classList.add('hidden');
                     }, 3500);
                 } else {
-                    // Falsche Töne: Feedback mit echten Notennamen (keine enharmonische Verwechslung)
-                    const expectedPCSet = new Set(expectedPCs);
-                    const feedbackParts = this.selectedKeys.map(k => {
-                        const pc = ((k % 12) + 12) % 12;
-                        // Echten Notennamen verwenden: Wenn PC einem erwarteten Ton entspricht,
-                        // zeige den ECHTEN Notennamen des erwarteten Tons (nicht den enharmonischen)
-                        let displayName;
-                        if (pc === pitch1 % 12) {
-                            displayName = note1.name;
-                        } else if (pc === pitch2 % 12) {
-                            displayName = note2.name;
-                        } else {
-                            // Geklickter Ton ist keiner der erwarteten — generischen Namen verwenden
-                            const names = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H'];
-                            displayName = names[pc];
-                        }
-                        if (expectedPCSet.has(pc)) {
-                            return `${displayName}: <span style="color:#22c55e;">✓</span>`;
-                        } else {
-                            return `${displayName}: <span style="color:#ef4444;">✗</span>`;
-                        }
-                    });
-
+                    // Falsche Töne: sagen, welcher Ton stimmt und welcher nicht, ohne Tonnamen
+                    // (Beim Wiederholen nie die Lösung zeigen)
+                    const _pc = x => ((x % 12) + 12) % 12;
+                    const _loOk = _pc(sortedSelected[0]) === _pc(pitch1);
+                    const _hiOk = _pc(sortedSelected[1]) === _pc(pitch2);
+                    const _which = _loOk ? 'Den unteren Ton hast du gefunden, den oberen nicht.'
+                        : _hiOk ? 'Den oberen Ton hast du gefunden, den unteren nicht.'
+                        : 'Beide Töne stimmen nicht.';
+                    const _reread = _loOk ? 'den oberen Ton' : _hiOk ? 'den unteren Ton' : 'beide Töne';
                     feedbackEl.className = 'feedback incorrect';
-                    feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>${feedbackParts.join('<br>')}<br><span style="font-size:0.85em;">Lies den fehlerhaften Ton noch einmal im Notensystem ab.</span>`;
+                    feedbackEl.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong> ${_which}<br><span style="font-size:0.85em;">Lies ${_reread} noch einmal im Notensystem ab.</span>`;
 
                     if (!this.validationState.hasBeenChecked) {
                         this.validationState.hasBeenChecked = true;
