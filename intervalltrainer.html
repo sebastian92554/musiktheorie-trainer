@@ -2218,15 +2218,15 @@
         }
 
         // Aufgabenbild: Notensystem, bei Tastatur-Aufgaben mit Tastatur (gewählte Tasten rot)
-        // Gesetzte Note im Bild. look: 'red' (Stammton falsch), 'acc' (nur das Vorzeichen falsch → Kopf grün,
+        // Gesetzte Note im Bild. look: 'red' (Stammton falsch), 'acc' (nur das Vorzeichen falsch → nur das
         // Vorzeichen rot; _drawBuildingNoteAt zeichnet das Vorzeichen vor dem Kopf) oder 'plain' (Vorzeichen
         // vergessen: im Bild wäre jede Farbe missverständlich, der Text markiert es).
         function wqNote(name, oct, look) {
             if (look === 'plain') return app._drawBuildingNoteAt(name, oct, 245, '#1f2937', false);
             const red = app._drawBuildingNoteAt(name, oct, 245, '#dc2626', false);
             if (look !== 'acc') return red;
-            const green = app._drawBuildingNoteAt(name, oct, 245, '#16a34a', false);
-            return red.slice(0, red.indexOf('<ellipse')) + green.slice(green.indexOf('<ellipse'));
+            const black = app._drawBuildingNoteAt(name, oct, 245, '#1f2937', false);
+            return red.slice(0, red.indexOf('<ellipse')) + black.slice(black.indexOf('<ellipse'));
         }
         // Zählaufgaben (IT 3, 4a/4b, 4c): Gezählt wird auf der Tastatur → je Versuch eine Tastatur.
         // keys: [{ p: MIDI, fill }], brackets: [{ a, b, txt, col, tcol }] über den Tasten (a === b: nur Beschriftung).
@@ -2317,24 +2317,17 @@
         // ---- Antwort im Text: richtige Teile grün, falsche rot ----
         const wqSpan = (t, ok) => `<span class="${ok ? 'wq-right' : 'wq-wrong'}">${t}</span>`;
         const wqRed = t => `<strong class="wq-wrong">${t}</strong>`;
-        // Intervallname: Feinbestimmung und Rahmenintervall einzeln. Fehlt der falsche Teil in der Eingabe, alles rot.
+        // Intervallname: Feinbestimmung und Rahmenintervall als eigene Wörter einzeln („kleine“ grün, „Quinte“ rot).
+        // Kurzform (k5) und fehlender Teil: ganz rot – Teile eines Wortes werden nicht getrennt gefärbt.
         function colorIv(raw, sizeOk, qOk) {
             const t = (raw || '').trim();
-            const m = t.match(/^([rgküv])\s*(\d+)$/i);
-            if (m) return `<strong>${wqSpan(m[1], qOk)}${wqSpan(m[2], sizeOk)}</strong>`;
+            if (/^([rgküv])\s*(\d+)$/i.test(t)) return wqRed(t);
             const QRE = /^(überm|ueberm|verm|gro|gr$|klein|kl$|rein)/i;
             const toks = t.split(/(\s+)/);
             const hasQ = toks.some(x => QRE.test(x));
             if (!hasQ && !qOk && sizeOk) return wqRed(t);
             return '<strong>' + toks.map(x => /^\s+$/.test(x) || !x ? x : wqSpan(x, QRE.test(x) ? qOk : sizeOk)).join('') + '</strong>';
         }
-        // Notenname: Stammton(+Lage) grün, nur das Vorzeichen rot. Ohne geschriebenes Vorzeichen alles rot.
-        function colorAcc(tok) {
-            const m = (tok || '').match(/^([A-Ha-h])([a-z]+)([',]*)$/);
-            if (!m) return wqRed(tok);
-            return `<strong>${wqSpan(m[1], true)}${wqSpan(m[2], false)}${m[3] ? wqSpan(m[3], true) : ''}</strong>`;
-        }
-
         // ---- Fehlversuch festhalten: Aufgabe, Antwort, welcher Teil nicht stimmte ----
         function attemptOf(c) {
             const { img, kb } = snapshot(c);
@@ -2383,9 +2376,9 @@
                 const steps = (sel.oct - t.startNote.oct) * 7 + app._getStaffPos(sel.name) - app._getStaffPos(t.startNote.name) + 1;
                 const kind = steps !== t.interval.steps ? 'rahmen' : 'fein';
                 const uname = _itHelmFromName(sel.name, app._octNumToName(sel.oct));
-                // Rahmenintervall stimmt (richtiger Stammton): nur das Vorzeichen rot, im Text wie im Bild
+                // Rahmenintervall stimmt (richtiger Stammton): im Bild nur das Vorzeichen rot, im Text der ganze Name
                 if (kind === 'fein') base.img = snapshot(c, accOf(sel.name) ? 'acc' : 'plain').img;
-                return { ...base, kind, user: uname, uhtml: kind === 'fein' ? colorAcc(uname) : wqRed(uname), verb: c.mode === 'bilden_tast' ? 'angeklickt' : 'geschrieben',
+                return { ...base, kind, user: uname, uhtml: wqRed(uname), verb: c.mode === 'bilden_tast' ? 'angeklickt' : 'geschrieben',
                     steps, task: t, tacc: accOf(t.targetNote.name), interval: t.interval.name };
             }
             const iv = app.currentInterval;

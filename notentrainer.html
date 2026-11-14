@@ -1419,7 +1419,6 @@
         .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
         .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
         .wq-wrong { color: #dc2626; }
-        .wq-right { color: #16a34a; }
         .wq-full { width: 100%; text-align: left; }
         .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
         .wq-cases.wq-col { flex-direction: column; }
@@ -2518,7 +2517,7 @@
         }
 
         // Bild der Aufgabe, wie der Schüler sie gesehen hat (Lesen: Note, Schreiben: seine gesetzte Note)
-        // look: 'acc' = nur das Vorzeichen falsch (Kopf grün, Vorzeichen rot), 'plain' = Vorzeichen vergessen
+        // look: 'acc' = nur das Vorzeichen falsch (nur das Vorzeichen rot), 'plain' = Vorzeichen vergessen
         // (jede Farbe im Bild wäre missverständlich, der Text markiert es), sonst die Note rot
         function snapshot(c, look) {
             const el = c.mode === 'bilden' ? document.getElementById('staffSvg') : document.getElementById('staffContainer');
@@ -2530,11 +2529,10 @@
             if (p) {
                 const black = app.drawNoteAt(p.noteName, p.octave, p.x, 260, '#000');
                 if (black) svg = svg.split(black).join('');
-                // Stammton und Lage richtig, nur das Vorzeichen falsch: Kopf grün, Vorzeichen rot
-                // (drawNoteAt zeichnet das Vorzeichen vor dem Kopf)
+                // Stammton und Lage richtig, nur das Vorzeichen falsch: nur das Vorzeichen rot, der Kopf bleibt
+                // schwarz (drawNoteAt zeichnet das Vorzeichen vor dem Kopf). Im Bild nur die negative Information.
                 const red = app.drawNoteAt(p.noteName, p.octave, p.x, 260, '#dc2626');
-                const green = app.drawNoteAt(p.noteName, p.octave, p.x, 260, '#16a34a');
-                const note = look === 'plain' ? black : look === 'acc' ? red.slice(0, red.indexOf('<ellipse')) + green.slice(green.indexOf('<ellipse')) : red;
+                const note = look === 'plain' ? black : look === 'acc' ? red.slice(0, red.indexOf('<ellipse')) + black.slice(black.indexOf('<ellipse')) : red;
                 svg = svg.replace('</svg>', note + '</svg>');
             }
             return svg.replace(/<circle[^>]*fill="#d1d5db"[^>]*\/>/g, '');
@@ -2577,7 +2575,7 @@
                 const ppos = staffInfo(p.noteName, OCT[p.octave], c.clef).pos;
                 const placed = lagen ? noteToHelmholtz(p.noteName, p.octave) : noteToHelmholtz(p.noteName, p.octave).replace(/'+|,+/g, '');
                 const look = kind !== 'vz' ? null : errorTracker._extractVZ(p.noteName) ? 'acc' : 'plain';
-                return { kind, user: placed, uhtml: colorName(placed, stOk, vzOk, kind !== 'lage'), verb: 'geschrieben', img: look ? snapshot(c, look) : img, uname: noteToHelmholtz(p.noteName, p.octave), uoct: OCT[p.octave], task, ppos, hasVz: !!errorTracker._extractVZ(t.name), ...info };
+                return { kind, user: placed, uhtml: wqRed(placed), verb: 'geschrieben', img: look ? snapshot(c, look) : img, uname: noteToHelmholtz(p.noteName, p.octave), uoct: OCT[p.octave], task, ppos, hasVz: !!errorTracker._extractVZ(t.name), ...info };
             }
             // errorTracker protokolliert nur den Erstversuch → Wiederholungen aus dem Zustand lesen
             const t = app.currentNote;
@@ -2600,7 +2598,7 @@
                 const vzErr = !!vzT && (pc(app.selectedKey) === pc(stPitch) || pc(app.selectedKey) === pc(stPitch + (vzT === 'is' ? -1 : 1)));
                 const kbEl = document.getElementById('keyboard');
                 const kb = `<div class="wq-kb">${kbEl ? kbEl.innerHTML.replace(/\sid="[^"]*"/g, '').replace(/\sonclick="[^"]*"/g, '') : ''}</div>`;
-                return { kind: samePc ? 'lage' : vzErr ? 'vz' : 'taste', user: 'die Taste ' + keyName, uhtml: 'die Taste ' + (samePc ? colorName(keyName, true, true, false) : `<strong class="wq-wrong">${keyName}</strong>`), verb: 'angeklickt', uname: keyName, uoct: k.octave, ustamm: errorTracker._extractStammton(k.name), img, kb, hasVz, ...info };
+                return { kind: samePc ? 'lage' : vzErr ? 'vz' : 'taste', user: 'die Taste ' + keyName, uhtml: 'die Taste ' + wqRed(keyName), verb: 'angeklickt', uname: keyName, uoct: k.octave, ustamm: errorTracker._extractStammton(k.name), img, kb, hasVz, ...info };
             }
             const raw = (document.getElementById('noteInput').value || '').trim();
             if (!raw) return null;
@@ -2615,19 +2613,12 @@
             const stOk = errorTracker._extractStammton(name).toLowerCase() === errorTracker._extractStammton(t.name).toLowerCase();
             const vzOk = errorTracker._extractVZ(name) === errorTracker._extractVZ(t.name);
             const kind = !stOk ? (info.ledger ? 'hilf' : 'stamm') : !vzOk ? 'vz' : 'lage';
-            return { kind, user, uhtml: colorName(user, stOk, vzOk, kind !== 'lage'), verb: 'eingegeben', uname: user, uoct: octSel && octSel.value ? octSel.value : null, ustamm: errorTracker._extractStammton(name), img, hasVz, ...info };
+            return { kind, user, uhtml: wqRed(user), verb: 'eingegeben', uname: user, uoct: octSel && octSel.value ? octSel.value : null, ustamm: errorTracker._extractStammton(name), img, hasVz, ...info };
         }
 
-        // Antwort im Text: Stammton, Vorzeichen und Lage einzeln grün bzw. rot. Groß-/Kleinschreibung
-        // und Striche gehören zur Lage. Fehlt der falsche Teil (vergessenes Vorzeichen), wird alles rot.
-        function colorName(tok, stOk, vzOk, lageOk) {
-            const m = (tok || '').match(/^([A-Ha-h])([a-z]*)([',]*)$/);
-            const span = (t, ok) => t ? `<span class="${ok ? 'wq-right' : 'wq-wrong'}">${t}</span>` : '';
-            // Lage steckt auch im Anfangsbuchstaben → bei Lagefehler immer sichtbar
-            const shown = m && (!stOk || !lageOk || (!vzOk && m[2]));
-            if (!m || !shown) return `<strong class="wq-wrong">${tok}</strong>`;
-            return `<strong>${span(m[1], stOk && lageOk)}${span(m[2], vzOk)}${span(m[3], stOk && lageOk)}</strong>`;
-        }
+        // Antwort im Text: ein Notenname ist eine Einheit und wird ganz rot (nicht Stammton/Vorzeichen/Lage
+        // einzeln: ein rotes Vorzeichen oder ein roter Strich wäre leicht zu übersehen)
+        const wqRed = t => `<strong class="wq-wrong">${t}</strong>`;
 
         // Genaue Lage im Notensystem (Position 0 = unterste Linie). akk = wohin gesetzt (Schreiben).
         function posPhrase(pos, akk) {
