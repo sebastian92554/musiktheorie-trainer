@@ -9212,16 +9212,7 @@ Gerät:
                     this._wrongLock = true;
                     if (quickStart.currentLevel) quickStart.onAnswerChecked(false);
 
-                    // Feld nach 2.5s für neuen Versuch zurücksetzen
-                    setTimeout(() => {
-                        this._wrongLock = false;
-                        startInput.value = '';
-                        startInput.classList.remove('input-validated-incorrect');
-                        startStatus.className = 'input-status-icon pending';
-                        startStatus.textContent = '';
-                        feedback.classList.add('hidden');
-                        startInput.focus();
-                    }, 2500);
+                    this._unlockOnEdit(startInput, startStatus, feedback);
                 }
             },
             
@@ -9355,17 +9346,20 @@ Gerät:
                     this._wrongLock = true;
                     if (quickStart.currentLevel) quickStart.onAnswerChecked(false);
 
-                    // Feld nach 2.5s für neuen Versuch zurücksetzen
-                    setTimeout(() => {
-                        this._wrongLock = false;
-                        input.value = '';
-                        input.classList.remove('input-validated-incorrect');
-                        status.className = 'input-status-icon pending';
-                        status.textContent = '';
-                        feedback.classList.add('hidden');
-                        input.focus();
-                    }, 2500);
+                    this._unlockOnEdit(input, status, feedback);
                 }
+            },
+
+            // Nach einem Fehlversuch bleibt die eigene Eingabe mit der Rückmeldung stehen (die Aufgabe bleibt,
+            // der Schüler korrigiert); erst die nächste Änderung im Feld hebt die Sperre auf
+            _unlockOnEdit(input, status, feedback) {
+                input.addEventListener('input', () => {
+                    this._wrongLock = false;
+                    input.classList.remove('input-validated-incorrect');
+                    status.className = 'input-status-icon pending';
+                    status.textContent = '';
+                    feedback.classList.add('hidden');
+                }, { once: true });
             },
 
             updateScoreDisplay() {
