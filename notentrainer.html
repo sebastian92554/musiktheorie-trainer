@@ -1434,6 +1434,27 @@
         .wq-bar .wq-opt.on { background: #eef2ff; border-color: #6366f1; }
         .wq-bar .wq-opt.on::before { background: #4f46e5; border-color: #4f46e5; box-shadow: inset 0 0 0 2px #fff; }
         .wq-send:disabled { opacity: 0.45; cursor: default; }
+        /* Endbildschirm: Fehlerliste als Bild-Kästen, Übersicht aller Fehler (.es-all) */
+        .es-boxes { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; }
+        .es-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 6px 8px; text-align: left; }
+        .es-box svg { display: block; width: 100%; height: auto; }
+        .es-pair { display: flex; align-items: center; justify-content: center; gap: 14px; }
+        .es-box svg.es-st { width: 80px; flex: none; margin: 0; }
+        .es-box svg.es-st2 { width: 104px; }
+        .es-names { display: flex; flex-direction: column; gap: 4px; font-size: 1rem; }
+        .es-l { display: block; font-size: 0.72rem; font-weight: 700; color: #6b7280; }
+        .es-u, .es-u .es-l { color: #dc2626; }
+        .es-box .es-kb svg { max-width: 150px; margin: 4px auto 0; }
+        #successMessage .es-key { font-size: 0.78rem; color: #374151; text-align: center; margin: 4px 0 0; display: flex; gap: 6px; justify-content: center; align-items: center; }
+        .es-sw { display: inline-block; width: 12px; height: 12px; border: 1px solid #9ca3af; border-radius: 2px; margin-left: 6px; }
+        #successMessage .es-more { display: block; margin: 4px auto 0; background: none; border: none; padding: 4px 8px; font-size: 0.9rem; color: #4338ca; text-decoration: underline; cursor: pointer; }
+        .es-all { position: fixed; inset: 0; z-index: 3000; background: rgba(15,23,42,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow: auto; }
+        .es-all-p { background: #eef2ff; border-radius: 14px; width: 100%; max-width: 980px; padding: 12px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+        .es-all-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #312e81; }
+        .es-x { border: none; background: #e0e7ff; color: #312e81; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+        .es-all-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+        .es-n { font-size: 0.8rem; font-weight: 700; color: #6b7280; margin: 0 0 4px; }
+        .es-all .es-key { font-size: 0.78rem; text-align: center; margin: 4px 0 0; }
         .wq-full { width: 100%; text-align: left; }
         .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
         .wq-cases.wq-col { flex-direction: column; }
@@ -2966,15 +2987,104 @@
             if (by[kinds[0]].length >= 2) return `Lies vor dem nächsten Durchgang die Lernkarte noch einmal und achte dabei besonders auf ${schl ? 'den Schlüssel' : P[kinds[0]]}.`;
             return 'Lies vor dem nächsten Durchgang die Lernkarte noch einmal und prüf jede Antwort, bevor du sie abschickst.';
         }
+        // ---- Fehlerliste als Bild-Kästen (wie im RT, Sebo 15.11.2026) ----
+        // Die Lösung steht im Bild, damit der Schüler unmittelbar vergleichen kann. Je Fehler ein System:
+        // links die richtige Note (schwarz) mit „richtig“ und Namen, rechts die eigene Antwort als Note (rot;
+        // nur das Vorzeichen falsch → nur das Vorzeichen rot; Vorzeichen vergessen → ungefärbt, der rote Name markiert es).
+        // Tastatur: das System mit der Aufgabe, darunter die Tastatur mit der richtigen Taste (grün) und der angeklickten (rot).
+        // Höchstens drei Kästen (erster Fehler je Fehlerart), „und n weitere Fehler ›“ öffnet die Übersicht.
+        const RED = '#dc2626';
+        const OCTN = { kontra: 1, gross: 2, klein: 3, eingestrichen: 4, zweigestrichen: 5, dreigestrichen: 6 };
+        let endXs = [];
+        // 1:1 aus dem Intervalltrainer (wqKbSvg); C-Beschriftung über pitchToNote des NT (H ist hier die Tastenhöhe)
+        function wqKbSvg(keys, brackets) {
+            const W = 24, BW = 14, H = 80, BH = 50, Y = 34;
+            const ps = keys.map(k => k.p);
+            const start = Math.min(...ps) - ((Math.min(...ps) % 12) + 12) % 12;
+            const end = Math.max(...ps) - ((Math.max(...ps) % 12) + 12) % 12 + 11;
+            const WHITE = [0, 2, 4, 5, 7, 9, 11];
+            const isW = p => WHITE.includes(((p % 12) + 12) % 12);
+            const pos = {}; let wi = -1;
+            for (let p = start; p <= end; p++) { if (isW(p)) { wi++; pos[p] = { x: wi * W, cx: wi * W + W / 2 }; } else pos[p] = { x: wi * W + W - BW / 2, cx: wi * W + W }; }
+            const fill = p => (keys.find(k => k.p === p) || {}).fill;
+            let svg = `<svg class="wq-kbsvg" viewBox="-1 0 ${(wi + 1) * W + 2} ${Y + H + 2}" xmlns="http://www.w3.org/2000/svg">`;
+            for (let p = start; p <= end; p++) if (isW(p)) {
+                svg += `<rect x="${pos[p].x}" y="${Y}" width="${W}" height="${H}" rx="2" fill="${fill(p) || '#fff'}" stroke="#9ca3af"/>`;
+                if (p % 12 === 0) svg += `<text x="${pos[p].cx}" y="${Y + H - 6}" font-size="9" font-weight="700" fill="#4f46e5" text-anchor="middle">${(k => ErrorTracker.toHelmholtz(k.name, k.octave))(app.pitchToNote(p))}</text>`;
+            }
+            for (let p = start; p <= end; p++) if (!isW(p)) svg += `<rect x="${pos[p].x}" y="${Y}" width="${BW}" height="${BH}" rx="2" fill="${fill(p) || '#1f2937'}" stroke="#1f2937"/>`;
+            brackets.forEach(({ a, b, txt, col, tcol }) => {
+                const x1 = pos[a].cx, x2 = pos[b].cx, by = Y - 6;
+                if (a !== b) svg += `<path d="M ${x1} ${by + 5} V ${by} H ${x2} V ${by + 5}" fill="none" stroke="${col}" stroke-width="2"/>`;
+                svg += `<text x="${(x1 + x2) / 2}" y="${by - 5}" font-size="12" font-weight="700" fill="${tcol}" text-anchor="middle">${txt}</text>`;
+            });
+            return svg + '</svg>';
+        }
+        // System wie drawStaff (Linien 180–260, Schlüssel), Noten mit drawNoteAt (Position nach app.useBassClef)
+        function endPic(a, x, c) {
+            const keep = app.useBassClef;
+            app.useBassClef = a.clef === 'bass';
+            try {
+                const lagen = c.opts.includes('lagen'), nm = t => lagen ? t : t.replace(/['’,]+/g, '');
+                const on = OCTN[a.octave], uo = OCTN[(c.mode === 'bilden' ? a.placedOctave || a.userOctave : a.userOctave) || a.octave] || on;
+                // Richtige und eigene Note nebeneinander, in allen Aufgabentypen (Sebo 15.11.2026): Beim Lesen steht die
+                // getippte Note rot im System, bei der Tastatur die Note der angeklickten Taste – genau dort liegt das Problem.
+                const two = true, tas = c.mode === 'tastatur';
+                const cx = two ? 170 : 175, ux = 250, right = two ? 290 : 230;
+                const un = (a.userInput || '').charAt(0).toUpperCase() + (a.userInput || '').slice(1).toLowerCase();   // Eingabe wie „fis“ → „Fis“
+                const ys = [app._buildingNotePosition(a.correctNote, on)];
+                if (two) ys.push(app._buildingNotePosition(un, uo));
+                const yy = ys.filter(p => p !== undefined).map(p => 260 - p * 10);
+                const top = Math.min(140, ...yy.map(y => y - 25)), bot = Math.max(292, ...yy.map(y => y + 16));
+                let svg = `<svg class="es-st${two ? ' es-st2' : ''}" viewBox="66 ${top} ${right - 56} ${bot - top + 4}" xmlns="http://www.w3.org/2000/svg">`;
+                [260, 240, 220, 200, 180].forEach(ly => svg += `<line x1="80" y1="${ly}" x2="${right}" y2="${ly}" stroke="#000" stroke-width="2"/>`);
+                svg += a.clef === 'bass' ? app.drawBassClefSVG(90, 198) : app.drawTrebleClefSVG(103, 260);
+                svg += app.drawNoteAt(a.correctNote, on, cx, 260, '#000');
+                // Namen als Text neben dem Bild (im Bild würden sie mit dem Bild verkleinert und unlesbar)
+                const names = `<div class="es-names"><div><span class="es-l">richtig</span><b>${nm(H(a.correctNote, a.octave))}</b></div>`
+                    + `<div class="es-u"><span class="es-l">${tas ? 'deine Taste' : 'deine Antwort'}</span><b>${nm(x.uname)}</b></div></div>`;
+                if (two) {
+                    const ub = app.drawNoteAt(un, uo, ux, 260, '#000'), ur = app.drawNoteAt(un, uo, ux, 260, RED);
+                    // Vorzeichen vergessen: Note schwarz, rotes Fragezeichen an der Stelle des fehlenden Vorzeichens (forgotMark)
+                    svg += x.kind !== 'vz' ? ur : x.uacc ? ur.slice(0, ur.indexOf('<ellipse')) + ub.slice(ub.indexOf('<ellipse'))
+                        : ub + forgotMark(ux, 260 - app._buildingNotePosition(un, uo) * 10);
+                }
+                svg = `<div class="es-pair">${svg}</svg>${names}</div>`;
+                if (tas) {
+                    const pc = app.getPitchForNote(a.correctNote, a.octave), pu = app.getPitchForNote(un, a.userOctave || a.octave);
+                    svg += `<div class="es-kb">${wqKbSvg([{ p: pc, fill: '#86efac' }, { p: pu, fill: '#fca5a5' }], [])}</div>`
+                        + '<p class="es-key"><span class="es-sw" style="background:#86efac"></span>richtige Taste <span class="es-sw" style="background:#fca5a5"></span>deine Taste</p>';
+                }
+                return svg;
+            } catch (e) { wqError('endPic', e); return ''; } finally { app.useBassClef = keep; }
+        }
+        // Kästen: erster Fehler je Fehlerart, höchstens drei; line: Textzeile, falls kein Bild entsteht
+        function endBoxes(xs, line) {
+            endXs = xs.map(x => Object.assign(x, { line: line(x) }));
+            const seen = new Set(), pick = [];
+            xs.forEach(x => { if (!seen.has(x.kind) && pick.length < 3) { seen.add(x.kind); pick.push(x); } });
+            const rest = xs.length - pick.length;
+            return '<p>Diese Fehler sind aufgetreten:</p><div class="es-boxes">'
+                + pick.map(x => `<div class="es-box">${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div>'
+                + (rest > 0 ? `<button class="es-more" onclick="woranPanel.endAll()">und ${rest} weitere${rest === 1 ? 'r' : ''} Fehler ›</button>` : '');
+        }
+        // Übersicht aller Fehler des Durchgangs, breiter als die Karte
+        function endAll() {
+            const ov = document.createElement('div');
+            ov.className = 'es-all';
+            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieses Durchgangs</b><button class="es-x" aria-label="Schließen">×</button></div>'
+                + '<div class="es-all-g">' + endXs.map((x, i) => `<div class="es-box"><p class="es-n">${i + 1}. Fehler</p>${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div></div>';
+            ov.onclick = e => { if (e.target === ov || e.target.classList.contains('es-x')) ov.remove(); };
+            document.body.appendChild(ov);
+        }
         // Ersetzt Nachricht und Empfehlungen des Endbildschirms; false, wenn keine Fehler protokolliert sind
         function endScreen(msg, rec) {
             const c = ctx();
-            const xs = errorTracker.getErrors().filter(a => a.category !== 'building_note_falsch' && a.category !== 'building_vz_falsch').map(a => classifyEnd(a, c));
+            const xs = errorTracker.getErrors().filter(a => a.category !== 'building_note_falsch' && a.category !== 'building_vz_falsch').map(a => { const x = classifyEnd(a, c); x.pic = endPic(a, x, c); return x; });
             if (!xs.length) return false;
             const verb = c.mode === 'tastatur' ? 'angeklickt' : c.mode === 'bilden' ? 'geschrieben' : 'eingegeben';
             const pre = c.mode === 'bilden' ? 'Schreibe ' : '';
-            const listHtml = '<p>Diese Fehler sind aufgetreten:</p><ul class="gf-errlist">'
-                + xs.slice(0, 5).map(x => `<li>${pre}${x.pair.replace(' → ', ' → du hast ')} ${verb}</li>`).join('') + '</ul>';
+            const listHtml = endBoxes(xs, x => `${pre}${x.pair.replace(' → ', ' → du hast ')} ${verb}`);
             const Q = 'Schau dir deine Fehler an. Woran lag es?';
             // Nur Vermutungen zu dem, was in den Fehler-Aufgaben vorkam (Sebo 15.11.2026): „is“/„es“ nur, wenn eine
             // Note der Fehler ein Vorzeichen hatte oder eins geschrieben wurde; Hilfslinien nur, wenn eine darauf stand
@@ -3067,7 +3177,7 @@
                 if (ok) { if (!isRetry) attempts = []; closePanel(); }
             },
             reset() { attempts = []; outcomeCtx = null; closePanel(); },
-            endScreen
+            endScreen, endAll
         });
         })();
 
