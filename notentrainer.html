@@ -1419,7 +1419,21 @@
         .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
         .wq-wrong { color: #dc2626; }
         #successMessage .wq-panel { margin-top: 14px; }
-        .wq-find { margin: 0 0 8px; }
+        /* .success-stats p (1.1rem, grau) gilt im Feld nicht: Feldschrift wie in Liste und Hilfen */
+        #successMessage .wq-panel p { font-size: inherit; color: inherit; }
+        #successMessage .wq-panel .wq-sub { color: #3730a3; font-size: 0.88rem; margin: 12px 0 6px; }
+        /* Endbildschirm-Dialog: Trainer links grau, Schüler rechts in Trainerfarbe; Optionen neutral in eigener Leiste */
+        .wq-chat { display: flex; flex-direction: column; gap: 8px; }
+        .wq-chat .wq-bub { align-self: flex-start; max-width: 88%; background: #f3f4f6; border-radius: 14px 14px 14px 4px; padding: 8px 12px; }
+        .wq-chat .wq-bub-u { align-self: flex-end; background: #e0e7ff; color: #312e81; border-radius: 14px 14px 4px 14px; }
+        .wq-bar { border-top: 1px solid #e5e7eb; margin-top: 12px; padding-top: 10px; }
+        #successMessage .wq-panel .wq-bar-l { font-size: 0.85rem; color: #6b7280; margin: 0 0 6px; }
+        .wq-bar .wq-opt { display: flex; gap: 8px; align-items: flex-start; background: #fff; border: 1px solid #d1d5db; color: #1f2937; border-radius: 8px; font-size: inherit; }
+        .wq-bar .wq-opt::before { content: ''; flex: none; width: 14px; height: 14px; margin-top: 2px; border: 1.5px solid #9ca3af; border-radius: 50%; }
+        .wq-bar .wq-opt:hover { background: #f9fafb; border-color: #9ca3af; }
+        .wq-bar .wq-opt.on { background: #eef2ff; border-color: #6366f1; }
+        .wq-bar .wq-opt.on::before { background: #4f46e5; border-color: #4f46e5; box-shadow: inset 0 0 0 2px #fff; }
+        .wq-send:disabled { opacity: 0.45; cursor: default; }
         .wq-full { width: 100%; text-align: left; }
         .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
         .wq-cases.wq-col { flex-direction: column; }
@@ -1973,6 +1987,8 @@
                     clef: data.clef || 'treble',
                     octave: data.octave || '',
                     userOctave: data.userOctave || '',
+                    // Schreiben: Lage der gesetzten Note, auch ohne Lagen-Übung (für das Bild im Endbildschirm)
+                    placedOctave: data.placedOctave || '',
                     category: data.category || '',
                     stammtonOk,
                     vzOk,
@@ -2522,7 +2538,13 @@
 
         // Bild der Aufgabe, wie der Schüler sie gesehen hat (Lesen: Note, Schreiben: seine gesetzte Note)
         // look: 'acc' = nur das Vorzeichen falsch (nur das Vorzeichen rot), 'plain' = Vorzeichen vergessen
-        // (jede Farbe im Bild wäre missverständlich, der Text markiert es), sonst die Note rot
+        // (Note schwarz, rotes Fragezeichen davor), sonst die Note rot
+        // Vorzeichen vergessen: rotes Fragezeichen an der Stelle des fehlenden Vorzeichens (Sebo 15.11.2026) –
+        // ein roter Kopf hieße „Stammton falsch“, eine ungefärbte Note allein wird übersehen.
+        // x, y: Mitte des Notenkopfs; das Vorzeichen stünde bei x − 24,5 (drawNoteAt)
+        function forgotMark(x, y) {
+            return `<text x="${x - 24.5}" y="${y + 10}" text-anchor="middle" font-size="30" font-weight="700" fill="#dc2626">?</text>`;
+        }
         function snapshot(c, look) {
             const el = c.mode === 'bilden' ? document.getElementById('staffSvg') : document.getElementById('staffContainer');
             if (!el) return '';
@@ -2536,7 +2558,7 @@
                 // Stammton und Lage richtig, nur das Vorzeichen falsch: nur das Vorzeichen rot, der Kopf bleibt
                 // schwarz (drawNoteAt zeichnet das Vorzeichen vor dem Kopf). Im Bild nur die negative Information.
                 const red = app.drawNoteAt(p.noteName, p.octave, p.x, 260, '#dc2626');
-                const note = look === 'plain' ? black : look === 'acc' ? red.slice(0, red.indexOf('<ellipse')) + black.slice(black.indexOf('<ellipse')) : red;
+                const note = look === 'plain' ? black + forgotMark(p.x, 260 - app._buildingNotePosition(p.noteName, p.octave) * 10) : look === 'acc' ? red.slice(0, red.indexOf('<ellipse')) + black.slice(black.indexOf('<ellipse')) : red;
                 svg = svg.replace('</svg>', note + '</svg>');
             }
             return svg.replace(/<circle[^>]*fill="#d1d5db"[^>]*\/>/g, '');
@@ -2799,9 +2821,9 @@
         }
 
 
-        // ---- Endbildschirm „Noch nicht ganz“: Fehlerliste → „Woran lag es?“ → Befund ----
-        // Erst nach der Wahl: was die Fehler zeigen (gezählt, am eigenen Fehler), Bezug zur
-        // Vermutung, Hilfen nur zu den beobachteten Fehlerarten, Übungsknöpfe.
+        // ---- Endbildschirm „Noch nicht ganz“: Fehlerliste → Dialog „Woran lag es?“ ----
+        // Frage → eigene Wahl (mehrere möglich) → Erwiderung und Schlussfolgerung → Tipp für den nächsten
+        // Durchgang; darunter Hilfen nur zu den beobachteten Fehlerarten und Übungsknöpfe.
         const LET = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
         const redT = t => `<strong class="wq-wrong">${t}</strong>`;
         const H = (n, o) => ErrorTracker.toHelmholtz(n, o);
@@ -2825,36 +2847,60 @@
                 const i = LET.indexOf(st.toUpperCase());
                 schl = LET[(i + (a.clef === 'bass' ? -2 : 2) + 7) % 7] === ust.toUpperCase();
             }
-            return { kind, schl, ledger, below, line: pos !== undefined && pos % 2 === 0, clef: a.clef, st, acc,
+            return { kind, schl, ledger, below, line: pos !== undefined && pos % 2 === 0, clef: a.clef, st, acc, uacc,
                 pair: `${H(a.correctNote, a.octave)} → ${redT(H(a.userInput || '?', uoct))}`, uname: H(a.userInput || '?', uoct), uoct };
         }
         function exampleNot(pairs, not) { const p = pairs.find(p => !not.includes(p[0])) || pairs[0]; return `${p[0]} wird ${p[1]}`; }
-        const numErr = n => n === 1 ? 'einem Fehler' : n + ' Fehlern';
-        const listErr = xs => xs.slice(0, 4).map(x => x.pair).join(', ') + (xs.length > 4 ? ' …' : '');
+        const times = n => (['', 'einmal', 'zweimal', 'dreimal', 'viermal', 'fünfmal', 'sechsmal', 'siebenmal', 'achtmal', 'neunmal', 'zehnmal'][n]) || n + '-mal';
+        const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+        const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' und ' + a[a.length - 1];
 
-        // Was die Fehler zeigen: je Fehlerart ein Satz, gezählt und an den eigenen Fehlern gezeigt
-        function findingEnd(kind, xs, c, total) {
-            const n = xs.length;
-            const bei = n === total && n > 1 ? 'Bei allen Fehlern' : 'Bei ' + numErr(n);
-            if (kind === 'stamm' || kind === 'hilf') {
-                let s = kind === 'hilf'
-                    ? `${bei} stand die Note auf Hilfslinien ${xs.every(x => x.below) ? 'unter' : xs.every(x => !x.below) ? 'über' : 'unter oder über'} dem System, und der Stammton stimmte nicht (${listErr(xs)}).`
-                    : `${bei} stimmte der Stammton nicht (${listErr(xs)}).`;
-                if (n >= 2 && xs.every(x => x.schl)) {
-                    const other = xs[0].clef === 'bass' ? 'Violinschlüssel' : 'Bassschlüssel';
-                    s += ` Deine Antworten passen alle zum ${other}: Du hast die Noten so gelesen, als stünde ein ${other} davor.`;
-                }
-                return s;
+        // Was die Fehler zeigen: die Schlussfolgerung, nicht noch einmal die Fehler (die stehen in der Liste).
+        // said: Erwiderung und Tipp nennen die einzige Fehlerart schon → hier nicht ein drittes Mal (zweimal ist in Ordnung);
+        // was zusätzlich stimmte oder wo es lag, bleibt stehen.
+        function endConclusion(by, c, total, said) {
+            // Stammtonfehler auf Hilfslinien zählen zum Stammton, wenn es beide gibt
+            const g = Object.assign({}, by);
+            let hilfN = 0;
+            if (g.stamm && g.hilf) { hilfN = g.hilf.length; g.stamm = g.stamm.concat(g.hilf); delete g.hilf; }
+            const kinds = Object.keys(g).sort((a, b) => g[b].length - g[a].length);
+            const P = { stamm: 'der Stammton', hilf: 'der Stammton auf Hilfslinien', vz: 'das Vorzeichen', taste: 'die angeklickte Taste', lage: 'die Lage' };
+            const top = kinds[0], n = g[top].length;
+            const all = total > 1 ? 'bei allen Fehlern' : 'bei deinem Fehler', each = total > 1 ? ' jedes Mal' : '';
+            let s;
+            if (kinds.length === 1) {
+                const dir = g[top].every(x => x.below) ? 'unter' : g[top].every(x => !x.below) ? 'über' : 'unter oder über';
+                if (top === 'hilf') s = said ? `Die Noten standen jedes Mal ${dir} dem System.` : `${cap(all)} stand die Note auf Hilfslinien ${dir} dem System.`;
+                else if (top === 'vz') s = said ? `Der Stammton stimmte${each}.` : `Der Stammton stimmte${each}, nur das Vorzeichen nicht.`;
+                else if (top === 'taste') s = said ? '' : `Es lag ${all} am Finden der Taste.`;
+                else if (top === 'lage') s = said ? `Stammton und Vorzeichen stimmten${each}.` : `Stammton und Vorzeichen stimmten${each}, nur die Lage nicht.`;
+                else s = said ? '' : `${cap(P[top])} stimmte ${all} nicht.`;
+            } else {
+                const eq = kinds.filter(k => g[k].length === n), rest = kinds.filter(k => g[k].length < n);
+                const restTxt = rest.length ? `, außerdem ${andList(rest.map(k => `${times(g[k].length)} ${P[k]}`))}` : '';
+                s = eq.length === 1
+                    ? `Meistens stimmte ${P[top]} nicht (${n} von ${total} Fehlern)${restTxt}.`
+                    : `${cap(andList(eq.map(k => P[k])))} stimmten je ${times(n)} nicht${restTxt}.`;
+                if (hilfN) s += hilfN === g.stamm.length ? '' : ` Beim Stammton stand die Note ${times(hilfN)} auf Hilfslinien.`;
             }
-            if (kind === 'vz') return `${bei} stimmte der Stammton, das Vorzeichen nicht (${listErr(xs)}).`;
-            if (kind === 'taste') return `${bei} hast du eine andere Taste angeklickt (${listErr(xs)}).`;
+            // Schlüsselfehler: alle Stammton-Antworten passen zum anderen Schlüssel
+            const st = (g.stamm || g.hilf || []);
+            if (st.length >= 2 && st.every(x => x.schl)) {
+                const other = st[0].clef === 'bass' ? 'Violinschlüssel' : 'Bassschlüssel';
+                s += ` Deine Antworten passen alle zum ${other}: Du hast die Noten so gelesen, als stünde ein ${other} davor.`;
+            }
+            // Vorzeichen: jedes Mal weggelassen bzw. jedes Mal dazugenommen
+            if (g.vz && g.vz.length >= 2 && c.mode !== 'tastatur') {
+                const wo = kinds.length > 1 ? 'Wo das Vorzeichen nicht stimmte, hast du' : 'Du hast';
+                if (g.vz.every(x => x.acc && !x.uacc)) s += ` ${wo} es jedes Mal weggelassen.`;
+                else if (g.vz.every(x => !x.acc && x.uacc)) s += ` ${wo} jedes Mal ein Vorzeichen dazugenommen, das nicht dasteht.`;
+            }
             // Lage: eigene Schreibweise entschlüsseln, ohne die richtige Lage zu nennen
-            let s = `${bei} stimmten Stammton und Vorzeichen, nur die Lage nicht (${listErr(xs)}).`;
-            if (c.mode !== 'tastatur') {
+            if (g.lage && c.mode !== 'tastatur') {
                 const seen = new Set();
-                xs.forEach(x => { if (seen.has(x.uoct) || seen.size >= 3) return; seen.add(x.uoct); const m = OCT_MEAN[x.uoct]; if (m) s += ` <strong>${x.uname}</strong> – ${m[0]} – heißt ${m[1]}.`; });
+                g.lage.forEach(x => { if (seen.has(x.uoct) || seen.size >= 3) return; seen.add(x.uoct); const m = OCT_MEAN[x.uoct]; if (m) s += ` <strong>${x.uname}</strong> – ${m[0]} – heißt ${m[1]}.`; });
             }
-            return s;
+            return s.trim();
         }
         // Hilfen nur zu den beobachteten Fehlerarten, Texte wie im Feld
         function helpsEnd(kinds, by, c) {
@@ -2893,19 +2939,35 @@
         }
         // Übungsknöpfe je Fehlerart, erst ab zwei Fehlern derselben Art und nur, wenn sie
         // zu einer anderen Übung führen als der eben gemachten
-        function recosEnd(kinds, by, c) {
+        // Liste: [Fehlerart, Ebene, Optionen, Knopftext]
+        function recoItems(kinds, by, c) {
             const all = quickStart.getOptionsForLevel(c.lvl), cur = c.opts.join(',');
             const upTo = o => all.slice(0, all.indexOf(o) + 1);
             const T = { stamm: [c.lvl, ['basis'], 'Stammtöne üben'], vz: [c.lvl, upTo('vorzeichen'), 'Vorzeichen üben'],
                 lage: [c.lvl, upTo('lagen'), 'Lagen üben'], taste: ['profi', ['basis'], 'Tastatur üben'] };
-            const seen = new Set([c.lvl + '|' + cur]);
-            let h = '';
+            const seen = new Set([c.lvl + '|' + cur]), out = [];
             kinds.forEach(k => { const t = T[k]; if (!t || by[k].length < 2) return; const id = t[0] + '|' + t[1].join(','); if (seen.has(id)) return; seen.add(id);
-                h += `<button class="reco-item" onclick="quickStart.goToRecommendedLevel('${t[0]}','${t[1].join(',')}')">${t[2]}</button>`; });
-            return h + '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                out.push([k, t[0], t[1].join(','), t[2]]); });
+            return out;
+        }
+        function recosEnd(items) {
+            return items.map(([, lvl, opts, label]) => `<button class="reco-item" onclick="quickStart.goToRecommendedLevel('${lvl}','${opts}')">${label}</button>`).join('')
+                + '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+        }
+        // Tipp für den nächsten Schritt: die häufigste Fehlerart erst gezielt üben, sonst die Lernkarte
+        function tipEnd(kinds, by, items) {
+            const PR = { stamm: 'die Stammtöne', vz: 'die Vorzeichen', lage: 'die Lagen', taste: 'das Finden der Tasten' };
+            // bei mehreren Übungen zuerst die Grundlage (wie auf den Lernkarten: Stammton bzw. Taste vor Vorzeichen und Lage)
+            const ORD = ['stamm', 'taste', 'vz', 'lage'];
+            const it = items.slice().sort((a, b) => ORD.indexOf(a[0]) - ORD.indexOf(b[0]))[0];
+            if (it) return `Übe vor dem nächsten Durchgang erst ${PR[it[0]]}. Dafür gibt es unten den Knopf „${it[3]}“.`;
+            const P = { stamm: 'den Stammton', hilf: 'die Hilfslinien', vz: 'das Vorzeichen', lage: 'die Lage', taste: 'die Taste' };
+            const schl = by[kinds[0]].length >= 2 && by[kinds[0]].every(x => x.schl);
+            if (by[kinds[0]].length >= 2) return `Lies vor dem nächsten Durchgang die Lernkarte noch einmal und achte dabei besonders auf ${schl ? 'den Schlüssel' : P[kinds[0]]}.`;
+            return 'Lies vor dem nächsten Durchgang die Lernkarte noch einmal und prüf jede Antwort, bevor du sie abschickst.';
         }
         // Ersetzt Nachricht und Empfehlungen des Endbildschirms; false, wenn keine Fehler protokolliert sind
-        function endScreen(msg, rec, cardHtml) {
+        function endScreen(msg, rec) {
             const c = ctx();
             const xs = errorTracker.getErrors().filter(a => a.category !== 'building_note_falsch' && a.category !== 'building_vz_falsch').map(a => classifyEnd(a, c));
             if (!xs.length) return false;
@@ -2913,32 +2975,64 @@
             const pre = c.mode === 'bilden' ? 'Schreibe ' : '';
             const listHtml = '<p>Diese Fehler sind aufgetreten:</p><ul class="gf-errlist">'
                 + xs.slice(0, 5).map(x => `<li>${pre}${x.pair.replace(' → ', ' → du hast ')} ${verb}</li>`).join('') + '</ul>';
-            msg.innerHTML = listHtml + `<div class="wq-panel"><p class="wq-q">Schau dir deine Fehler an. Woran lag es?</p><div class="wq-opts">`
-                + inScope(c).map(k => `<button class="wq-opt" data-k="${k}">${WQ[k].opt[c.mode] || WQ[k].opt.lesen}</button>`).join('')
-                + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div></div>';
+            const Q = 'Schau dir deine Fehler an. Woran lag es?';
+            const opts = inScope(c).map(k => [k, WQ[k].opt[c.mode] || WQ[k].opt.lesen]).concat([['klick', 'Ich habe mich verklickt.']]);
+            msg.innerHTML = listHtml + `<div class="wq-panel"><div class="wq-chat"><div class="wq-bub">${Q}</div></div>`
+                // Optionen in einer eigenen Antwortleiste (neutral, Mehrfachwahl); „Weiß ich nicht.“ schließt die anderen aus.
+                // Erst nach „Antworten“ wird die Wahl zur Sprechblase.
+                + '<div class="wq-bar"><p class="wq-bar-l">Wähle eine oder mehrere Antworten:</p><div class="wq-opts">'
+                + opts.map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
+                + '<button class="wq-opt" data-k="weiss">Weiß ich nicht.</button></div>'
+                + '<button class="wq-go wq-send" disabled>Antworten</button></div></div>';
             rec.innerHTML = '';
-            msg.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => { try { choose(b.dataset.k); } catch (e) { wqError('endChoose', e); } });
+            const bs = [...msg.querySelectorAll('.wq-bar .wq-opt')], sendBtn = msg.querySelector('.wq-send');
+            bs.forEach(b => b.onclick = () => {
+                const on = !b.classList.contains('on');
+                bs.forEach(o => { if (o === b) o.classList.toggle('on', on); else if (on && (b.dataset.k === 'weiss' || o.dataset.k === 'weiss')) o.classList.remove('on'); });
+                sendBtn.disabled = !bs.some(o => o.classList.contains('on'));
+            });
+            sendBtn.onclick = () => { try { const sel = bs.filter(o => o.classList.contains('on')); if (sel.length) choose(sel.map(o => o.dataset.k), sel.map(o => o.textContent)); } catch (e) { wqError('endChoose', e); } };
 
-            function choose(choice) {
+            function choose(sel, labels) {
                 const by = {};
                 xs.forEach(x => (by[x.kind] = by[x.kind] || []).push(x));
                 const kinds = Object.keys(by).sort((a, b) => by[b].length - by[a].length);
                 const top = kinds[0];
                 const part = k => k === 'hilf' ? 'stamm' : k;
-                let rel = '';
-                if (choice === 'weiss') rel = '';
-                else if (part(choice) === part(top) && (kinds.length === 1 || by[top].length > by[kinds[1]].length)) rel = 'Das passt zu deiner Vermutung.';
-                else if (kinds.some(k => part(k) === part(choice))) rel = 'Ein Teil deiner Fehler passt zu deiner Vermutung.';
-                else if (choice === 'vz' && !xs.some(x => x.acc)) rel = xs.length === 1 ? 'Die Note hatte aber kein Vorzeichen.' : 'Die Noten deiner Fehler hatten aber keine Vorzeichen.';
-                else if (choice === 'hilf' && !xs.some(x => x.ledger)) rel = xs.length === 1 ? 'Die Note stand aber nicht auf Hilfslinien.' : 'Die Noten deiner Fehler standen aber nicht auf Hilfslinien.';
-                const asks = helpsEnd(kinds, by, c);
-                msg.innerHTML = listHtml + '<div class="wq-panel"><p class="wq-q">Das zeigen deine Fehler:</p>'
-                    + kinds.map(k => `<p class="wq-find">${findingEnd(k, by[k], c, xs.length)}</p>`).join('')
-                    + (rel ? `<p class="wq-find"><em>${rel}</em></p>` : '')
+                // Erwiderung nennt die Sache jeder Vermutung, damit der Bezug ohne „daran“ klar ist
+                const X = { stamm: 'Am Stammton', hilf: 'An den Hilfslinien', vz: 'Am Vorzeichen', lage: 'An der Lage', taste: 'Am Finden der Taste' };
+                const comp = sel.filter(k => X[k]);
+                const hits = k => xs.some(x => part(x.kind) === part(k));
+                const dominant = k => part(k) === part(top) && (kinds.length === 1 || by[top].length > by[kinds[1]].length);
+                const covered = xs.filter(x => comp.some(k => part(k) === part(x.kind))).length;
+                const yes = comp.filter(k => hits(k) && (dominant(k) || covered === xs.length));
+                const some = comp.filter(k => hits(k) && !yes.includes(k));
+                const no = comp.filter(k => !hits(k));
+                const named = ks => andList(ks.map((k, i) => i ? X[k].charAt(0).toLowerCase() + X[k].slice(1) : X[k]));
+                const rel = [];
+                if (yes.length) rel.push(`${named(yes)} lag es tatsächlich.`);
+                if (some.length) rel.push(`${named(some)} lag es ${yes.length ? '' : 'nur '}zum Teil.`);
+                // Nicht getroffen: mit konkretem Grund, wenn das Bild ihn hergibt; sonst begründet die Schlussfolgerung das „nicht“
+                const why = k => k === 'vz' && !xs.some(x => x.acc) ? (xs.length === 1 ? 'Die Note hatte kein Vorzeichen.' : 'Die Noten deiner Fehler hatten keine Vorzeichen.')
+                    : k === 'hilf' && !xs.some(x => x.ledger) ? (xs.length === 1 ? 'Die Note stand nicht auf Hilfslinien.' : 'Die Noten deiner Fehler standen nicht auf Hilfslinien.') : '';
+                const noPlain = no.filter(k => !why(k));
+                if (noPlain.length) rel.push(`${named(noPlain)} lag es nicht.`);
+                no.filter(k => why(k)).forEach(k => rel.push(`${X[k]} lag es nicht: ${why(k)}`));
+                // „Verklickt“ bleibt unkommentiert (Ursache kann das Gerät sein); es zählt nur im Tracking.
+                // Klaffen Vermutung und Fehler auseinander, leitet „Auffällig ist jedoch:“ zur Schlussfolgerung über.
+                const gap = some.length || no.length;
+                const said = yes.length && !gap && xs.length >= 2 && Object.keys(by).every(k => part(k) === part(top));
+                const concl = endConclusion(by, c, xs.length, said);
+                const asks = helpsEnd(kinds, by, c), items = recoItems(kinds, by, c);
+                // Dialog in Sprechblasen: Frage, eigene Wahl, Erwiderung mit Schlussfolgerung, Tipp für den nächsten Schritt
+                msg.innerHTML = listHtml + `<div class="wq-panel"><div class="wq-chat"><div class="wq-bub">${Q}</div>`
+                    + `<div class="wq-bub wq-bub-u">${labels.join('<br>')}</div>`
+                    + `<div class="wq-bub">${[rel.join(' '), concl && gap ? 'Auffällig ist jedoch: ' + concl : concl].filter(Boolean).join(' ')}</div>`
+                    + `<div class="wq-bub">${tipEnd(kinds, by, items)}</div></div>`
                     + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
-                    + '</div>' + (cardHtml || '');
-                rec.innerHTML = recosEnd(kinds, by, c);
-                try { tracker.selfAssess({ phase: 'end', level: c.lvl, subskill: c.sub, choice, observed: top, errors: Object.fromEntries(kinds.map(k => [k, by[k].length])), match: choice === 'weiss' ? null : part(choice) === part(top) }); } catch (e) {}
+                    + '</div>';
+                rec.innerHTML = recosEnd(items);
+                try { tracker.selfAssess({ phase: 'end', level: c.lvl, subskill: c.sub, choice: sel.join(','), observed: top, errors: Object.fromEntries(kinds.map(k => [k, by[k].length])), match: comp.length ? comp.some(k => part(k) === part(top)) : null }); } catch (e) {}
             }
             return true;
         }
@@ -4015,7 +4109,7 @@
                     recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
                     _rec.innerHTML = recos;
                     // Mit protokollierten Fehlern: Fehlerliste → „Woran lag es?“ → Befund (ersetzt Nachricht und Empfehlungen)
-                    woranPanel.endScreen(_msg, _rec, this._cardHintHtml(_lastSub));
+                    woranPanel.endScreen(_msg, _rec);
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 }
 
@@ -7318,7 +7412,7 @@ Gerät:
         // (Lagen beim Schreiben als Zahl 1–6, im errorTracker als Name wie beim Lesen)
         if (quickStart.isActive && !quickStart.isRetry) {
             const OCT = { 1: 'kontra', 2: 'gross', 3: 'klein', 4: 'eingestrichen', 5: 'zweigestrichen', 6: 'dreigestrichen' };
-            try { errorTracker.logAnswer({ isCorrect: correct, correctNote: this.currentBuildingNote.name, userInput: placed.noteName, userOctave: requireOctave ? OCT[placed.octave] : '', clef: this.useBassClef ? 'bass' : 'treble', octave: OCT[this.currentBuildingNote.oct], options: activeOptions, category: 'bilden', lageCorrect: placed.octave === this.currentBuildingNote.oct }); } catch (e) {}
+            try { errorTracker.logAnswer({ isCorrect: correct, correctNote: this.currentBuildingNote.name, userInput: placed.noteName, userOctave: requireOctave ? OCT[placed.octave] : '', placedOctave: OCT[placed.octave], clef: this.useBassClef ? 'bass' : 'treble', octave: OCT[this.currentBuildingNote.oct], options: activeOptions, category: 'bilden', lageCorrect: placed.octave === this.currentBuildingNote.oct }); } catch (e) {}
         }
 
         // handleAnswer IMMER aufrufen (1:1 wie im TT) — Retry-Logik lebt in handleAnswer
