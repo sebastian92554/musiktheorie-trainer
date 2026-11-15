@@ -495,6 +495,28 @@
         .wq-bar .wq-opt.on { background: #fff7ed; border-color: #f97316; }
         .wq-bar .wq-opt.on::before { background: #ea580c; border-color: #ea580c; box-shadow: inset 0 0 0 2px #fff; }
         .wq-send:disabled { opacity: 0.45; cursor: default; }
+        /* Endbildschirm: Fehlerliste als Bild-Kästen, Übersicht aller Fehler (.es-all) */
+        .es-boxes { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; }
+        .es-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 6px 8px; text-align: left; }
+        .es-box svg { display: block; width: 100%; height: auto; }
+        .es-pair { display: flex; align-items: center; justify-content: center; gap: 14px; }
+        .es-box svg.es-st { width: 114px; flex: none; margin: 0; }
+        .es-box svg.es-st2 { width: 170px; }
+        .es-box svg.es-task { width: 110px; }
+        .es-names { display: flex; flex-direction: column; gap: 4px; font-size: 1rem; }
+        .es-l { display: block; font-size: 0.72rem; font-weight: 700; color: #6b7280; }
+        .es-u, .es-u .es-l { color: #dc2626; }
+        .es-u .wq-right { color: #16a34a; }
+        .es-pair .es-kb { flex: none; }
+        #successMessage .es-tt, .es-all .es-tt { font-size: 0.85rem; color: #374151; margin: 0 0 4px; text-align: center; }
+        .es-box .es-kb svg { max-width: 100%; margin: 4px auto 0; }
+        #successMessage .es-more { display: block; margin: 4px auto 0; background: none; border: none; padding: 4px 8px; font-size: 0.9rem; color: #c2410c; text-decoration: underline; cursor: pointer; }
+        .es-all { position: fixed; inset: 0; z-index: 3000; background: rgba(15,23,42,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow: auto; }
+        .es-all-p { background: #fff7ed; border-radius: 14px; width: 100%; max-width: 980px; padding: 12px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+        .es-all-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #7c2d12; }
+        .es-x { border: none; background: #ffedd5; color: #7c2d12; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+        .es-all-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+        .es-n { font-size: 0.8rem; font-weight: 700; color: #6b7280; margin: 0 0 4px; }
         .wq-full { width: 100%; text-align: left; }
         .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
         .wq-kb .selected { background: #fca5a5 !important; border-color: #dc2626 !important; }
@@ -2758,13 +2780,162 @@
             if (by[kinds[0]].length >= 2) return `Lies vor dem nächsten Durchgang die Lernkarte noch einmal und achte dabei besonders auf ${P[kinds[0]]}.`;
             return 'Lies vor dem nächsten Durchgang die Lernkarte noch einmal und prüf jede Antwort, bevor du sie abschickst.';
         }
+        // ---- Fehlerliste als Bild-Kästen (wie im RT und NT, Sebo 15.11.2026) ----
+        // Die Lösung steht im Bild, die eigene Antwort rot daneben; Namen als Text neben dem Bild.
+        // Rahmenintervall falsch (Bestimmen, Benennen, Bilden): zwei Intervalle im System – richtig schwarz,
+        //   daneben der untere Ton mit dem eigenen oberen Ton (rot; beim Bestimmen der Stammton der eigenen Stufenzahl).
+        // Feinbestimmung bzw. Halbtonschritte falsch: Tastatur – unterer Ton blau, richtiger oberer grün mit Klammer
+        //   und Halbtonschrittzahl (schwarz), der eigene obere Ton rot; seine Zahl steht im Text daneben.
+        // Töne auf der Tastatur finden: das Aufgabenbild, darunter die Tastatur (richtige Tasten grün, falsche rot).
+        // Wo eine Tastatur das Bild ist, steht die Aufgabe immer mit dabei (Sebo 15.11.2026): Notensystem neben den Namen, beim Bilden der Aufgabentext.
+        // Knoten 4 bleibt Text (Aufgabe und Antwort sind Zahlen und Namen).
+        const RED = '#dc2626', GREEN = '#86efac', LET = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+        const OCTW = ['kontra', 'gross', 'klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
+        const BASE_HS = [0, 0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21];   // groß bzw. rein je Rahmenintervall
+        const PERFECT = [1, 4, 5, 8, 11, 12];
+        let endXs = [];
+        const midiOf = (name, octW) => app._noteToMidi({ name, octave: octW });
+        const hsOf = (size, q) => BASE_HS[size] + ({ 'groß': 0, rein: 0, klein: -1, 'übermäßig': 1, vermindert: PERFECT.includes(size) ? -1 : -2 }[q] ?? 0);
+        // Schlüssel aus dem Aufgabenbild (drawStaff zeichnet beide als feste Gruppen)
+        const clefOf = (img, clef) => ((img || '').match(clef === 'bass' ? /<g transform="translate\(60, 144\) scale\(0\.13\)">[\s\S]*?<\/g>/ : /<g transform="translate\(85, 158\) scale\(0\.15\)"><g[\s\S]*?<\/g><\/g>/) || [''])[0];
+        // Note im System (wie _drawBuildingNoteAt, mit Schlüssel); Hilfslinien wie drawStaff
+        // accX: Kopf, vor dem das Vorzeichen steht (Sekunde: der nach rechts versetzte Ton bekommt sein Vorzeichen
+        // vor dem linken Kopf, sonst überlappt es mit ihm)
+        function noteAt(name, octW, clef, x, color, accX) {
+            const base = stammOf(name);
+            const pos = app.notePositions[`${base}-${octW}-${clef}`];
+            if (pos === undefined) return '';
+            const y = 260 - pos * 10;
+            let svg = '';
+            if (y >= 280) for (let ly = 280; ly <= y; ly += 20) svg += `<line x1="${x - 19}" y1="${ly}" x2="${x + 19}" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+            if (y <= 160) for (let ly = 160; ly >= y; ly -= 20) svg += `<line x1="${x - 19}" y1="${ly}" x2="${x + 19}" y2="${ly}" stroke="#000" stroke-width="2"/>`;
+            const a = accOf(name);
+            const ax = (accX ?? x) - 24;
+            if (a === 'sharp') svg += app._svgSharp(ax, y, color, 35);
+            if (a === 'flat') svg += app._svgFlat(ax, y, color, 35);
+            return svg + `<ellipse cx="${x}" cy="${y}" rx="12.5" ry="9.5" fill="${color}" transform="rotate(-20 ${x} ${y})"/>`;
+        }
+        const yOf = (n, clef) => { const p = app.notePositions[`${stammOf(n.name)}-${n.octave}-${clef}`]; return p === undefined ? 260 : 260 - p * 10; };
+        // Zwei Intervalle nebeneinander: [unten, oben] richtig (schwarz) | [unten, eigener oberer Ton (rot)]
+        function staff2(lo, hi, own, clef, img) {
+            const ys = [lo, hi, own].filter(Boolean).map(n => yOf(n, clef));
+            const top = Math.min(140, ...ys.map(y => y - 25)), bot = Math.max(292, ...ys.map(y => y + 16));
+            const pair = (x, up, col) => {
+                // Sekunde/Prime: oberen Kopf versetzen, sonst überlagern sich die Köpfe
+                // Vorzeichen beider Töne vor dem linken Kopf, das des unteren Tons weiter links (wie im Notensatz)
+                // Liegen zwei Vorzeichen übereinander (Abstand unter einer Sexte), weicht das untere nach links aus
+                const dy = Math.abs(yOf(lo, clef) - yOf(up, clef)), off = dy <= 10, both = dy < 50 && accOf(lo.name) && accOf(up.name);
+                return noteAt(lo.name, lo.octave, clef, x, '#000', both ? x - 22 : x) + noteAt(up.name, up.octave, clef, off ? x + 24 : x, col, x);
+            };
+            // ohne eigene Note nur das Aufgaben-Intervall (gleicher Maßstab wie mit, schmaleres Bild)
+            const w = own ? 290 : 195;   // Platz für ausweichende Vorzeichen vor dem ersten Intervall (Schlüssel endet bei ≈ 125)
+            let svg = `<svg class="es-st${own ? ' es-st2' : ''}" viewBox="66 ${top} ${w} ${bot - top + 4}" xmlns="http://www.w3.org/2000/svg">`;
+            [260, 240, 220, 200, 180].forEach(ly => svg += `<line x1="80" y1="${ly}" x2="${66 + w - 6}" y2="${ly}" stroke="#000" stroke-width="2"/>`);
+            svg += clefOf(img, clef) + pair(195, hi, '#000');
+            if (own) {
+                // Farbregeln wie im Feld: nur das Vorzeichen falsch → nur das Vorzeichen rot; Vorzeichen vergessen →
+                // Note schwarz mit rotem Fragezeichen; sonst die Note rot
+                const dy = Math.abs(yOf(lo, clef) - yOf(own, clef)), off = dy <= 10, ox = off ? 309 : 285;
+                svg += noteAt(lo.name, lo.octave, clef, 285, '#000', dy < 50 && accOf(lo.name) && accOf(own.name) ? 263 : 285);
+                const r = noteAt(own.name, own.octave, clef, ox, RED, 285), b = noteAt(own.name, own.octave, clef, ox, '#000', 285);
+                svg += own.look === 'acc' ? r.slice(0, r.indexOf('<ellipse')) + b.slice(b.indexOf('<ellipse'))
+                    : own.look === 'plain' ? b + `<text x="${285 - 24.5}" y="${yOf(own, clef) + 10}" text-anchor="middle" font-size="30" font-weight="700" fill="${RED}">?</text>` : r;
+            }
+            return svg + '</svg>';
+        }
+        // Tastatur: unterer Ton blau, richtiger oberer grün mit Klammer und Zahl, eigener oberer Ton rot
+        function kbHs(lo, hi, own) {
+            const keys = [{ p: lo, fill: BLUE }, { p: hi, fill: GREEN }];
+            const br = [{ a: Math.min(lo, hi), b: Math.max(lo, hi), txt: hsTxt(Math.abs(hi - lo)), col: '#000', tcol: '#000' }];
+            // eigene Zahl steht im Text daneben (eine zweite Beschriftung über den Tasten überlagert sich bei nahen Tönen)
+            if (own != null && own !== hi) keys.push({ p: own, fill: '#fca5a5' });
+            return kbFit(wqKbSvg(keys, br));
+        }
+        // Tastatur in fester Tastengröße (21 px je weiße Taste), damit zwei Oktaven nicht auf eine gestaucht werden
+        function kbFit(svg) {
+            const m = svg.match(/viewBox="[-\d.]+ [-\d.]+ ([\d.]+)/);
+            return `<div class="es-kb">${m ? svg.replace('<svg ', `<svg style="width:${Math.round(+m[1] / 24 * 21)}px" `) : svg}</div>`;
+        }
+        // Aufgabenbild (Notensystem der Aufgabe) klein neben den Namen; Halbtonschritt-Aufgaben haben im Feld kein
+        // Aufgabenbild (dort zählt die Tastatur) → direkt aus dem System lesen
+        const taskSvg = img => {
+            img = img || ((document.getElementById('staffContainer') || {}).innerHTML || '').replace(/\sid="[^"]*"/g, '');
+            const vb = (img.match(/viewBox="[^"]*"/) || [''])[0];
+            return vb ? `<svg class="es-st es-task" ${vb} xmlns="http://www.w3.org/2000/svg">${img.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>[\s\S]*$/, '')}</svg>` : '';
+        };
+        // Bilden: Die Aufgabe steht im Text („Bilde … von c'“) → kurz über dem Bild
+        const taskLine = at => `<p class="es-tt">${(at.instr || '').replace(/!.*$/, '')}</p>`;
+        const names = (cor, mine) => `<div class="es-names"><div><span class="es-l">richtig</span><b>${cor}</b></div><div class="es-u"><span class="es-l">deine Antwort</span><b>${mine}</b></div></div>`;
+        const pairBox = (pic, cor, mine) => `<div class="es-pair">${pic}${names(cor, mine)}</div>`;
+        // oberer Ton zur eigenen Stufenzahl (Stammton, von unten gezählt)
+        function stepNote(lo, size) {
+            const i = LET.indexOf(stammOf(lo.name)) + size - 1;
+            return { name: LET[((i % 7) + 7) % 7], octave: OCTW[OCTW.indexOf(lo.octave) + Math.floor(i / 7)] || lo.octave };
+        }
+        function endPic(c, at) {
+            try {
+                if (c.mode === 'kn4') return '';
+                if (c.mode === 'bilden_tast' || c.mode === 'bilden_staff') {
+                    const t = at.task, sel = c.mode === 'bilden_tast' ? app.buildingSelectedKey : { name: app.buildingStaffNote.noteName, oct: app.buildingStaffNote.octave };
+                    const lo = { name: t.startNote.name, octave: app._octNumToName(t.startNote.oct) }, hi = { name: t.targetNote.name, octave: app._octNumToName(t.targetNote.oct) };
+                    const own = { name: sel.name, octave: app._octNumToName(sel.oct) };
+                    // gleicher Stammton wie der richtige Ton: nur das Vorzeichen falsch bzw. vergessen
+                    if (stammOf(own.name) === stammOf(hi.name) && own.octave === hi.octave) own.look = accOf(own.name) ? 'acc' : 'plain';
+                    const cor = _itHelmFromName(hi.name, hi.octave), mine = _itHelmFromName(own.name, own.octave);
+                    const ml = midiOf(lo.name, lo.octave), mh = midiOf(hi.name, hi.octave), mo = midiOf(own.name, own.octave);
+                    // Notensystem immer (beim Schreiben steht dort die Antwort), Tastatur bei Feinbestimmung (Halbtonschritte)
+                    // und beim Bilden auf der Tastatur
+                    const kb = at.kind === 'fein' || c.mode === 'bilden_tast';
+                    return taskLine(at) + pairBox(staff2(lo, hi, own, 'treble', at.img), kb ? `${cor} · ${hsTxt(mh - ml)}` : cor, kb ? `${mine} · ${hsTxt(mo - ml)}` : mine)
+                        + (kb ? kbHs(ml, mh, mo) : '');
+                }
+                const iv = at.iv, clef = iv.note1.clef;
+                const m1 = midiOf(iv.note1.name, iv.note1.octave), m2 = midiOf(iv.note2.name, iv.note2.octave);
+                const [lo, hi] = m1 <= m2 ? [iv.note1, iv.note2] : [iv.note2, iv.note1];
+                const mlo = Math.min(m1, m2), mhi = Math.max(m1, m2);
+                const full = `${QADJ[iv.quality] || ''} ${NAMES[iv.size]}`.trim();
+                if (c.mode === 'tasten') {
+                    const t = [mlo - 24, mhi - 24];
+                    const keys = t.map(p => ({ p: p + 24, fill: GREEN })).concat(at.keys.filter((k, i) => k !== t[i]).map(k => ({ p: k + 24, fill: '#fca5a5' })));
+                    const nm = ks => ks.map(k => _itHelmFromPitch(k)).join(' und ');
+                    return pairBox(taskSvg(at.img),
+                        `${_itHelmFromName(lo.name, lo.octave)} und ${_itHelmFromName(hi.name, hi.octave)}`, nm(at.keys))
+                        + kbFit(wqKbSvg(keys, []));
+                }
+                const hsW = n => `${n} ${+n === 1 ? 'Halbtonschritt' : 'Halbtonschritte'}`;
+                if (c.mode === 'ht') return pairBox(staff2(lo, hi, null, clef, at.img || taskSvg()), hsW(mhi - mlo), hsW(at.user)) + kbHs(mlo, mhi, mlo + parseInt(at.user));
+                if (c.mode === 'rahmen') return pairBox(staff2(lo, hi, at.kind === 'rahmen' && NAMES.indexOf(at.user) > 0 ? stepNote(lo, NAMES.indexOf(at.user)) : null, clef, at.img), NAMES[iv.size], at.user);
+                // Benennen: Rahmenintervall falsch → System; Feinbestimmung falsch → Tastatur mit Halbtonschritten
+                // eigener Name wie im Feld: Feinbestimmung und Rahmenintervall einzeln grün/rot (colorIv)
+                if (at.kind === 'rahmen') return pairBox(staff2(lo, hi, at.usize ? stepNote(lo, at.usize) : null, clef, at.img), full, at.uhtml || at.user);
+                return pairBox(staff2(lo, hi, null, clef, at.img), `${full} · ${hsTxt(mhi - mlo)}`, at.uq ? `${at.uhtml || at.user} · ${hsTxt(hsOf(iv.size, at.uq))}` : (at.uhtml || at.user)) + kbHs(mlo, mhi, at.uq ? mlo + hsOf(iv.size, at.uq) : null);
+            } catch (e) { wqError('endPic', e); return ''; }
+        }
+        // Kästen: erster Fehler je Fehlerart, höchstens drei; line: Textzeile, falls kein Bild entsteht (Knoten 4)
+        function endBoxes(xs, line) {
+            endXs = xs.map(x => Object.assign(x, { line: line(x) }));
+            const seen = new Set(), pick = [];
+            xs.forEach(x => { if (!seen.has(x.kind) && pick.length < 3) { seen.add(x.kind); pick.push(x); } });
+            const rest = xs.length - pick.length;
+            return '<p>Diese Fehler sind aufgetreten:</p><div class="es-boxes">'
+                + pick.map(x => `<div class="es-box">${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div>'
+                + (rest > 0 ? `<button class="es-more" onclick="woranPanel.endAll()">und ${rest} weitere${rest === 1 ? 'r' : ''} Fehler ›</button>` : '');
+        }
+        // Übersicht aller Fehler des Durchgangs, breiter als die Karte
+        function endAll() {
+            const ov = document.createElement('div');
+            ov.className = 'es-all';
+            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieses Durchgangs</b><button class="es-x" aria-label="Schließen">×</button></div>'
+                + '<div class="es-all-g">' + endXs.map((x, i) => `<div class="es-box"><p class="es-n">${i + 1}. Fehler</p>${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div></div>';
+            ov.onclick = e => { if (e.target === ov || e.target.classList.contains('es-x')) ov.remove(); };
+            document.body.appendChild(ov);
+        }
         // Ersetzt Nachricht und Empfehlungen des Endbildschirms; false, wenn keine Fehler festgehalten sind
         function endScreen(msg, rec) {
             const c = ctx();
             const xs = quizErrs.slice();
             if (!c.mode || !xs.length) return false;
-            const listHtml = '<p>Diese Fehler sind aufgetreten:</p><ul class="gf-errlist">'
-                + xs.slice(0, 5).map(x => `<li>${endTask(x)} → du hast ${endU(x)} ${x.verb}</li>`).join('') + '</ul>';
+            const listHtml = endBoxes(xs, x => `${endTask(x)} → du hast ${endU(x)} ${x.verb}`);
             const Q = 'Schau dir deine Fehler an. Woran lag es?';
             msg.innerHTML = listHtml + `<div class="wq-panel"><div class="wq-chat"><div class="wq-bub">${Q}</div></div>`
                 // Optionen in einer eigenen Antwortleiste (neutral, Mehrfachwahl); „Weiß ich nicht.“ schließt die anderen aus.
@@ -2842,7 +3013,7 @@
         return guardApi({
             // Fehlversuch festhalten (Zustand der Aufgabe in diesem Moment); Erstversuche zusätzlich für den
             // Endbildschirm. endOnly: misslungene Regel-Probe, nur für die Endbildschirm-Liste
-            record(trigger, endOnly) { const c = ctx(); if (!c.mode) return; const at = attemptOf(c); if (!at) return; if (!endOnly) attempts.push(at); if (trigger === 'erstversuch') quizErrs.push(at); },
+            record(trigger, endOnly) { const c = ctx(); if (!c.mode) return; const at = attemptOf(c); if (!at) return; if (!endOnly) attempts.push(at); if (trigger === 'erstversuch') quizErrs.push(Object.assign({}, at, { pic: endPic(c, at) })); },
             ready() { return attempts.length >= 2; },
             show: showPanel,
             // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
@@ -2851,7 +3022,7 @@
                 if (ok) { if (!isRetry) attempts = []; closePanel(); }
             },
             reset() { attempts = []; quizErrs = []; outcomeCtx = null; closePanel(); },
-            endScreen
+            endScreen, endAll
         });
         })();
 
