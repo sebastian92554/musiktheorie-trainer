@@ -701,11 +701,15 @@ function runAnalyse() {
       const p = e.payload || {};
       const ph = p.phase || (p.opened ? 'open' : 'choice');
       if (ph === 'end') {
-        const t = wqEnd[s.trainer] = wqEnd[s.trainer] || { failed: 0, n: 0, matchT: 0, matchF: 0, weiss: 0, obs: {} };
+        const t = wqEnd[s.trainer] = wqEnd[s.trainer] || { failed: 0, n: 0, matchT: 0, matchF: 0, weiss: 0, klick: 0, multi: 0, obs: {} };
         t.n++;
         if (p.match === true) t.matchT++;
         if (p.match === false) t.matchF++;
-        if (p.choice === 'weiss') t.weiss++;
+        // Mehrfachwahl: choice = Vermutungen mit Komma; „weiss“ steht immer allein
+        const ch = String(p.choice || '').split(',');
+        if (ch[0] === 'weiss') t.weiss++;
+        if (ch.includes('klick')) t.klick = (t.klick || 0) + 1;
+        if (ch.length > 1) t.multi = (t.multi || 0) + 1;
         Object.keys(p.errors || {}).forEach(k => { t.obs[k] = (t.obs[k] || 0) + (p.errors[k] || 0); });
         return;
       }
@@ -751,7 +755,7 @@ function runAnalyse() {
   Object.keys(wqEnd).filter(tr => wqEnd[tr].n).forEach(tr => {
     const t = wqEnd[tr];
     const obs = Object.keys(t.obs).sort((x, y) => t.obs[y] - t.obs[x]).map(k => k + ' ' + t.obs[k]).join(', ');
-    push('    ' + tr, 'gewählt ' + t.n + ' (' + _pct(t.n, t.failed) + '% von ' + t.failed + ' nicht bestandenen) | Treffer ' + _pct(t.matchT, t.matchT + t.matchF) + '% | weiß nicht ' + t.weiss + ' | Fehler: ' + obs);
+    push('    ' + tr, 'gewählt ' + t.n + ' (' + _pct(t.n, t.failed) + '% von ' + t.failed + ' nicht bestandenen) | Treffer ' + _pct(t.matchT, t.matchT + t.matchF) + '% | weiß nicht ' + t.weiss + ' | verklickt ' + (t.klick || 0) + ' | mehrere ' + (t.multi || 0) + ' | Fehler: ' + obs);
   });
   if (!Object.keys(wqEnd).some(tr => wqEnd[tr].n)) push('    (noch keine end-Events)');
   push('  Lesehilfe Endbildschirm', 'Trefferquote am Ende mit der im Feld vergleichen: Beim Rückblick auf alle Fehler sollte sie höher liegen. „Gewählt“ unter den nicht bestandenen Quizzen = wie oft die Frage beantwortet statt übersprungen wird.');
