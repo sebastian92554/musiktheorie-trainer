@@ -2319,9 +2319,17 @@
             if (o === 1) return name + ','; if (o === 2) return name; if (o === 3) return lc;
             return lc + "'".repeat(o - 3);
         }
-        function helmFromMidi(m) {
-            const NM = ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'B', 'H'];
-            return helm(NM[pc(m)], Math.floor(m / 12) - 1);
+        // Name einer angeklickten Taste: wie im Dreiklang geschrieben, wenn sie zu einem seiner Töne gehört
+        // (es' statt dis' in c-Moll); sonst ♭-Namen, wenn der Dreiklang ♭ hat, ♯-Namen sonst
+        function helmFromMidi(m, spell) {
+            const SHIFT = { sharp: 1, flat: -1, sharp2: 2, flat2: -2 };
+            const own = (spell || []).find(n => pc(app._noteToMidi(n, 'eingestrichen')) === pc(m));
+            if (own) return helm(own, Math.floor((m - (SHIFT[accOf(own)] || 0)) / 12) - 1);
+            const flats = (spell || []).some(n => /^flat/.test(accOf(n) || ''));
+            const NM = flats ? ['C', 'Des', 'D', 'Es', 'E', 'F', 'Ges', 'G', 'As', 'A', 'B', 'H']
+                : ['C', 'Cis', 'D', 'Dis', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'Ais', 'H'];
+            const nm = NM[pc(m)];
+            return helm(nm, Math.floor((m - (SHIFT[accOf(nm)] || 0)) / 12) - 1);
         }
         const TYPEW = { dur: 'Dur', moll: 'Moll', 'übermäßig': 'übermäßig', vermindert: 'vermindert' };
         // Begriffe wie in den Lernkarten: Grundton, Terzton, Quintton
@@ -2540,7 +2548,7 @@
                 const kind = n && accOf(n.name) ? 'tonvz' : (pos !== null && (pos <= -2 || pos >= 10)) ? 'tonhilf' : 'ton';
                 const good = sel.filter(m => tm.map(pc).includes(pc(m))), bad = sel.filter(m => !tm.map(pc).includes(pc(m)));
                 const sorted = sel.slice().sort((a, b) => a - b);
-                return { ...base, kind, missing, note: n, pos, notes, uhtml: colorParts(sorted.map(m => [helmFromMidi(m), tm.map(pc).includes(pc(m))])), user: sorted.map(helmFromMidi).join(', '), verb: 'angeklickt', img, kb: kbSnapshot(good, bad), ch };
+                return { ...base, kind, missing, note: n, pos, notes, uhtml: colorParts(sorted.map(m => [helmFromMidi(m, notes.map(x => x.name)), tm.map(pc).includes(pc(m))])), user: sorted.map(m => helmFromMidi(m, notes.map(x => x.name))).join(', '), verb: 'angeklickt', img, kb: kbSnapshot(good, bad), ch };
             }
             if (c.mode === 'hs') {
                 const v1 = app.getHSValue('hsSelect1'), v2 = app.getHSValue('hsSelect2');
@@ -6464,7 +6472,9 @@ const _lernkartenContent = {
                 // NEUER GENERATOR: Würfle Dreiklang mit korrekter Logik
                 let validChord = null;
                 let attempts = 0;
-                const maxAttempts = 100;
+                // Würfeln ist billig; enge Filter (1a, 2a-Fälle, Komfortzone) verwerfen viel → genug Versuche,
+                // damit der Fallback (C-Dur) praktisch nie greift
+                const maxAttempts = 400;
                 
                 while (!validChord && attempts < maxAttempts) {
                     attempts++;
@@ -6685,8 +6695,10 @@ const _lernkartenContent = {
                         continue; // Quintton zu hoch → neu würfeln
                     }
                     
-                    // ANTI-REPETITION: Grundton darf nicht kürzlich vorgekommen sein
-                    if (this.recentRootNotes.includes(rootNote)) {
+                    // ANTI-REPETITION: Grundton darf nicht kürzlich vorgekommen sein – aber nur, solange
+                    // es Alternativen gibt. In kleinen Pools (2a-Fälle Dur ohne Vorzeichen und ohne C: nur F, G)
+                    // sperrt die History sonst alles, und der Fallback (C-Dur) greift.
+                    if (this.recentRootNotes.includes(rootNote) && attempts < maxAttempts / 2) {
                         continue; // Grundton war kürzlich dran → neu würfeln
                     }
 
