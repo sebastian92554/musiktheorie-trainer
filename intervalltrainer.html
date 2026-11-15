@@ -5575,8 +5575,10 @@
                 if (/^[a-z]+\d_/.test(key)) key = this.getLernkarteKey(key);
                 const target = this._findSubForKey(key);
                 const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
-                // Sprung innerhalb des laufenden Quiz auf die eigene Karte: kein „Erst hier üben“
-                const same = target && quickStart.isActive && quickStart.selectedSub
+                // Sprung innerhalb des laufenden Quiz auf die eigene Karte: kein „Erst hier üben“. Auf dem Endbildschirm
+                // schon (Sebo 15.11.2026): Dort heißt es, die eben beendete Übung erst noch einmal zu üben.
+                const ended = (el => !!el && el.offsetParent !== null)(document.getElementById('successScreen'));
+                const same = target && quickStart.isActive && !ended && quickStart.selectedSub
                     && quickStart.selectedSub.nodeId === target.nodeId && quickStart.selectedSub.index === target.idx;
 
                 const card = document.querySelector('#lernkarteOverlay .lernkarte');
