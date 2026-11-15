@@ -2685,7 +2685,10 @@
         const endU = x => x.uhtml || wqRed(x.user);
         // Optionen wie im Feld; Knoten 4 mischt Aufgabentypen → Optionen aller Fehler-Aufgaben
         function endOptions(c) {
-            if (c.mode !== 'kn4') return options(c);
+            // Vorzeichen-Vermutung nur, wenn in den Fehler-Aufgaben ein Vorzeichen vorkam (Sebo 15.11.2026)
+            const accIn = quizErrs.some(x => (x.acc && x.acc.some(Boolean)) || x.tacc);
+            const known = quizErrs.some(x => 'acc' in x || 'tacc' in x);
+            if (c.mode !== 'kn4') return options(c).filter(([k]) => k !== 'vz' || accIn || !known);
             const saved = app._int4Task, seen = new Set(), o = [];
             try { quizErrs.forEach(x => { app._int4Task = x.t; options(c).forEach(p => { if (!seen.has(p[0])) { seen.add(p[0]); o.push(p); } }); }); }
             finally { app._int4Task = saved; }

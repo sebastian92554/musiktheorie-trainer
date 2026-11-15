@@ -2976,7 +2976,10 @@
             const listHtml = '<p>Diese Fehler sind aufgetreten:</p><ul class="gf-errlist">'
                 + xs.slice(0, 5).map(x => `<li>${pre}${x.pair.replace(' → ', ' → du hast ')} ${verb}</li>`).join('') + '</ul>';
             const Q = 'Schau dir deine Fehler an. Woran lag es?';
-            const opts = inScope(c).map(k => [k, WQ[k].opt[c.mode] || WQ[k].opt.lesen]).concat([['klick', 'Ich habe mich verklickt.']]);
+            // Nur Vermutungen zu dem, was in den Fehler-Aufgaben vorkam (Sebo 15.11.2026): „is“/„es“ nur, wenn eine
+            // Note der Fehler ein Vorzeichen hatte oder eins geschrieben wurde; Hilfslinien nur, wenn eine darauf stand
+            const seenIn = k => k === 'vz' ? xs.some(x => x.acc || x.uacc) : k === 'hilf' ? xs.some(x => x.ledger) : true;
+            const opts = inScope(c).filter(seenIn).map(k => [k, WQ[k].opt[c.mode] || WQ[k].opt.lesen]).concat([['klick', 'Ich habe mich verklickt.']]);
             msg.innerHTML = listHtml + `<div class="wq-panel"><div class="wq-chat"><div class="wq-bub">${Q}</div></div>`
                 // Optionen in einer eigenen Antwortleiste (neutral, Mehrfachwahl); „Weiß ich nicht.“ schließt die anderen aus.
                 // Erst nach „Antworten“ wird die Wahl zur Sprechblase.
