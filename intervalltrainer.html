@@ -495,6 +495,7 @@
         .wq-bar .wq-opt.on { background: #fff7ed; border-color: #f97316; }
         .wq-bar .wq-opt.on::before { background: #ea580c; border-color: #ea580c; box-shadow: inset 0 0 0 2px #fff; }
         .wq-send:disabled { opacity: 0.45; cursor: default; }
+        #successScreen.wq-pending #successButtons { display: none; }
         /* Endbildschirm: Fehlerliste als Bild-Kästen, Übersicht aller Fehler (.es-all) */
         .es-boxes { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; }
         .es-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 6px 8px; text-align: left; }
@@ -2912,15 +2913,37 @@
                 return pairBox(staff2(lo, hi, null, clef, at.img), `${full} · ${hsTxt(mhi - mlo)}`, at.uq ? `${at.uhtml || at.user} · ${hsTxt(hsOf(iv.size, at.uq))}` : (at.uhtml || at.user)) + kbHs(mlo, mhi, at.uq ? mlo + hsOf(iv.size, at.uq) : null);
             } catch (e) { wqError('endPic', e); return ''; }
         }
-        // Kästen: erster Fehler je Fehlerart, höchstens drei; line: Textzeile, falls kein Bild entsteht (Knoten 4)
+        // Kästen: so viele, wie über den Dialog passen – Frage und erste Antwort bleiben ohne Scrollen sichtbar
+        // (Sebo 15.11.2026: Der Dialog darf nicht verschwinden, nicht zu viel auf einmal). Reihenfolge: erster Fehler
+        // je Fehlerart, die häufigste zuerst, dann die übrigen; endFit blendet von hinten aus, einer bleibt immer. line: Textzeile, falls kein Bild entsteht
         function endBoxes(xs, line) {
             endXs = xs.map(x => Object.assign(x, { line: line(x) }));
-            const seen = new Set(), pick = [];
-            xs.forEach(x => { if (!seen.has(x.kind) && pick.length < 3) { seen.add(x.kind); pick.push(x); } });
-            const rest = xs.length - pick.length;
-            return '<p>Diese Fehler sind aufgetreten:</p><div class="es-boxes">'
-                + pick.map(x => `<div class="es-box">${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div>'
-                + (rest > 0 ? `<button class="es-more" onclick="woranPanel.endAll()">und ${rest} weitere${rest === 1 ? 'r' : ''} Fehler ›</button>` : '');
+            const cnt = {};
+            xs.forEach(x => cnt[x.kind] = (cnt[x.kind] || 0) + 1);
+            const firsts = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).map(k => xs.find(x => x.kind === k));
+            const order = firsts.concat(xs.filter(x => !firsts.includes(x)));
+            return '<p class="es-head"></p><div class="es-boxes">'
+                + order.map(x => `<div class="es-box">${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div>'
+                + '<button class="es-more" onclick="woranPanel.endAll()"></button>';
+        }
+        let endN = 0;   // Zahl der gezeigten Kästen; nach der Antwort (Leiste weg) bleibt sie
+        function endFit(root) {
+            const ss = document.getElementById('successScreen'), boxes = [...root.querySelectorAll('.es-boxes > .es-box')];
+            const opt = root.querySelector('.wq-bar .wq-opt'), head = root.querySelector('.es-head'), more = root.querySelector('.es-more');
+            if (!boxes.length || !head || !more) return;
+            const total = boxes.length;
+            let n = total;
+            boxes.forEach(b => b.style.display = '');
+            if (opt && ss && ss.offsetParent !== null) {
+                // Unterkante der ersten Antwort, gemessen ab dem Anfang des Endbildschirms
+                const fits = () => { const top = ss.getBoundingClientRect().top; return opt.getBoundingClientRect().bottom - top + Math.max(0, top) <= window.innerHeight; };
+                while (n > 1 && !fits()) boxes[--n].style.display = 'none';
+                endN = n;
+            } else if (endN) { n = Math.min(endN, total); boxes.forEach((b, i) => { if (i >= n) b.style.display = 'none'; }); }
+            const rest = total - n;
+            head.textContent = total === 1 ? 'Dein Fehler:' : n === total ? 'Deine Fehler:' : n === 1 ? `Einer deiner ${total} Fehler:` : `${n} deiner ${total} Fehler:`;
+            more.style.display = rest ? '' : 'none';
+            more.textContent = `und ${rest} weitere${rest === 1 ? 'r' : ''} Fehler ›`;
         }
         // Übersicht aller Fehler des Durchgangs, breiter als die Karte
         function endAll() {
@@ -2946,6 +2969,9 @@
                 + '<button class="wq-opt" data-k="weiss">Weiß ich nicht.</button></div>'
                 + '<button class="wq-go wq-send" disabled>Antworten</button></div></div>';
             rec.innerHTML = '';
+            // „Zur Übersicht“ erst nach der Antwort: Der Ausweg ist „Weiß ich nicht.“ (Sebo 15.11.2026)
+            document.getElementById('successScreen').classList.add('wq-pending');
+            setTimeout(() => endFit(msg), 0);   // erst messen, wenn der Endbildschirm sichtbar ist
             const bs = [...msg.querySelectorAll('.wq-bar .wq-opt')], sendBtn = msg.querySelector('.wq-send');
             bs.forEach(b => b.onclick = () => {
                 const on = !b.classList.contains('on');
@@ -2955,6 +2981,7 @@
             sendBtn.onclick = () => { try { const sel = bs.filter(o => o.classList.contains('on')); if (sel.length) choose(sel.map(o => o.dataset.k), sel.map(o => o.textContent)); } catch (e) { wqError('endChoose', e); } };
 
             function choose(sel, labels) {
+                document.getElementById('successScreen').classList.remove('wq-pending');
                 // Erwiderung nennt die Sache jeder Vermutung, damit der Bezug ohne „daran“ klar ist
                 const X = { rahmen: 'Am Rahmenintervall', oktave: 'Am Abzählen über die Oktave hinaus', vz: 'An den Vorzeichen',
                     ht: 'Am Zählen der Halbtonschritte', tasten: 'Am Finden der Töne auf der Tastatur', lesen: 'Am Lesen der Noten',
@@ -3005,6 +3032,7 @@
                     + `<div class="wq-bub">${endTip(kinds, by, items)}</div></div>`
                     + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asksHtml}</div>` : '')
                     + '</div>';
+                endFit(msg);
                 rec.innerHTML = endRecos(items);
                 try { tracker.selfAssess({ phase: 'end', level: c.lvl, subskill: c.sub, choice: sel.join(','), observed: top, errors: Object.fromEntries(kinds.map(k => [k, by[k].length])), match: comp.length ? comp.some(k => fitsK(top, k)) : null }); } catch (e) {}
             }
@@ -3022,7 +3050,7 @@
                 if (outcomeCtx) { sendPhase(outcomeCtx, 'outcome', { ok: !!ok, retry: !!isRetry }); outcomeCtx = null; }
                 if (ok) { if (!isRetry) attempts = []; closePanel(); }
             },
-            reset() { attempts = []; quizErrs = []; outcomeCtx = null; closePanel(); },
+            reset() { attempts = []; quizErrs = []; outcomeCtx = null; closePanel(); endN = 0; document.getElementById('successScreen')?.classList.remove('wq-pending'); },
             endScreen, endAll
         });
         })();
