@@ -5766,7 +5766,8 @@ const _lernkartenContent = {
                     const invLabel = !this.buildingIsInversion ? '' :
                         inversion === 0 ? ', Grundstellung' :
                         inversion === 1 ? ', 1. Umkehrung' : ', 2. Umkehrung';
-                    const label = `${root}-${typeLabel}${invLabel}`;
+                    // Moll und vermindert mit kleinem Grundton (d-Moll), Dur und übermäßig mit großem
+                    const label = `${type === 'moll' || type === 'vermindert' ? root.toLowerCase() : root}-${typeLabel}${invLabel}`;
 
                     // Task speichern
                     this.buildingCurrentTask = { type, root, rootOct, inversion, targetNotes: notes, label };

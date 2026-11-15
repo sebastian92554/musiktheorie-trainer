@@ -1642,7 +1642,6 @@
         .es-box svg.es-ruler { width: auto !important; max-width: 100%; margin: 4px auto 0; }
         .es-row + .es-row { margin-top: 4px; border-top: 1px dashed #e5e7eb; padding-top: 4px; }
         .es-lab { display: block; font-size: 0.75rem; font-weight: 700; color: #374151; margin: 0; }
-        .es-lab.es-du { color: #dc2626; }
         #successMessage .es-more { display: block; margin: 4px auto 0; background: none; border: none; padding: 4px 8px; font-size: 0.9rem; color: #6d28d9; text-decoration: underline; cursor: pointer; }
         .es-all { position: fixed; inset: 0; z-index: 3000; background: rgba(15,23,42,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow: auto; }
         .es-all-p { background: #f5f3ff; border-radius: 14px; width: 100%; max-width: 980px; padding: 12px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
@@ -9877,8 +9876,10 @@ Gerät:
                 if (/^[a-z]+\d_/.test(key)) key = this.getLernkarteKey(key);
                 const target = this._findSubForKey(key);
                 const sub = target ? quickStart.nodeSubSkills[target.nodeId][target.idx] : null;
-                // Sprung innerhalb des laufenden Quiz auf die eigene Karte: kein „Erst hier üben“
-                const same = target && quickStart.isActive && quickStart.selectedSub
+                // Sprung innerhalb des laufenden Quiz auf die eigene Karte: kein „Erst hier üben“. Auf dem Endbildschirm
+                // schon (Sebo 15.11.2026): Dort heißt es, die eben beendete Übung erst noch einmal zu üben.
+                const ended = (el => !!el && el.offsetParent !== null)(document.getElementById('successScreen'));
+                const same = target && quickStart.isActive && !ended && quickStart.selectedSub
                     && quickStart.selectedSub.nodeId === target.nodeId && quickStart.selectedSub.index === target.idx;
 
                 const card = document.querySelector('#lernkarteOverlay .lernkarte');
