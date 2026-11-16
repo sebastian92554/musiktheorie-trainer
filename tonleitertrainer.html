@@ -2567,9 +2567,13 @@
         f.src = href + (href.includes('?') ? '&' : '?') + 'embed=1';
         ov.appendChild(f);
         document.body.appendChild(ov);
+        // Notausgang: Meldet sich die Karte nicht (Ladefehler), blockiert das unsichtbare Fenster sonst alle Klicks →
+        // wie früher in einem neuen Tab öffnen
+        setTimeout(() => { if (ov.isConnected && !ov.classList.contains('ready')) { ov.remove(); window.open(href, '_blank'); } }, 4000);
     }
     window.addEventListener('message', e => {
-        if (e.origin !== location.origin || !e.data || !e.data.lkEmbed) return;
+        // file:// (lokal geöffnet): kein Ursprung zum Vergleichen; die Quelle prüft unten der Abgleich mit dem eigenen Iframe
+        if ((e.origin !== location.origin && location.protocol !== 'file:') || !e.data || !e.data.lkEmbed) return;
         const ov = [...document.querySelectorAll('.lk-frame-ov')].find(o => o.firstChild.contentWindow === e.source);
         if (!ov) return;
         if (e.data.act === 'ready') ov.classList.add('ready');

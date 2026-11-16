@@ -5745,7 +5745,8 @@
                 // Eingebettet (?embed=1, openCardFrame eines anderen Trainers): nur die Karte über der Aufgabe dort;
                 // „Zurück zur Aufgabe“ schließt das Fenster, „Erst hier üben“ wechselt den ganzen Tab hierher (?ueben=1).
                 const embed = url.searchParams.get('embed') === '1', ueben = url.searchParams.get('ueben') === '1';
-                const msg = m => parent.postMessage(Object.assign({ lkEmbed: true }, m), location.origin);
+                // Als Datei geöffnet (file://) hat die Seite keinen Ursprung ("null"), dort ginge die Nachricht sonst verloren
+                const msg = m => parent.postMessage(Object.assign({ lkEmbed: true }, m), location.protocol === 'file:' ? '*' : location.origin);
                 if (!key || !(this.lernkartenContent || {})[key]) { if (embed) msg({ act: 'back' }); return; }
                 ['lernkarte', 'embed', 'ueben'].forEach(k => url.searchParams.delete(k));
                 history.replaceState(null, '', url);
