@@ -1868,28 +1868,13 @@
         /* „Woran liegt es?“ nach zwei Fehlversuchen (woranPanel) */
         .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #a5f3fc; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(8,145,178,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1f2937; animation: wqIn 0.25s ease-out; }
         @keyframes wqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-        .wq-q { font-weight: 700; margin: 0 0 10px; color: #155e75; }
         .wq-opts { display: flex; flex-direction: column; gap: 6px; }
         .wq-opt { text-align: left; border: 1.5px solid #a5f3fc; background: #ecfeff; color: #164e63; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
         .wq-opt:hover { background: #cffafe; }
-        .wq-opt.secondary { background: #fff; border-color: #e5e7eb; color: #4b5563; }
         .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #155e75; font-size: 0.88rem; }
-        .wq-cases { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-        .wq-cases.wq-col { flex-direction: column; }
-        .wq-case { flex: 1 1 0; min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px; text-align: center; }
-        .wq-case.wq-task { flex: 1 1 100%; }
-        .wq-case svg { width: 100% !important; height: auto !important; max-height: 130px; }
-        .wq-case .qz-visual svg { max-height: 200px; }
         .wq-kbsvg { display: block; margin: 4px auto 0; width: 100%; max-width: 360px; height: auto; }
-        .wq-case-h { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
-        .wq-case-u { font-size: 0.85rem; margin-top: 2px; }
         .wq-wrong { color: #dc2626; }
         .wq-right { color: #16a34a; }
-        .wq-full { width: 100%; text-align: left; }
-        .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
-        .wq-kb .wq-bad { background: #fca5a5 !important; border-color: #dc2626 !important; }
-        .wq-kb .wq-good { background: #86efac !important; border-color: #16a34a !important; }
-        .wq-cmp { border-color: #67e8f9; }
         body.wq-open #feedback, body.wq-open #qzFeedback, body.wq-open #helpBtn { display: none !important; }
         /* Endbildschirm „Noch nicht ganz“: Dialog „Woran lag es?“ und Fehlerliste als Bild-Kästen */
         #successMessage .wq-panel { margin-top: 14px; }
@@ -1933,6 +1918,22 @@
         .es-all-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
         .es-n { font-size: 0.8rem; font-weight: 700; color: #6b7280; margin: 0 0 4px; }
         .wq-go { display: block; width: 100%; margin-top: 12px; background: #0891b2; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        /* „Woran liegt es?“ wie der Endbildschirm, als Fenster über der Aufgabe (16.11.2026) */
+        .wq-panel .wq-bar { margin-top: 10px; }
+        .wq-panel .es-head { font-size: 1.1rem; color: #374151; margin: 0 0 5px; text-align: center; }
+        .wq-panel .wq-bar-l { font-size: 0.85rem; color: #6b7280; margin: 0 0 6px; }
+        .wq-panel .es-deg, .wq-panel .es-tt, .wq-panel .es-zw { font-size: 0.85rem; color: #374151; margin: 2px 0 0; text-align: center; }
+        .wq-panel .es-n { font-size: 0.78rem; font-weight: 700; color: #6b7280; margin: 0 0 4px; }
+        .wq-panel .es-task svg { max-height: 130px; }
+        .wq-panel .es-ul { font-size: 0.9rem; text-align: center; margin: 2px 0 0; }
+        .wq-panel .es-boxes { margin: 6px 0 14px; }
+        .wq-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 12px; }
+        .wq-overlay .wq-panel { margin: 0; width: 100%; max-height: 88vh; overflow-y: auto; animation: none; }
+        body.wq-open .lernkarte-overlay { z-index: 2100; }
+        /* Lernkarte eines anderen Trainers als Fenster (openCardFrame); sichtbar erst, wenn die Karte steht */
+        .lk-frame-ov { position: fixed; inset: 0; z-index: 2200; opacity: 0; }
+        .lk-frame-ov.ready { opacity: 1; }
+        .lk-frame-ov iframe { width: 100%; height: 100%; border: 0; background: transparent; }
     </style>
 </head>
 <body>
@@ -2554,17 +2555,39 @@
     }
     const errorTracker = new ErrorTracker();
 
+    // Lernkarten anderer Trainer (Notentrainer, Intervalltrainer) als Fenster über der Aufgabe, im selben Tab
+    // (Sebo 16.11.2026). Ein neuer Tab kennt seinen Öffner oft nicht (App-Browser, iPad-Home-Bildschirm), dann gab es
+    // kein „Zurück zur Aufgabe“. Der Zieltrainer zeigt mit ?embed=1 nur die Karte und meldet sich per postMessage:
+    // ready (sichtbar machen), back (schließen), go (Tab wechselt dorthin: „Erst hier üben“).
+    function openCardFrame(href) {
+        const ov = document.createElement('div');
+        ov.className = 'lk-frame-ov';
+        const f = document.createElement('iframe');
+        f.title = 'Lernkarte';
+        f.src = href + (href.includes('?') ? '&' : '?') + 'embed=1';
+        ov.appendChild(f);
+        document.body.appendChild(ov);
+    }
+    window.addEventListener('message', e => {
+        if (e.origin !== location.origin || !e.data || !e.data.lkEmbed) return;
+        const ov = [...document.querySelectorAll('.lk-frame-ov')].find(o => o.firstChild.contentWindow === e.source);
+        if (!ov) return;
+        if (e.data.act === 'ready') ov.classList.add('ready');
+        if (e.data.act === 'back') ov.remove();
+        if (e.data.act === 'go' && /^[a-z]+trainer\.html\?/.test(e.data.href)) location.href = e.data.href;
+    });
+
     // ── „Woran liegt es?“ (ersetzt den Hilfe-Nudge, Nov 2026) ──
-    // Nach zwei Fehlversuchen in Folge, einmal pro Durchgang: Der Schüler wählt eine Vermutung,
-    // sieht seine beiden Versuche (Aufgabe + eigene Antwort, Fehler rot), klappt den Vergleich
-    // „Was haben deine beiden Fehler gemeinsam?“ und Hilfen zu den beobachteten Fehlern auf.
-    // Verrät nie die Lösung. Mock: _entwicklung/mock_tt_woran.html (Problemfälle zum Durchspielen).
+    // Nach zwei Fehlversuchen in Folge, einmal pro Durchgang, als Fenster über der Aufgabe, aufgebaut wie der
+    // Endbildschirm: oben die beiden Versuche als Bild-Kästen, darunter Frage und Antwortleiste (ein Klick), dann
+    // Erwiderung, Hilfen (zur Vermutung zuerst) und „Weiter üben“. Keine Lösung, solange die Aufgabe läuft.
+    // Mock: _entwicklung/mock_tt_woran.html (Problemfälle zum Durchspielen).
     const woranPanel = (function () {
     const SHARP = '♯', FLAT = '♭';
     const lkExists = k => !!((app.lernkartenContent || {})[k]);
     const ask = (q, a, key) => {
         let more = '';
-        if (key && key.startsWith('nt:')) more = ` <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=${key.slice(3)}', '_blank'); return false">Ausführlich im Notentrainer ↗</a>`;
+        if (key && key.startsWith('nt:')) more = ` <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=${key.slice(3)}'); return false">Ausführlich im Notentrainer ↗</a>`;
         else if (key && lkExists(key)) more = ` <a class="lk-ask-more" href="#" onclick="app.showLernkarteMitWahl('${key}'); return false">Ausführlich nachlesen ›</a>`;
         return `<details class="lk-ask"><summary>${q}</summary><div class="lk-ask-a">${a}${more}</div></details>`;
     };
@@ -2866,12 +2889,15 @@
             o.push(['stufen', 'Ich finde die Stufen der markierten Noten nicht.']);
         } else if (m === 'paarname' || m === 'name') {
             if (m === 'paarname') o.push(['tasten', 'Ich verzähle mich bei den Tasten dazwischen.']);
-            o.push(['muster', 'Ich verwechsle das Muster von Dur und Moll.']);
+            if (last && last.kind === 'tg') o.push(['muster', 'Ich verwechsle das Muster von Dur und Moll.']);
             o.push(['gt', 'Ich weiß nicht, welcher Ton der Grundton ist.']);
             if (m === 'name' && last && last.rootAcc) o.push(['vzname', 'Ich verwechsle „is“ und „es“.']);
         } else if (m === 'bild_key' || m === 'bild_staff') {
             o.push(['hs', 'Ich verzähle mich bei Ganz- und Halbtonschritten.']);
-            o.push(['muster', 'Ich verwechsle das Muster von Dur und Moll.']);
+            // „verwechsle“ nur, wenn ein eigener Halbton dort liegt, wo ihn das andere Tongeschlecht hat (Sebo 16.11.2026)
+            const other = last && { Dur: 'Moll', Moll: 'Dur' }[last.type];
+            if (other && (last.ht || []).some(h => HALF_STEPS[other].includes(h) && !HALF_STEPS[last.type].includes(h))) o.push(['muster', 'Ich verwechsle das Muster von Dur und Moll.']);
+            else if (last && last.type) o.push(['musterk', `Ich kenne das Halbtonschrittmuster von ${last.type} noch nicht richtig.`]);
             if (m === 'bild_staff') o.push(['vz', 'Ich weiß nicht, welches Vorzeichen ich brauche.']);
         } else if (m === 'qz') {
             const sub = last ? last.sub : c.sub;
@@ -2893,7 +2919,7 @@
     // Welche Vermutung zu welcher beobachteten Fehlerart passt
     const FITS = {
         gtht: ['tasten', 'vz'], mark: ['tasten', 'vz'], paare: ['tasten', 'stufen', 'vz'], tg: ['muster', 'stufen'], gt: ['gt', 'vzname'],
-        stufe: ['hs', 'muster'], vz: ['vz'],
+        stufe: ['hs', 'muster', 'musterk'], vz: ['vz'],
         aussenkr: ['merk', 'zaehl'], innenkr: ['parallel', 'zaehl'], vorz_ableitung: ['reihe', 'zaehl'], enharmonisch: ['enh', 'vz'], verwandte: ['nachbar', 'zaehl'], symmetrien: ['zaehl']
     };
     // Ganz-/Halbton: Zählen, Ablesen und Vorzeichen lassen sich nicht trennen → kein Urteil
@@ -2901,7 +2927,7 @@
 
     // ---- Vergleich ----
     function partW(x) {
-        return { gtht: 'der Tonschritt', mark: 'die Markierung der Halbtonschritte', paare: 'die Stufenpaare', tg: 'das Tongeschlecht', gt: 'der Grundton', stufe: 'ein Ton der Tonleiter', vz: 'ein Vorzeichen' }[x.kind] || 'die Antwort';
+        return { gtht: 'der Tonschritt', mark: 'die Markierung der Halbtonschritte', paare: 'die Wahl der Stufenpaare', tg: 'das Tongeschlecht', gt: 'der Grundton', stufe: 'ein Ton der Tonleiter', vz: 'ein Vorzeichen' }[x.kind] || 'die Antwort';
     }
     function common(two, c, one) {
         const [a, b] = two;
@@ -3024,69 +3050,145 @@
     }
 
     let attempts = [], panel = null;
-    function closePanel() { if (panel) { panel.remove(); panel = null; } document.body.classList.remove('wq-open'); }
-    function anchorEl(c) { return c.mode === 'qz' ? document.getElementById('qzFeedback') : document.getElementById('feedback'); }
-
+    function closePanel() { if (panel) { (panel.closest('.wq-overlay') || panel).remove(); panel = null; } document.body.classList.remove('wq-open'); }
+    // Bild der eigenen Antwort wie im Endbildschirm, ohne Kopfzeile und ohne Aufgabenbild (das steht im Feld einmal oben).
+    // Dur/Moll und Benennen: kein Bild – die Tastatur des Endbildschirms zeigt die Lösung, und die Aufgabe läuft noch.
+    function fieldPic(c, at) {
+        const sc = app.currentScale;
+        if (c.mode === 'qz' || !sc) return;
+        if (['tg', 'name'].includes(c.mode) || (c.mode === 'paarname' && at.pOk)) { at.own = ''; return; }
+        at.own = endPic(c, at).replace(/<p class="es-tt">[\s\S]*?<\/p>/, '').replace(/<div class="es-pair">[\s\S]*?<\/svg><\/div>/, '');
+        at.fpic = true;   // nicht „pic“: das ist das Bild für den Endbildschirm
+        // Überschrift nur der Tonleitername (ohne „Klicke“/„Schreibe“, wie im Endbildschirm)
+        if (c.mode.startsWith('bild')) at.task = sc.displayName;
+    }
+    // Erwiderung wie im Endbildschirm: die Sache der Vermutung statt „daran“
+    const XF = { tasten: 'Am Zählen der Tasten dazwischen', vz: 'An den Vorzeichen', lesen: 'Am Lesen der Noten', stufen: 'Am Zählen der Stufen',
+        muster: 'Am Muster von Dur und Moll', musterk: 'Am Halbtonschrittmuster', gt: 'Am Grundton', vzname: 'An den Vorzeichennamen', hs: 'Am Zählen der Ganz- und Halbtonschritte',
+        merk: 'Am Merksatz', zaehl: 'Am Abzählen', parallel: 'An der Lage der Mollparallele', reihe: 'An der Reihenfolge der Vorzeichen',
+        enh: 'Am Grundton auf derselben Taste', nachbar: 'An den Nachbarn im Quintenzirkel' };
+    const Q_FIELD = 'Zweimal daneben. Was glaubst du: Woran liegt es?';
     function showPanel() {
         const c = ctx();
         closePanel();
         panel = document.createElement('div');
         panel.className = 'wq-panel';
-        panel.innerHTML = `<p class="wq-q">Zweimal daneben. Was glaubst du: Woran liegt es?</p><div class="wq-opts">`
-            + optionsFor(c).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
-            + '<button class="wq-opt secondary" data-k="klick">Ich habe mich verklickt.</button>'
-            + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div>';
-        panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => { try { answer(b.dataset.k, c); } catch (e) { wqError('answer', e); } });
-        const fb = anchorEl(c);
-        fb.parentNode.insertBefore(panel, fb.nextSibling);
+        // Aufbau wie im Endbildschirm: Kästen oben, darunter Frage und Leiste. Ein Klick genügt (keine Mehrfachwahl, Sebo 16.11.2026).
+        fieldBoxes = boxesHtml(c);
+        panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div></div>`
+            + '<div class="wq-bar"><p class="wq-bar-l">Wähle eine Antwort:</p><div class="wq-opts">'
+            + optionsFor(c).concat([['klick', 'Ich habe mich verklickt.'], ['weiss', 'Weiß ich nicht.']]).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
+            + '</div></div>';
+        panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => { try { answer(b.dataset.k, b.textContent, c); } catch (e) { wqError('answer', e); } });
+        // als Fenster über der Aufgabe wie im RT (Sebo 16.11.2026): alles an einem Ort, ohne Scrollen unter die Aufgabe
+        const ov = document.createElement('div');
+        ov.className = 'wq-overlay';
+        ov.appendChild(panel);
+        document.body.appendChild(ov);
         document.body.classList.add('wq-open');
         sendPhase(c, 'shown');
         outcomeCtx = c;
     }
-
-    function answer(choice, c) {
+    let fieldBoxes = '';
+    // Grundregel (Sebo 16.11.2026, für das ganze GF): Nennt der Schüler eine Unsicherheit, bekommt er dazu eine Hilfe –
+    // auch wenn der Fehler auf etwas anderes deutet, außer sie ist sicher ausgeschlossen (guessExcluded). Beispiele nie mit den Tönen der Aufgabe. „Verklickt“/„Weiß ich nicht“: keine.
+    // Sicher ausgeschlossen (Sebo 16.11.2026): dann keine Hilfe zur Vermutung. Nur, was das Bild der Fehler belegt:
+    // Vorzeichen – keine Töne mit Vorzeichen (nicht beim Schreiben/Quintenzirkel, dort setzt man sie selbst);
+    // Grundton – jedes Mal richtig; Muster – Tongeschlecht bzw. Lage der Halbtöne jedes Mal richtig; Vorzeichennamen – Grundton ohne Vorzeichen.
+    function guessExcluded(k, xs) {
+        const all = f => xs.length && xs.every(f);
+        if (k === 'vz') return all(x => !['bild_staff', 'qz'].includes(x.mode) && !x.acc);
+        if (k === 'gt') return all(x => x.rootOk === true);
+        if (k === 'muster') return all(x => x.typeOk === true || x.htOk === true);
+        if (k === 'musterk') return all(x => x.htOk === true);
+        if (k === 'vzname') return all(x => !x.rootAcc);
+        return false;
+    }
+    function guessHelp(k, xs) {
+        if (guessExcluded(k, xs)) return [];
+        const modes = xs.map(x => x.mode), has = m => modes.includes(m);
+        const tones = xs.map(x => [x.n1, x.n2, x.user].join(' ')).join(' ');
+        const out = [];
+        if (k === 'tasten' || k === 'hs') {
+            const ex = /(^|[ ,])e/i.test(tones) ? 'Von H nach C liegt keine Taste dazwischen: ein Halbtonschritt.' : 'Von E nach F liegt keine Taste dazwischen: ein Halbtonschritt.';
+            out.push(ask('Unsicher beim Zählen der Tasten dazwischen?', `Halbtonschritt: keine Taste dazwischen, auch keine schwarze. Ganzton: genau eine Taste dazwischen. ${ex}`, 'ton1_basis'));
+        }
+        if (k === 'lesen') {
+            const ah = /(^|[ ,])[ah]/i.test(tones);
+            out.push(ask('Unsicher beim Ablesen der Noten?', 'Der Violinschlüssel windet sich um die G-Linie (2. Linie von unten). '
+                + (ah ? 'Der Zwischenraum darunter ist F, die Linie darunter E.' : 'Der Zwischenraum darüber ist A, die Linie darüber H.'), 'nt:basis'));
+        }
+        if (k === 'vz') {
+            if (has('bild_staff')) out.push(ask('Unsicher, welches Vorzeichen du brauchst?', `Zähle vom Ton davor den verlangten Schritt auf der Tastatur ab. Dann wähle ${SHARP} oder ${FLAT} so, dass der Stammton auf diese Taste kommt.`, 'nt:noten4_vorzeichen'));
+            else if (has('qz')) out.push(ask(`Unsicher, in welche Richtung ${SHARP} und ${FLAT} gehen?`, `${SHARP} heißt eine Taste nach rechts, ${FLAT} eine nach links.`, 'nt:noten3_vorzeichen'));
+            else out.push(ask('Unsicher, welche Taste zum Vorzeichen gehört?', `${SHARP} heißt eine Taste nach rechts, ${FLAT} eine nach links. Das ist nicht immer eine schwarze Taste: Fes ist die Taste E.`, 'nt:noten3_vorzeichen'));
+        }
+        if (k === 'stufen') {
+            if (has('tg')) out.push(ask('Unsicher, auf welcher Stufe eine Note steht?', 'Unter den Noten stehen die Stufenzahlen. Ein markierter Halbtonschritt verbindet zwei Noten, z. B. die 1. und die 2. Stufe.', 'ton2_stufenpaare'));
+            else out.push(ask('Unsicher beim Zählen der Stufen?', 'Der Grundton ist die 1. Stufe. Zähle jede Note der Tonleiter weiter: 1, 2, 3 … bis zur 8. Stufe, dem Grundton oben.', 'ton2_stufenpaare'));
+        }
+        if (k === 'muster' || k === 'musterk') {
+            if (has('bild_key') || has('bild_staff')) out.push(ask('Unsicher beim Muster der Schritte?', 'Dur: Ganz – Ganz – Halb – Ganz – Ganz – Ganz – Halb. Moll: Ganz – Halb – Ganz – Ganz – Halb – Ganz – Ganz.', 'ton4_tastatur_einfach'));
+            else out.push(ask('Unsicher beim Muster von Dur und Moll?', 'Dur: Halbtonschritte zwischen der 3.–4. und der 7.–8. Stufe. Moll: zwischen der 2.–3. und der 5.–6. Stufe.', 'ton3_muster_lernen'));
+        }
+        if (k === 'gt') out.push(ask('Unsicher beim Grundton?', 'Die Tonleiter beginnt und endet mit dem Grundton: Er ist die erste und die letzte Note.', 'ton3_muster_erkennen'));
+        if (k === 'vzname') out.push(ask('Unsicher bei den Vorzeichennamen?', `Mit ${SHARP} hängst du „is“ an, mit ${FLAT} „es“. Ausnahmen: Es, As, B.`, 'nt:vorzeichen'));
+        // Quintenzirkel: Die Vermutungen gehören zur Übung des Fehlers, deren Hilfe kommt über helpFor schon
+        return out;
+    }
+    // Kästen wie im Endbildschirm, aber immer beide Versuche; Antwort als Text nur, wo kein Bild sie zeigt
+    function boxesHtml(c) {
+        const two = attempts.slice(-2);
+        const one = two[0].id === two[1].id;
+        const steps = one && two[0].mode === 'name' && two[1].mode === 'mark';
+        const line = x => x.fpic ? '' : `<p class="es-ul">Du hast ${x.uhtml} ${x.verb}.</p>`;
+        const box = (h, x, img) => `<div class="es-box"><p class="es-n">${h}</p>${img || ''}${x.own || ''}${line(x)}</div>`;
+        let cases;
+        if (steps) {
+            const T = ['Tonleiter benennen', 'Halbtonschritte finden'];
+            cases = (two[1].img ? `<div class="es-box es-task">${two[1].img}</div>` : '') + two.map((x, i) => box(`${i + 1}. Schritt: ${T[i]}`, x)).join('');
+        } else if (one) {
+            // Aufgabe einmal oben: mit Bild als Kasten, sonst nur der Text (Tonleitername, Frage)
+            const t = two[1].task || '';
+            cases = (two[1].img ? `<div class="es-box es-task">${t ? `<p class="es-n">${t}</p>` : ''}${two[1].img}</div>` : t ? `<p class="es-tt">${t}</p>` : '')
+                + two.map((x, i) => box(`${i + 1}. Versuch`, x)).join('');
+        } else {
+            cases = two.map((x, i) => box(`${i + 1}. Aufgabe${x.task ? ': ' + x.task : ''}`, x, x.img)).join('');
+        }
+        const head = steps ? 'Deine beiden Schritte:' : one ? 'Deine beiden Versuche:' : 'Deine beiden Aufgaben:';
+        return `<p class="es-head">${head}</p><div class="es-boxes">${cases}</div>`;
+    }
+    function answer(choice, label, c) {
         const two = attempts.slice(-2);
         const kinds = two.map(x => x.kind);
         const same = kinds[0] === kinds[1];
         const observed = same ? kinds[0] : null;
         const one = two[0].id === two[1].id;
-        // 3c–3e: Name falsch, dann Ersatzschritt falsch → zwei Schritte derselben Aufgabe, kein Vergleich
         const steps = one && two[0].mode === 'name' && two[1].mode === 'mark';
-        // Tongeschlecht falsch → dieselbe Ursache wie beim Ersatzschritt (Lage der Halbtonschritte)
         const sameCause = steps && !two[0].typeOk;
 
+        // Erwiderung (Trainer-Blase). „Verklickt“ und „Weiß ich nicht“ bleiben unkommentiert.
         let rel = '';
-        if (choice === 'klick') rel = same ? 'Zweimal an derselben Stelle verklickt man sich selten.' : 'Gut möglich, dass du dich verklickt hast.';
-        else if (choice === 'vz' && !two.some(x => x.acc) && c.mode !== 'bild_staff' && c.mode !== 'qz') rel = 'Die Töne haben aber keine Vorzeichen.';
-        else if (choice === 'weiss' || choice === 'lesen' || (observed && OPEN.includes(observed))) rel = '';
-        else if (same && (FITS[observed] || []).includes(choice)) rel = 'Das passt zu deiner Vermutung.';
-        else if (kinds.some(k => (FITS[k] || []).includes(choice))) rel = same ? '' : 'Einer der beiden Fehler passt zu deiner Vermutung.';
-        // Bei gemeinsamer Ursache passen alle Vermutungen zu Halbtonschritten oder Muster zu beiden Schritten
-        if (sameCause && ['muster', 'tasten', 'stufen', 'vz'].includes(choice) && rel) rel = 'Das passt zu deiner Vermutung.';
-
-        // Immer beide Versuche in eigenen Kästen. Dieselbe Aufgabe: Aufgabentext bzw. Aufgabenbild einmal oben,
-        // im Kasten je Versuch das Bild der eigenen Antwort (Tastatur, Noten, Kreis) und die Antwort.
-        const task = x => x.task || '';
-        const u = x => `<div class="wq-case-u">Du hast ${x.uhtml} ${x.verb}.</div>`;
-        let cases;
-        if (steps) {
-            const T = ['Tonleiter benennen', 'Halbtonschritte finden'];
-            cases = (two[1].img ? `<div class="wq-case wq-task">${two[1].img}</div>` : '')
-                + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Schritt: ${T[i]}</div>${x.own || ''}${u(x)}</div>`).join('');
-        } else if (one) {
-            const shared = two[1].img ? `<div class="wq-case wq-task">${two[1].img}</div>` : '';
-            cases = (task(two[1]) ? `<div class="wq-case-h wq-full">${task(two[1])}</div>` : '') + shared
-                + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Versuch</div>${x.own || ''}${u(x)}</div>`).join('');
-        } else {
-            cases = two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Aufgabe${task(x) ? ': ' + task(x) : ''}</div>${x.img || ''}${x.own || ''}${u(x)}</div>`).join('');
+        if (XF[choice]) {
+            const fits = k => (FITS[k] || []).includes(choice) || (k === 'gtht' && ['tasten', 'vz', 'lesen'].includes(choice));
+            if (choice === 'vz' && !two.some(x => x.acc) && c.mode !== 'bild_staff' && c.mode !== 'qz') rel = `${XF.vz} lag es nicht: Die Töne haben keine Vorzeichen.`;
+            // Ganz-/Halbton: Zählen, Ablesen und Vorzeichen lassen sich nicht trennen
+            else if (kinds.every(k => OPEN.includes(k)) && kinds.some(fits)) rel = `${XF[choice]} kann es gelegen haben.`;
+            else if ((sameCause && ['muster', 'tasten', 'stufen', 'vz'].includes(choice)) || kinds.every(fits)) rel = `${XF[choice]} lag es tatsächlich.`;
+            else if (kinds.some(fits)) rel = `${XF[choice]} lag es zum Teil.`;
+            else rel = `${XF[choice]} lag es nicht.`;
         }
-        // Gemeinsame Ursache: erst die Halbtonschritte, dann das Muster
+        const gap = / nicht[.:]| zum Teil\./.test(rel);
+        const cmp = steps ? stepsText(two[0]) : common(two, c, one);
+
         const asks = helpFor(two, c, sameCause ? ['mark', 'tg'] : null);
-        const colLayout = two.some(x => /wq-kbsvg|wq-kb|qz-visual/.test(x.own || ''));
-        const head = steps ? 'Schau dir deine beiden Schritte an:' : one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:';
-        const sum = steps ? 'Wie hängen deine beiden Fehler zusammen?' : 'Was haben deine beiden Fehler gemeinsam?';
-        panel.innerHTML = `<p class="wq-q">${head}</p><div class="wq-cases${colLayout ? ' wq-col' : ''}">${cases}</div>`
-            + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>${sum}</summary><div class="lk-ask-a">${steps ? stepsText(two[0]) : common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
+        // Hilfe zur eigenen Vermutung zuerst (Grundregel, Sebo 16.11.2026), dann zu den beobachteten Fehlern
+        const sumQ = h => (h.match(/<summary>(.*?)<\/summary>/) || [])[1] || h;
+        const gh = guessHelp(choice, two);
+        asks.splice(0, asks.length, ...gh, ...asks.filter(h => !gh.some(g => sumQ(g) === sumQ(h))));
+        // wie im Endbildschirm: Kästen bleiben stehen, die Wahl wird zur Schüler-Blase, darunter die Erwiderung
+        panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div><div class="wq-bub wq-bub-u">${label}</div>`
+            + `<div class="wq-bub">${[rel, gap && !steps ? 'Auffällig ist jedoch: ' + cmp : cmp].filter(Boolean).join(' ')}</div></div>`
             + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
             + '<button class="wq-go">Weiter üben</button>';
         panel.querySelector('.wq-go').onclick = closePanel;
@@ -3240,7 +3342,7 @@
             }
             // Bauen und Schreiben: eigene Tonleiter auf der Tastatur mit Stufenzahlen (richtige grün, falsche rot, vorgegebene
             // grau), rote Klammern über den falschen Abständen, darunter die eigenen Halbtöne – keine Lösung (Sebo 16.11.2026)
-            function ownKb(own) {
+            function ownKb(own, badP) {
                 const exp = scMidis(sc);
                 const given = (app.buildingGivenIndices || []).map(i => exp[i]);   // vorgegebene Töne gehören dazu
                 const mine = [...new Set(own.concat(given))].sort((a, b) => a - b);
@@ -3252,9 +3354,9 @@
                         + degText(sc, mine.slice(0, -1).map((p, i) => i).filter(i => d(mine, i) === 1));
                 }
                 // Anzahl passt nicht (Ton fehlt/doppelt): eigene Töne mit Stufenzahlen, Töne außerhalb der Tonleiter rot, keine Klammern
-                return degKb(mine, mine.map(p => !exp.includes(p) ? RED : given.includes(p) ? '#e5e7eb' : '#16a34a'), []);
+                return degKb(mine, mine.map(p => !exp.includes(p) || (badP || []).includes(p) ? RED : given.includes(p) ? '#e5e7eb' : '#16a34a'), []);
             }
-            if (c.mode === 'bild_key') return head + ownKb(app.buildingUserSelections || []);
+            if (c.mode === 'bild_key') return head + ownKb(app.buildingUserSelections || [], (app.buildingUserSelections || []).filter(m => (app.buildingVerdictKeys || {})[m] === false));
             if (c.mode === 'bild_staff') {
                 const v = app.buildingVerdictStaff || [];
                 const own = (app.buildingStaffNotes || []).slice().sort((a, b) => a.x - b.x);
@@ -3269,7 +3371,7 @@
                 const row = (l, svg) => `<div class="es-row"><span class="es-l${l === 'deine Antwort' ? ' es-lu' : ''}">${l}</span>${svg}</div>`;
                 // statt der richtigen Tonleiter die Tastatur wie beim Bauen (Sebo 16.11.2026: entscheidend ist der Tonabstand)
                 return head + row('deine Antwort', scStaff(own.map(n => ({ n: n.noteName, o: n.octave })), own.map(n => SX(slot(n))), looks, 'es-sc'))
-                    + ownKb(own.map(n => noteToMidi(n.noteName, n.octave)));
+                    + ownKb(own.map(n => noteToMidi(n.noteName, n.octave)), own.filter((n, i) => looks[i] !== 'black').map(n => noteToMidi(n.noteName, n.octave)));
             }
             return '';
         } catch (e) { wqError('endPic', e); return ''; }
@@ -3461,7 +3563,7 @@
             document.getElementById('successScreen').classList.remove('wq-pending');
             // Erwiderung nennt die Sache jeder Vermutung, damit der Bezug ohne „daran“ klar ist
             const X = { tasten: 'Am Zählen der Tasten dazwischen', vz: 'An den Vorzeichen', lesen: 'Am Lesen der Noten', stufen: 'Am Zählen der Stufen',
-                muster: 'Am Muster von Dur und Moll', gt: 'Am Grundton', vzname: 'An den Vorzeichennamen', hs: 'Am Zählen der Ganz- und Halbtonschritte',
+                muster: 'Am Muster von Dur und Moll', musterk: 'Am Halbtonschrittmuster', gt: 'Am Grundton', vzname: 'An den Vorzeichennamen', hs: 'Am Zählen der Ganz- und Halbtonschritte',
                 merk: 'Am Merksatz', zaehl: 'Am Abzählen', parallel: 'An der Lage der Mollparallele', reihe: 'An der Reihenfolge der Vorzeichen',
                 enh: 'Am Grundton auf derselben Taste', nachbar: 'An den Nachbarn im Quintenzirkel' };
             const by = {};
@@ -3499,6 +3601,7 @@
             // Hilfen wie im Feld: je Fehlerart mit allen ihren Fehlern, jede Frage nur einmal
             const asks = [], seenA = new Set();
             const addH = hs => hs.forEach(h => { const q = (h.match(/<summary>(.*?)<\/summary>/) || [])[1] || h; if (!seenA.has(q)) { seenA.add(q); asks.push(h); } });
+            comp.forEach(k => addH(guessHelp(k, xs)));
             kinds.forEach(k => addH(helpFor(by[k], c, [k])));
             const asksHtml = asks.join('').replace(/showLernkarteMitWahl\('([^']+)'\)/g, "showLernkarteMitWahl('$1', 'Schließen')");
             const items = endRecoItems(kinds, by, c);
@@ -3523,7 +3626,7 @@
         // Fehlversuch festhalten (Zustand der Aufgabe in diesem Moment)
         // Erstversuche zusätzlich für den Endbildschirm. endOnly: misslungene Regel-Probe (3a), nur für die Liste;
         // der Trainer schaltet vor handleAnswer schon auf die Fälle um → Probe als Dur/Moll-Wahl festhalten
-        record(trigger, endOnly) { const c0 = ctx(); if (!c0.mode) return; const c = endOnly && c0.mode === 'paare' ? { ...c0, mode: 'tg' } : c0; const at = attemptOf(c); if (!at) return; if (!endOnly) attempts.push(at); if (trigger === 'erstversuch') quizErrs.push(Object.assign(endCapture(at), { pic: endPic(c, at) })); if (trigger === 'ersatz') endErsatz(c, at); },
+        record(trigger, endOnly) { const c0 = ctx(); if (!c0.mode) return; const c = endOnly && c0.mode === 'paare' ? { ...c0, mode: 'tg' } : c0; const at = attemptOf(c); if (!at) return; fieldPic(c, at); if (!endOnly) attempts.push(at); if (trigger === 'erstversuch') quizErrs.push(Object.assign(endCapture(at), { pic: endPic(c, at) })); if (trigger === 'ersatz') endErsatz(c, at); },
         ready() { return attempts.length >= 2; },
         show: showPanel,
         // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
@@ -8769,7 +8872,7 @@
                         <div class="lk-rule"><strong>Nur zwei Stellen sind von Natur aus Halbtonschritte:</strong> E–F und H–C. Dort liegt keine schwarze Taste dazwischen. Alle anderen benachbarten Stammtöne, z.&nbsp;B. C–D oder F–G, sind Ganztonschritte.</div>
                         <div class="lk-visual" id="lkVisual1"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst zwei Noten. Entscheide: „Ganzton“ oder „Halbton“.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:basis')"><summary>Unsicher beim Ablesen der Noten?</summary><div class="lk-ask-a">Der Violinschlüssel windet sich um die G-Linie (2. Linie von unten). Der Zwischenraum darüber ist A, die Linie darüber H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_basis')"><summary>Unsicher, wo die Töne auf der Tastatur liegen?</summary><div class="lk-ask-a">C liegt links neben den zwei schwarzen Tasten, F links neben den drei. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_basis', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`,
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:basis')"><summary>Unsicher beim Ablesen der Noten?</summary><div class="lk-ask-a">Der Violinschlüssel windet sich um die G-Linie (2. Linie von unten). Der Zwischenraum darüber ist A, die Linie darüber H. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=basis'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_basis')"><summary>Unsicher, wo die Töne auf der Tastatur liegen?</summary><div class="lk-ask-a">C liegt links neben den zwei schwarzen Tasten, F links neben den drei. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten3_basis'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
                         numOctaves: 2,
@@ -8833,7 +8936,7 @@
                         <div class="lk-rule"><strong>Zähle die Tasten, nicht die Namen:</strong> E–F ist ein Halbtonschritt. E–Fis ist ein Ganztonschritt, weil das <span class="vz-sharp"></span> das F eine Taste weiter schiebt. Eis–Fis ist wieder ein Halbtonschritt: Beide Töne sind um eine Taste verschoben.</div>
                         <div class="lk-visual" id="lkVisual1"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Entscheide bei jedem Tonpaar: „Ganzton“ oder „Halbton“.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Eis die Taste F und Ces die Taste H: Eis und F sind <strong>enharmonisch</strong> gleich.</div></details></div>`,
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten3_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Eis die Taste F und Ces die Taste H: Eis und F sind <strong>enharmonisch</strong> gleich.</div></details></div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this.renderLernkarteTastatur({
                         numOctaves: 1,
@@ -9111,7 +9214,7 @@
                         <p><strong>Neu:</strong> Jetzt nur noch Tonleitern mit vier bis sechs Vorzeichen.</p>
                         <div class="lk-rule"><strong>Das Muster bleibt dasselbe:</strong> E-Dur: E, Fis, Gis, A, H, Cis, Dis, E. Die Halbtonschritte liegen wie immer zwischen 3–4 (Gis–A) und 7–8 (Dis–E).</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die fehlenden Töne an. Wie bisher werden die vorgegebenen Töne weniger.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten3_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton4_schreiben_einfach: {
                 title: 'Schreiben (einfach)',
@@ -9119,7 +9222,7 @@
                         <p><strong>Neu:</strong> Jetzt schreibst du alle acht Töne ins leere Notensystem. Hier zählt auch die Schreibweise: Jede Stufe ist ein eigener Stammton, Fis ist also nicht Ges.</p>
                         <div class="lk-rule"><strong>Erst die Stammtöne, dann die Vorzeichen:</strong> D-Dur: D, E, F, G, A, H, C, D aufwärts setzen. Dann nach dem Muster prüfen: Von E muss ein Ganztonschritt folgen, also Fis; ebenso Cis vor dem hohen D.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts ins Notensystem. Für ein Vorzeichen wählst du vorher „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten4_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton4_schreiben_schwer: {
                 title: 'Schreiben (viele Vorzeichen)',
@@ -9127,7 +9230,7 @@
                         <p><strong>Neu:</strong> Jetzt schreibst du sie ins Notensystem. Jeder Ton bekommt sein eigenes Vorzeichen.</p>
                         <div class="lk-rule"><strong>Die Vorzeichen kommen in fester Reihenfolge:</strong> Kreuze: Fis, Cis, Gis, Dis, Ais, Eis. Bes: B, Es, As, Des, Ges, Ces. E-Dur hat 4 Kreuze, also die ersten vier: Fis, Cis, Gis, Dis.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts, jede Note mit ihrem Vorzeichen.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten4_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton5_vorz_ableitung')"><summary>Unsicher, woher die Reihenfolge kommt?</summary><div class="lk-ask-a">Sie steckt im Quintenzirkel: Jedes weitere Kreuz liegt eine Quinte über dem vorigen, F, C, G, D … <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton5_vorz_ableitung', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton5_vorz_ableitung')"><summary>Unsicher, woher die Reihenfolge kommt?</summary><div class="lk-ask-a">Sie steckt im Quintenzirkel: Jedes weitere Kreuz liegt eine Quinte über dem vorigen, F, C, G, D … <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton5_vorz_ableitung', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
             ton4_noaudio: {
                 title: 'Ohne Hörbeispiel',
@@ -9135,7 +9238,7 @@
                         <p><strong>Neu:</strong> Ab jetzt ohne Hörbeispiel. Du schreibst Tonleitern mit null bis sechs Vorzeichen.</p>
                         <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Stammtöne aufwärts setzen → nach dem Muster prüfen → Vorzeichen setzen.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts ins Notensystem.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten4_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`
             },
 
             // ===== ton5: Quintenzirkel (Meister) =====
@@ -9146,7 +9249,7 @@
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-rule"><strong>Nachbarn liegen eine Quinte auseinander:</strong> Das sind 7 Halbtonschritte. Nach rechts zählst du aufwärts (C → G), nach links abwärts (C → F). Die Tastatur unter der Aufgabe hilft dir dabei.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib an, wie viele Vorzeichen eine Dur-Tonart hat, oder welche Dur-Tonart eine bestimmte Zahl hat. In manchen Aufgaben ist eine Nachbartonart schon genannt, z.&nbsp;B. „G-Dur hat 1 <span class="vz-sharp"></span>. Wie viele hat A-Dur?“</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei der Reihenfolge der Tonarten?</summary><div class="lk-ask-a"><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen den Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:rein')"><summary>Unsicher, wie man eine Quinte abzählt?</summary><div class="lk-ask-a">Eine reine Quinte hat 7 Halbtonschritte: von C aus Cis, D, Dis, E, F, Fis, G. <a class="lk-ask-more" href="#" onclick="window.open('intervalltrainer.html?lernkarte=rein', '_blank'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei der Reihenfolge der Tonarten?</summary><div class="lk-ask-a"><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen den Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:rein')"><summary>Unsicher, wie man eine Quinte abzählt?</summary><div class="lk-ask-a">Eine reine Quinte hat 7 Halbtonschritte: von C aus Cis, D, Dis, E, F, Fis, G. <a class="lk-ask-more" href="#" onclick="openCardFrame('intervalltrainer.html?lernkarte=rein'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
                 render() {
                     document.getElementById('lkVisual1').innerHTML = this._buildQzVisual('aussenkr', { showMore: true });
                 }
@@ -9158,7 +9261,7 @@
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-rule"><strong>Die Mollparallele liegt 3 Halbtonschritte tiefer:</strong> C-Dur → a-Moll, G-Dur → e-Moll, F-Dur → d-Moll. Beide haben dieselben Vorzeichen.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle zu einer Dur-Tonart die Mollparallele oder zu einer Moll-Tonart die Durparallele.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:grossklein')"><summary>Unsicher beim Abzählen der 3 Halbtonschritte?</summary><div class="lk-ask-a">Vom Dur-Grundton drei Tasten abwärts, schwarze mit: von C aus H, B, A, also a-Moll. Das ist eine kleine Terz. <a class="lk-ask-more" href="#" onclick="window.open('intervalltrainer.html?lernkarte=grossklein', '_blank'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:grossklein')"><summary>Unsicher beim Abzählen der 3 Halbtonschritte?</summary><div class="lk-ask-a">Vom Dur-Grundton drei Tasten abwärts, schwarze mit: von C aus H, B, A, also a-Moll. Das ist eine kleine Terz. <a class="lk-ask-more" href="#" onclick="openCardFrame('intervalltrainer.html?lernkarte=grossklein'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
                 render() {
                     const qzHtml = this._buildQzVisual('innenkr');
                     document.getElementById('lkVisual1').innerHTML = qzHtml;
@@ -9199,7 +9302,7 @@
                         <div class="lk-contrast" id="lkContrast1"></div>
                         <div class="lk-rule"><strong>Gesucht ist der andere Name des Grundtons:</strong> Fis-Dur = Ges-Dur, Cis-Dur = Des-Dur, Gis-Dur = As-Dur. Das geht auch auf weißen Tasten: Eis-Dur = F-Dur, Ces-Dur = H-Dur.</div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den anderen Namen ein, z.&nbsp;B. „Ges“ oder „Ges-Dur“. Die Vorzeichen der Tonart musst du dafür nicht kennen.</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher, wie ein Ton zwei Namen haben kann?</summary><div class="lk-ask-a">Ein <span class="vz-sharp"></span> schiebt einen Ton eine Taste nach rechts, ein <span class="vz-flat"></span> eine nach links. Von F nach rechts und von G nach links landest du auf derselben Taste: Fis = Ges. <a class="lk-ask-more" href="#" onclick="window.open('notentrainer.html?lernkarte=noten3_vorzeichen', '_blank'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei Eis oder Ces?</summary><div class="lk-ask-a">Zwischen E und F liegt keine schwarze Taste. Eis, eine Taste rechts von E, ist darum die weiße Taste F. Genauso ist Ces die weiße Taste H.</div></details></div>`,
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher, wie ein Ton zwei Namen haben kann?</summary><div class="lk-ask-a">Ein <span class="vz-sharp"></span> schiebt einen Ton eine Taste nach rechts, ein <span class="vz-flat"></span> eine nach links. Von F nach rechts und von G nach links landest du auf derselben Taste: Fis = Ges. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten3_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei Eis oder Ces?</summary><div class="lk-ask-a">Zwischen E und F liegt keine schwarze Taste. Eis, eine Taste rechts von E, ist darum die weiße Taste F. Genauso ist Ces die weiße Taste H.</div></details></div>`,
                 render() {
                     // QZ mit enharmonischem Paar Fis/Ges
                     const qzHtml = this._buildQzVisual('aussenkr');

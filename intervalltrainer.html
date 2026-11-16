@@ -1604,6 +1604,9 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
         .header-buttons { display: flex; align-items: center; gap: 4px; }
+        /* Eingebettet in einen anderen Trainer (?embed=1): nur die Lernkarte, durchsichtiger Hintergrund */
+        body.lk-embed { background: transparent !important; }
+        body.lk-embed > *:not(#lernkarteOverlay) { display: none !important; }
     </style>
 </head>
 <body>
@@ -5739,12 +5742,27 @@
             openDeepLinkLernkarte() {
                 const url = new URL(location.href);
                 const key = url.searchParams.get('lernkarte');
-                if (!key || !(this.lernkartenContent || {})[key]) return;
-                url.searchParams.delete('lernkarte');
+                // Eingebettet (?embed=1, openCardFrame eines anderen Trainers): nur die Karte über der Aufgabe dort;
+                // „Zurück zur Aufgabe“ schließt das Fenster, „Erst hier üben“ wechselt den ganzen Tab hierher (?ueben=1).
+                const embed = url.searchParams.get('embed') === '1', ueben = url.searchParams.get('ueben') === '1';
+                const msg = m => parent.postMessage(Object.assign({ lkEmbed: true }, m), location.origin);
+                if (!key || !(this.lernkartenContent || {})[key]) { if (embed) msg({ act: 'back' }); return; }
+                ['lernkarte', 'embed', 'ueben'].forEach(k => url.searchParams.delete(k));
                 history.replaceState(null, '', url);
                 // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
                 document.body.appendChild(document.getElementById('lernkarteOverlay'));
-                if (!this.showLernkarte(key, false)) return;
+                if (embed) {
+                    document.documentElement.style.background = 'transparent';
+                    document.body.classList.add('lk-embed');
+                }
+                if (!this.showLernkarte(key, false)) { if (embed) msg({ act: 'back' }); return; }
+                if (embed) {
+                    this._appendNextChoice(key, { label: 'Zurück zur Aufgabe', after: () => msg({ act: 'back' }) });
+                    const pr = document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]');
+                    if (pr) pr.onclick = () => msg({ act: 'go', href: location.pathname.split('/').pop() + '?lernkarte=' + encodeURIComponent(key) + '&ueben=1' });
+                    msg({ act: 'ready' });
+                    return;
+                }
 
                 // Herkunft (nur mit opener kann der Tab sich wieder schließen)
                 let from = null;
@@ -5757,6 +5775,8 @@
                 this._appendNextChoice(key, from !== null
                     ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                     : { label: 'Zurück zum Menü' });
+                // Aus einem eingebetteten Fenster mit „Erst hier üben“: gleich das Quiz, die Karte nicht noch einmal
+                if (ueben) document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click();
             },
 
             // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
