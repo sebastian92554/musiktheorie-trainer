@@ -604,6 +604,25 @@
 
         _trackLanding('page_view', 'Landing', {});
 
+        // Kurzcodes für den Unterricht: tt5a = Trainer (nt/it/dt/tt/rt) + Knoten + Teilkompetenz (a, b, c …);
+        // ohne Buchstaben (tt5) die erste Teilkompetenz des Knotens. Ziel: Trainer mit ?lernkarte=<Schlüssel>.
+        function resolveCode(raw) {
+            const m = /^([a-z]{2})(\d)([a-z])?$/.exec(String(raw || '').trim().toLowerCase());
+            if (!m) return null;
+            const t = REGISTER[m[1]];
+            const node = t && t.nodes.find(n => n.n === +m[2]);
+            const sub = node && node.subs[m[3] ? m[3].charCodeAt(0) - 97 : 0];
+            if (!sub) return null;
+            return { code: m[0], trainer: t.name, href: t.file + '?lernkarte=' + encodeURIComponent(sub[1]), label: node.name + ' – ' + sub[0] };
+        }
+        // index.html#tt5a (Link von der Tafel, aus dem Chat, von der Schulwebsite) → direkt weiter;
+        // unbekannter Code: steht im Suchfeld, damit man sieht, was nicht passte
+        if (location.hash.length > 1) {
+            const raw = decodeURIComponent(location.hash.slice(1)), hit = resolveCode(raw);
+            if (hit) { _trackLanding('landing_click', hit.trainer, { code: hit.code, via: 'hash' }); location.replace(hit.href); }
+            else { const i = document.getElementById('searchInput'); if (i) { i.value = raw; i.dispatchEvent(new Event('input')); } }
+        }
+
         document.querySelectorAll('.trainer-main').forEach(link => {
             link.addEventListener('click', function () {
                 const name = this.querySelector('.trainer-name').textContent;
