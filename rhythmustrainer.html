@@ -3294,14 +3294,14 @@
                     { id: '16tel', label: '+ Sechzehntel', phrase: 'Zählzeiten mit „e“ und „te“ bestimmen', preview: 'Bestimmen der Zählzeiten mit Sechzehntelnoten' },
                     { id: 'punktierte', label: '+ Punktierte', phrase: 'Zählzeiten nach punktierten Noten bestimmen', preview: 'Bestimmen der Zählzeiten mit punktierten Noten' },
                     // hilfen_aus entfernt: Raster wird ab Frage 4 automatisch ausgeblendet
-                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'ohne Hörbeispiel zählen', preview: 'Bestimmen der Zählzeiten ohne Hörbeispiel' }
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Zählzeiten ohne Hörbeispiel bestimmen', preview: 'Bestimmen der Zählzeiten ohne Hörbeispiel' }
                 ],
                 'rhy4': [
                     { id: 'basis', label: 'Basis (Achtel)', phrase: 'Rhythmussilben sprechen', preview: 'Rhythmussilben sprechen mit Achtelnoten' },
                     { id: '16tel', label: '+ Sechzehntel', phrase: 'die Silbe „te“ sprechen', preview: 'Rhythmussilben sprechen mit Sechzehntelnoten' },
                     { id: 'punktierte', label: '+ Punktierte', phrase: 'Silben nach punktierten Noten bestimmen', preview: 'Rhythmussilben sprechen mit punktierten Noten' },
                     { id: 'triolen', label: '+ Triolen', phrase: 'die Triolensilben sprechen', preview: 'Rhythmussilben sprechen mit Triolen' },
-                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'ohne Hörbeispiel die Silbe finden', preview: 'Rhythmussilben sprechen ohne Hörbeispiel' }
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Silben ohne Hörbeispiel finden', preview: 'Rhythmussilben sprechen ohne Hörbeispiel' }
                 ],
                 'rhy5': [
                     { id: '8tel', label: 'Basis (bis Achtel)', phrase: 'einen fehlenden Notenwert ergänzen', preview: 'Ergänzen des fehlenden Notenwerts (bis Achtel)' },
@@ -10385,7 +10385,7 @@ Gerät:
                     nope: "Schau oben: Du fängst immer an derselben Stelle an zu zählen."
                 },
                 body: `<p><strong>Du kannst schon:</strong> Zählzeiten auch nach punktierten Noten bestimmen.</p>
-                        <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel zählen. <strong>Immer gleich vorgehen: Vom Taktanfang Note für Note mitzählen (1 e und te 2 e und te …), bis du bei der markierten Note bist. Wo du dann stehst, ist ihre Zählzeit.</strong></p>
+                        <p><strong>Jetzt lernst du:</strong> Zählzeiten ohne Hörbeispiel bestimmen. Bisher konntest du den Takt anhören, jetzt zählst du nur nach dem Notenbild. <strong>Immer gleich vorgehen: Vom Taktanfang Note für Note mitzählen (1 e und te 2 e und te …), bis du bei der markierten Note bist. Wo du dann stehst, ist ihre Zählzeit.</strong></p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe die Zählzeit ein.</div>
                         <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_16tel')"><summary>Unsicher bei „e“ und „te“?</summary><div class="lk-ask-a">Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te. Zähl vom Taktanfang Note für Note mit: Nach zwei Vierteln und einer Sechzehntel auf 3 bist du bei „3 e“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_16tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_punktierte')"><summary>Unsicher bei punktierten Noten?</summary><div class="lk-ask-a">Der Punkt fügt die Hälfte des Werts hinzu: punktierte Halbe 2 + 1 = 3, punktierte Viertel 1 + 0,5 = 1,5. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_punktierte', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },
@@ -10632,7 +10632,7 @@ Gerät:
                     nope: "Auf dem Schlag „du“, auf dem „und“ „dei“. Und auf „e“ oder „te“?"
                 },
                 body: `<p><strong>Du kannst schon:</strong> Silben für alle Notenwerte, punktierte Noten und Triolen.</p>
-                        <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel die Silbe finden. <strong>Immer in derselben Reihenfolge: Vom Taktanfang mitzählen bis zur markierten Note → Silbe bestimmen: auf dem Schlag „du“, auf dem „und“ „dei“, Sechzehntel, die auf „e“ oder „te“ beginnen, „te“; in der Triole du, da, di.</strong></p>
+                        <p><strong>Jetzt lernst du:</strong> Silben ohne Hörbeispiel finden. Bisher konntest du den Rhythmus anhören, jetzt findest du die Silbe nur nach dem Notenbild. <strong>Immer in derselben Reihenfolge: Vom Taktanfang mitzählen bis zur markierten Note → Silbe bestimmen: auf dem Schlag „du“, auf dem „und“ „dei“, Sechzehntel, die auf „e“ oder „te“ beginnen, „te“; in der Triole du, da, di.</strong></p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe die Silbe der markierten Note ein.</div>
                         <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy3_16tel')"><summary>Unsicher bei „e“ und „te“?</summary><div class="lk-ask-a">Sechzehntel teilen jeden Schlag in vier Teile: 1 e und te. Zähl vom Taktanfang Note für Note mit: Nach zwei Vierteln und einer Sechzehntel auf 3 bist du bei „3 e“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy3_16tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy4_triolen')"><summary>Unsicher bei den Triolen-Silben?</summary><div class="lk-ask-a">Erste Note „du“, zweite „da“, dritte „di“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy4_triolen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`
             },

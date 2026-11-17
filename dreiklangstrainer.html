@@ -3283,14 +3283,14 @@
                     { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'mit Vorzeichen zählen', preview: 'Bestimmen der Halbtonschritte bei Dreiklängen mit Vorzeichen' },
                     { id: 'augmented', label: '+ übermäßig & vermindert', phrase: 'übermäßige und verminderte Dreiklänge erkennen', preview: 'Bestimmen der Halbtonschritte bei übermäßigen und verminderten Dreiklängen' },
                     { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'in jeder Lage zählen', preview: 'Bestimmen der Halbtonschritte in tiefer oder hoher Lage' },
-                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'ohne Hörbeispiel zählen', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Halbtonschritte ohne Hörbeispiel zählen', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
                 ],
                 'drei3': [
                     { id: 'basis', label: 'Dur & Moll', phrase: 'Dreiklänge benennen', preview: 'Benennen von Dur- und Moll-Dreiklängen' },
                     { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Dreiklänge mit Vorzeichen benennen', preview: 'Benennen von Dreiklängen mit Vorzeichen' },
                     { id: 'augmented', label: '+ übermäßig & vermindert', phrase: 'auch übermäßige und verminderte Dreiklänge benennen', preview: 'Benennen übermäßiger und verminderter Dreiklänge' },
                     { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'Dreiklänge in jeder Lage benennen', preview: 'Benennen von Dreiklängen in tiefer oder hoher Lage' },
-                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'ohne Hörbeispiel benennen', preview: 'Benennen von Dreiklängen ohne Hörbeispiel' },
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Dreiklänge ohne Hörbeispiel benennen', preview: 'Benennen von Dreiklängen ohne Hörbeispiel' },
                     { id: 'doubleAccidentals', label: '+ Doppelvorzeichen', phrase: 'Doppelvorzeichen lesen', preview: 'Benennen von Dreiklängen mit Doppelvorzeichen' }
                 ],
                 'drei4': [
@@ -3298,7 +3298,7 @@
                     { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Umkehrungen mit Vorzeichen erkennen', preview: 'Erkennen von Stellung und Typ bei Dreiklängen mit Vorzeichen' },
                     { id: 'augmented', label: '+ übermäßig & vermindert', phrase: 'Umkehrungen übermäßiger und verminderter Dreiklänge erkennen', preview: 'Erkennen von Stellung und Typ bei übermäßigen und verminderten Dreiklängen' },
                     { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'Umkehrungen in jeder Lage erkennen', preview: 'Erkennen von Stellung und Typ in tiefer oder hoher Lage' },
-                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'ohne Hörbeispiel erkennen', preview: 'Erkennen von Stellung und Typ ohne Hörbeispiel' },
+                    { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Umkehrungen ohne Hörbeispiel erkennen', preview: 'Erkennen von Stellung und Typ ohne Hörbeispiel' },
                     { id: 'doubleAccidentals', label: '+ Doppelvorzeichen', phrase: 'Umkehrungen mit Doppelvorzeichen erkennen', preview: 'Erkennen von Stellung und Typ bei Dreiklängen mit Doppelvorzeichen' }
                 ],
                 'drei5': [
@@ -4832,7 +4832,7 @@ const _lernkartenContent = {
             nope: "Zwischen E und F liegt keine schwarze Taste, zwischen F und G schon. Zähle jede Taste nach dem E."
         },
         body: `<p><strong>Du kannst schon:</strong> Halbtonschritte in allen vier Arten zählen, in jeder Lage.</p>
-            <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel zählen, nur nach dem Notenbild. <strong>Immer in derselben Reihenfolge: Töne ablesen → auf der Tastatur finden → Halbtonschritte vom Grundton zum Terzton und vom Terzton zum Quintton zählen.</strong></p>
+            <p><strong>Jetzt lernst du:</strong> Halbtonschritte ohne Hörbeispiel zählen. Bisher konntest du den Dreiklang anhören, jetzt zählst du nur nach dem Notenbild. <strong>Immer in derselben Reihenfolge: Töne ablesen → auf der Tastatur finden → Halbtonschritte vom Grundton zum Terzton und vom Terzton zum Quintton zählen.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Halbtonschritte aus.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von D bis Fis sind es Dis, E, F, Fis, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -4924,7 +4924,7 @@ const _lernkartenContent = {
             nope: "Grundton ist der unterste Ton. 3 + 4: Welche Art ist das?"
         },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge in allen vier Arten und in jeder Lage benennen.</p>
-            <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel benennen. <strong>Immer in derselben Reihenfolge: Grundton ablesen → beide Terzen zählen → Art bestimmen.</strong></p>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge ohne Hörbeispiel benennen. Bisher konntest du den Dreiklang anhören, jetzt benennst du ihn nur nach dem Notenbild. <strong>Immer in derselben Reihenfolge: Grundton ablesen → beide Terzen zählen → Art bestimmen.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_augmented')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig hat zweimal 4 Halbtonschritte (C, E, Gis), vermindert zweimal 3 (C, Es, Ges). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_augmented', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5081,7 +5081,7 @@ const _lernkartenContent = {
             nope: "Schau noch einmal auf die Reihenfolge oben."
         },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen in allen vier Arten und in jeder Lage erkennen.</p>
-            <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel erkennen. <strong>Immer in derselben Reihenfolge: Quarte suchen → Stellung → Grundton → beide Terzen vom Grundton aus zählen → Art.</strong></p>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen ohne Hörbeispiel erkennen. Bisher konntest du den Dreiklang anhören, jetzt erkennst du die Stellung nur nach dem Notenbild. <strong>Immer in derselben Reihenfolge: Quarte suchen → Stellung → Grundton → beide Terzen vom Grundton aus zählen → Art.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Stellung, tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei4_basis')"><summary>Unsicher bei den Umkehrungen?</summary><div class="lk-ask-a">In jeder Umkehrung liegt eine Quarte. Ihr oberer Ton ist der Grundton. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei4_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
