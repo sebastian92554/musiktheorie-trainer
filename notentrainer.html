@@ -4231,7 +4231,7 @@
                 const key = url.searchParams.get('lernkarte');
                 // Eingebettet (?embed=1, openCardFrame eines anderen Trainers): nur die Karte über der Aufgabe dort;
                 // „Zurück zur Aufgabe“ schließt das Fenster, „Erst hier üben“ wechselt den ganzen Tab hierher (?ueben=1).
-                const embed = url.searchParams.get('embed') === '1', ueben = url.searchParams.get('ueben') === '1';
+                const embed = url.searchParams.get('embed') === '1';
                 // Als Datei geöffnet (file://) hat die Seite keinen Ursprung ("null"), dort ginge die Nachricht sonst verloren
                 const msg = m => parent.postMessage(Object.assign({ lkEmbed: true }, m), location.protocol === 'file:' ? '*' : location.origin);
                 if (!key || !(this.lernkartenContent || {})[key]) { if (embed) msg({ act: 'back' }); return; }
@@ -4263,8 +4263,8 @@
                 this._appendNextChoice(key, from !== null
                     ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                     : { label: 'Zurück zum Menü' });
-                // Aus einem eingebetteten Fenster mit „Erst hier üben“: gleich das Quiz, die Karte nicht noch einmal
-                if (ueben) { tracker._ueben = true; document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click(); }
+                // Auch nach „Erst hier üben“ aus einem eingebetteten Fenster (?ueben=1) erst die Karte mit der Wahl, kein Sofortstart
+                // (wie DT/RT, Sebo 17.11.2026); der Parameter wird oben nur aus der URL entfernt.
             },
 
             // Sprung aus „Woran liegt es?“ oder vom Endbildschirm: Karte mit Wahl
