@@ -304,6 +304,16 @@
         .st-progress-bar-bg { height: 6px; border-radius: 3px; background: #e2e8f0; margin-top: 0.35rem; overflow: hidden; }
         .st-progress-bar-fill { height: 100%; background: #0891b2; border-radius: 3px; transition: width 0.4s ease; }
 
+        /* ---- Schreib-Modus (Knoten 4): Werkzeugleiste und interaktives Notensystem; stand vorher im Skilltree-Block
+           und ging mit Commit 6414f27 verloren (Nebenbefund der Skilltree-Session, 17.11.2026) ---- */
+        /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
+        /* Ghost-Note übernimmt Preview → Cursor ausblenden wenn Ghost sichtbar */
+        #staffSvg.staff-interactive { cursor: none; touch-action: none; -webkit-user-select: none; user-select: none; }
+        .building-tools { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 0.5rem; }
+        .building-tool-btn { padding: 6px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+        .building-tool-btn.active { border-color: #0891b2; background: #ecfeff; color: #0891b2; font-weight: 600; }
+        .building-tool-btn:hover { border-color: #94a3b8; }
+
         /* Success Container */
         .success-container {
             max-width: 600px;
