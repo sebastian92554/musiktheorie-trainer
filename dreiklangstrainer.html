@@ -5296,9 +5296,17 @@ function renderQuizStaff(notes, label, opts = {}) {
 const _lernkartenContent = {
     'basis': {
         title: '1a — Dur- und Moll-Dreiklänge',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Grundton D. Welche beiden Töne gehören noch zum Dreiklang?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "F und A", ok: true }, { t: "E und G" }, { t: "F und G" }, { t: "G und H" }],
+            ok: "Genau. Zwei Stufen über D ist F, vier Stufen über D ist A.",
+            nope: "Vom Grundton aus zählen: D (1), E (2), F (3) – der Terzton liegt auf der 3. Stufe, der Quintton auf der 5."
+        },
         body: `<p><strong>Du kannst schon:</strong> Noten im Violinschlüssel lesen und auf der Tastatur finden.</p>
-            <p><strong>Neu:</strong> Ein <strong>Dreiklang</strong> besteht aus drei Tönen, die in Terzen übereinander stehen: <strong>Grundton, Terzton und Quintton</strong>. Im Notensystem stehen sie alle auf Linien oder alle in Zwischenräumen. Die zwei wichtigsten Arten sind Dur und Moll.</p>
-            <div class="lk-rule"><strong>Grundton, Terzton, Quintton:</strong> Der Terzton liegt zwei Stufen über dem Grundton, der Quintton vier. Von C aus: C, E, G.</div>
+            <p><strong>Jetzt lernst du:</strong> die drei Töne eines Dreiklangs kennen. Ein <strong>Dreiklang</strong> besteht aus drei Tönen, die in Terzen übereinander stehen: <strong>Grundton, Terzton und Quintton</strong>. <strong>Der Terzton liegt zwei Stufen über dem Grundton, der Quintton vier:</strong> von C aus C, E, G. Im Notensystem stehen alle drei auf Linien oder alle in Zwischenräumen. Die zwei wichtigsten Arten sind Dur und Moll.</p>
             <div class="lk-contrast" id="lkContrastBasis"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die drei Töne des Dreiklangs auf der Tastatur und klicke sie an. Die Oktave spielt keine Rolle.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5321,9 +5329,17 @@ const _lernkartenContent = {
     },
     'vorzeichen': {
         title: '1b — Mit Vorzeichen',
-        body: `<p><strong>Du kannst schon:</strong> Die drei Töne eines Dreiklangs ohne Vorzeichen auf der Tastatur finden.</p>
-            <p><strong>Neu:</strong> Jetzt hat jeder Dreiklang mindestens ein Vorzeichen. <span class="vz-sharp"></span> heißt eine Taste nach rechts, <span class="vz-flat"></span> eine nach links. Meist ist das eine schwarze Taste, aber nicht immer: F mit <span class="vz-flat"></span> (Fes) ist die weiße Taste E.</p>
-            <div class="lk-rule"><strong>Erst der Stammton, dann das Vorzeichen:</strong> Bei Fis suchst du zuerst F und gehst dann eine Taste nach rechts.</div>
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Welche Taste ist B?",
+            sub: "B ist H mit Be.",
+            choices: [{ t: "die schwarze Taste links von H", ok: true }, { t: "die weiße Taste H" }, { t: "die schwarze Taste rechts von H" }, { t: "die weiße Taste C" }],
+            ok: "Genau. Be heißt eine Taste nach links.",
+            nope: "B ist H mit Be. In welche Richtung geht ein Be?"
+        },
+        body: `<p><strong>Du kannst schon:</strong> die drei Töne eines Dreiklangs ohne Vorzeichen auf der Tastatur finden.</p>
+            <p><strong>Jetzt lernst du:</strong> Dreiklangstöne mit Vorzeichen finden. Jetzt hat jeder Dreiklang mindestens ein Vorzeichen. <strong>Erst der Stammton, dann das Vorzeichen: <span class="vz-sharp"></span> (Kreuz) eine Taste nach rechts, <span class="vz-flat"></span> (Be) eine nach links.</strong> Bei Fis suchst du zuerst F und gehst dann eine Taste nach rechts. Meist ist das eine schwarze Taste, aber nicht immer: Fes ist die weiße Taste E.</p>
             <div class="lk-visual" id="lkVisualVorzeichen"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde alle drei Töne mit ihren Vorzeichen und klicke sie an.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5334,9 +5350,17 @@ const _lernkartenContent = {
     },
     'range': {
         title: '1c — Großer Tonumfang',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Derselbe Dreiklang steht zwei Oktaven höher. Was ändert sich an den Tasten, die du anklickst?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "nichts, es sind dieselben Namen", ok: true }, { t: "alle Tasten liegen zwei Oktaven weiter rechts" }, { t: "nur der Grundton bleibt gleich" }],
+            ok: "Genau. Die Namen bleiben, die Oktave spielt keine Rolle.",
+            nope: "Schau oben: Die Töne bleiben dieselben, und die Oktave zählt beim Anklicken nicht."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge mit Vorzeichen auf der Tastatur finden.</p>
-            <p><strong>Neu:</strong> Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien.</p>
-            <div class="lk-rule"><strong>Die Töne bleiben dieselben:</strong> Ein C-Dur-Dreiklang auf Hilfslinien besteht weiter aus C, E und G. Lies die Namen ab, die Oktave spielt beim Anklicken keine Rolle.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge in tiefer und hoher Lage lesen. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Die Töne bleiben dieselben: Ein C-Dur-Dreiklang auf Hilfslinien besteht weiter aus C, E und G.</strong> Lies die Namen ab, die Oktave spielt beim Anklicken keine Rolle.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die drei Töne auf der Tastatur, auch bei Noten auf Hilfslinien.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:hilfslinien')"><summary>Unsicher bei Noten auf Hilfslinien?</summary><div class="lk-ask-a">Hilfslinien zählen wie normale Linien: unter dem System c' auf der 1., a auf der 2. Hilfslinie; darüber a'' auf der 1., c''' auf der 2. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=hilfslinien'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5346,9 +5370,17 @@ const _lernkartenContent = {
     // stattdessen drei2_basis_regel (Muster von Dur und Moll).
     'drei2_basis': {
         title: '2a — Halbtonschritte zählen',
-        body: `<p><strong>Du kannst schon:</strong> Die drei Töne eines Dreiklangs auf der Tastatur finden.</p>
-            <p><strong>Neu:</strong> Ob ein Dreiklang Dur oder Moll ist, erkennst du an den <strong>Abständen zwischen seinen Tönen</strong>, gezählt in Halbtonschritten (HS).</p>
-            <div class="lk-rule"><strong>Das Muster ist fest:</strong> Alle Dur-Dreiklänge haben dieselben Abstände, egal auf welchem Ton sie beginnen. Für Moll gilt das genauso, nur mit anderen Abständen.</div>
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Woran erkennst du, ob ein Dreiklang Dur oder Moll ist?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "an den Abständen zwischen den Tönen", ok: true }, { t: "am Grundton" }, { t: "an der Zahl der Vorzeichen" }, { t: "an der Höhe des Dreiklangs" }],
+            ok: "Genau. Welche Abstände das sind, findest du gleich selbst heraus.",
+            nope: "Schau noch einmal nach oben: Es geht um die Halbtonschritte zwischen den Tönen."
+        },
+        body: `<p><strong>Du kannst schon:</strong> die drei Töne eines Dreiklangs auf der Tastatur finden.</p>
+            <p><strong>Jetzt lernst du:</strong> Dur und Moll unterscheiden. <strong>Ob ein Dreiklang Dur oder Moll ist, erkennst du an den Abständen zwischen seinen Tönen, gezählt in Halbtonschritten (HS).</strong> Das Muster ist fest: Alle Dur-Dreiklänge haben dieselben Abstände, egal auf welchem Ton sie beginnen. Für Moll gilt das genauso, nur mit anderen Abständen.</p>
             <div class="lk-visual" id="lkVisualDrei2a"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und bestimme die Art: Dur oder Moll. Klappt es noch nicht, schauen wir uns an einzelnen Dreiklängen genauer an, welche Abstände Dur und Moll haben.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5361,9 +5393,18 @@ const _lernkartenContent = {
     },
     'drei2_basis_regel': {
         title: 'Das Muster von Dur und Moll',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Vom Grundton zum Terzton 3 Halbtonschritte, vom Terzton zum Quintton 4. Welche Art?",
+            sub: "Vergleiche mit den beiden Mustern oben.",
+            choices: [{ t: "Moll", ok: true }, { t: "Dur" }, { t: "beides möglich" }],
+            ok: "Genau. 3 + 4 ist Moll.",
+            nope: "Vergleiche mit den beiden Mustern oben: Welches beginnt mit 3?"
+        },
         body: `<p><strong>Das hast du herausgefunden:</strong> Dur und Moll umfassen beide 7 Halbtonschritte, nur die Reihenfolge der Abstände ist umgekehrt. Das jeweilige Muster bleibt immer gleich.</p>
             <div class="lk-contrast" id="lkContrastDrei2Regel"></div>
-            <p><strong>Neu ab jetzt:</strong> Du zählst die Halbtonschritte und bestimmst zusätzlich die Art: Dur oder Moll.</p>
+            <p><strong>Jetzt lernst du:</strong> die Halbtonschritte zählen und daraus die Art bestimmen. <strong>Dur: 4 + 3 Halbtonschritte. Moll: 3 + 4.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle beide HS-Zahlen und die Art des Dreiklangs.</div>`,
         render() {
             const left = renderLernkarteTastatur({ numOctaves:1, title:'Dur: 4 + 3 HS', highlightKeys:[{key:'C',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'}], arrows:[{from:'C',to:'E',label:'4 HS',color:'#059669'},{from:'E',to:'G',label:'3 HS',color:'#059669'}] });
@@ -5406,9 +5447,17 @@ const _lernkartenContent = {
     },
     'drei2_vorzeichen': {
         title: '2b — Mit Vorzeichen',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: A-Dur ist A, Cis, E. Wie viele Halbtonschritte sind es von A bis Cis?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "4", ok: true }, { t: "3" }, { t: "5" }],
+            ok: "Genau. Dur beginnt mit 4, egal auf welchem Ton.",
+            nope: "Das Muster ändert sich mit Vorzeichen nicht. Womit beginnt Dur?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur und Moll an den Halbtonschritten erkennen: Dur 4 + 3, Moll 3 + 4.</p>
-            <p><strong>Neu:</strong> Die Dreiklänge haben jetzt Vorzeichen. Die Abstände bleiben gleich, nur kommen schwarze Tasten dazu.</p>
-            <div class="lk-rule"><strong>Das Muster bleibt fest:</strong> D-Dur ist D, Fis, A, also 4 + 3 Halbtonschritte wie C-Dur.</div>
+            <p><strong>Jetzt lernst du:</strong> mit Vorzeichen zählen. Die Dreiklänge haben jetzt Vorzeichen, es kommen schwarze Tasten dazu. <strong>Das Muster bleibt fest:</strong> D-Dur ist D, Fis, A, also 4 + 3 Halbtonschritte wie C-Dur.</p>
             <div class="lk-visual" id="lkVisualDrei2b"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte vom Grundton zum Terzton und vom Terzton zum Quintton und wähle die Zahlen aus.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5422,9 +5471,17 @@ const _lernkartenContent = {
     },
     'drei2_augmented': {
         title: '2c — Übermäßig und vermindert',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: 3 + 3 Halbtonschritte. Welche Art?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "vermindert", ok: true }, { t: "übermäßig" }, { t: "Moll" }, { t: "Dur" }],
+            ok: "Genau. Zweimal 3 ist vermindert.",
+            nope: "Beide Abstände gleich, und beide klein: Welche Art ist das?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur (4 + 3) und Moll (3 + 4) unterscheiden.</p>
-            <p><strong>Neu:</strong> Zwei weitere Arten. Bei ihnen sind beide Abstände gleich groß: <strong>übermäßig 4 + 4</strong>, <strong>vermindert 3 + 3</strong>.</p>
-            <div class="lk-rule"><strong>Beide Abstände gleich:</strong> Übermäßig: C, E, Gis (4 + 4). Vermindert: C, Es, Ges (3 + 3). Zusammen sind das 8 bzw. 6 Halbtonschritte statt 7 wie bei Dur und Moll.</div>
+            <p><strong>Jetzt lernst du:</strong> übermäßige und verminderte Dreiklänge erkennen. Zwei weitere Arten, bei ihnen sind beide Abstände gleich groß: <strong>übermäßig 4 + 4, vermindert 3 + 3.</strong> Übermäßig: C, E, Gis. Vermindert: C, Es, Ges. Zusammen sind das 8 bzw. 6 Halbtonschritte statt 7 wie bei Dur und Moll.</p>
             <div class="lk-contrast" id="lkContrastDrei2Aug" style="flex-wrap:wrap"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte und wähle die Zahlen aus. Jetzt kann auch zweimal 4 oder zweimal 3 richtig sein.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5443,9 +5500,17 @@ const _lernkartenContent = {
     },
     'drei2_range': {
         title: '2d — Großer Tonumfang',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Ein Dur-Dreiklang steht auf Hilfslinien unter dem System. Wie viele Halbtonschritte hat er?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "4 + 3, wie immer", ok: true }, { t: "weniger, weil er tiefer liegt" }, { t: "das hängt vom Grundton ab" }],
+            ok: "Genau. Die Lage ändert am Muster nichts.",
+            nope: "Schau oben: Das Muster hängt nicht von der Lage ab."
+        },
         body: `<p><strong>Du kannst schon:</strong> Halbtonschritte in Dreiklängen zählen, auch bei übermäßig und vermindert.</p>
-            <p><strong>Neu:</strong> Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien.</p>
-            <div class="lk-rule"><strong>Das Muster hängt nicht von der Lage ab:</strong> Dur bleibt 4 + 3, Moll 3 + 4, übermäßig 4 + 4, vermindert 3 + 3, egal wie hoch der Dreiklang steht.</div>
+            <p><strong>Jetzt lernst du:</strong> in jeder Lage zählen. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Das Muster hängt nicht von der Lage ab:</strong> Dur bleibt 4 + 3, Moll 3 + 4, übermäßig 4 + 4, vermindert 3 + 3, egal wie hoch der Dreiklang steht.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die drei Töne ab und wähle die Halbtonschritte aus.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:hilfslinien')"><summary>Unsicher bei Noten auf Hilfslinien?</summary><div class="lk-ask-a">Hilfslinien zählen wie normale Linien: unter dem System c' auf der 1., a auf der 2. Hilfslinie; darüber a'' auf der 1., c''' auf der 2. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=hilfslinien'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5453,9 +5518,17 @@ const _lernkartenContent = {
     },
     'drei2_noaudio': {
         title: '2e — Ohne Hörbeispiel',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft, ohne zu hören: E, G, H. Wie viele Halbtonschritte sind es von E bis G?",
+            sub: "Tastatur im Kopf: Welche Tasten liegen zwischen den beiden Tönen?",
+            choices: [{ t: "3", ok: true }, { t: "4" }, { t: "2" }],
+            ok: "Genau. F (1), Fis (2), G (3).",
+            nope: "Zwischen E und F liegt keine schwarze Taste, zwischen F und G schon. Zähle jede Taste nach dem E."
+        },
         body: `<p><strong>Du kannst schon:</strong> Halbtonschritte in allen vier Arten zählen, in jeder Lage.</p>
-            <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr. Du zählst nur nach dem Notenbild.</p>
-            <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Töne ablesen → auf der Tastatur finden → Halbtonschritte vom Grundton zum Terzton und vom Terzton zum Quintton zählen.</div>
+            <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel zählen, nur nach dem Notenbild. <strong>Immer in derselben Reihenfolge: Töne ablesen → auf der Tastatur finden → Halbtonschritte vom Grundton zum Terzton und vom Terzton zum Quintton zählen.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Halbtonschritte aus.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_basis')"><summary>Unsicher beim Zählen der Halbtonschritte?</summary><div class="lk-ask-a">Von Taste zu Taste zählen, schwarze Tasten mit, die Starttaste nicht: Von D bis Fis sind es Dis, E, F, Fis, also 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5463,9 +5536,17 @@ const _lernkartenContent = {
     },
     'drei3_basis': {
         title: '3a — Dreiklänge benennen',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: D–F–A, von D bis F sind es 3 Halbtonschritte. Wie heißt der Dreiklang?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "d-Moll", ok: true }, { t: "D-Dur" }, { t: "f-Moll" }, { t: "F-Dur" }],
+            ok: "Genau. Unterster Ton D, untere Terz 3 → Moll.",
+            nope: "Der unterste Ton ist der Grundton. Und 3 Halbtonschritte in der unteren Terz heißt …?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur (4 + 3) und Moll (3 + 4) an den Halbtonschritten erkennen.</p>
-            <p><strong>Neu:</strong> Jetzt benennst du den Dreiklang: <strong>Grundton</strong> und <strong>Art</strong>.</p>
-            <div class="lk-rule"><strong>In Grundstellung ist der unterste Ton der Grundton.</strong> Dann entscheidet die untere Terz: 4 Halbtonschritte → Dur, 3 → Moll. Bei C–E–G: Grundton C, von C bis E sind es 4 → C-Dur.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge benennen: Grundton und Art. <strong>In Grundstellung ist der unterste Ton der Grundton. Dann entscheidet die untere Terz: 4 Halbtonschritte → Dur, 3 → Moll.</strong> Bei C–E–G: Grundton C, von C bis E sind es 4 → C-Dur.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Grundton ins Feld, z.&nbsp;B. „C“, und wähle die Art im Auswahlfeld.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_basis')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat 4 + 3 Halbtonschritte, Moll 3 + 4: C-Dur ist C, E, G, c-Moll ist C, Es, G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5474,9 +5555,17 @@ const _lernkartenContent = {
     },
     'drei3_vorzeichen': {
         title: '3b — Mit Vorzeichen',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Der unterste Ton ist ein E mit <span class=\"vz-flat\"></span>. Was tippst du als Grundton ein?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "Es", ok: true }, { t: "Dis" }, { t: "E" }, { t: "D" }],
+            ok: "Genau. So, wie er notiert ist: E mit Be ist Es.",
+            nope: "Der Grundton heißt so, wie er notiert ist: E mit Be."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge ohne Vorzeichen benennen.</p>
-            <p><strong>Neu:</strong> Jetzt haben die Dreiklänge Vorzeichen, oft schon am Grundton.</p>
-            <div class="lk-rule"><strong>Der Grundton heißt so, wie er notiert ist:</strong> Steht Cis im Notensystem, ist die Antwort „Cis“, nicht „Des“, auch wenn es dieselbe Taste ist.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge mit Vorzeichen benennen, oft schon am Grundton. <strong>Der Grundton heißt so, wie er notiert ist:</strong> Steht Cis im Notensystem, ist die Antwort „Cis“, nicht „Des“, auch wenn es dieselbe Taste ist.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Grundton mit Vorzeichen ein, z.&nbsp;B. „Fis“, und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:vorzeichen')"><summary>Unsicher bei den Vorzeichennamen?</summary><div class="lk-ask-a">Mit <span class="vz-sharp"></span> hängst du „is“ an, mit <span class="vz-flat"></span> „es“: F wird Fis, D wird Des. Ausnahmen: Es, As, B. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5485,9 +5574,17 @@ const _lernkartenContent = {
     },
     'drei3_augmented': {
         title: '3c — Übermäßig und vermindert',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Untere Terz 4, obere Terz 4. Welche Art?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "übermäßig", ok: true }, { t: "Dur" }, { t: "vermindert" }, { t: "Moll" }],
+            ok: "Genau. 4 + 4 ist übermäßig.",
+            nope: "Die untere Terz allein reicht nicht. Was sagt die obere?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge mit Vorzeichen als Dur oder Moll benennen.</p>
-            <p><strong>Neu:</strong> Jetzt kommen übermäßige und verminderte Dreiklänge dazu. Das Auswahlfeld hat dafür zwei neue Einträge.</p>
-            <div class="lk-rule"><strong>Jetzt reicht die untere Terz nicht mehr:</strong> 4 Halbtonschritte unten können Dur (4 + 3) oder übermäßig (4 + 4) sein, 3 unten Moll (3 + 4) oder vermindert (3 + 3). Zähle beide Terzen.</div>
+            <p><strong>Jetzt lernst du:</strong> auch übermäßige und verminderte Dreiklänge benennen. Das Auswahlfeld hat dafür zwei neue Einträge. <strong>Jetzt reicht die untere Terz nicht mehr: 4 unten können Dur (4 + 3) oder übermäßig (4 + 4) sein, 3 unten Moll (3 + 4) oder vermindert (3 + 3). Zähle beide Terzen.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Grundton ein und wähle die Art, auch „Übermäßig“ oder „Vermindert“.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_augmented')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig hat zweimal 4 Halbtonschritte (C, E, Gis), vermindert zweimal 3 (C, Es, Ges). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_augmented', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5495,9 +5592,17 @@ const _lernkartenContent = {
     },
     'drei3_range': {
         title: '3d — Großer Tonumfang',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Ein Dreiklang steht hoch über dem System, der tiefste Ton ist G. Welcher Ton ist der Grundton?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "G", ok: true }, { t: "der höchste Ton" }, { t: "das hängt von der Lage ab" }],
+            ok: "Genau. In Grundstellung ist der tiefste Ton der Grundton, egal wie hoch.",
+            nope: "Schau oben: Hier stehen alle Dreiklänge in Grundstellung."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge in allen vier Arten benennen.</p>
-            <p><strong>Neu:</strong> Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien.</p>
-            <div class="lk-rule"><strong>Der unterste Ton bleibt der Grundton:</strong> Auch auf Hilfslinien stehen die Dreiklänge hier in Grundstellung. Der tiefste Ton gibt den Namen.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge in jeder Lage benennen. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Der unterste Ton bleibt der Grundton:</strong> Auch auf Hilfslinien stehen die Dreiklänge hier in Grundstellung. Der tiefste Ton gibt den Namen.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:hilfslinien')"><summary>Unsicher bei Noten auf Hilfslinien?</summary><div class="lk-ask-a">Hilfslinien zählen wie normale Linien: unter dem System c' auf der 1., a auf der 2. Hilfslinie; darüber a'' auf der 1., c''' auf der 2. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=hilfslinien'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5505,9 +5610,17 @@ const _lernkartenContent = {
     },
     'drei3_noaudio': {
         title: '3e — Ohne Hörbeispiel',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft, ohne zu hören: G–B–D. Von G bis B sind es 3, von B bis D 4 Halbtonschritte. Wie heißt der Dreiklang?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "g-Moll", ok: true }, { t: "G-Dur" }, { t: "g-vermindert" }, { t: "B-Dur" }],
+            ok: "Genau. 3 + 4 ist Moll, Grundton G.",
+            nope: "Grundton ist der unterste Ton. 3 + 4: Welche Art ist das?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge in allen vier Arten und in jeder Lage benennen.</p>
-            <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr.</p>
-            <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Grundton ablesen → beide Terzen zählen → Art bestimmen.</div>
+            <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel benennen. <strong>Immer in derselben Reihenfolge: Grundton ablesen → beide Terzen zählen → Art bestimmen.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_augmented')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig hat zweimal 4 Halbtonschritte (C, E, Gis), vermindert zweimal 3 (C, Es, Ges). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_augmented', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5515,9 +5628,17 @@ const _lernkartenContent = {
     },
     'drei3_doubleAccidentals': {
         title: '3f — Mit Doppelvorzeichen',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Auf welcher Taste liegt Fisis?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "G", ok: true }, { t: "Fis" }, { t: "Gis" }, { t: "F" }],
+            ok: "Genau. Von F zwei Tasten nach rechts: Fis, G.",
+            nope: "Doppelkreuz heißt zwei Tasten nach rechts vom Stammton F."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge mit Vorzeichen in allen vier Arten benennen.</p>
-            <p><strong>Neu:</strong> Jetzt kann vor dem Terzton oder dem Quintton ein <strong>Doppelvorzeichen</strong> stehen: Das Doppelkreuz erhöht um zwei Halbtonschritte, das Doppel-Be erniedrigt um zwei.</p>
-            <div class="lk-rule"><strong>Notiert wie der Stammton, zwei Tasten weiter:</strong> Ais-Dur ist Ais, Cisis, Eis. Cisis wird wie C notiert, liegt aber auf der Taste D.</div>
+            <p><strong>Jetzt lernst du:</strong> Doppelvorzeichen lesen. Vor dem Terzton oder dem Quintton kann ein <strong>Doppelvorzeichen</strong> stehen: Das Doppelkreuz erhöht um zwei Halbtonschritte, das Doppel-Be erniedrigt um zwei. <strong>Notiert wie der Stammton, aber zwei Tasten weiter:</strong> Ais-Dur ist Ais, Cisis, Eis. Cisis wird wie C notiert, liegt aber auf der Taste D.</p>
             <div class="lk-visual" id="lkVisualDrei3DblAccStaff"></div>
             <div class="lk-visual" id="lkVisualDrei3DblAcc"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Abstände wie bisher, das Doppelvorzeichen verschiebt den Ton um zwei Tasten. Dann tippe den Grundton ein und wähle die Art.</div>
@@ -5562,10 +5683,18 @@ const _lernkartenContent = {
     },
     'drei4_basis': {
         title: '4a — Umkehrungen erkennen',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: G–C–E. Wo liegt die Quarte, und welcher Ton ist der Grundton?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "G–C, Grundton C", ok: true }, { t: "C–E, Grundton E" }, { t: "G–E, Grundton G" }],
+            ok: "Genau. G bis C sind 4 Stufen, der obere Ton C ist der Grundton.",
+            nope: "Suche die zwei Töne, die 4 Stufen auseinanderliegen. Der obere davon ist der Grundton."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge in Grundstellung benennen.</p>
-            <p><strong>Neu:</strong> Ein Dreiklang lässt sich umstellen: Der unterste Ton wandert eine Oktave nach oben. So entstehen die <strong>1. Umkehrung</strong> (Terzton unten) und die <strong>2. Umkehrung</strong> (Quintton unten).</p>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen erkennen. Ein Dreiklang lässt sich umstellen: Der unterste Ton wandert eine Oktave nach oben. So entstehen die <strong>1. Umkehrung</strong> (Terzton unten) und die <strong>2. Umkehrung</strong> (Quintton unten). <strong>Die Quarte verrät den Grundton: In jeder Umkehrung liegt zwischen zwei Tönen eine Quarte, und ihr oberer Ton ist der Grundton.</strong> Bei E–G–C ist G–C die Quarte, also Grundton C.</p>
             <div class="lk-contrast" id="lkContrastDrei4"></div>
-            <div class="lk-rule"><strong>Die Quarte verrät den Grundton:</strong> In jeder Umkehrung liegt zwischen zwei Tönen eine Quarte. Ihr oberer Ton ist der Grundton. Bei E–G–C ist G–C die Quarte, also Grundton C.</div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Stellung, tippe den Grundton ein und wähle die Art. In den ersten Aufgaben stehen die Dreiklänge noch in Grundstellung, die Umkehrungen kommen nach und nach.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, wo die Quarte ist?</summary><div class="lk-ask-a">Bei einer Terz stehen beide Noten auf Linien oder beide in Zwischenräumen. Bei einer Quarte steht eine auf einer Linie, die andere in einem Zwischenraum.</div></details>
@@ -5583,9 +5712,17 @@ const _lernkartenContent = {
     },
     'drei4_vorzeichen': {
         title: '4b — Mit Vorzeichen',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Cis–Fis–A. Welcher Ton ist der Grundton?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "Fis", ok: true }, { t: "Cis" }, { t: "A" }],
+            ok: "Genau. Cis–Fis ist die Quarte, ihr oberer Ton Fis der Grundton.",
+            nope: "Zähle die Stufen an den Stammtönen: C–F sind 4 Stufen, F–A nur 3. Welches Paar ist die Quarte?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen von Dreiklängen ohne Vorzeichen erkennen.</p>
-            <p><strong>Neu:</strong> Jetzt haben die Umkehrungen Vorzeichen.</p>
-            <div class="lk-rule"><strong>Die Quarte findest du im Notensystem:</strong> Gis–H–E: Gis und H stehen beide auf Linien, H–E ist die Quarte. Ihr oberer Ton E ist der Grundton → E-Dur, 1. Umkehrung.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen mit Vorzeichen erkennen. <strong>Die Quarte findest du im Notensystem, an den Stammtönen:</strong> Gis–H–E: H–E ist die Quarte, ihr oberer Ton E ist der Grundton → E-Dur, 1. Umkehrung.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Stellung, tippe den Grundton mit Vorzeichen ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei3_vorzeichen')"><summary>Unsicher, wie der Grundton geschrieben wird?</summary><div class="lk-ask-a">So, wie er notiert ist: Steht Cis da, heißt die Antwort „Cis“, nicht „Des“. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei3_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5593,9 +5730,17 @@ const _lernkartenContent = {
     },
     'drei4_augmented': {
         title: '4c — Übermäßig und vermindert',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Woran erkennst du die Quarte im Notensystem?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "eine Note auf einer Linie, die andere im Zwischenraum", ok: true }, { t: "beide Noten auf Linien" }, { t: "an der Zahl der Halbtonschritte" }],
+            ok: "Genau. Terzen stehen Linie–Linie oder Zwischenraum–Zwischenraum, die Quarte nicht.",
+            nope: "Schau oben: Bei der Quarte stehen die beiden Noten nicht auf derselben Art von Platz."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen von Dur- und Moll-Dreiklängen erkennen.</p>
-            <p><strong>Neu:</strong> Jetzt kommen auch übermäßige und verminderte Dreiklänge in Umkehrungen vor.</p>
-            <div class="lk-rule"><strong>Auch hier zeigt die Quarte den Grundton.</strong> Zähl dafür nicht die Halbtonschritte, sie helfen hier nicht weiter. Schau ins Notensystem: Eine Note der Quarte steht auf einer Linie, die andere in einem Zwischenraum.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen übermäßiger und verminderter Dreiklänge erkennen. <strong>Auch hier zeigt die Quarte den Grundton, und du findest sie im Notensystem: Eine Note der Quarte steht auf einer Linie, die andere in einem Zwischenraum.</strong> Die Halbtonschritte helfen hier nicht weiter.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Stellung, tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_augmented')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig hat zweimal 4 Halbtonschritte (C, E, Gis), vermindert zweimal 3 (C, Es, Ges). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_augmented', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5603,9 +5748,17 @@ const _lernkartenContent = {
     },
     'drei4_range': {
         title: '4d — Großer Tonumfang',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Ein Dreiklang steht tief unter dem System, der tiefste Ton ist E. Ist E der Grundton?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "nur in Grundstellung, also wenn keine Quarte im Dreiklang liegt", ok: true }, { t: "ja, der tiefste Ton ist immer der Grundton" }, { t: "nein, in tiefer Lage nie" }],
+            ok: "Genau. Erst die Quarte suchen, dann kennst du die Stellung.",
+            nope: "Schau oben: In Umkehrungen ist der tiefste Ton nicht der Grundton. Was bestimmst du zuerst?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen in allen vier Arten erkennen.</p>
-            <p><strong>Neu:</strong> Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien.</p>
-            <div class="lk-rule"><strong>Der tiefste Ton ist nicht immer der Grundton:</strong> Erst die Stellung über die Quarte bestimmen, dann den Grundton ablesen.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen in jeder Lage erkennen. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Der tiefste Ton ist nicht immer der Grundton: Erst die Stellung über die Quarte bestimmen, dann den Grundton ablesen.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Stellung, tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:hilfslinien')"><summary>Unsicher bei Noten auf Hilfslinien?</summary><div class="lk-ask-a">Hilfslinien zählen wie normale Linien: unter dem System c' auf der 1., a auf der 2. Hilfslinie; darüber a'' auf der 1., c''' auf der 2. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=hilfslinien'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5613,9 +5766,17 @@ const _lernkartenContent = {
     },
     'drei4_noaudio': {
         title: '4e — Ohne Hörbeispiel',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Was suchst du zuerst?",
+            sub: "Die Reihenfolge steht oben, fett.",
+            choices: [{ t: "die Quarte", ok: true }, { t: "den tiefsten Ton" }, { t: "die Halbtonschritte" }],
+            ok: "Genau. Die Quarte zeigt Stellung und Grundton.",
+            nope: "Schau noch einmal auf die Reihenfolge oben."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen in allen vier Arten und in jeder Lage erkennen.</p>
-            <p><strong>Neu:</strong> Ab jetzt gibt es kein Hörbeispiel mehr.</p>
-            <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Quarte suchen → Stellung → Grundton → beide Terzen vom Grundton aus zählen → Art.</div>
+            <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel erkennen. <strong>Immer in derselben Reihenfolge: Quarte suchen → Stellung → Grundton → beide Terzen vom Grundton aus zählen → Art.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Stellung, tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei4_basis')"><summary>Unsicher bei den Umkehrungen?</summary><div class="lk-ask-a">In jeder Umkehrung liegt eine Quarte. Ihr oberer Ton ist der Grundton. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei4_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5623,9 +5784,17 @@ const _lernkartenContent = {
     },
     'drei4_doubleAccidentals': {
         title: '4f — Mit Doppelvorzeichen',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Ändert ein Doppelvorzeichen, welcher Ton der Grundton ist?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "nein, die Quarte findest du an den Stammtönen", ok: true }, { t: "ja, der Ton mit Doppelvorzeichen wird Grundton" }, { t: "ja, dann zählt der tiefste Ton" }],
+            ok: "Genau. Die Stammtöne im Notensystem zeigen die Quarte.",
+            nope: "Schau oben: An der Methode ändert sich nichts."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen in allen vier Arten erkennen.</p>
-            <p><strong>Neu:</strong> Jetzt kann vor dem Terzton oder dem Quintton ein Doppelvorzeichen stehen, auch in Umkehrungen.</p>
-            <div class="lk-rule"><strong>An der Methode ändert sich nichts:</strong> Such die Quarte im Notensystem, ihr oberer Ton ist der Grundton.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen mit Doppelvorzeichen erkennen. Vor dem Terzton oder dem Quintton kann ein Doppelvorzeichen stehen, auch in Umkehrungen. <strong>An der Methode ändert sich nichts: Such die Quarte im Notensystem, ihr oberer Ton ist der Grundton.</strong></p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Stellung, tippe den Grundton ein und wähle die Art.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei3_doubleAccidentals')"><summary>Unsicher bei Doppelvorzeichen?</summary><div class="lk-ask-a">Ein Doppelvorzeichen verschiebt den Ton um zwei Tasten: Cisis wird wie C notiert und liegt auf der Taste D. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei3_doubleAccidentals', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5635,9 +5804,17 @@ const _lernkartenContent = {
     // ===== DREI5: Dreiklänge bilden — Tastatur =====
     'drei5_basis': {
         title: '5a — Dur & Moll bilden — Tastatur',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: a-Moll. Welche drei Tasten?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "A, C, E", ok: true }, { t: "A, Cis, E" }, { t: "A, C, Es" }, { t: "A, D, E" }],
+            ok: "Genau. A, 3 weiter C, 4 weiter E.",
+            nope: "Moll: vom Grundton 3 Halbtonschritte, dann 4. Zähle von A aus, schwarze Tasten mit."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge erkennen und benennen.</p>
-            <p><strong>Neu:</strong> Jetzt drehst du die Aufgabe um: Du siehst einen Namen, z.&nbsp;B. „G-Dur“, und baust den Dreiklang auf der Tastatur.</p>
-            <div class="lk-rule"><strong>Vom Grundton aus Halbtonschritte zählen:</strong> Dur: 4 zum Terzton, dann 3 zum Quintton. Moll: 3, dann 4. G-Dur: G, 4 weiter H, 3 weiter D.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge auf der Tastatur bauen. Du siehst einen Namen, z.&nbsp;B. „G-Dur“, und baust den Dreiklang. <strong>Vom Grundton aus Halbtonschritte zählen: Dur 4 zum Terzton, dann 3 zum Quintton. Moll 3, dann 4.</strong> G-Dur: G, 4 weiter H, 3 weiter D.</p>
             <div class="lk-visual" id="lkVisualDrei5Basis"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten an. Die Oktave spielt keine Rolle.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5658,9 +5835,17 @@ const _lernkartenContent = {
     },
     'drei5_vorzeichen': {
         title: '5b — Dreiklänge mit Vorzeichen bilden',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: fis-Moll. Welche Taste ist der Terzton?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "A", ok: true }, { t: "Ais" }, { t: "G" }, { t: "As" }],
+            ok: "Genau. Von Fis 3 Halbtonschritte: G, Gis, A.",
+            nope: "Moll beginnt mit 3 Halbtonschritten. Zähle von Fis aus jede Taste."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur und Moll auf Stammtönen bilden.</p>
-            <p><strong>Neu:</strong> Jetzt haben alle Dreiklänge Vorzeichen, oft schon am Grundton, z.&nbsp;B. Es-Dur oder fis-Moll.</p>
-            <div class="lk-rule"><strong>Gleiche Methode, auch über schwarze Tasten:</strong> Es-Dur: Es, 4 weiter G, 3 weiter B.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge mit Vorzeichen bauen, oft schon am Grundton, z.&nbsp;B. Es-Dur oder fis-Moll. <strong>Gleiche Methode, auch über schwarze Tasten:</strong> Es-Dur: Es, 4 weiter G, 3 weiter B.</p>
             <div class="lk-visual" id="lkVisualDrei5Vz"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten an, auch schwarze.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5682,9 +5867,17 @@ const _lernkartenContent = {
     },
     'drei5_augdim': {
         title: '5c — Übermäßig & vermindert bilden — Tastatur',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: D-vermindert. Welche drei Tasten?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "D, F, As", ok: true }, { t: "D, F, A" }, { t: "D, Fis, Ais" }, { t: "D, Fis, A" }],
+            ok: "Genau. 3 + 3: D, F, As.",
+            nope: "Vermindert ist zweimal 3. Zähle von D aus 3 Tasten, dann noch einmal 3."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur und Moll bilden, auch mit Vorzeichen.</p>
-            <p><strong>Neu:</strong> Jetzt kommen nur noch übermäßige und verminderte Dreiklänge: übermäßig 4 + 4, vermindert 3 + 3.</p>
-            <div class="lk-rule"><strong>Vom Grundton aus zählen:</strong> C-übermäßig: C, 4 weiter E, 4 weiter Gis. C-vermindert: C, 3 weiter Es, 3 weiter Ges.</div>
+            <p><strong>Jetzt lernst du:</strong> übermäßige und verminderte Dreiklänge bauen: <strong>übermäßig 4 + 4, vermindert 3 + 3, vom Grundton aus gezählt.</strong> C-übermäßig: C, 4 weiter E, 4 weiter Gis. C-vermindert: C, 3 weiter Es, 3 weiter Ges.</p>
             <div class="lk-visual" id="lkVisualDrei5Aug"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten an.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5720,9 +5913,17 @@ const _lernkartenContent = {
     // ===== DREI6: Dreiklänge notieren — Notensystem =====
     'drei6_basis': {
         title: '6a — Dur & Moll notieren — Notensystem',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: A-Dur, Stammtöne A, C, E. Welche Note bekommt ein Vorzeichen?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "C → Cis", ok: true }, { t: "A → Ais" }, { t: "E → Es" }, { t: "keine" }],
+            ok: "Genau. A bis C sind 3 Halbtonschritte, Dur braucht 4.",
+            nope: "Stammtöne setzen, dann zählen: A bis C sind 3 Halbtonschritte. Reicht das für Dur?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur und Moll auf der Tastatur bilden.</p>
-            <p><strong>Neu:</strong> Jetzt schreibst du den Dreiklang ins Notensystem. Hier zählt nicht nur der Klang, sondern auch die Schreibweise: Grundton, Terzton und Quintton stehen alle auf Linien oder alle in Zwischenräumen.</p>
-            <div class="lk-rule"><strong>Erst die Stammtöne, dann die Vorzeichen:</strong> D-Dur: die Stammtöne D, F, A übereinander setzen. Dann prüfen: D bis F sind nur 3 Halbtonschritte, Dur braucht 4, also Fis.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge ins Notensystem schreiben. Hier zählt auch die Schreibweise: Grundton, Terzton und Quintton stehen alle auf Linien oder alle in Zwischenräumen. <strong>Erst die Stammtöne, dann die Vorzeichen:</strong> D-Dur: D, F, A übereinander setzen. Dann prüfen: D bis F sind nur 3 Halbtonschritte, Dur braucht 4, also Fis.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Setze die drei Noten. Für ein Vorzeichen wählst du vorher „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">Erst „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ wählen, dann auf die Linie oder den Zwischenraum tippen. Tippst du eine gesetzte Note an, verschwindet sie wieder. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5731,9 +5932,17 @@ const _lernkartenContent = {
     },
     'drei6_vorzeichen': {
         title: '6b — Dreiklänge mit Vorzeichen notieren',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: Es-Dur, Stammtöne E, G, H. Welche Noten bekommen ein Be?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "Es und B, das G bleibt", ok: true }, { t: "nur Es" }, { t: "alle drei" }, { t: "Es und G" }],
+            ok: "Genau. Es bis G sind 4, G bis B sind 3.",
+            nope: "Stammtöne setzen, dann zählen: Es bis G sind 4 (passt). G bis H wären 4, Dur braucht oben 3."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur und Moll ins Notensystem schreiben.</p>
-            <p><strong>Neu:</strong> Jetzt haben alle Dreiklänge Vorzeichen, oft schon am Grundton.</p>
-            <div class="lk-rule"><strong>Erst die Stammtöne, dann die Vorzeichen:</strong> Fis-Dur: Stammtöne F, A, C. Von Fis aus 4 Halbtonschritte → Ais, dann 3 → Cis. Alle drei brauchen ein Kreuz.</div>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge mit Vorzeichen am Grundton schreiben. <strong>Erst die Stammtöne, dann die Vorzeichen:</strong> Fis-Dur: Stammtöne F, A, C. Von Fis aus 4 Halbtonschritte → Ais, dann 3 → Cis. Alle drei brauchen ein Kreuz.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Setze die drei Noten mit ihren Vorzeichen.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">Erst „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ wählen, dann auf die Linie oder den Zwischenraum tippen. Tippst du eine gesetzte Note an, verschwindet sie wieder. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5742,9 +5951,17 @@ const _lernkartenContent = {
     },
     'drei6_augdim': {
         title: '6c — Übermäßig & vermindert notieren',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: C-übermäßig, Stammtöne C, E, G. Welche Note bekommt ein Vorzeichen?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "G → Gis", ok: true }, { t: "E → Es" }, { t: "C → Cis" }, { t: "keine" }],
+            ok: "Genau. E bis G sind 3, übermäßig braucht oben 4.",
+            nope: "4 + 4: C bis E passt mit 4. E bis G sind nur 3, was fehlt oben?"
+        },
         body: `<p><strong>Du kannst schon:</strong> Dur und Moll mit Vorzeichen ins Notensystem schreiben.</p>
-            <p><strong>Neu:</strong> Jetzt kommen nur noch übermäßige und verminderte Dreiklänge.</p>
-            <div class="lk-rule"><strong>Erst die Stammtöne, dann die Vorzeichen:</strong> Es-übermäßig: Stammtöne E, G, H. Es bis G sind 4, G bis H auch 4, also Es, G, H. Cis-vermindert: Cis, E, G, ganz ohne weitere Vorzeichen.</div>
+            <p><strong>Jetzt lernst du:</strong> übermäßige und verminderte Dreiklänge schreiben. <strong>Erst die Stammtöne, dann die Vorzeichen:</strong> Es-übermäßig: Stammtöne E, G, H. Es bis G sind 4, G bis H auch 4, also Es, G, H. Cis-vermindert: Cis, E, G, ganz ohne weitere Vorzeichen.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Setze die drei Noten mit den passenden Vorzeichen.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei2_augmented')"><summary>Unsicher bei übermäßig und vermindert?</summary><div class="lk-ask-a">Übermäßig hat zweimal 4 Halbtonschritte (C, E, Gis), vermindert zweimal 3 (C, Es, Ges). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei2_augmented', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5755,9 +5972,17 @@ const _lernkartenContent = {
     // ===== DREI7: Umkehrungen bilden — Tastatur =====
     'drei7_basis': {
         title: '7a — Umkehrungen bilden — Tastatur',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: F-Dur (F, A, C), 2. Umkehrung. Welcher Ton liegt unten?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "C", ok: true }, { t: "A" }, { t: "F" }],
+            ok: "Genau. In der 2. Umkehrung liegt der Quintton unten.",
+            nope: "Grundstellung F, A, C. Zweimal den untersten Ton nach oben schieben."
+        },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge bilden und Umkehrungen erkennen.</p>
-            <p><strong>Neu:</strong> Jetzt baust du einen Dreiklang in einer bestimmten Stellung, z.&nbsp;B. „C-Dur, 1. Umkehrung“.</p>
-            <div class="lk-rule"><strong>Erst die Grundstellung, dann umstellen:</strong> C-Dur ist C, E, G. In der 1. Umkehrung steht der Terzton unten: E, G, C. In der 2. Umkehrung der Quintton: G, C, E.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen auf der Tastatur bauen, z.&nbsp;B. „C-Dur, 1. Umkehrung“. <strong>Erst die Grundstellung, dann umstellen: Der unterste Ton wandert nach oben.</strong> C-Dur ist C, E, G. In der 1. Umkehrung steht der Terzton unten: E, G, C. In der 2. Umkehrung der Quintton: G, C, E.</p>
             <div class="lk-visual" id="lkVisualDrei7Basis"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten so an, dass der richtige Ton unten liegt. Der ganze Dreiklang darf eine Oktave höher oder tiefer stehen.</div>
             <div class="lk-tip lk-tip-ask">
@@ -5779,9 +6004,17 @@ const _lernkartenContent = {
     },
     'drei7_vorzeichen': {
         title: '7b — Umkehrungen mit Vorzeichen bilden',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: E-Dur (E, Gis, H), 1. Umkehrung. Welche Reihenfolge von unten?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "Gis, H, E", ok: true }, { t: "E, Gis, H" }, { t: "H, E, Gis" }],
+            ok: "Genau. Terzton Gis unten.",
+            nope: "1. Umkehrung: Der Grundton wandert nach oben, der Terzton liegt unten."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen von Dreiklängen ohne Vorzeichen bilden.</p>
-            <p><strong>Neu:</strong> Jetzt haben alle Dreiklänge Vorzeichen.</p>
-            <div class="lk-rule"><strong>Erst die Grundstellung, dann umstellen:</strong> As-Dur ist As, C, Es. In der 2. Umkehrung steht der Quintton unten: Es, As, C.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen mit Vorzeichen bauen. <strong>Erst die Grundstellung, dann umstellen:</strong> As-Dur ist As, C, Es. In der 2. Umkehrung steht der Quintton unten: Es, As, C.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten so an, dass der richtige Ton unten liegt.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei5_vorzeichen')"><summary>Unsicher beim Bilden mit Vorzeichen?</summary><div class="lk-ask-a">Es-Dur: Es, 4 weiter G, 3 weiter B. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei5_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5789,9 +6022,17 @@ const _lernkartenContent = {
     },
     'drei7_augdim': {
         title: '7c — Übermäßig & vermindert in Umkehrungen — Tastatur',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: D-vermindert (D, F, As), 2. Umkehrung. Welcher Ton liegt unten?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "As", ok: true }, { t: "F" }, { t: "D" }],
+            ok: "Genau. 2. Umkehrung: Quintton unten.",
+            nope: "Grundstellung D, F, As. In der 2. Umkehrung liegt der Quintton unten."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen von Dur und Moll bilden, auch mit Vorzeichen.</p>
-            <p><strong>Neu:</strong> Jetzt kommen nur noch übermäßige und verminderte Dreiklänge, in allen Stellungen.</p>
-            <div class="lk-rule"><strong>Erst die Grundstellung, dann umstellen:</strong> C-vermindert ist C, Es, Ges. In der 1. Umkehrung steht der Terzton unten: Es, Ges, C. Beim übermäßigen Dreiklang klingen alle Stellungen gleich (4 + 4), welcher Ton unten liegen muss, sagt nur die verlangte Stellung.</div>
+            <p><strong>Jetzt lernst du:</strong> übermäßige und verminderte Dreiklänge in allen Stellungen bauen. <strong>Erst die Grundstellung, dann umstellen:</strong> C-vermindert ist C, Es, Ges; 1. Umkehrung: Es, Ges, C. Beim übermäßigen Dreiklang klingen alle Stellungen gleich (4 + 4), welcher Ton unten liegen muss, sagt nur die verlangte Stellung.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die drei Tasten so an, dass der richtige Ton unten liegt.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei5_augdim')"><summary>Unsicher beim Bilden von übermäßig und vermindert?</summary><div class="lk-ask-a">C-übermäßig: C, E, Gis (4 + 4). C-vermindert: C, Es, Ges (3 + 3). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei5_augdim', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5801,9 +6042,17 @@ const _lernkartenContent = {
     // ===== DREI8: Umkehrungen notieren — Notensystem =====
     'drei8_basis': {
         title: '8a — Umkehrungen notieren — Notensystem',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: G-Dur (G, H, D), 2. Umkehrung. Welche Note setzt du als unterste?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "D", ok: true }, { t: "G" }, { t: "H" }],
+            ok: "Genau. Quintton D unten, darüber G und H.",
+            nope: "2. Umkehrung: Der Quintton liegt unten."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen auf der Tastatur bilden und Dreiklänge notieren.</p>
-            <p><strong>Neu:</strong> Jetzt schreibst du die Umkehrung ins Notensystem. Wie in 6 zählen Stammton und Vorzeichen.</p>
-            <div class="lk-rule"><strong>Erst die Töne, dann umstellen, dann notieren:</strong> D-Dur ist D, Fis, A. In der 1. Umkehrung steht Fis unten: Fis, A und darüber das hohe D.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen ins Notensystem schreiben. Wie in 6 zählen Stammton und Vorzeichen. <strong>Erst die Töne, dann umstellen, dann notieren:</strong> D-Dur ist D, Fis, A. In der 1. Umkehrung steht Fis unten: Fis, A und darüber das hohe D.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Setze die drei Noten so, dass der richtige Ton unten steht. Für ein Vorzeichen wählst du vorher das Werkzeug.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">Erst „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ wählen, dann auf die Linie oder den Zwischenraum tippen. Tippst du eine gesetzte Note an, verschwindet sie wieder. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5812,9 +6061,17 @@ const _lernkartenContent = {
     },
     'drei8_vorzeichen': {
         title: '8b — Umkehrungen mit Vorzeichen notieren',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: A-Dur (A, Cis, E), 1. Umkehrung. Welche Noten von unten, mit Vorzeichen?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "Cis, E, A", ok: true }, { t: "C, E, A" }, { t: "A, Cis, E" }, { t: "E, A, Cis" }],
+            ok: "Genau. Terzton Cis unten, das Kreuz bleibt dran.",
+            nope: "1. Umkehrung: Terzton unten. Und der Terzton von A-Dur hat ein Kreuz."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen ohne Vorzeichen ins Notensystem schreiben.</p>
-            <p><strong>Neu:</strong> Jetzt haben alle Dreiklänge Vorzeichen.</p>
-            <div class="lk-rule"><strong>Erst die Töne, dann umstellen, dann notieren:</strong> Es-Dur ist Es, G, B. In der 2. Umkehrung steht B unten: B, Es, G.</div>
+            <p><strong>Jetzt lernst du:</strong> Umkehrungen mit Vorzeichen schreiben. <strong>Erst die Töne, dann umstellen, dann notieren:</strong> Es-Dur ist Es, G, B. In der 2. Umkehrung steht B unten: B, Es, G.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Setze die drei Noten mit ihren Vorzeichen so, dass der richtige Ton unten steht.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">Erst „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ wählen, dann auf die Linie oder den Zwischenraum tippen. Tippst du eine gesetzte Note an, verschwindet sie wieder. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -5823,9 +6080,17 @@ const _lernkartenContent = {
     },
     'drei8_augdim': {
         title: '8c — Übermäßig & vermindert in Umkehrungen notieren',
+        // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_dt_lernkarte_schritt.html
+        step: true,
+        check: {
+            q: "Kurz geprüft: C-übermäßig (C, E, Gis), 1. Umkehrung. Welche Noten von unten?",
+            sub: "Das Prinzip steht oben, fett.",
+            choices: [{ t: "E, Gis, C", ok: true }, { t: "Gis, C, E" }, { t: "C, E, Gis" }],
+            ok: "Genau. Terzton E unten, Gis behält sein Kreuz.",
+            nope: "1. Umkehrung: Der Terzton liegt unten, dann folgen Quintton und Grundton."
+        },
         body: `<p><strong>Du kannst schon:</strong> Umkehrungen mit Vorzeichen ins Notensystem schreiben.</p>
-            <p><strong>Neu:</strong> Jetzt kommen nur noch übermäßige und verminderte Dreiklänge, in allen Stellungen.</p>
-            <div class="lk-rule"><strong>Erst die Töne, dann umstellen, dann notieren:</strong> Gis-vermindert ist Gis, H, D. In der 2. Umkehrung steht D unten: D, Gis, H. Beim übermäßigen Dreiklang klingen alle Stellungen gleich, im Notensystem erkennst du die Stellung an den Stammtönen.</div>
+            <p><strong>Jetzt lernst du:</strong> übermäßige und verminderte Dreiklänge in allen Stellungen schreiben. <strong>Erst die Töne, dann umstellen, dann notieren:</strong> Gis-vermindert ist Gis, H, D. In der 2. Umkehrung steht D unten: D, Gis, H. Beim übermäßigen Dreiklang klingen alle Stellungen gleich, im Notensystem erkennst du die Stellung an den Stammtönen.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Setze die drei Noten mit den passenden Vorzeichen so, dass der richtige Ton unten steht.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'drei6_augdim')"><summary>Unsicher beim Notieren von übermäßig und vermindert?</summary><div class="lk-ask-a">Erst die Stammtöne, dann die Vorzeichen nach Halbtonschritten: Cis-vermindert ist Cis, E, G, ganz ohne weitere Vorzeichen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('drei6_augdim', false); return false">Ausführlich nachlesen ›</a></div></details>
