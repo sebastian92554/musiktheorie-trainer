@@ -1331,6 +1331,7 @@
         /* Kontrollfrage als eigener Kasten mit Kicker „Probier es gleich aus“, Gegenstück zu „So geht die Übung“ (Sebo 17.11.2026) */
         .lk-check { margin-top: 16px; padding: 12px 14px 14px; border: 1.5px solid #ddd6fe; border-radius: 10px; background: #f5f3ff; }
         .lk-check .lk-step-kicker { margin-bottom: 6px; }
+        .lk-check .lk-check-visual { background: #fff; margin: 8px 0 4px; }
         .lk-check-q { font-weight: 600; color: #4c1d95; font-size: 0.95rem; margin-bottom: 4px; }
         .lk-check-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 6px; }
         .lk-check .lk-choice {
@@ -9678,6 +9679,7 @@ Gerät:
                     const qText = chk.q.replace(/^Kurz geprüft: /, '').replace(/^Kurz geprüft, (.)/, (m, c) => c.toUpperCase());   // Kicker ersetzt den Vorspann
                 checkEl.innerHTML = `<div class="lk-step-kicker">Probier es gleich aus</div><div class="lk-check-q">${qText}</div>` +
                         (chk.sub ? `<div class="lk-check-sub">${chk.sub}</div>` : '') +
+                    (chk.visual ? `<div class="lk-visual lk-check-visual">${typeof chk.visual === 'function' ? chk.visual.call(this) : chk.visual}</div>` : '') +   // Bild zur Frage, wenn das Quiz es auch zeigt (Tastatur, Notensystem)
                         choices.map(c => `<button type="button" class="lk-choice" data-ok="${c.ok ? 1 : 0}" onclick="app._pickStepChoice(this)">${c.t}</button>`).join('') +
                         '<div class="lk-check-fb" id="lkStepFb"></div>';
                     checkEl.style.display = '';
