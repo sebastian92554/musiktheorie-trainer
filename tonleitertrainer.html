@@ -181,7 +181,7 @@
 
         /* Skilltree Container */
         .skilltree-container {
-            max-width: 30rem;
+            max-width: 40rem;
             margin: 0 auto;
         }
 
@@ -191,7 +191,7 @@
             justify-content: space-between;
             gap: 1rem;
             flex-wrap: wrap;
-            margin-bottom: 1.25rem;
+            margin-bottom: 0.9rem;
         }
 
         .skilltree-header h1 {
@@ -199,20 +199,27 @@
             color: #164e63;
             font-weight: 700;
         }
+        /* Konto und „Alle Trainer“ als kleine Links oben rechts (Sebo 17.11.2026: kein Konto-Banner vor dem Lernen) */
+        .st-head-links { display: flex; align-items: center; gap: 0.9rem; font-size: 0.8rem; }
+        .skilltree-header .account-bar { gap: 0.6rem; }
+        .skilltree-header .account-bar .acc-btn { background: none; color: #0891b2; padding: 0; font-size: 0.8rem; font-weight: 500; border-radius: 0; }
+        .skilltree-header .account-bar .acc-btn:hover { background: none; color: #0e7490; text-decoration: underline; }
+        .skilltree-header .account-bar .acc-who { font-size: 0.8rem; }
 
         /* Skilltree Card */
         .skilltree-card {
             background: white;
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-            padding: 1.25rem;
+            padding: 1rem 1.1rem;
+            margin-bottom: 0.9rem;
         }
 
         .skilltree-title {
             font-size: 0.85rem;
             font-weight: 600;
             color: #475569;
-            margin-bottom: 1rem;
+            margin-bottom: 0.6rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -231,385 +238,71 @@
         .st-home-link:hover { color: #0e7490; }
         .st-home-link svg { flex-shrink: 0; }
 
-        /* Skilltree Layout */
-        .skilltree {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.25rem;
-        }
+        /* ---- Skilltree als Landkarte mit Hauptaktion (seit 17.11.2026, Entwurf _entwicklung/mock_tt_skilltree_neu.html) ----
+           Befund 9. Klasse: Der Baum erklärte sich nicht (Konto zuerst, Link weg zum Notentrainer als erstes Element,
+           Start-Knopf zwei Ebenen tief, Nummern gegen die Anordnung, kein sichtbarer Stand). Jetzt: oben eine Hauptaktion
+           („Hier geht's weiter“), darunter die Knoten als Liste mit Ring, Sternen, Haken; der nächste Knoten in Trainerfarbe;
+           ein Tipp auf eine Übungszeile startet; 3 und 4 in einem Rahmen „Reihenfolge egal“, 5 „Zum Schluss“. */
+        .st-next-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0891b2; margin-bottom: 0.35rem; }
+        .st-next { display: flex; align-items: center; gap: 0.8rem; width: 100%; background: #0891b2; color: #fff; border: none; border-radius: 0.7rem; padding: 0.85rem 1rem; text-align: left; cursor: pointer; font-family: inherit; }
+        .st-next:hover { background: #0e7490; }
+        .st-next-code { font-size: 1.4rem; font-weight: 800; opacity: 0.9; flex-shrink: 0; }
+        .st-next-text { flex: 1; min-width: 0; }
+        .st-next-title { display: block; font-size: 1.02rem; font-weight: 700; line-height: 1.25; }
+        .st-next-sub { display: block; font-size: 0.8rem; opacity: 0.9; margin-top: 2px; }
+        .st-next-arrow { font-size: 1.4rem; flex-shrink: 0; }
+        .st-next-note { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; }
 
-        /* Alle Knoten auf halbe Breite (konsistent mit Fork-Ästen) */
-        .st-node-wrapper { width: 100%; max-width: 14.375rem; }
-
-        /* Verbindungslinien */
-        .st-connector {
-            display: flex;
-            justify-content: center;
-            height: 20px;
+        .skilltree { display: flex; flex-direction: column; gap: 0.55rem; }
+        .st-node { border: 2px solid #d1d5db; border-radius: 0.7rem; background: #fff; }
+        .st-node.next { border-color: #0891b2; box-shadow: 0 0 0 3px #cffafe; }
+        .st-node.done { border-color: #86efac; background: #f0fdf4; }
+        .st-node-head { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.7rem; cursor: pointer; }
+        .st-ring { width: 2.3rem; height: 2.3rem; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; position: relative;
+            background: conic-gradient(#0891b2 calc(var(--p) * 1%), #e2e8f0 0); }
+        .st-ring::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
+        .st-ring span { position: relative; font-size: 0.8rem; font-weight: 800; color: #164e63; }
+        .st-node.done .st-ring { background: #22c55e; }
+        .st-node.done .st-ring::before { background: #22c55e; }
+        .st-node.done .st-ring span { color: #fff; }
+        .st-node-content { flex: 1; min-width: 0; }
+        .st-node-name { font-size: 0.95rem; font-weight: 700; color: #164e63; }
+        .st-node-meta { font-size: 0.75rem; color: #64748b; margin-top: 1px; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .st-tag { font-size: 0.68rem; font-weight: 700; color: #0891b2; background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 999px; padding: 1px 7px; }
+        .st-node.done .st-tag { color: #166534; background: #dcfce7; border-color: #86efac; }
+        .st-stars { color: #f59e0b; letter-spacing: -1px; font-size: 0.8rem; }
+        .st-chev { color: #94a3b8; font-size: 0.9rem; transition: transform 0.15s; }
+        .st-node.open .st-chev { transform: rotate(180deg); }
+        .st-rows { display: none; border-top: 1px solid #e2e8f0; padding: 0.3rem 0.5rem 0.5rem; }
+        .st-node.open .st-rows { display: block; }
+        .st-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.3rem; border-radius: 0.5rem; cursor: pointer; }
+        .st-row:hover { background: #f8fafc; }
+        .st-row.cur { background: #ecfeff; }
+        .st-dot { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid #cbd5e1; display: grid; place-items: center; font-size: 0.62rem; font-weight: 700; color: #64748b; flex-shrink: 0; background: #fff; }
+        .st-row.done .st-dot { background: #22c55e; border-color: #22c55e; color: #fff; }
+        .st-row.cur .st-dot { border-color: #0891b2; color: #0891b2; }
+        .st-row-text { flex: 1; min-width: 0; font-size: 0.82rem; color: #334155; line-height: 1.3; }
+        .st-row.done .st-row-text { color: #64748b; }
+        .st-row-stars { font-size: 0.72rem; color: #f59e0b; flex-shrink: 0; letter-spacing: -1px; }
+        .st-go { flex-shrink: 0; border: 1.5px solid #0891b2; background: #fff; color: #0891b2; border-radius: 0.45rem; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .st-row.cur .st-go { background: #0891b2; color: #fff; }
+        .st-row.done .st-go { border-color: #cbd5e1; color: #64748b; }
+        .st-pre { font-size: 0.75rem; color: #64748b; padding: 0.35rem 0.7rem 0.55rem; border-top: 1px dashed #e2e8f0; }
+        .st-pre a { color: #0891b2; text-decoration: none; font-weight: 600; }
+        /* 3 und 4 gemeinsam, 5 danach: nur ab 600 px (nebeneinander). Auf dem Handy eine einfache Liste 1–5
+           ohne Rahmen und Zwischenzeilen (Sebo 17.11.2026: die Differenzierung dort weglassen). */
+        .st-pair { display: contents; }
+        .st-pair-label, .st-after { display: none; }
+        .st-branches { display: contents; }
+        @media (min-width: 600px) {
+            .st-pair { display: block; border: 1.5px dashed #cbd5e1; border-radius: 0.9rem; padding: 0.45rem 0.45rem 0.5rem; }
+            .st-pair-label { display: block; text-align: center; font-size: 0.72rem; color: #64748b; margin: 0 0 0.4rem; }
+            .st-branches { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+            .st-after { display: block; text-align: center; font-size: 0.72rem; color: #64748b; margin: 0.1rem 0 -0.15rem; }
         }
-        .st-connector::before {
-            content: '';
-            width: 2px;
-            height: 100%;
-            background: #0891b2;
-        }
-
-        /* Skill-Knoten */
-        .st-node {
-            border-radius: 0.65rem;
-            padding: 0.6rem 0.7rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            position: relative;
-        }
-        .st-node:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        /* Knoten-Icon */
-        .st-node-icon {
-            width: 1.875rem;
-            height: 1.875rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.6rem;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .st-node-content {
-            flex: 1;
-            min-width: 0;
-        }
-        .st-node-name {
-            font-size: 0.78rem;
-            font-weight: 600;
-            line-height: 1.2;
-        }
-        .st-node-desc {
-            font-size: 0.65rem;
-            margin-top: 2px;
-            line-height: 1.3;
-        }
-        .st-node-action {
-            font-size: 0.8rem;
-            flex-shrink: 0;
-        }
-
-        /* Zustand: Gemeistert */
-        .st-node.mastered {
-            background: #ecfeff;
-            border: 2px solid #0891b2;
-        }
-        .st-node.mastered .st-node-icon {
-            background: #0891b2;
-            color: white;
-        }
-        .st-node.mastered .st-node-name { color: #164e63; }
-        .st-node.mastered .st-node-desc { color: #0e7490; }
-        .st-node.mastered .st-node-action { color: #0891b2; }
-
-        /* Zustand: Verfügbar */
-        .st-node.available {
-            background: white;
-            border: 2px solid #d1d5db;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-        }
-        .st-node.available .st-node-icon {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        .st-node.available .st-node-name { color: #1e293b; }
-        .st-node.available .st-node-desc { color: #64748b; }
-        .st-node.available .st-node-action { color: #64748b; }
-
-        /* Zustand: Ausgewählt */
-        .st-node.available.selected {
-            border-color: #0891b2;
-            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
-        }
-        .st-node.available.selected .st-node-icon {
-            background: #0891b2;
-            color: white;
-            animation: st-pulse 2.5s ease-in-out infinite;
-        }
-        .st-node.mastered.selected {
-            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
-        }
-
-        @keyframes st-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.3); }
-            50% { box-shadow: 0 0 0 6px rgba(8, 145, 178, 0); }
-        }
-
-        /* Zustand: Gesperrt (reaktiv) */
-        .st-node.locked {
-            background: #f8fafc;
-            border: 2px dashed #e2e8f0;
-            opacity: 0.5;
-            cursor: default;
-        }
-        .st-node.locked:hover {
-            transform: none;
-            box-shadow: none;
-        }
-        .st-node.locked .st-node-icon { background: #f1f5f9; color: #cbd5e1; }
-        .st-node.locked .st-node-name { color: #94a3b8; }
-        .st-node.locked .st-node-desc { color: #cbd5e1; }
-        .st-node.locked .st-node-action { color: #cbd5e1; }
-
-        /* ===== Fork (Gabelung nach ton2) ===== */
-        .st-fork-stem { display: flex; justify-content: center; height: 14px; }
-        .st-fork-stem::before { content: ''; width: 2px; height: 100%; background: #0891b2; }
-
-        .st-fork-bracket {
-            width: calc(50% + 0.375rem);
-            margin: 0 auto;
-            height: 22px;
-            border: 2px solid #0891b2;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .st-fork-branches {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            width: 100%;
-        }
-        .st-fork-branches .st-node-wrapper { max-width: 100%; }
-
-        .st-branch-label {
-            font-size: 0.6rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            text-align: center;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-bottom: 4px;
-            color: #475569;
-            background: #f1f5f9;
-        }
-
-        .st-branch-inner-connector { display: flex; justify-content: center; height: 16px; }
-        .st-branch-inner-connector::before { content: ''; width: 2px; height: 100%; background: #0891b2; }
-
-        /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
-        /* Ghost-Note übernimmt Preview → Cursor ausblenden wenn Ghost sichtbar */
-        #staffSvg.staff-interactive { cursor: none; touch-action: none; -webkit-user-select: none; user-select: none; }
-
-        .building-tools { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 0.5rem; }
-        .building-tool-btn { padding: 6px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
-        .building-tool-btn.active { border-color: #0891b2; background: #ecfeff; color: #0891b2; font-weight: 600; }
-        .building-tool-btn:hover { border-color: #94a3b8; }
-
-        /* Cross-App Abhängigkeit */
-        .st-cross-app {
-            width: 100%;
-            position: relative;
-        }
-        .st-cross-label {
-            font-size: 0.6rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: #eef2ff;
-            color: #4f46e5;
-            /* Badge als "Chip" auf den dashed Top-Rand pinnen,
-               damit .st-cross-app Top = sichtbarer dashed Frame Top
-               (Connector-Linie endet sonst über dem Badge statt am Frame). */
-            position: absolute;
-            top: 0;
-            left: 0.5rem;
-            transform: translateY(-50%);
-            z-index: 1;
-            margin: 0;
-        }
-        .st-cross-app .st-node {
-            border-style: dashed;
-        }
-        .st-cross-app .st-node.mastered {
-            border-color: #4f46e5;
-            background: #eef2ff;
-        }
-        .st-cross-app .st-node.mastered .st-node-icon { background: #4f46e5; }
-        .st-cross-app .st-node.mastered .st-node-name { color: #3730a3; }
-        .st-cross-app .st-node.mastered .st-node-desc { color: #4338ca; }
-        .st-cross-app .st-node.mastered .st-node-action { color: #4f46e5; }
-
-        /* Sub-Skills (Aufklapp) */
-        .st-sub-skills {
-            display: none;
-            margin-top: 0.5rem;
-            padding: 0.5rem 0.65rem;
-            background: #f8fafc;
-            border-radius: 0.5rem;
-            border: 0.0625rem solid #e2e8f0;
-            position: relative;
-        }
-        /* Durchgehende Verbindungslinie — wird per JS positioniert */
-        .st-sub-skills .st-sub-line {
-            position: absolute;
-            width: 2px;
-            background: #d1d5db;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .st-node-wrapper.expanded .st-sub-skills {
-            display: block;
-        }
-        .st-sub-skill {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.3rem 0.35rem;
-            font-size: 0.7rem;
-            color: #475569;
-            cursor: pointer;
-            border-radius: 0.35rem;
-            transition: background 0.1s;
-            position: relative;
-        }
-        .st-sub-skill:hover {
-            background: #e0f2fe;
-        }
-        .st-sub-skill.sub-selected {
-            /* Auswahl wird über die Preview-Zeile gezeigt, nicht über die Zeile selbst */
-        }
-        .st-sub-preview {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            position: relative;
-            margin: 0.1rem 0 0.25rem 2rem;
-            padding: 0.35rem 0.5rem;
-            background: #cffafe;
-            border-radius: 0.35rem;
-        }
-        .st-sub-preview-text {
-            font-size: 0.7rem;
-            color: #475569;
-            line-height: 1.3;
-        }
-        .st-sub-preview-start {
-            margin-left: auto;
-            border: none;
-            border-radius: 0.35rem;
-            background: #0891b2;
-            color: #fff;
-            font-weight: 600;
-            font-size: 0.68rem;
-            padding: 0.3rem 0.7rem;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .st-sub-preview-start:hover {
-            background: #0e7490;
-        }
-        .st-sub-dot {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 2px solid #d1d5db;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 0.55rem;
-            font-weight: 700;
-            color: #6b7280;
-            position: relative;
-            z-index: 2;
-            background: #f8fafc;
-        }
-        .st-sub-dot.done {
-            background: #0891b2;
-            border-color: #0891b2;
-            color: white;
-        }
-        .st-sub-dot.current {
-            border-color: #0891b2;
-            background: white;
-            color: #0891b2;
-        }
-        .st-sub-stars {
-            margin-left: auto;
-            font-size: 0.65rem;
-            color: #f59e0b;
-            letter-spacing: 1px;
-            flex-shrink: 0;
-        }
-
-        /* Start-Button */
-        .st-start-btn {
-            display: block;
-            width: 100%;
-            margin-top: 1.25rem;
-            padding: 0.75rem;
-            background: #0891b2;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .st-start-btn:hover {
-            background: #0e7490;
-        }
-
-        /* Fortschritt */
-        .st-progress-info {
-            text-align: center;
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.75rem;
-        }
-        .st-progress-bar-bg {
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 2px;
-            margin-top: 0.4rem;
-            overflow: hidden;
-        }
-        .st-progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #0891b2, #06b6d4);
-            border-radius: 2px;
-            transition: width 0.3s ease;
-        }
-
-        /* Hilfe-Hinweis */
-        .st-help-hint {
-            font-size: 0.65rem;
-            color: #94a3b8;
-            text-align: center;
-            margin-top: 0.35rem;
-        }
-
-        /* Freies Üben Link */
-        .st-free-practice {
-            text-align: center;
-            margin-top: 0.75rem;
-        }
-        .st-free-practice a {
-            font-size: 0.75rem;
-            color: #0891b2;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .st-free-practice a:hover { text-decoration: underline; }
+        .st-progress-info { text-align: center; font-size: 0.78rem; color: #64748b; margin-top: 0.9rem; }
+        .st-progress-bar-bg { height: 6px; border-radius: 3px; background: #e2e8f0; margin-top: 0.35rem; overflow: hidden; }
+        .st-progress-bar-fill { height: 100%; background: #0891b2; border-radius: 3px; transition: width 0.4s ease; }
 
         /* Success Container */
         .success-container {
@@ -1992,132 +1685,30 @@
     <!-- ======================== QUICK START SCREEN (Skilltree) ======================== -->
     <div id="quickStartScreen" class="level-screen active">
         <div class="skilltree-container">
-
             <div class="skilltree-header">
                 <h1>Tonleitertrainer</h1>
-                <div class="account-bar"></div>
-            </div>
-
-            <div class="skilltree-card">
-                <div class="skilltree-title">
-                    <span>Dein Lernpfad</span>
+                <div class="st-head-links">
                     <a href="index.html" class="st-home-link" title="Zur Übersicht">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                         Alle Trainer
                     </a>
+                    <div class="account-bar"></div>
                 </div>
-
-                <div class="skilltree" id="skilltreeView">
-
-                    <!-- Cross-App: Notentrainer -->
-                    <div class="st-cross-app">
-                        <span class="st-cross-label">Notentrainer</span>
-                        <div class="st-node mastered" id="stNodeCross" onclick="quickStart.openCrossApp('notentrainer')">
-                            <div class="st-node-icon"><svg width="22" height="22" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="13" rx="2.6" ry="2.0" stroke="none" transform="rotate(-18 12 13)"/></g></svg></div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Noten lesen</div>
-                                <div class="st-node-desc">Noten im Violin- und Bassschlüssel sicher lesen</div>
-                            </div>
-                            <div class="st-node-action">&nearr;</div>
-                        </div>
-                    </div>
-
-                    <div class="st-connector mastered"></div>
-
-                    <!-- Knoten 1: Ganzton / Halbton -->
-                    <div class="st-node-wrapper" id="stNode-ton1">
-                        <div class="st-node available" onclick="quickStart.selectNode('ton1')">
-                            <div class="st-node-icon">1</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Ganzton / Halbton</div>
-                                <div class="st-node-desc">Tonabstände zwischen zwei Noten bestimmen</div>
-                            </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-ton1"></div>
-                    </div>
-
-                    <div class="st-connector" id="stConn-ton1-ton2"></div>
-
-                    <!-- Knoten 2: Halbtonschritte finden -->
-                    <div class="st-node-wrapper" id="stNode-ton2">
-                        <div class="st-node available" onclick="quickStart.selectNode('ton2')">
-                            <div class="st-node-icon">2</div>
-                            <div class="st-node-content">
-                                <div class="st-node-name">Halbtonschritte finden</div>
-                                <div class="st-node-desc">Position der Halbtonschritte in Tonleitern bestimmen</div>
-                            </div>
-                            <div class="st-node-action">&#9662;</div>
-                        </div>
-                        <div class="st-sub-skills" id="stSubs-ton2"></div>
-                    </div>
-
-                    <!-- ===== GABELUNG nach ton2 ===== -->
-                    <div class="st-fork-stem" id="stForkStem"></div>
-                    <div class="st-fork-bracket" id="stForkBracket"></div>
-
-                    <div class="st-fork-branches">
-                        <!-- Linker Ast: Erkennen (ton3 → ton5 Quintenzirkel) -->
-                        <div>
-                            <div class="st-branch-label">Erkennen</div>
-                            <div class="st-node-wrapper" id="stNode-ton3">
-                                <div class="st-node available" onclick="quickStart.selectNode('ton3')">
-                                    <div class="st-node-icon">3</div>
-                                    <div class="st-node-content">
-                                        <div class="st-node-name">Tonleiter benennen</div>
-                                        <div class="st-node-desc">Muster erkennen und benennen</div>
-                                    </div>
-                                    <div class="st-node-action">&#9662;</div>
-                                </div>
-                                <div class="st-sub-skills" id="stSubs-ton3"></div>
-                            </div>
-
-                            <div class="st-branch-inner-connector" id="stConn-ton3-ton5"></div>
-
-                            <div class="st-node-wrapper" id="stNode-ton5">
-                                <div class="st-node available" onclick="quickStart.selectNode('ton5')">
-                                    <div class="st-node-icon">5</div>
-                                    <div class="st-node-content">
-                                        <div class="st-node-name">Quintenzirkel</div>
-                                        <div class="st-node-desc">Tonarten-Beziehungen verstehen</div>
-                                    </div>
-                                    <div class="st-node-action">&#9662;</div>
-                                </div>
-                                <div class="st-sub-skills" id="stSubs-ton5"></div>
-                            </div>
-                        </div>
-
-                        <!-- Rechter Ast: Bilden (ton4) -->
-                        <div>
-                            <div class="st-branch-label">Bilden</div>
-                            <div class="st-node-wrapper" id="stNode-ton4">
-                                <div class="st-node available" onclick="quickStart.selectNode('ton4')">
-                                    <div class="st-node-icon">4</div>
-                                    <div class="st-node-content">
-                                        <div class="st-node-name">Tonleiter bilden</div>
-                                        <div class="st-node-desc">Tonleitern auf Tastatur und im Notensystem konstruieren</div>
-                                    </div>
-                                    <div class="st-node-action">&#9662;</div>
-                                </div>
-                                <div class="st-sub-skills" id="stSubs-ton4"></div>
-                            </div>
-                        </div>
-                    </div>
-
+            </div>
+            <!-- Hauptaktion: nächste offene Übung (gerendert in updateAllProgress) -->
+            <div class="skilltree-card" id="stNextCard"></div>
+            <div class="skilltree-card">
+                <div class="skilltree-title">
+                    <span>Dein Weg</span>
+                    <span id="stMapCount"></span>
                 </div>
-
+                <!-- Landkarte (gerendert in updateAllProgress) -->
+                <div class="skilltree" id="skilltreeView"></div>
                 <!-- Fortschritt -->
-                <div class="st-progress-info" id="stProgressInfo">
-                    0 von 9 Teilkompetenzen gemeistert
-                    <div class="st-progress-bar-bg">
-                        <div class="st-progress-bar-fill" id="stProgressFill" style="width: 0%"></div>
-                    </div>
-                </div>
-
+                <div class="st-progress-info" id="stProgressInfo"></div>
             </div>
         </div>
     </div>
-
     <!-- ======================== SUCCESS SCREEN ======================== -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
@@ -2557,7 +2148,7 @@
                 patterns: Array.isArray(p.patterns) ? p.patterns.slice() : []
             });
         },
-        nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill }); },
+        nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill, where: p.where || null }); },
         subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
         cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
         tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
@@ -4288,37 +3879,37 @@
         // Sub-Skills pro Knoten (bilden auf bestehende option-IDs ab)
         nodeSubSkills: {
             'ton1': [
-                { id: 'basis', label: 'Stammtöne (C–H)', preview: 'Bestimmen des Tonabstands zwischen zwei Stammtönen (Ganz-/Halbton)' },
-                { id: 'vorzeichen', label: '+ Vorzeichen', preview: 'Bestimmen des Tonabstands zwischen Tönen mit Vorzeichen' },
-                { id: 'noaudio', label: 'ohne Hörbeispiel', preview: 'Bestimmen des Tonabstands ohne Hörbeispiel' }
+                { id: 'basis', label: 'Stammtöne (C–H)', phrase: 'Ganzton und Halbton unterscheiden', preview: 'Bestimmen des Tonabstands zwischen zwei Stammtönen (Ganz-/Halbton)' },
+                { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Abstände mit Vorzeichen bestimmen', preview: 'Bestimmen des Tonabstands zwischen Tönen mit Vorzeichen' },
+                { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'ohne Hörbeispiel entscheiden', preview: 'Bestimmen des Tonabstands ohne Hörbeispiel' }
             ],
             'ton2': [
-                { id: 'basis', label: 'HS-Stufen wählen', preview: 'Bestimmen der Halbtonschritt-Stufen in Dur- und Moll-Tonleitern' },
-                { id: 'stufenpaare', label: 'HS-Paare auswählen', preview: 'Auswählen der Halbtonschritt-Paare in der Tonleiter' },
-                { id: 'mehr_tonarten', label: '+ erweiterte Tonarten', preview: 'Bestimmen der Halbtonschritte in erweiterten Tonarten' },
-                { id: 'noaudio', label: 'ohne Hörbeispiel', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
+                { id: 'basis', label: 'HS-Stufen wählen', phrase: 'die Halbtonschritte einer Tonleiter finden', preview: 'Bestimmen der Halbtonschritt-Stufen in Dur- und Moll-Tonleitern' },
+                { id: 'stufenpaare', label: 'HS-Paare auswählen', phrase: 'Halbtonschritte als Stufenpaare angeben', preview: 'Auswählen der Halbtonschritt-Paare in der Tonleiter' },
+                { id: 'mehr_tonarten', label: '+ erweiterte Tonarten', phrase: 'Halbtonschritte in Tonleitern mit vielen Vorzeichen finden', preview: 'Bestimmen der Halbtonschritte in erweiterten Tonarten' },
+                { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Halbtonschritte ohne Hörbeispiel finden', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
             ],
             'ton3': [
-                { id: 'muster_lernen', label: 'Tongeschlecht bestimmen', preview: 'Bestimmen des Tongeschlechts (Dur / Moll / Andere)' },
-                { id: 'muster_erkennen', label: 'HS-Stufen + benennen', preview: 'Halbtonschritt-Stufen finden und Tonleiter benennen' },
-                { id: 'alles', label: 'Ohne Halbtonschritt-Hilfe', preview: 'Benennen von Tonleitern ohne Halbtonschritt-Hilfe' },
-                { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe', preview: 'Benennen von Tonleitern ohne Klaviatur-Hilfe' },
-                { id: 'noaudio', label: 'Ohne Hörbeispiel', preview: 'Benennen von Tonleitern ohne Hörbeispiel' }
+                { id: 'muster_lernen', label: 'Tongeschlecht bestimmen', phrase: 'Dur und Moll unterscheiden', preview: 'Bestimmen des Tongeschlechts (Dur / Moll / Andere)' },
+                { id: 'muster_erkennen', label: 'HS-Stufen + benennen', phrase: 'eine Tonleiter benennen', preview: 'Halbtonschritt-Stufen finden und Tonleiter benennen' },
+                { id: 'alles', label: 'Ohne Halbtonschritt-Hilfe', phrase: 'Tonleitern im Kopf benennen', preview: 'Benennen von Tonleitern ohne Halbtonschritt-Hilfe' },
+                { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe', phrase: 'Halbtonschritte ohne Tastatur bestimmen', preview: 'Benennen von Tonleitern ohne Klaviatur-Hilfe' },
+                { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel benennen', preview: 'Benennen von Tonleitern ohne Hörbeispiel' }
             ],
             'ton4': [
-                { id: 'tastatur_einfach', label: 'Tastatur (einfach)', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
-                { id: 'schreiben_einfach', label: 'Schreiben (einfach)', preview: 'Schreiben von Tonleitern ins Notensystem (einfach)' },
-                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
-                { id: 'schreiben_schwer', label: 'Schreiben (viele Vorzeichen)', preview: 'Schreiben von Tonleitern ins Notensystem (viele Vorzeichen)' },
-                { id: 'noaudio', label: 'Ohne Hörbeispiel', preview: 'Konstruieren von Tonleitern ohne Hörbeispiel' }
+                { id: 'tastatur_einfach', label: 'Tastatur (einfach)', phrase: 'eine Tonleiter selbst bauen', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
+                { id: 'schreiben_einfach', label: 'Schreiben (einfach)', phrase: 'eine Tonleiter ins Notensystem schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (einfach)' },
+                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen bauen', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
+                { id: 'schreiben_schwer', label: 'Schreiben (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (viele Vorzeichen)' },
+                { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel schreiben', preview: 'Konstruieren von Tonleitern ohne Hörbeispiel' }
             ],
             'ton5': [
-                { id: 'aussenkr', label: 'Außenkreis + Merksätze', preview: 'Außenkreis des Quintenzirkels mit Merksätzen' },
-                { id: 'innenkr', label: 'Innenkreis + Mollparallelen', preview: 'Innenkreis des Quintenzirkels mit Mollparallelen' },
-                { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung', preview: 'Ableiten der Vorzeichen aus dem Quintenzirkel' },
-                { id: 'enharmonisch', label: 'Enharmonik', preview: 'Enharmonische Verwechslungen im Quintenzirkel' },
-                { id: 'verwandte', label: 'Verwandte Tonarten', preview: 'Verwandte Tonarten im Quintenzirkel' },
-                { id: 'symmetrien', label: 'Symmetrien', preview: 'Symmetrien im Quintenzirkel (Tritonus, Dreiecke, Raute)' }
+                { id: 'aussenkr', label: 'Außenkreis + Merksätze', phrase: 'den Quintenzirkel lesen', preview: 'Außenkreis des Quintenzirkels mit Merksätzen' },
+                { id: 'innenkr', label: 'Innenkreis + Mollparallelen', phrase: 'die Mollparallele finden', preview: 'Innenkreis des Quintenzirkels mit Mollparallelen' },
+                { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung', phrase: 'die Vorzeichen einer Tonart ableiten', preview: 'Ableiten der Vorzeichen aus dem Quintenzirkel' },
+                { id: 'enharmonisch', label: 'Enharmonik', phrase: 'den zweiten Namen einer Tonart finden', preview: 'Enharmonische Verwechslungen im Quintenzirkel' },
+                { id: 'verwandte', label: 'Verwandte Tonarten', phrase: 'die Nachbarn einer Tonart im Zirkel finden', preview: 'Verwandte Tonarten im Quintenzirkel' },
+                { id: 'symmetrien', label: 'Symmetrien', phrase: 'Figuren im Quintenzirkel finden', preview: 'Symmetrien im Quintenzirkel (Tritonus, Dreiecke, Raute)' }
             ]
         },
 
@@ -4370,360 +3961,151 @@
         },
 
         // ---- Progress UI (Skilltree) ----
+        // ---- Skilltree: Landkarte mit Hauptaktion (seit 17.11.2026; Entwurf _entwicklung/mock_tt_skilltree_neu.html) ----
+        // Knotentitel in Schülersprache; die Übungszeilen tragen die „Jetzt lernst du“-Phrasen der Karten (nodeSubSkills.phrase).
+        nodeOrder: ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'],
+        nodeTitles: { ton1: 'Ganzton oder Halbton?', ton2: 'Halbtonschritte finden', ton3: 'Welche Tonleiter ist das?', ton4: 'Tonleiter bauen', ton5: 'Quintenzirkel' },
+        _openNodes: null,   // aufgeklappte Knoten; null = noch nie gerendert → der nächste Knoten ist offen
+
+        _nodeState(nodeId) {
+            const level = this.nodeToLevel[nodeId];
+            const subs = this.nodeSubSkills[nodeId] || [];
+            const p = this.progress[level] || {};
+            const mastered = p.mastered || [];
+            const scores = p.scores || {};
+            const done = subs.filter(s => mastered.includes(s.id)).length;
+            const nextIdx = subs.findIndex(s => !mastered.includes(s.id));
+            return { level, subs, mastered, scores, done, total: subs.length, allDone: done === subs.length, nextIdx };
+        },
+        // Nächste offene Übung in Knotenreihenfolge 1, 2, 3, 4, 5
+        nextStep() {
+            for (const nodeId of this.nodeOrder) {
+                const st = this._nodeState(nodeId);
+                if (st.nextIdx >= 0) return { nodeId, idx: st.nextIdx };
+            }
+            return null;
+        },
+        _subCode(nodeId, idx) { return nodeId.replace(/\D/g, '') + String.fromCharCode(97 + idx); },
+        _starsHtml(k) { return k > 0 ? '★'.repeat(k) + '☆'.repeat(3 - k) : ''; },
+
         updateAllProgress() {
-            const allNodes = ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'];
-            // Knoten-Icons (für nicht-gemeisterte)
-            const nodeIcons = { 'ton1': '1', 'ton2': '2', 'ton3': '3', 'ton4': '4', 'ton5': '5' };
-            // Voraussetzungen: welcher Knoten muss gemeistert sein, damit dieser freigeschaltet wird?
-            const prerequisites = {
-                'ton1': null,       // immer verfügbar
-                'ton2': 'ton1',     // nach ton1
-                'ton3': 'ton2',     // nach ton2 (linker Ast)
-                'ton4': 'ton2',    // nach ton2 (rechter Ast, parallel zu ton3)
-                'ton5': 'ton3'      // nach ton3 (nicht ton4!)
-            };
+            const next = this.nextStep();
+            if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
+            let totalSubs = 0, totalMastered = 0;
+            this.nodeOrder.forEach(id => { const st = this._nodeState(id); totalSubs += st.total; totalMastered += st.done; });
 
-            let totalSubs = 0;
-            let totalMastered = 0;
-            let firstAvailableNode = null;
-
-            allNodes.forEach(nodeId => {
-                const level = this.nodeToLevel[nodeId];
-                const subs = this.nodeSubSkills[nodeId];
-                const mastered = this.progress[level].mastered || [];
-                const allMastered = subs.every(s => mastered.includes(s.id));
-                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
-
-                totalSubs += subs.length;
-                totalMastered += subs.filter(s => mastered.includes(s.id)).length;
-
-                // Knoten-Zustand bestimmen (kein Locking — kommt mit Guiding-Feedback-System)
-                const wrapper = document.getElementById('stNode-' + nodeId);
-                const node = wrapper ? wrapper.querySelector('.st-node') : null;
-                if (!node) return;
-
-                node.classList.remove('mastered', 'available', 'locked');
-                if (allMastered) {
-                    node.classList.add('mastered');
-                    node.querySelector('.st-node-icon').textContent = '✓';
+            // Hauptaktion
+            const nextCard = document.getElementById('stNextCard');
+            if (nextCard) {
+                if (next) {
+                    const sub = this.nodeSubSkills[next.nodeId][next.idx];
+                    const first = totalMastered === 0;
+                    nextCard.innerHTML = `<div class="st-next-label">${first ? 'Hier anfangen' : 'Hier geht’s weiter'}</div>
+                        <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, 'next')">
+                            <span class="st-next-code">${this._subCode(next.nodeId, next.idx)}</span>
+                            <span class="st-next-text"><span class="st-next-title">${sub.phrase || sub.label}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
+                            <span class="st-next-arrow">›</span>
+                        </button>
+                        <div class="st-next-note">${first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`}</div>`;
                 } else {
-                    node.classList.add('available');
-                    node.querySelector('.st-node-icon').textContent = nodeIcons[nodeId];
-                    if (!firstAvailableNode) firstAvailableNode = nodeId;
+                    nextCard.innerHTML = `<div class="st-next-label">Alles geschafft</div><div class="st-next-note">Du hast alle ${totalSubs} Übungen gemeistert. Unten kannst du jede noch einmal üben.</div>`;
                 }
-
-                // Sub-Skills rendern
-                const scores = this.progress[level].scores || {};
-                const subsContainer = document.getElementById('stSubs-' + nodeId);
-                if (subsContainer) {
-                    const nodeNum = nodeId.replace(/\D/g, '');
-                    const recIdx = nextUnmastered ? subs.findIndex(s => s.id === nextUnmastered.id) : 0;
-                    const showIdx = (this.selectedSub && this.selectedSub.nodeId === nodeId) ? this.selectedSub.index
-                        : (this.selectedNode === nodeId ? recIdx : -1);
-                    subsContainer.innerHTML = subs.map((sub, idx) => {
-                        const isDone = mastered.includes(sub.id);
-                        const isCurrent = !isDone && sub.id === (nextUnmastered ? nextUnmastered.id : null);
-                        const dotClass = isDone ? 'st-sub-dot done' : (isCurrent ? 'st-sub-dot current' : 'st-sub-dot');
-                        const subLabel = nodeNum + String.fromCharCode(97 + idx);
-                        const dotContent = isDone ? '✓' : subLabel;
-                        // Farbliche Progression: zunehmend dunkler je weiter fortgeschritten
-                        const t = subs.length > 1 ? idx / (subs.length - 1) : 0;
-                        const borderLightness = Math.round(82 - t * 30); // 82% → 52%
-                        const progressColor = `hsl(192, 50%, ${borderLightness}%)`;
-                        const progressStyle = isDone ? '' : ` style="border-color: ${progressColor};"`;
-                        const starCount = scores[sub.id] || 0;
-                        const starsHtml = isDone && starCount > 0
-                            ? `<span class="st-sub-stars">${'★'.repeat(starCount)}${'☆'.repeat(3 - starCount)}</span>`
-                            : '';
-                        return `<div class="st-sub-skill" onclick="quickStart.selectSubSkill('${nodeId}', ${idx}); event.stopPropagation();">
-                            <div class="${dotClass}"${progressStyle}>${dotContent}</div>
-                            <span>${sub.label}</span>
-                            ${starsHtml}
-                        </div>
-                        <div class="st-sub-preview" id="stPrev-${nodeId}-${idx}" style="display:${showIdx === idx ? 'flex' : 'none'};">
-                            <span class="st-sub-preview-text">${sub.preview || ''}</span>
-                            <button class="st-sub-preview-start" onclick="quickStart.startSub('${nodeId}', ${idx}); event.stopPropagation();">Start</button>
-                        </div>`;
-                    }).join('');
-                    requestAnimationFrame(() => this._drawSubLines(nodeId));
-                }
-            });
-
-            // Connector-Zustände (linear: ton1→ton2)
-            const conn12 = document.getElementById('stConn-ton1-ton2');
-            if (conn12) {
-                const ton1Done = this.nodeSubSkills['ton1'].every(s => (this.progress.einsteiger.mastered || []).includes(s.id));
-                conn12.classList.toggle('mastered', ton1Done);
             }
 
-            // Fork-Connectoren: Stem + Bracket nach ton2
-            const ton2Done = this.nodeSubSkills['ton2'].every(s => (this.progress.aufsteiger.mastered || []).includes(s.id));
-            const forkStem = document.getElementById('stForkStem');
-            const forkBracket = document.getElementById('stForkBracket');
-            if (forkStem) forkStem.classList.toggle('mastered', ton2Done);
-            if (forkBracket) forkBracket.classList.toggle('mastered', ton2Done);
-
-            // Inner-Connector ton3→ton5
-            const conn34 = document.getElementById('stConn-ton3-ton5');
-            if (conn34) {
-                const ton3Done = this.nodeSubSkills['ton3'].every(s => (this.progress.profi.mastered || []).includes(s.id));
-                conn34.classList.toggle('mastered', ton3Done);
+            // Landkarte
+            const view = document.getElementById('skilltreeView');
+            if (view) {
+                view.innerHTML = this._nodeHtml('ton1', next) + this._nodeHtml('ton2', next) +
+                    `<div class="st-pair"><div class="st-pair-label">3 und 4: Reihenfolge egal</div><div class="st-branches">${this._nodeHtml('ton3', next)}${this._nodeHtml('ton4', next)}</div></div>` +
+                    `<div class="st-after">Zum Schluss:</div>` + this._nodeHtml('ton5', next);
             }
+            const count = document.getElementById('stMapCount');
+            if (count) count.textContent = `${totalMastered} von ${totalSubs}`;
 
             // Gesamt-Fortschritt
             const percentage = Math.round((totalMastered / totalSubs) * 100);
             const progressInfo = document.getElementById('stProgressInfo');
             if (progressInfo) {
-                progressInfo.innerHTML = `${totalMastered} von ${totalSubs} Teilkompetenzen gemeistert
+                progressInfo.innerHTML = `${totalMastered} von ${totalSubs} Übungen geschafft
                     <div class="st-progress-bar-bg">
                         <div class="st-progress-bar-fill" id="stProgressFill" style="width: ${percentage}%"></div>
                     </div>`;
             }
-
-            // Auto-select ersten verfügbaren Knoten (nur wenn noch nichts gewählt)
-            if (!this.selectedNode && firstAvailableNode) {
-                this.selectNode(firstAvailableNode);
-            } else if (this.selectedNode) {
-                // Preview + Dot-Auswahl des gewählten Knotens nach Re-Render wiederherstellen
-                const _n = this.selectedNode;
-                const _l = this.nodeToLevel[_n];
-                const _m = this.progress[_l] ? (this.progress[_l].mastered || []) : [];
-                const _s = this.nodeSubSkills[_n] || [];
-                let _i = (this.selectedSub && this.selectedSub.nodeId === _n) ? this.selectedSub.index : _s.findIndex(x => !_m.includes(x.id));
-                if (_i < 0) _i = 0;
-                this._openSubPreview(_n, _i, false);
-            }
         },
 
-        // ---- Skilltree: Knoten auswählen ----
+        _nodeHtml(nodeId, next) {
+            const st = this._nodeState(nodeId);
+            const num = nodeId.replace(/\D/g, '');
+            const isNext = !!next && next.nodeId === nodeId;
+            const open = this._openNodes.has(nodeId);
+            const pct = st.total ? Math.round(st.done / st.total * 100) : 0;
+            const sel = this.selectedSub && this.selectedSub.nodeId === nodeId ? this.selectedSub.index : -1;
+            const rows = st.subs.map((sub, i) => {
+                const d = st.mastered.includes(sub.id);
+                const cur = !d && (sel >= 0 ? i === sel : (isNext && i === next.idx));
+                return `<div class="st-row${d ? ' done' : ''}${cur ? ' cur' : ''}" onclick="quickStart.startSub('${nodeId}', ${i}, 'row')">
+                    <div class="st-dot">${d ? '✓' : this._subCode(nodeId, i)}</div>
+                    <div class="st-row-text">${sub.phrase || sub.label}</div>
+                    ${d ? `<span class="st-row-stars">${this._starsHtml(st.scores[sub.id] || 0)}</span>` : ''}
+                    <button type="button" class="st-go">${d ? 'Noch mal' : (cur ? 'Start' : 'Üben')}</button>
+                </div>`;
+            }).join('');
+            const starSum = st.subs.reduce((a, s) => a + (st.scores[s.id] || 0), 0);
+            const meta = st.allDone
+                ? `<span class="st-tag">Geschafft</span><span class="st-stars">★</span><span>${starSum} von ${st.total * 3} Sternen</span>`
+                : (isNext ? `<span class="st-tag">Hier geht’s weiter</span>` : '') + `<span>${st.done} von ${st.total} Übungen</span>`;
+            const pre = (nodeId === 'ton1' && !st.allDone)
+                ? `<div class="st-pre">Dafür brauchst du: Noten im Violinschlüssel lesen. Noch unsicher? <a href="#" onclick="quickStart.openCrossApp('notentrainer'); return false">Zum Notentrainer ↗</a></div>` : '';
+            return `<div class="st-node${isNext ? ' next' : ''}${open ? ' open' : ''}${st.allDone ? ' done' : ''}" id="stNode-${nodeId}">
+                <div class="st-node-head" onclick="quickStart.selectNode('${nodeId}')">
+                    <div class="st-ring" style="--p:${pct}"><span>${st.allDone ? '✓' : num}</span></div>
+                    <div class="st-node-content"><div class="st-node-name">${this.nodeTitles[nodeId]}</div><div class="st-node-meta">${meta}</div></div>
+                    <div class="st-chev">▾</div>
+                </div>
+                <div class="st-rows">${rows}</div>
+                ${pre}
+            </div>`;
+        },
+
+        // Knoten auf-/zuklappen (Tipp auf den Kopf)
         selectNode(nodeId) {
-            const wrapper = document.getElementById('stNode-' + nodeId);
-            if (!wrapper) return;
-            const node = wrapper.querySelector('.st-node');
-            if (node.classList.contains('locked')) return;
-
-            // Toggle: bereits offen → schließen
-            if (wrapper.classList.contains('expanded')) {
-                wrapper.classList.remove('expanded');
-                node.classList.remove('selected');
-                this.selectedNode = null;
-                this.selectedSub = null;
-                this._updateStartButton();
-                return;
+            if (!this._openNodes) this._openNodes = new Set();
+            if (this._openNodes.has(nodeId)) {
+                this._openNodes.delete(nodeId);
+                if (this.selectedNode === nodeId) { this.selectedNode = null; this.selectedSub = null; }
+            } else {
+                this._openNodes.add(nodeId);
+                this.selectedNode = nodeId;
             }
-
-            // Alle anderen schließen
-            document.querySelectorAll('.st-node.selected').forEach(n => n.classList.remove('selected'));
-            document.querySelectorAll('.st-sub-skill.sub-selected').forEach(s => s.classList.remove('sub-selected'));
-            document.querySelectorAll('.st-node-wrapper.expanded').forEach(w => w.classList.remove('expanded'));
-            this.selectedSub = null;
-
-            // Diesen öffnen
-            node.classList.add('selected');
-            wrapper.classList.add('expanded');
+            this.updateAllProgress();
+        },
+        // Knoten sicher aufklappen (Rückkehr aus dem Quiz)
+        openNode(nodeId) {
+            if (!this._openNodes) this._openNodes = new Set();
+            this._openNodes.add(nodeId);
             this.selectedNode = nodeId;
-
-            this._updateSubDotSelection(nodeId);
-            // Empfohlene (nächste ungemeisterte) Stufe automatisch als Preview öffnen — ohne Tracking
-            const _lvl = this.nodeToLevel[nodeId];
-            const _ms = this.progress[_lvl] ? (this.progress[_lvl].mastered || []) : [];
-            const _sbs = this.nodeSubSkills[nodeId] || [];
-            let _rec = _sbs.findIndex(s => !_ms.includes(s.id));
-            if (_rec < 0) _rec = 0;
-            this._openSubPreview(nodeId, _rec, false);
+            this.updateAllProgress();
         },
-
-        // Verbindungslinien zwischen Sub-Dots zeichnen (braucht sichtbaren Container)
-        _drawSubLines(nodeId) {
-            const subsContainer = document.getElementById('stSubs-' + nodeId);
-            if (!subsContainer) return;
-            const dots = subsContainer.querySelectorAll('.st-sub-dot');
-            // Alte Linie + Connector entfernen
-            subsContainer.querySelectorAll('.st-sub-line, .st-sub-connector').forEach(el => el.remove());
-            if (dots.length < 2) return;
-
-            const first = dots[0];
-            const last = dots[dots.length - 1];
-            const containerRect = subsContainer.getBoundingClientRect();
-            const firstRect = first.getBoundingClientRect();
-            const lastRect = last.getBoundingClientRect();
-            if (firstRect.height === 0) return; // Noch nicht sichtbar
-
-            const lineLeft = firstRect.left + firstRect.width / 2 - containerRect.left;
-            const lineTop = firstRect.top + firstRect.height / 2 - containerRect.top;
-            const lineBottom = lastRect.top + lastRect.height / 2 - containerRect.top;
-
-            const line = document.createElement('div');
-            line.className = 'st-sub-line';
-            line.style.left = lineLeft + 'px';
-            line.style.top = lineTop + 'px';
-            line.style.height = (lineBottom - lineTop) + 'px';
-            line.style.transform = 'translateX(-50%)';
-
-            // Farbe: mastered-Abschnitt teal, Rest grau
-            const level = this.nodeToLevel[nodeId];
-            const mastered = this.progress[level] ? this.progress[level].mastered || [] : [];
-            const masteredCount = mastered.length;
-            const totalDots = dots.length;
-            if (masteredCount > 0 && masteredCount < totalDots) {
-                const masteredDot = dots[masteredCount - 1];
-                const masteredRect = masteredDot.getBoundingClientRect();
-                const masteredY = masteredRect.top + masteredRect.height / 2 - containerRect.top;
-                const pct = ((masteredY - lineTop) / (lineBottom - lineTop)) * 100;
-                line.style.background = `linear-gradient(to bottom, #0891b2 ${pct}%, #d1d5db ${pct}%)`;
-            } else if (masteredCount >= totalDots) {
-                line.style.background = '#0891b2';
-            }
-
-            subsContainer.appendChild(line);
-
-            // Offene Preview mit der Verbindungslinie koppeln (Steg; bei letzter Stufe als Elbow)
-            const openPv = Array.from(subsContainer.querySelectorAll('.st-sub-preview'))
-                .find(p => p.style.display !== 'none' && p.offsetHeight > 0);
-            if (openPv) {
-                const pvRect = openPv.getBoundingClientRect();
-                const pvCenterY = pvRect.top + pvRect.height / 2 - containerRect.top;
-                const pvLeftX = pvRect.left - containerRect.left;
-                if (pvCenterY > lineBottom) {
-                    // Preview liegt unterhalb des letzten Punkts → Linie bis dorthin verlängern
-                    const ext = document.createElement('div');
-                    ext.className = 'st-sub-connector';
-                    ext.style.position = 'absolute';
-                    ext.style.left = lineLeft + 'px';
-                    ext.style.top = lineBottom + 'px';
-                    ext.style.width = '0.125rem';
-                    ext.style.height = (pvCenterY - lineBottom) + 'px';
-                    ext.style.background = '#d1d5db';
-                    ext.style.transform = 'translateX(-50%)';
-                    ext.style.zIndex = '0';
-                    ext.style.pointerEvents = 'none';
-                    subsContainer.appendChild(ext);
-                }
-                const stub = document.createElement('div');
-                stub.className = 'st-sub-connector';
-                stub.style.position = 'absolute';
-                stub.style.left = lineLeft + 'px';
-                stub.style.top = pvCenterY + 'px';
-                stub.style.width = Math.max(0, pvLeftX - lineLeft) + 'px';
-                stub.style.height = '0.125rem';
-                stub.style.background = '#d1d5db';
-                stub.style.transform = 'translateY(-50%)';
-                stub.style.zIndex = '0';
-                stub.style.pointerEvents = 'none';
-                subsContainer.appendChild(stub);
-            }
-        },
-
-        // ---- Skilltree: Sub-Skill auswählen ----
+        // Übung wählen (ohne Start); Start-Wege rufen danach startFromSkilltree
         selectSubSkill(nodeId, subIndex) {
-            const wrapper = document.getElementById('stNode-' + nodeId);
-            if (!wrapper) return;
-            const alreadyHere = (this.selectedNode === nodeId) && wrapper.classList.contains('expanded');
-            if (!alreadyHere) {
-                // Knoten zu (oder anderer Knoten aktiv) → aufklappen und direkt die geklickte Stufe öffnen
-                if (this.selectedNode !== nodeId) this.selectNode(nodeId);
-                this._openSubPreview(nodeId, subIndex, true);
-                return;
-            }
-            // Knoten ist offen → Toggle: dieselbe Stufe erneut antippen schließt die Preview (Dismiss)
-            if (this.selectedSub && this.selectedSub.nodeId === nodeId && this.selectedSub.index === subIndex) {
-                this._closeSubPreview(nodeId);
-                try {
-                    const sid = (this.nodeSubSkills[nodeId][subIndex] || {}).id || subIndex;
-                    tracker.subskillDismiss({ node: nodeId, subskill: sid });
-                } catch (e) {}
-                return;
-            }
-            this._openSubPreview(nodeId, subIndex, true);
+            if (!this._openNodes) this._openNodes = new Set();
+            this._openNodes.add(nodeId);
+            this.selectedNode = nodeId;
+            this.selectedSub = { nodeId, index: subIndex };
+            this.updateAllProgress();
         },
-
-        // ---- Preview einer Teilkompetenz öffnen (track=true → node_select-Event) ----
-        _openSubPreview(nodeId, idx, track) {
-            const container = document.getElementById('stSubs-' + nodeId);
-            if (!container) return;
-            container.querySelectorAll('.st-sub-preview').forEach(p => p.style.display = 'none');
-            const pv = document.getElementById('stPrev-' + nodeId + '-' + idx);
-            if (pv) pv.style.display = 'flex';
-            this.selectedSub = { nodeId, index: idx };
-            this._updateSubDotSelection(nodeId, idx);
-            requestAnimationFrame(() => this._drawSubLines(nodeId));
-            if (track) {
-                try {
-                    const sid = (this.nodeSubSkills[nodeId][idx] || {}).id || idx;
-                    tracker.nodeSelect({ node: nodeId, subskill: sid });
-                } catch (e) {}
-            }
-        },
-
-        // ---- Preview schließen ----
-        _closeSubPreview(nodeId) {
-            const container = document.getElementById('stSubs-' + nodeId);
-            if (container) container.querySelectorAll('.st-sub-preview').forEach(p => p.style.display = 'none');
-            this.selectedSub = null;
-            this._updateSubDotSelection(nodeId);
-            requestAnimationFrame(() => this._drawSubLines(nodeId));
-        },
-
-        // ---- Inline-Start aus der Preview-Zeile ----
-        startSub(nodeId, idx) {
-            this.selectedSub = { nodeId, index: idx };
+        // Ein Tipp startet: Übungszeile, ihr Knopf oder die Hauptaktion
+        startSub(nodeId, idx, where) {
+            this.selectSubSkill(nodeId, idx);
+            try {
+                const sid = (this.nodeSubSkills[nodeId][idx] || {}).id || idx;
+                tracker.nodeSelect({ node: nodeId, subskill: sid, where: where || null });
+            } catch (e) {}
             this.startFromSkilltree();
         },
 
-        // ---- Start-Button aktualisieren ----
-        _updateStartButton() {
-            const btn = document.getElementById('stStartBtn');
-            const hint = document.getElementById('stHelpHint');
-            if (!btn || !this.selectedNode) return;
-
-            const nodeId = this.selectedNode;
-            const level = this.nodeToLevel[nodeId];
-            const subs = this.nodeSubSkills[nodeId];
-            const mastered = this.progress[level].mastered || [];
-            const allMastered = subs.every(s => mastered.includes(s.id));
-
-            if (this.selectedSub && this.selectedSub.nodeId === nodeId) {
-                // Manuell gewählte Teilkompetenz
-                const sub = subs[this.selectedSub.index];
-                btn.textContent = sub.label.split('(')[0].trim() + ' starten';
-                hint.textContent = 'Teilkompetenz manuell gewählt';
-            } else if (allMastered) {
-                const nodeName = document.querySelector('#stNode-' + nodeId + ' .st-node-name').textContent;
-                btn.textContent = nodeName + ' wiederholen';
-                hint.textContent = 'Bereits gemeistert — zum Auffrischen';
-            } else {
-                const nextUnmastered = subs.find(s => !mastered.includes(s.id));
-                const nodeName = document.querySelector('#stNode-' + nodeId + ' .st-node-name').textContent;
-                btn.textContent = nodeName + ' starten';
-                hint.textContent = nextUnmastered ? 'Nächste Teilkompetenz: ' + nextUnmastered.label.split('(')[0].trim() : '';
-            }
-        },
-
-        // ---- Cross-App Link ----
         openCrossApp(trainer) {
             window.location.href = trainer + '.html';
-        },
-
-        // ---- Sub-Dot Selektion: Dot wandert zur gewählten Sub-Skill ----
-        _updateSubDotSelection(nodeId, selectedIndex) {
-            const wrapper = document.getElementById('stNode-' + nodeId);
-            if (!wrapper) return;
-            const dots = wrapper.querySelectorAll('.st-sub-dot');
-            const level = this.nodeToLevel[nodeId];
-            const subs = this.nodeSubSkills[nodeId];
-            const mastered = this.progress[level].mastered || [];
-
-            const recommendedIdx = subs.findIndex(s => !mastered.includes(s.id));
-            const activeIdx = (selectedIndex !== undefined) ? selectedIndex : Math.max(0, recommendedIdx);
-
-            dots.forEach((dot, idx) => {
-                const isDone = mastered.includes(subs[idx].id);
-                if (isDone) return;
-                dot.classList.remove('current');
-                if (idx === activeIdx) {
-                    dot.classList.add('current');
-                }
-            });
         },
 
         // ---- Sterne-Score speichern ----
@@ -4788,7 +4170,7 @@
             document.getElementById('appTitle').textContent = 'Tonleitertrainer';
             this.updateAllProgress();
             this.showQuickStart();
-            if (lastNode) this.selectNode(lastNode);
+            if (lastNode) this.openNode(lastNode);
         },
 
         // ---- Start from Skilltree ----
