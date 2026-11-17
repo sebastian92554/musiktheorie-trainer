@@ -1618,6 +1618,10 @@
         /* „Ausführlich nachlesen“ aus dem Feld: Lernkarte über dem Feld-Fenster, nicht dahinter */
         body.wq-open .lernkarte-overlay { z-index: 2100; }
         #successMessage .wq-panel { margin-top: 14px; }
+        /* Mit Fehler-Kästen so breit wie das Woran-Feld: Seitenränder von Endbildschirm und Karte schmaler
+           (sonst gehen auf dem Handy je Seite gut 40 px mehr verloren; ältere Browser ohne :has behalten die Ränder) */
+        .success-container:has(#successMessage .es-boxes) { padding-left: 4px; padding-right: 4px; }
+        #successMessage:has(.es-boxes) { padding: 14px 10px; }
         /* .success-stats p (violett) gilt im Feld nicht: Feldschrift wie in Liste und Hilfen */
         #successMessage .wq-panel p { font-size: inherit; color: inherit; }
         #successMessage .wq-panel .wq-sub { color: #5b21b6; font-size: 0.88rem; margin: 12px 0 6px; }

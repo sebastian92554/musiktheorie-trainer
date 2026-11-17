@@ -1878,6 +1878,10 @@
         body.wq-open #feedback, body.wq-open #qzFeedback, body.wq-open #helpBtn { display: none !important; }
         /* Endbildschirm „Noch nicht ganz“: Dialog „Woran lag es?“ und Fehlerliste als Bild-Kästen */
         #successMessage .wq-panel { margin-top: 14px; }
+        /* Mit Fehler-Kästen so breit wie das Woran-Feld: Seitenränder von Endbildschirm und Karte schmaler
+           (sonst gehen auf dem Handy je Seite gut 40 px mehr verloren; ältere Browser ohne :has behalten die Ränder) */
+        .success-container:has(#successMessage .es-boxes) { padding-left: 4px; padding-right: 4px; }
+        #successMessage:has(.es-boxes) { padding: 14px 10px; }
         #successMessage .wq-panel p { font-size: inherit; color: inherit; }
         #successMessage .wq-panel .wq-sub { color: #155e75; font-size: 0.88rem; margin: 12px 0 6px; }
         .wq-chat { display: flex; flex-direction: column; gap: 8px; }
@@ -1927,11 +1931,13 @@
         .wq-panel .es-task svg { max-height: 130px; }
         .wq-panel .es-ul { font-size: 0.9rem; text-align: center; margin: 2px 0 0; }
         .wq-panel .es-boxes { margin: 6px 0 14px; }
-        /* Quintenzirkel: beide Versuche nebeneinander, Zirkel klein, Satz darunter */
-        .wq-panel .es-boxes.es-two { display: grid; grid-template-columns: 1fr 1fr; }
-        .wq-panel .es-two > .es-tt, .wq-panel .es-two > .es-task { grid-column: 1 / -1; }
-        .wq-panel .es-qzb .qz-visual { margin: 0; }
-        .wq-panel .es-qzb svg.es-qz { width: 100%; max-width: 160px; margin: 0 auto; }
+        /* Quintenzirkel (Feld und Endbildschirm): Kästen nebeneinander, Zirkel klein, Satz darunter */
+        .es-boxes.es-two { display: grid; grid-template-columns: 1fr 1fr; }
+        .es-two > .es-tt, .es-two > .es-task { grid-column: 1 / -1; }
+        .es-box .qz-visual { margin: 0; }
+        .es-box svg.es-qz { width: 100%; max-width: 160px; margin: 0 auto; }
+        #successMessage .es-box .es-ul, .es-all .es-box .es-ul { font-size: 0.9rem; text-align: center; margin: 2px 0 0; }
+        #successMessage .es-box .es-n, .es-all .es-box .es-n { font-size: 0.78rem; font-weight: 700; color: #6b7280; margin: 0 0 4px; }
         .wq-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 12px; }
         .wq-overlay .wq-panel { margin: 0; width: 100%; max-height: 88vh; overflow-y: auto; animation: none; }
         body.wq-open .lernkarte-overlay { z-index: 2100; }
@@ -3206,7 +3212,7 @@
         const steps = one && two[0].mode === 'name' && two[1].mode === 'mark';
         const line = x => x.fpic ? '' : `<p class="es-ul">Du hast ${x.uhtml} ${x.verb}.</p>`;
         const box = (h, x, img) => {
-            const qz = /<svg width="370" height="310"/.test(x.own || '');
+            const qz = isQz(x.own);
             return `<div class="es-box${qz ? ' es-qzb' : ''}"><p class="es-n">${h}</p>${img || ''}${qz ? qzSmall(x.own) : x.own || ''}${line(x)}</div>`;
         };
         let cases;
@@ -3223,7 +3229,7 @@
         }
         const head = steps ? 'Deine beiden Schritte:' : one ? 'Deine beiden Versuche:' : 'Deine beiden Aufgaben:';
         // Zwei Quintenzirkel nebeneinander (untereinander bliebe neben dem kurzen Satz viel leere Fläche)
-        const qz2 = two.every(x => /<svg width="370" height="310"/.test(x.own || ''));
+        const qz2 = two.every(x => isQz(x.own));
         return `<p class="es-head">${head}</p><div class="es-boxes${qz2 ? ' es-two' : ''}">${fitPics(cases)}</div>`;
     }
     // Bilder nicht auf Kastenbreite strecken (.es-box svg { width: 100% }): Tastaturen und Vorzeichen-Reihe
@@ -3232,6 +3238,7 @@
         return html
             .replace(/<svg class="wq-kbsvg" viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) /g, (m, x, y, w) => `<svg class="wq-kbsvg" style="width:${Math.round(w / 24 * 21)}px; max-width:100%" viewBox="${x} ${y} ${w} `);
     }
+    const isQz = svg => /<svg (class="es-qz" )?width="(370|316)" height="310"/.test(svg || '');
     // Quintenzirkel im Feld klein: leere Ränder abschneiden (Kreis mit Pfeilen x 22–338),
     // Schrift größer, damit sie bei etwa 150 px lesbar bleibt
     function qzSmall(svg) {
@@ -3394,7 +3401,10 @@
     function endPic(c, at) {
         try {
             const sc = app.currentScale;
-            if (c.mode === 'qz' || !sc) return '';
+            // Quintenzirkel-Übungen: dieselben Bilder wie im Feld (Zirkel, Vorzeichen-Reihe, Enharmonik-Tastatur),
+            // darüber die Frage, darunter die eigene Antwort
+            if (c.mode === 'qz') return at.own ? `<p class="es-n">${at.task}</p>${isQz(at.own) ? qzSmall(at.own) : fitPics(at.own)}<p class="es-ul">Du hast ${at.uhtml} ${at.verb}.</p>` : '';
+            if (!sc) return '';
             if (c.mode === 'ton1') {
                 const i = app.currentPairIndex, m1 = noteToMidi(sc.notes[i], sc.octaves[i]), m2 = noteToMidi(sc.notes[i + 1], sc.octaves[i + 1]);
                 // Töne der Aufgabe blau, an der Klammer die eigene Antwort rot als Frage („Halbton?“) – nicht die Lösung
@@ -3466,7 +3476,8 @@
         xs.forEach(x => cnt[x.kind] = (cnt[x.kind] || 0) + 1);
         const firsts = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).map(k => xs.find(x => x.kind === k));
         const order = firsts.concat(xs.filter(x => !firsts.includes(x)));
-        return '<p class="es-head"></p><div class="es-boxes">'
+        const qz2 = xs.length > 1 && xs.every(x => isQz(x.pic));
+        return `<p class="es-head"></p><div class="es-boxes${qz2 ? ' es-two' : ''}">`
             + order.map(x => `<div class="es-box">${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div>'
             + '<button class="es-more" onclick="woranPanel.endAll()"></button>';
     }
