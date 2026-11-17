@@ -5563,8 +5563,14 @@ Gerät:
                     additionContainer.classList.add('hidden');
                     quickStart.showTaskInstruction('Welche Rhythmussilbe hat die markierte Note? Gib die Silbe ein.');
                     inputLabel.textContent = 'Rhythmussilbe der markierten Note:';
-                    inputHint.textContent = 'Mögliche Silben: "du" (Grundschlag), "dei" (und), "te" (e/te)';
-                    startInput.placeholder = 'du, dei oder te';
+                    // Mit Triolen (4d, 4e) kommen „da“ und „di“ dazu, sonst fehlt der Hinweis genau dort, wo er gebraucht wird
+                    if (this.settings.includeTriplets) {
+                        inputHint.textContent = 'Mögliche Silben: "du" (Grundschlag), "dei" (und), "te" (e/te); in der Triole "du", "da", "di"';
+                        startInput.placeholder = 'du, dei, te, da oder di';
+                    } else {
+                        inputHint.textContent = 'Mögliche Silben: "du" (Grundschlag), "dei" (und), "te" (e/te)';
+                        startInput.placeholder = 'du, dei oder te';
+                    }
                 } else if (this.settings.taskType === 'time-signature-id') {
                     // Taktarten-Erkennung
                     inputCard.classList.add('hidden');
