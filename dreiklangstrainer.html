@@ -2799,7 +2799,7 @@
                 if (k === 'ton' || k === 'tonhilf') {
                     const x = two.find(y => y.kind === k);
                     if (k === 'tonhilf') add(`Unsicher bei Hilfslinien ${x.pos <= -2 ? 'unter' : 'über'} dem System?`, 'Hilfslinien zählen wie die Linien im System: Linie und Zwischenraum wechseln sich ab. Zähle von der nächsten Linie des Systems Schritt für Schritt weiter.', 'nt:hilfslinien');
-                    else add(bass ? 'Unsicher im Bassschlüssel?' : 'Unsicher im Violinschlüssel?', bass ? 'Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten.' : 'Anker ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet.', bass ? 'nt:noten2_basis' : 'nt:basis');
+                    else add(bass ? 'Unsicher im Bassschlüssel?' : 'Unsicher im Violinschlüssel?', bass ? 'Von der F-Linie aus abzählen (4. Linie von unten, zwischen den beiden Punkten).' : 'Von der G-Linie aus abzählen (2. Linie von unten, um sie windet sich der Schlüssel).', bass ? 'nt:noten2_basis' : 'nt:basis');
                     add('Unsicher, wo die Töne auf der Tastatur liegen?', 'Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.', 'nt:noten3_basis');
                 }
                 if (k === 'tonvz') {
@@ -2823,7 +2823,7 @@
                 if (k === 'gt') {
                     if (a.ch && a.ch.inversion > 0) add('Unsicher, wo der Grundton steht?', 'Suche die Quarte: Bei einer Terz liegen beide Töne auf Linien oder beide in Zwischenräumen, bei der Quarte einer auf einer Linie, einer im Zwischenraum. Der obere Ton der Quarte ist der Grundton.', 'drei4_basis');
                     else {
-                        add(bass ? 'Unsicher im Bassschlüssel?' : 'Unsicher im Violinschlüssel?', bass ? 'Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten.' : 'Anker ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet.', bass ? 'nt:noten2_basis' : 'nt:basis');
+                        add(bass ? 'Unsicher im Bassschlüssel?' : 'Unsicher im Violinschlüssel?', bass ? 'Von der F-Linie aus abzählen (4. Linie von unten, zwischen den beiden Punkten).' : 'Von der G-Linie aus abzählen (2. Linie von unten, um sie windet sich der Schlüssel).', bass ? 'nt:noten2_basis' : 'nt:basis');
                     }
                 }
                 if (k === 'gtvz') add('Unsicher bei den Vorzeichennamen?', `Mit ${SHARP} hängst du „is“ an, mit ${FLAT} „es“. Ausnahmen: Es, As, B.`, 'nt:vorzeichen');
@@ -2975,7 +2975,7 @@
 
             panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div><div class="wq-bub wq-bub-u">${label}</div>`
                 + `<div class="wq-bub">${[rel, gap ? 'Auffällig ist jedoch: ' + cmp : cmp].filter(Boolean).join(' ')}</div></div>`
-                + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                + (asks.length ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
                 + '<button class="wq-go">Weiter üben</button>';
             panel.querySelector('.wq-go').onclick = closePanel;
             panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
@@ -3195,7 +3195,7 @@
         function endAll() {
             const ov = document.createElement('div');
             ov.className = 'es-all';
-            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieses Durchgangs</b><button class="es-x" aria-label="Schließen">×</button></div>'
+            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieser Übung</b><button class="es-x" aria-label="Schließen">×</button></div>'
                 + '<div class="es-all-g">' + endXs.map((x, i) => `<div class="es-box"><p class="es-n">${i + 1}. Fehler</p>${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div></div>';
             ov.onclick = e => { if (e.target === ov || e.target.classList.contains('es-x')) ov.remove(); };
             document.body.appendChild(ov);
@@ -3264,10 +3264,10 @@
         // Liste: [Knoten, Index, Knopftext, Sache für den Tipp]
         function endRecoItems(kinds, by, c) {
             const aug = c.opts.includes('augmented') || c.opts.includes('augdim');
-            const HS = ['drei2', aug ? 2 : 0, 'Halbtonschritte zählen üben', 'das Zählen der Halbtonschritte'];
-            const T = { ton: ['drei1', 0, 'Töne finden üben', 'das Finden der Töne'], tonhilf: ['drei1', 2, 'Töne in hoher und tiefer Lage üben', 'die Töne auf Hilfslinien'],
+            const HS = ['drei2', aug ? 2 : 0, 'Halbtonschritte zählen üben', 'die Halbtonschritte'];
+            const T = { ton: ['drei1', 0, 'Töne finden üben', 'die Töne auf der Tastatur'], tonhilf: ['drei1', 2, 'Töne in hoher und tiefer Lage üben', 'die Töne auf Hilfslinien'],
                 tonvz: ['drei1', 1, 'Töne mit Vorzeichen üben', 'die Töne mit Vorzeichen'], hs1: HS, hs2: HS, rolle: HS, art: HS,
-                gt: ['drei3', 0, 'Dreiklänge benennen üben', 'das Benennen in der Grundstellung'], gtvz: ['drei3', 1, 'Benennen mit Vorzeichen üben', 'die Grundtöne mit Vorzeichen'],
+                gt: ['drei3', 0, 'Dreiklänge benennen üben', 'die Namen in der Grundstellung'], gtvz: ['drei3', 1, 'Benennen mit Vorzeichen üben', 'die Grundtöne mit Vorzeichen'],
                 stellung: ['drei4', 0, 'Umkehrungen erkennen üben', 'das Erkennen der Umkehrungen'], lage: ['drei4', 0, 'Umkehrungen erkennen üben', 'das Erkennen der Umkehrungen'] };
             const cur = quickStart.selectedSub || {};
             const cnt = {};
@@ -3279,17 +3279,17 @@
         }
         function endRecos(items) {
             return items.map(([node, idx, label]) => `<button class="reco-item" onclick="quickStart.selectedNode='${node}'; quickStart.selectedSub={ nodeId: '${node}', index: ${idx} }; quickStart.startFromSkilltree()">${label}</button>`).join('')
-                + '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                + '<button class="reco-item" onclick="quickStart.retry()">Erklärung lesen und noch einmal üben</button>';
         }
         // Tipp für den nächsten Schritt: die Grundlage erst gezielt üben, sonst die Lernkarte
         function endTip(kinds, by, items, c) {
             const it = items[0];
-            if (it) return `Übe vor dem nächsten Durchgang erst ${it[3]}. Dafür gibt es unten den Knopf „${it[2]}“.`;
-            const P = { ton: 'das Ablesen der Töne', tonhilf: 'die Hilfslinien', tonvz: 'die Vorzeichen', hs1: 'den Abstand Grundton–Terzton', hs2: 'den Abstand Terzton–Quintton',
+            if (it) return `Übe erst noch einmal ${it[3]}, bevor du diese Übung wiederholst. Dafür gibt es unten den Knopf „${it[2]}“.`;
+            const P = { ton: 'die Töne im Notensystem', tonhilf: 'die Hilfslinien', tonvz: 'die Vorzeichen', hs1: 'den Abstand Grundton–Terzton', hs2: 'den Abstand Terzton–Quintton',
                 art: c.mode === 'hs' || bildenMode(c) ? 'das Muster von Dur und Moll' : 'die Art', gt: 'den Grundton', gtvz: 'das Vorzeichen des Grundtons', stellung: 'die Stellung',
                 rolle: 'die Halbtonschritte zwischen den Tönen', rollevz: 'die Vorzeichen', schreib: 'die Schreibweise', lage: 'die Stellung' };
-            if (by[kinds[0]].length >= 2) return `Lies vor dem nächsten Durchgang die Lernkarte noch einmal und achte dabei besonders auf ${P[kinds[0]]}.`;
-            return 'Lies vor dem nächsten Durchgang die Lernkarte noch einmal und prüf jede Antwort, bevor du sie abschickst.';
+            if (by[kinds[0]].length >= 2) return `Lies die Erklärung noch einmal, bevor du die Übung wiederholst, und achte dabei besonders auf ${P[kinds[0]]}.`;
+            return 'Lies die Erklärung noch einmal und prüf jede Antwort, bevor du sie abschickst.';
         }
         // Ersetzt Nachricht und Empfehlungen des Endbildschirms; false, wenn keine Fehler festgehalten sind
         function endScreen(msg, rec) {
@@ -3375,7 +3375,7 @@
                     + `<div class="wq-bub wq-bub-u">${labels.join('<br>')}</div>`
                     + `<div class="wq-bub">${[rel.join(' '), concl && gap ? 'Auffällig ist jedoch: ' + concl : concl].filter(Boolean).join(' ')}</div>`
                     + `<div class="wq-bub">${endTip(kinds, by, items, c)}</div></div>`
-                    + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asksHtml}</div>` : '')
+                    + (asks.length ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asksHtml}</div>` : '')
                     + '</div>';
                 endFit(msg);
                 rec.innerHTML = endRecos(items);
@@ -3582,7 +3582,7 @@
                 },
                 ons: {
                     name: 'Notensystem-Orientierung',
-                    why: 'das Ablesen und Setzen der Töne im Notensystem noch nicht sicher ist',
+                    why: 'du die Töne im Notensystem noch nicht sicher abliest und setzt',
                     tip: 'Das Notensystem-Lesen ist eine Grundlage aus dem Notentrainer — übe es dort, bevor du Akkorde im Notensystem bildest.',
                     counter: null,
                     cta: 'Notensystem im Notentrainer üben',
@@ -3598,7 +3598,7 @@
                 },
                 hs: {
                     name: 'Halbtonschritte zählen',
-                    why: 'das Zählen der Halbtonschritte zwischen den Akkordtönen noch nicht sicher sitzt',
+                    why: 'du die Halbtonschritte zwischen den Akkordtönen noch nicht sicher zählst',
                     tip: 'Halbtonschritte zählen ist eine Grundlage aus dem Intervalltrainer — übe sie dort, bevor du daraus Akkord-Patterns ableitest.',
                     counter: 'akkordtyp',
                     cta: 'Halbtonschritte im Intervalltrainer üben',
@@ -4780,7 +4780,7 @@
                         const tg = ax.target(quickStart.currentLevel);
                         recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
                     });
-                    recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                    recos += '<button class="reco-item" onclick="quickStart.retry()">Erklärung lesen und noch einmal üben</button>';
                     _rec.innerHTML = recos;
                     // Mit festgehaltenen Fehlern: Fehlerliste → „Woran lag es?“ → Befund (ersetzt Nachricht und Empfehlungen)
                     woranPanel.endScreen(_msg, _rec);
@@ -4913,10 +4913,10 @@
             _cardHintHtml(subSkillId) {
                 const b = this._cardHintBucket(subSkillId);
                 if (b === 'skip') {
-                    return '<div class="gf-axis"><p>Du hast die Lernkarte sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Erklärung sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 if (b === 'short') {
-                    return '<div class="gf-axis"><p>Du hast die Lernkarte nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Erklärung nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 return '';
             },
@@ -10417,7 +10417,7 @@ const _lernkartenContent = {
                         }
                     }
                     if (!html) {
-                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% (8 von 10) gilt die Teilkompetenz als bestanden. Beim Überspringen: 90% (9 von 10).</p>';
+                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% (8 von 10) gilt die Übung als bestanden. Beim Überspringen: 90% (9 von 10).</p>';
                     }
                     contentEl.innerHTML = html;
 
@@ -10441,8 +10441,8 @@ const _lernkartenContent = {
                     contentEl.innerHTML = `
                         <p>Willkommen im <strong>Dreiklangstrainer</strong>! Hier lernst du Schritt für Schritt, Dreiklänge zu erkennen und zu benennen.</p>
                         <p><strong>So funktioniert's:</strong></p>
-                        <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
-                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10) gilt eine Teilkompetenz als bestanden. Beim Überspringen von Stufen brauchst du 90% (9 von 10). Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+                        <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Übungen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Übung anklicken.</p>
+                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10) gilt eine Übung als bestanden. Beim Überspringen von Stufen brauchst du 90% (9 von 10). Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
                         <p><strong>Dreiklang-Arten:</strong> Dur (hell), Moll (dunkel), Übermäßig (spannungsvoll), Vermindert (angespannt).</p>
                     `;
                 }
