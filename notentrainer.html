@@ -4785,7 +4785,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Welcher Ton liegt im Zwischenraum direkt über der G-Linie?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Lies die Note ab, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteNotensystem('treble', [{ name: 'A', octave: 'eingestrichen', label: '' }]); },   // dasselbe Bild wie im Quiz: eine Note im Notensystem
                         choices: [{ t: "A", ok: true }, { t: "H" }, { t: "F" }, { t: "G" }],
                         ok: "Genau. Ein Platz weiter, ein Ton weiter.",
                         nope: "Zähle von der G-Linie aus: Der nächste Platz ist der Zwischenraum darüber, und die Reihe geht genau einen Ton weiter."
@@ -4824,7 +4825,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: c' steht auf der 1. Hilfslinie unter dem System. Welcher Ton liegt im Zwischenraum direkt darunter?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Lies die Note ab, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteNotensystem('treble', [{ name: 'H', octave: 'klein', label: '' }]); },   // dasselbe Bild wie im Quiz: eine Note im Notensystem
                         choices: [{ t: "h", ok: true }, { t: "a" }, { t: "d'" }, { t: "c" }],
                         ok: "Genau. Abwärts läuft die Reihe rückwärts: c', h, a …",
                         nope: "Ein Platz tiefer ist ein Ton tiefer. Welcher Ton kommt in der Reihe vor dem C?"
@@ -4844,7 +4846,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Ein A liegt im 2. Zwischenraum, also unter dem c'' im 3. Zwischenraum. In welcher Lage ist es?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Lies die Note ab, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteNotensystem('treble', [{ name: 'A', octave: 'eingestrichen', label: '' }]); },   // dasselbe Bild wie im Quiz: eine Note im Notensystem
                         choices: [{ t: "eingestrichen: a'", ok: true }, { t: "zweigestrichen: a''" }, { t: "klein: a" }],
                         ok: "Genau. Unter dem c'' ist alles noch eingestrichen.",
                         nope: "Die Lage wechselt erst beim c'' im 3. Zwischenraum. Liegt das A darüber oder darunter?"
@@ -4865,7 +4868,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Welcher Ton liegt im Bassschlüssel im Zwischenraum direkt unter der F-Linie?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Lies die Note ab, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteNotensystem('bass', [{ name: 'E', octave: 'klein', label: '' }]); },   // dasselbe Bild wie im Quiz: eine Note im Notensystem
                         choices: [{ t: "E", ok: true }, { t: "G" }, { t: "D" }, { t: "A" }],
                         ok: "Genau. Ein Platz tiefer, ein Ton tiefer.",
                         nope: "Zähle von der F-Linie aus abwärts: Welcher Ton kommt in der Reihe vor dem F?"
@@ -4906,7 +4910,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: c' steht auf der 1. Hilfslinie über dem Bassschlüssel-System. Welcher Ton liegt auf der 2. Hilfslinie darüber?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Lies die Note ab, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteNotensystem('bass', [{ name: 'E', octave: 'eingestrichen', label: '' }]); },   // dasselbe Bild wie im Quiz: eine Note im Notensystem
                         choices: [{ t: "e'", ok: true }, { t: "d'" }, { t: "f'" }, { t: "c''" }],
                         ok: "Genau. Zwischenraum d', nächste Hilfslinie e'.",
                         nope: "Zwischen zwei Hilfslinien liegt ein Zwischenraum: Von c' aus sind es zwei Plätze, also zwei Töne weiter."
@@ -4926,7 +4931,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Ein A liegt im 1. Zwischenraum, also unter dem kleinen c im 2. Zwischenraum. In welcher Lage ist es?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Lies die Note ab, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteNotensystem('bass', [{ name: 'A', octave: 'gross', label: '' }]); },   // dasselbe Bild wie im Quiz: eine Note im Notensystem
                         choices: [{ t: "große Oktave: A", ok: true }, { t: "kleine Oktave: a" }, { t: "eingestrichen: a'" }],
                         ok: "Genau. Unter dem kleinen c ist alles groß.",
                         nope: "Die Lage wechselt beim c im 2. Zwischenraum. Liegt das A darüber oder darunter?"
@@ -4967,7 +4973,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Welche Taste ist Eis?",
-                        sub: "Vom Stammton E eine Taste weiter.",
+                        sub: "Vom Stammton E eine Taste weiter. Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1 }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "die weiße Taste F", ok: true }, { t: "die schwarze Taste rechts von E" }, { t: "die weiße Taste E" }, { t: "die schwarze Taste links von E" }],
                         ok: "Genau. Zwischen E und F liegt keine schwarze Taste, also ist Eis die Taste F.",
                         nope: "Von E eine Taste nach rechts. Liegt dort überhaupt eine schwarze Taste?"
@@ -5006,7 +5013,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Im Violinschlüssel steht eine Note auf der 1. Hilfslinie unter dem System. Welche Taste ist das?",
-                        sub: "Von der nächsten bekannten Note abzählen, dann die Lage.",
+                        sub: "Lies die Note ab wie gleich in der Übung, dann die Lage.",
+                        visual() { return this.renderLernkarteNotensystem('treble', [{ name: 'C', octave: 'eingestrichen', label: '' }]); },   // dasselbe Bild wie im Quiz: eine Note im Notensystem
                         choices: [{ t: "c'", ok: true }, { t: "c" }, { t: "c''" }, { t: "a" }],
                         ok: "Genau. Unter e' auf der 1. Linie kommt d' im Zwischenraum, dann c' auf der Hilfslinie.",
                         nope: "Zähle vom tiefsten Ton im System, e' auf der 1. Linie, abwärts: Zwischenraum, dann die Hilfslinie."
