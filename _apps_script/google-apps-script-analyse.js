@@ -583,6 +583,74 @@ function runAnalyse() {
   push('  Lesehilfe Modus', 'Pflicht = Modal vor Quiz-Start; freiwillig = manuell im Skilltree');
   push('');
 
+  // SCHRITT 0 (seit 17.11.2026): Pflichtkarte vor der ersten Aufgabe im Fluss statt als Overlay,
+  // mit Kontrollfrage. card_dismiss trägt dann step: true und tries (Versuche an der Kontrollfrage;
+  // 0 = Schritt ohne Antwort verlassen, über „Zurücksetzen“ oder „Lernpfad“).
+  // Liest der Schüler die Karte? Verweildauer-Buckets wie oben, dazu: erste Antwort richtig?
+  push('— SCHRITT 0: Karte vor der ersten Aufgabe (card_dismiss mit step, alle Segmente) —');
+  const stB = {};   // trainer · nodeId → {ms[], skip, short, read, t1, t2, t3, t0}
+  const stTot = { step: { ms: [], skip: 0, short: 0, read: 0, t1: 0, t2: 0, t3: 0, t0: 0 }, overlay: { ms: [], skip: 0, short: 0, read: 0 } };
+  sessions.forEach(s => {
+    (s.cdAll || []).forEach(p => {
+      if (!p || !p.fromStart) return;
+      const ms = Number(p.ms_visible) || 0;
+      if (ms <= 0) return;
+      const bucket = d => { d.ms.push(ms); if (ms < CD_SKIP_MS) d.skip++; else if (ms < CD_SHORT_MS) d.short++; else d.read++; };
+      if (!p.step) { bucket(stTot.overlay); return; }   // Pflicht-Overlay (vor dem Umbau) als Vergleich
+      const k = (s.trainer || '?') + ' · ' + (p.nodeId || '?');
+      const b = stB[k] = stB[k] || { ms: [], skip: 0, short: 0, read: 0, t1: 0, t2: 0, t3: 0, t0: 0 };
+      [b, stTot.step].forEach(d => {
+        bucket(d);
+        const t = Number(p.tries) || 0;
+        if (t === 0) d.t0++; else if (t === 1) d.t1++; else if (t === 2) d.t2++; else d.t3++;
+      });
+    });
+  });
+  const stFmt = d => {
+    if (!d.ms.length) return '–';
+    const m = median(d.ms);
+    const n = d.ms.length;
+    return Math.round(m / 100) / 10 + 's | weggekl. ' + d.skip + ' / kurz ' + d.short + ' / gelesen ' + d.read
+      + ' | 1. Antwort richtig ' + _pct(d.t1, n) + '% · 2. ' + _pct(d.t2, n) + '% · 3+ ' + _pct(d.t3, n) + '% · ohne Antwort ' + _pct(d.t0, n) + '% (n=' + n + ')';
+  };
+  if (stTot.step.ms.length) {
+    push('  Alle Trainer · Schritt 0', stFmt(stTot.step));
+    if (stTot.overlay.ms.length) {
+      const o = stTot.overlay, m = median(o.ms);
+      push('  Vergleich · Pflicht-Overlay (vor dem Umbau)', Math.round(m / 100) / 10 + 's | weggekl. ' + o.skip + ' / kurz ' + o.short + ' / gelesen ' + o.read + ' (n=' + o.ms.length + ')');
+    }
+    Object.keys(stB).sort((a, b) => stB[b].ms.length - stB[a].ms.length).forEach(k => push('  ' + k, stFmt(stB[k])));
+  } else push('  (noch keine card_dismiss mit step — Umbau vom 17.11.2026 noch nicht im Einsatz)');
+  push('');
+  push('  Lesehilfe', 'Schritt 0 gelesen ≥5s UND 1. Antwort richtig = Karte wirkt; weggeklickt <2s mit 1. Antwort richtig = Frage ohne Karte lösbar (zu leicht); viele 3+ = Frage unklar');
+  push('');
+
+  // HAUPTAKTION IM SKILLTREE (seit 17.11.2026): node_select trägt where = next (großer Knopf
+  // „Hier geht's weiter“) oder row (Übungszeile im Baum); ohne where = Skilltree vor dem Umbau.
+  push('— HAUPTAKTION IM SKILLTREE (node_select.where, alle Segmente) —');
+  const whereB = {};   // trainer → {next, row, alt}
+  sessions.forEach(s => {
+    (s.evAll || []).forEach(e => {
+      if (e.eventType !== 'node_select') return;
+      const tr = e.trainer || s.trainer || '?';
+      const w = whereB[tr] = whereB[tr] || { next: 0, row: 0, alt: 0 };
+      const p = e.payload || {};
+      if (p.where === 'next') w.next++; else if (p.where === 'row') w.row++; else w.alt++;
+    });
+  });
+  const whereKeys = Object.keys(whereB).sort((a, b) => (whereB[b].next + whereB[b].row) - (whereB[a].next + whereB[a].row));
+  let anyWhere = false;
+  whereKeys.forEach(tr => {
+    const w = whereB[tr], n = w.next + w.row;
+    if (!n) return;
+    anyWhere = true;
+    push('  ' + tr, 'Hauptaktion ' + w.next + ' (' + _pct(w.next, n) + '%) · Übungszeile ' + w.row + ' (' + _pct(w.row, n) + '%)' + (w.alt ? ' · alter Baum ' + w.alt : ''));
+  });
+  if (!anyWhere) push('  (noch keine node_select mit where — neuer Skilltree noch nicht im Einsatz)');
+  push('');
+  push('  Lesehilfe', 'Hoher Anteil Hauptaktion = der Baum wird als Weg gelesen; hoher Anteil Übungszeile = Schüler wählen gezielt (Lehrer-Vorgabe „5a“) oder ignorieren den Knopf');
+  push('');
+
   // LERNKARTEN-DIAGNOSE — „kurz gesehen" × Quiz-Erfolg (Hypothesen-Trennung)
   // 2-5s auf Karte + danach Quiz: Mastery → „kannte es schon"; <80% → „überfordert/abgesprungen".
   // Korreliert pro Session: card_dismiss(fromStart=true) → folgendes quiz_complete für denselben subskill.
@@ -1062,6 +1130,36 @@ function runAnalyse() {
     push('  ' + k, ref[k] + ' (' + _pct(ref[k], org.length) + '%)');
   });
   if (!Object.keys(ref).length) push('  (keine Sessions)');
+  push('');
+
+  // LANDING-SUCHE UND CHIPS (seit 17.11.2026): landing_click mit trainer „Suche“ trägt term (+ key bei
+  // Treffer, miss: true ohne Treffer); Chips auf den Trainer-Karten tragen node/chip; Kurzcodes via: 'hash'.
+  push('— LANDING-SUCHE (landing_click „Suche“, alle Segmente) —');
+  const srchHit = {}, srchMiss = {}, chips = {}, codes = {};
+  sessions.forEach(s => {
+    (s.evAll || []).forEach(e => {
+      if (e.eventType !== 'landing_click') return;
+      const p = e.payload || {};
+      if (e.trainer === 'Suche') {
+        const t = String(p.term || '').trim().toLowerCase();
+        if (!t) return;
+        if (p.miss) srchMiss[t] = (srchMiss[t] || 0) + 1; else srchHit[t] = (srchHit[t] || 0) + 1;
+      } else if (p.via === 'hash') codes[p.code || '?'] = (codes[p.code || '?'] || 0) + 1;
+      else if (p.node) { const ck = p.node + (p.chip ? ' „' + p.chip + '“' : ''); chips[ck] = (chips[ck] || 0) + 1; }
+    });
+  });
+  const topN = (o, n) => Object.keys(o).sort((a, b) => o[b] - o[a]).slice(0, n);
+  const nHit = Object.values(srchHit).reduce((a, b) => a + b, 0), nMiss = Object.values(srchMiss).reduce((a, b) => a + b, 0);
+  push('  Suchen mit Treffer / ohne Treffer', nHit + ' / ' + nMiss);
+  topN(srchMiss, 15).forEach(t => push('  ohne Treffer: ' + t, srchMiss[t]));
+  topN(srchHit, 10).forEach(t => push('  mit Treffer: ' + t, srchHit[t]));
+  if (!nHit && !nMiss) push('  (noch keine Suchen)');
+  push('  Lesehilfe', 'Begriffe ohne Treffer gehören ins Register der Landing (index.html) oder in _entwicklung/BEGRIFFE.md');
+  push('');
+  push('— LANDING-CHIPS UND KURZCODES (landing_click mit node bzw. via hash) —');
+  topN(chips, 12).forEach(k => push('  Chip ' + k, chips[k]));
+  topN(codes, 8).forEach(k => push('  Code #' + k, codes[k]));
+  if (!Object.keys(chips).length && !Object.keys(codes).length) push('  (noch keine Chip- oder Code-Klicks)');
   push('');
 
   // Validitäts-Checks (§5)
