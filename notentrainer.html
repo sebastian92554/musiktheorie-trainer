@@ -1118,14 +1118,16 @@
            wirkt wie ein Cookie-Banner und wird ungelesen weggeklickt. Die Karte steht darum vor der
            ersten Aufgabe dort, wo gleich die Aufgabe steht; am Ende eine Kontrollfrage, erst die
            richtige Antwort gibt „Zur ersten Aufgabe“ frei. Entwurf: _entwicklung/mock_nt_lernkarte_schritt.html */
-        .lk-step { display: none; padding: 18px 20px 20px; border-top: 4px solid #4f46e5; }
+        .lk-step { display: none; padding: 18px max(20px, calc(50% - 260px)) 20px; border-top: 4px solid #4f46e5; }   /* Inhalt höchstens 520 px breit wie die Overlay-Karte, sonst skalieren Bilder mit width=100% auf Containerbreite (Sebo 17.11.2026) */
         .lk-step.active { display: block; }
         .lk-step h2 { font-size: 1.25rem; color: #3730a3; margin-bottom: 12px; }
         .lk-step p { color: #374151; margin-bottom: 8px; line-height: 1.5; font-size: 0.92rem; }
         .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #4f46e5; margin-bottom: 4px; }
         body.lk-step-open .staff-card, body.lk-step-open #keyboardCard, body.lk-step-open #inputCard, body.lk-step-open #keyboardStatus, body.lk-step-open #feedback { display: none !important; }
         body.lk-step-open .input-card .input-actions { margin-top: 0; padding-top: 0; border-top: none; }
-        .lk-check { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        /* Kontrollfrage als eigener Kasten mit Kicker „Probier es gleich aus“, Gegenstück zu „So geht die Übung“ (Sebo 17.11.2026) */
+        .lk-check { margin-top: 16px; padding: 12px 14px 14px; border: 1.5px solid #c7d2fe; border-radius: 10px; background: #eef2ff; }
+        .lk-check .lk-step-kicker { margin-bottom: 6px; }
         .lk-check-q { font-weight: 600; color: #312e81; font-size: 0.95rem; margin-bottom: 4px; }
         .lk-check-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 6px; }
         .lk-check .lk-choice {
@@ -4695,7 +4697,8 @@
                 const go = document.getElementById('lkStepGo');
                 if (chk) {
                     const choices = chk.choices.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
-                    checkEl.innerHTML = `<div class="lk-check-q">${chk.q}</div>` +
+                    const qText = chk.q.replace(/^Kurz geprüft: /, '').replace(/^Kurz geprüft, (.)/, (m, c) => c.toUpperCase());   // Kicker ersetzt den Vorspann
+                checkEl.innerHTML = `<div class="lk-step-kicker">Probier es gleich aus</div><div class="lk-check-q">${qText}</div>` +
                         (chk.sub ? `<div class="lk-check-sub">${chk.sub}</div>` : '') +
                         choices.map(c => `<button type="button" class="lk-choice" data-ok="${c.ok ? 1 : 0}" onclick="app._pickStepChoice(this)">${c.t}</button>`).join('') +
                         '<div class="lk-check-fb" id="lkStepFb"></div>';

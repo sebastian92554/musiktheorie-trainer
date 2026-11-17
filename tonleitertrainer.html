@@ -1564,13 +1564,15 @@
            wirkt wie ein Cookie-Banner und wird ungelesen weggeklickt. Die Karte steht darum vor der
            ersten Aufgabe dort, wo gleich die Aufgabe steht; am Ende eine Kontrollfrage, erst die
            richtige Antwort gibt „Zur ersten Aufgabe“ frei. Entwurf: _entwicklung/mock_tt_lernkarte_schritt.html */
-        .lk-step { display: none; padding: 18px 20px 20px; border-top: 4px solid #0891b2; }
+        .lk-step { display: none; padding: 18px max(20px, calc(50% - 260px)) 20px; border-top: 4px solid #0891b2; }   /* Inhalt höchstens 520 px breit wie die Overlay-Karte, sonst skalieren Bilder mit width=100% auf Containerbreite (Sebo 17.11.2026) */
         .lk-step.active { display: block; }
         .lk-step h2 { font-size: 1.25rem; color: #155e75; margin-bottom: 12px; }
         .lk-step p { color: #374151; margin-bottom: 8px; line-height: 1.5; font-size: 0.92rem; }
         .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0891b2; margin-bottom: 4px; }
         body.lk-step-open #quintenzirkelCard, body.lk-step-open #staffCard, body.lk-step-open #inputCard, body.lk-step-open #keyboardCard { display: none !important; }
-        .lk-check { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        /* Kontrollfrage als eigener Kasten mit Kicker „Probier es gleich aus“, Gegenstück zu „So geht die Übung“ (Vorschlag 17.11.2026) */
+        .lk-check { margin-top: 16px; padding: 12px 14px 14px; border: 1.5px solid #a5f3fc; border-radius: 10px; background: #f0fdff; }
+        .lk-check .lk-step-kicker { margin-bottom: 6px; }
         .lk-check-q { font-weight: 600; color: #164e63; font-size: 0.95rem; margin-bottom: 4px; }
         .lk-check-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 6px; }
         .lk-check .lk-choice {
@@ -8131,7 +8133,8 @@
             const go = document.getElementById('lkStepGo');
             if (chk) {
                 const choices = chk.choices.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
-                checkEl.innerHTML = `<div class="lk-check-q">${chk.q}</div>` +
+                const qText = chk.q.replace(/^Kurz geprüft: /, '').replace(/^Kurz geprüft, (.)/, (m, c) => c.toUpperCase());   // Kicker ersetzt den Vorspann
+                checkEl.innerHTML = `<div class="lk-step-kicker">Probier es gleich aus</div><div class="lk-check-q">${qText}</div>` +
                     (chk.sub ? `<div class="lk-check-sub">${chk.sub}</div>` : '') +
                     choices.map(c => `<button type="button" class="lk-choice" data-ok="${c.ok ? 1 : 0}" onclick="app._pickStepChoice(this)">${c.t}</button>`).join('') +
                     '<div class="lk-check-fb" id="lkStepFb"></div>';
@@ -8658,8 +8661,8 @@
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe „Ganzton“ oder „Halbton“.</div>
                 <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton1_basis')"><summary>Unsicher, ob Ganzton oder Halbton?</summary><div class="lk-ask-a">Liegt auf der Tastatur keine Taste dazwischen, ist es ein Halbtonschritt (E–F, H–C). Liegt eine dazwischen, ein Ganztonschritt (C–D). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton1_basis', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 check: {
-                    q: 'Kurz geprüft, ohne zu hören: Welches Paar ist ein Halbtonschritt?',
-                    sub: 'Tastatur im Kopf: Liegt eine Taste dazwischen?',
+                    q: 'Welches Paar ist ein Halbtonschritt?',
+                    sub: 'Die Halbtonschritte der Stammtöne kennst du aus 1a.',
                     choices: [{ t: 'H–C', ok: true }, { t: 'G–A' }, { t: 'D–E' }, { t: 'A–H' }],
                     ok: 'Genau. H und C sind Nachbartasten.',
                     nope: 'Zwischen diesen beiden liegt eine schwarze Taste.'
@@ -8706,7 +8709,7 @@
                 <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton1_vorzeichen')"><summary>Unsicher bei Vorzeichen?</summary><div class="lk-ask-a">Ein Vorzeichen verschiebt den Ton um eine Taste: E–Fis ist ein Ganzton, Eis–Fis ein Halbton. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton1_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Eis die Taste F und Ces die Taste H: Eis und F sind <strong>enharmonisch</strong> gleich.</div></details></div>`,
                 check: {
                     q: 'Kurz geprüft: Welches Paar ist ein Halbtonschritt?',
-                    sub: 'Vorzeichen zuerst auf der Tastatur suchen.',
+                    sub: 'Erst das Vorzeichen, dann der Abstand.',
                     choices: [{ t: 'Fis–G', ok: true }, { t: 'Fis–Gis' }, { t: 'F–G' }, { t: 'Es–F' }],
                     ok: 'Genau. Fis und G sind Nachbartasten.',
                     nope: 'Fis ist die schwarze Taste rechts von F. Liegt zwischen den beiden Tönen eine Taste?'
@@ -8872,8 +8875,8 @@
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter, z.&nbsp;B. „D-Dur“, oder wähle „Kein Dur/Moll“. Liegst du falsch, erscheint die Tastatur wieder und du markierst die Halbtonschritte.</div>
                 <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 check: {
-                    q: 'Kurz geprüft, ohne Tastatur: Welches Paar ist ein Halbtonschritt?',
-                    sub: 'E–F und H–C sind Halbtonschritte. Ein Vorzeichen verschiebt um eine Taste.',
+                    q: 'Welches Paar ist ein Halbtonschritt?',
+                    sub: 'Diesmal ohne Tastatur, so wie gleich in der Übung.',
                     choices: [{ t: 'Cis–D', ok: true }, { t: 'C–D' }, { t: 'D–E' }, { t: 'G–A' }],
                     ok: 'Genau. Cis liegt direkt neben D.',
                     nope: 'Cis liegt eine Taste rechts von C. Liegt zwischen Cis und D noch eine?'
@@ -8888,7 +8891,7 @@
                 <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 check: {
                     q: 'Kurz geprüft: G, A, H, C, D, E, Fis, G. Wo liegen die Halbtonschritte?',
-                    sub: 'Suche die beiden Nachbartasten-Paare, dann zähle die Stufen.',
+                    sub: 'Denk an E–F, H–C und die Vorzeichen, dann zähle die Stufen.',
                     choices: [{ t: '3–4 und 7–8', ok: true }, { t: '2–3 und 5–6' }, { t: '3–4 und 6–7' }, { t: '1–2 und 4–5' }],
                     ok: 'Genau. H–C und Fis–G, also G-Dur.',
                     nope: 'Welche beiden Paare sind Nachbartasten? Dann zähle, die wievielten Töne das sind.'
