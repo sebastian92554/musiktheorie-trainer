@@ -3543,12 +3543,12 @@
                     target: function () { return { level: 'profi', options: ['basis'] }; }
                 },
                 anzahl: {
-                    name: 'Rahmenintervall / Grobname',
+                    name: 'Rahmenintervall',
                     why: 'der Name des Rahmenintervalls (Sekunde, Terz, …) noch nicht sicher sitzt',
                     tip: 'Es kann aber auch sein, dass die Stammtöne (C, D, E, F, G, A, H) zwischen den beiden Tönen noch nicht sicher abgezählt werden. Übe beides: das Rahmenintervall benennen und die Stammtöne abzählen.',
                     alt: 'das Rahmenintervall noch nicht sicher benannt wird',
                     counter: 'qual',
-                    cta: 'Intervallgröße üben',
+                    cta: 'Rahmenintervall üben',
                     target: function () { return { level: 'einsteiger', options: ['basis'] }; }
                 },
                 qual: {
@@ -3680,7 +3680,7 @@
                     { id: 'bothclefs', label: '+ beide Schlüssel', preview: 'Finden von Intervallen auf der Tastatur in beiden Schlüsseln' }
                 ],
                 'int3': [
-                    { id: 'basis', label: 'Halbtonschritte zählen', preview: 'Bestimmen der Intervallgröße durch Zählen der Halbtonschritte' },
+                    { id: 'basis', label: 'Halbtonschritte zählen', preview: 'Halbtonschritte zählen und so den Abstand bestimmen' },
                     { id: 'augdim', label: '+ übermäßig/vermindert', preview: 'Halbtonschritte zählen bei übermäßigen und verminderten Intervallen' },
                     { id: 'bothclefs', label: '+ beide Schlüssel', preview: 'Halbtonschritte zählen in beiden Schlüsseln' },
                     { id: 'noaudio', label: 'ohne Hörbeispiel', preview: 'Halbtonschritte zählen ohne Hörbeispiel' }
@@ -4763,7 +4763,7 @@
                 if (nextUnmastered) {
                     return `Nächstes Ziel: ${nextUnmastered.label}`;
                 }
-                return 'Alle Teilkompetenzen gemeistert!';
+                return 'Alle Übungen gemeistert!';
             },
 
             markCurrentOptionAsMastered() {
