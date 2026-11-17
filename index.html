@@ -662,7 +662,8 @@
             if (typeof resolveCode === 'function' && resolveCode(q)) { const h = resolveCode(q);
                 box.innerHTML = `<a class="sr-hit" href="${_esc(h.href)}" data-term="${_esc(q)}" data-key="code"><span class="sr-term">Code ${_esc(h.code)}</span><span class="sr-path" style="--tc:${TRAINER_COLOR[h.code.slice(0, 2)]}">${_esc(h.trainer)} › ${_esc(h.label)}</span></a>`; return; }
             const hits = searchTerms(q);
-            if (!hits.length) { box.innerHTML = '<div class="sr-none">Nichts gefunden. Probier ein anderes Wort – oder schau auf die Themen unter den Trainern.</div>'; return; }
+            if (!hits.length) { box.innerHTML = '<div class="sr-none">Nichts gefunden. Probier ein anderes Wort – oder schau auf die Themen unter den Trainern.</div>'; _noteMiss(q); return; }
+            _noteMiss(null);
             const re = new RegExp('(' + _norm(q).split(' ').filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'ig');
             box.innerHTML = hits.map(e => {
                 const t = REGISTER[e[1]];
@@ -671,8 +672,24 @@
                     `<span class="sr-path" style="--tc:${TRAINER_COLOR[e[1]]}">${_esc(t.name)} › ${_esc(e[2])} › ${_esc(e[3])}</span></a>`;
             }).join('');
         }
+        // Erfolglose Suchen (für die Pflege der Begriffsliste): landing_click „Suche“ mit miss: true, wenn ein Begriff ohne Treffer
+        // 1,5 s unverändert stehen bleibt oder das Feld damit verlassen wird; je Begriff nur einmal pro Seitenaufruf.
+        const _missSent = {};
+        let _missTimer = null, _missTerm = null;
+        function _sendMiss() {
+            clearTimeout(_missTimer); _missTimer = null;
+            const t = _missTerm ? _norm(_missTerm) : '';
+            if (t.length >= 3 && !_missSent[t]) { _missSent[t] = 1; _trackLanding('landing_click', 'Suche', { term: _missTerm.trim(), miss: true }); }
+            _missTerm = null;
+        }
+        function _noteMiss(q) {
+            clearTimeout(_missTimer); _missTimer = null;
+            _missTerm = q;
+            if (q) _missTimer = setTimeout(_sendMiss, 1500);
+        }
         const _searchInput = document.getElementById('searchInput');
         _searchInput.addEventListener('input', renderSearch);
+        _searchInput.addEventListener('blur', () => { if (_missTimer) _sendMiss(); });
         _searchInput.addEventListener('focus', renderSearch);
         _searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') { const a = document.querySelector('#searchHits .sr-hit'); if (a) a.click(); } });
         document.addEventListener('click', e => { if (!e.target.closest('.search-box')) document.getElementById('searchHits').innerHTML = ''; });
