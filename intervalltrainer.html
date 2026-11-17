@@ -6002,7 +6002,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Welche Taste ist Des?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1 }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "die schwarze Taste links von D", ok: true }, { t: "die schwarze Taste rechts von D" }, { t: "die weiße Taste D" }, { t: "die weiße Taste C" }],
                         ok: "Genau. „es“ heißt Be, also eine Taste nach links.",
                         nope: "„es“ heißt Be. In welche Richtung geht ein Be?"
@@ -6041,7 +6042,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Wie viele Halbtonschritte sind es von C bis D?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "2", ok: true }, { t: "1" }, { t: "3" }],
                         ok: "Genau. Cis (1), D (2).",
                         nope: "Die Starttaste C zählt nicht mit. Zähle jede Taste danach, auch die schwarze."
@@ -6060,7 +6062,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: C → G sind 7 Halbtonschritte. Wie viele sind es von C → Ges?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "6", ok: true }, { t: "8" }, { t: "7" }],
                         ok: "Genau. Das Be an der oberen Note macht den Abstand einen kleiner.",
                         nope: "Ein Be schiebt die obere Note eine Taste nach links, also näher an das C heran."
@@ -6098,7 +6101,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft, ohne zu hören: Wie viele Halbtonschritte sind es von E bis G?",
-                        sub: "Zähle die Tasten nach dem E bis zum G, jede ist ein Halbtonschritt.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung. Zähle die Tasten nach dem E bis zum G, jede ist ein Halbtonschritt.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "3", ok: true }, { t: "2" }, { t: "4" }],
                         ok: "Genau. F (1), Fis (2), G (3).",
                         nope: "Zwischen E und F liegt keine schwarze Taste, zwischen F und G schon. Zähle jede Taste nach dem E."
@@ -6356,7 +6360,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Reine Quarte von C, welche Taste?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "F", ok: true }, { t: "G" }, { t: "E" }, { t: "Fis" }],
                         ok: "Genau. 5 Halbtonschritte: Cis, D, Dis, E, F.",
                         nope: "Die reine Quarte hat 5 Halbtonschritte. Zähle von C aus jede Taste, auch die schwarzen."
@@ -6375,7 +6380,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Große Terz von C, welche Taste?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "E", ok: true }, { t: "Es" }, { t: "F" }, { t: "Dis" }],
                         ok: "Genau. 4 Halbtonschritte: Cis, D, Dis, E.",
                         nope: "Die große Terz hat 4 Halbtonschritte. Zähle von C aus, schwarze Tasten mit."
@@ -6395,7 +6401,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Verminderte Quinte von C, welche Taste?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "Fis (= Ges)", ok: true }, { t: "G" }, { t: "F" }, { t: "Gis" }],
                         ok: "Genau. 7 − 1 = 6 Halbtonschritte, dieselbe Taste wie die übermäßige Quarte.",
                         nope: "Die reine Quinte hat 7 Halbtonschritte. Vermindert heißt einer weniger."
@@ -6414,7 +6421,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Große Dezime von C, welche Taste?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 2, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "das E über dem nächsten C", ok: true }, { t: "das E direkt über C" }, { t: "das D über dem nächsten C" }, { t: "das F über dem nächsten C" }],
                         ok: "Genau. Eine Oktave hoch, dann die große Terz: E.",
                         nope: "Dezime = Oktave + Terz. Erst zum nächsten C, dann die große Terz weiter."
@@ -6434,7 +6442,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Reine Quarte von D. Welcher Stammton, und braucht er ein Vorzeichen?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "G, ohne Vorzeichen", ok: true }, { t: "G mit Kreuz" }, { t: "A, ohne Vorzeichen" }, { t: "F, ohne Vorzeichen" }],
                         ok: "Genau. 4 Stufen → G, und D bis G sind 5 Halbtonschritte, genau die reine Quarte.",
                         nope: "Erst der Stammton: 4 Stufen über D. Dann zählen: Passen die 5 Halbtonschritte schon ohne Vorzeichen?"
@@ -6452,7 +6461,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Große Terz von E. Welcher Zielton?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "Gis", ok: true }, { t: "G" }, { t: "Ges" }, { t: "A" }],
                         ok: "Genau. 3 Stufen → G; E bis G sind nur 3 Halbtonschritte, die große Terz braucht 4.",
                         nope: "Der Stammton ist G (3 Stufen über E). Zähle E bis G: Reichen die Halbtonschritte für eine große Terz?"
@@ -6470,7 +6480,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Verminderte Quinte von D. Welcher Zielton?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "As", ok: true }, { t: "Gis" }, { t: "A" }, { t: "G" }],
                         ok: "Genau. 5 Stufen → A; D bis A sind 7, vermindert braucht 6, also As.",
                         nope: "Erst der Stammton: 5 Stufen über D. Dann: Die reine Quinte hätte 7 Halbtonschritte, vermindert einen weniger."
@@ -6488,7 +6499,8 @@
                     step: true,
                     check: {
                         q: "Kurz geprüft: Große Dezime von C. Welcher Zielton?",
-                        sub: "Das Prinzip steht oben, fett.",
+                        sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+                        visual() { return this.renderLernkarteTastatur({ numOctaves: 2, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
                         choices: [{ t: "das E eine Oktave über der großen Terz", ok: true }, { t: "das E direkt über C" }, { t: "das D eine Oktave höher" }, { t: "das F eine Oktave höher" }],
                         ok: "Genau. Große Terz E, eine Oktave höher.",
                         nope: "Dezime = Oktave + Terz. Welcher Ton ist die große Terz von C? Den schreibst du eine Oktave höher."
