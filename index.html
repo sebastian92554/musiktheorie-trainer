@@ -257,6 +257,43 @@
         .trainer-card.dreiklang .tc-chip { background: #ecfdf5; color: #047857; }
         .trainer-card.rhythmus .tc-chip { background: #f5f3ff; color: #6d28d9; }
 
+        /* ── Lernstand: Zustandsfeld am Chip-Ende (✓ geschafft, „1/4“ angefangen), nächster offener Knoten fett; Fortschrittszeile ── */
+        .tc-chip { display: inline-flex; align-items: center; }
+        .tc-chip.done, .tc-chip:has(.tc-state) { padding-right: 0.3rem; }
+        .tc-chip .tc-state {
+            margin-left: 0.45em;
+            padding: 0.05rem 0.4rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.75);
+            font-size: 0.66rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        .tc-chip.next { font-weight: 600; }
+
+        .trainer-progress {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 0.7rem;
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+
+        .trainer-progress:empty { display: none; }
+
+        .tp-bar {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .tp-bar span { display: block; height: 100%; border-radius: 3px; background: var(--tc, #94a3b8); }
+
         /* ── Lernpfad-Tree ── */
         .lp-fund-col {
             flex: 1;
@@ -802,10 +839,57 @@
                 a.href = t.file + '?lernkarte=' + encodeURIComponent(node.subs[0][1]);
                 a.textContent = node.chip;
                 if (node.desc) a.title = node.desc;
-                a.addEventListener('click', () => _trackLanding('landing_click', t.name, { node: card.dataset.trainer + node.n, chip: node.chip }));
+                a.dataset.node = node.n;
+                a.addEventListener('click', () => _trackLanding('landing_click', t.name, { node: card.dataset.trainer + node.n, chip: node.chip, state: a.classList.contains('next') ? 'next' : a.classList.contains('done') ? 'done' : '' }));
                 row.appendChild(a);
             });
+            const prog = document.createElement('div');
+            prog.className = 'trainer-progress';
+            card.appendChild(prog);
         });
+
+        // Lernstand: dieselben localStorage-Einträge wie die Trainer (24 h gültig, wie dort in loadProgress).
+        // Je Knoten: alle Übungen gemeistert → Chip mit Haken; erster Knoten mit offener Übung → Chip gefüllt
+        // („hier geht's weiter“) und Link auf die Karte dieser Übung; darunter Balken „n von m Übungen geschafft“.
+        function readProgress(t) {
+            try {
+                const p = JSON.parse(localStorage.getItem(t.store) || 'null');
+                if (!p || (p.timestamp && Date.now() - p.timestamp > 24 * 60 * 60 * 1000)) return null;
+                return p;
+            } catch (e) { return null; }
+        }
+        function renderLernstand() {
+            document.querySelectorAll('.trainer-card[data-trainer]').forEach(card => {
+                const t = REGISTER[card.dataset.trainer], p = readProgress(t);
+                const prog = card.querySelector('.trainer-progress');
+                let done = 0, total = 0, next = null;
+                t.nodes.forEach(node => {
+                    const mastered = (p && p[node.level] && p[node.level].mastered) || [];
+                    const open = node.subs.filter(s => !mastered.includes(s[1].slice(s[1].indexOf('_') + 1)));
+                    done += node.subs.length - open.length; total += node.subs.length;
+                    const chip = card.querySelector(`.tc-chip[data-node="${node.n}"]`);
+                    const d = node.subs.length - open.length;
+                    chip.classList.toggle('done', !open.length);
+                    chip.classList.remove('next');
+                    chip.href = t.file + '?lernkarte=' + encodeURIComponent(node.subs[0][1]);
+                    chip.innerHTML = node.chip + (!open.length ? '<span class="tc-state">✓</span>' : d ? `<span class="tc-state">${d}/${node.subs.length}</span>` : '');
+                    if (!next && open.length) next = { node, sub: open[0], chip };
+                });
+                if (!p || !done) { prog.innerHTML = ''; return; }
+                if (next) {
+                    next.chip.classList.add('next');
+                    next.chip.href = t.file + '?lernkarte=' + encodeURIComponent(next.sub[1]);
+                    next.chip.title = 'Hier geht’s weiter: ' + next.sub[0].replace(/^\+\s*/, '');
+                }
+                const color = getComputedStyle(card).borderLeftColor;
+                prog.innerHTML = `<div class="tp-bar"><span style="--tc:${color}; width:${Math.round(100 * done / total)}%"></span></div>` +
+                    `<span>${done} von ${total} Übungen geschafft</span>`;
+            });
+        }
+        renderLernstand();
+        window.addEventListener('pageshow', renderLernstand);      // zurück aus einem Trainer (Browser-Cache)
+        window.addEventListener('storage', renderLernstand);
+        if (window.Account) Account.onSync = renderLernstand;       // nach Anmelden/Abmelden (account.js lädt den Server-Stand)
     </script>
 </body>
 </html>
