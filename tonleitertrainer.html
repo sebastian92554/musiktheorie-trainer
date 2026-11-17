@@ -3730,7 +3730,7 @@
             tas: {
                 name: 'Tastatur-Orientierung',
                 why: 'die Orientierung auf der Klaviatur noch nicht sicher ist',
-                tip: 'Die Tastatur-Orientierung ist eine Grundlage aus dem Notentrainer — übe sie dort, bevor du Tonleitern auf der Tastatur baust.',
+                tip: 'Die Tastatur-Orientierung ist eine Grundlage aus dem Notentrainer — übe sie dort, bevor du Tonleitern auf der Tastatur bildest.',
                 counter: null,
                 cta: 'Tastatur im Notentrainer üben',
                 href: 'notentrainer.html'
@@ -3898,9 +3898,9 @@
                 { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel benennen', preview: 'Benennen von Tonleitern ohne Hörbeispiel' }
             ],
             'ton4': [
-                { id: 'tastatur_einfach', label: 'Tastatur (einfach)', phrase: 'eine Tonleiter selbst bauen', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
+                { id: 'tastatur_einfach', label: 'Tastatur (einfach)', phrase: 'eine Tonleiter selbst bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
                 { id: 'schreiben_einfach', label: 'Schreiben (einfach)', phrase: 'eine Tonleiter ins Notensystem schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (einfach)' },
-                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen bauen', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
+                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
                 { id: 'schreiben_schwer', label: 'Schreiben (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (viele Vorzeichen)' },
                 { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel schreiben', preview: 'Konstruieren von Tonleitern ohne Hörbeispiel' }
             ],
@@ -3965,7 +3965,7 @@
         // ---- Skilltree: Landkarte mit Hauptaktion (seit 17.11.2026; Entwurf _entwicklung/mock_tt_skilltree_neu.html) ----
         // Knotentitel in Schülersprache; die Übungszeilen tragen die „Jetzt lernst du“-Phrasen der Karten (nodeSubSkills.phrase).
         nodeOrder: ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'],
-        nodeTitles: { ton1: 'Ganzton oder Halbton?', ton2: 'Halbtonschritte finden', ton3: 'Welche Tonleiter ist das?', ton4: 'Tonleiter bauen', ton5: 'Quintenzirkel' },
+        nodeTitles: { ton1: 'Ganzton oder Halbton?', ton2: 'Halbtonschritte finden', ton3: 'Welche Tonleiter ist das?', ton4: 'Tonleiter bilden', ton5: 'Quintenzirkel' },
         _openNodes: null,   // aufgeklappte Knoten; null = noch nie gerendert → der nächste Knoten ist offen
 
         _nodeState(nodeId) {
@@ -8890,7 +8890,7 @@
                 title: 'Tastatur (einfach)',
                 step: true,
                 body: `<p><strong>Du kannst schon:</strong> Tonleitern am Muster ihrer Halbtonschritte erkennen und benennen.</p>
-                        <p><strong>Jetzt lernst du:</strong> eine Tonleiter selbst bauen. <strong>Dur hat die Halbtonschritte zwischen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. Alle anderen Schritte sind Ganztonschritte.</strong> Daraus ergibt sich, wo ein Vorzeichen nötig ist: In G-Dur ist E die 6. Stufe. Zur 7. Stufe muss ein Ganztonschritt folgen, also Fis statt F. Einige Töne sind vorgegeben (blau), die übrigen klickst du an. Von Aufgabe zu Aufgabe werden es weniger, am Ende ist nur noch der Grundton vorgegeben.</p>
+                        <p><strong>Jetzt lernst du:</strong> eine Tonleiter selbst bilden. <strong>Dur hat die Halbtonschritte zwischen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. Alle anderen Schritte sind Ganztonschritte.</strong> Daraus ergibt sich, wo ein Vorzeichen nötig ist: In G-Dur ist E die 6. Stufe. Zur 7. Stufe muss ein Ganztonschritt folgen, also Fis statt F. Einige Töne sind vorgegeben (blau), die übrigen klickst du an. Von Aufgabe zu Aufgabe werden es weniger, am Ende ist nur noch der Grundton vorgegeben.</p>
                         <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">G-Dur — ergänze die fehlenden Töne</div>
                         <div class="lk-visual" id="lkVisual1"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die fehlenden Töne auf der Tastatur an.</div>
@@ -8984,10 +8984,10 @@
             ton4_tastatur_schwer: {
                 title: 'Tastatur (viele Vorzeichen)',
                 step: true,
-                body: `<p><strong>Du kannst schon:</strong> Tonleitern mit bis zu drei Vorzeichen bauen und schreiben.</p>
-                        <p><strong>Jetzt lernst du:</strong> Tonleitern mit vielen Vorzeichen bauen. Nur noch Tonleitern mit vier bis sechs Vorzeichen. <strong>Das Muster bleibt dasselbe:</strong> Die Halbtonschritte liegen wie immer bei Dur zwischen 3–4 und 7–8, bei Moll zwischen 2–3 und 5–6. Nur liegen jetzt mehr Töne auf schwarzen Tasten.</p>
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern mit bis zu drei Vorzeichen bilden und schreiben.</p>
+                        <p><strong>Jetzt lernst du:</strong> Tonleitern mit vielen Vorzeichen bilden. Nur noch Tonleitern mit vier bis sechs Vorzeichen. <strong>Das Muster bleibt dasselbe:</strong> Die Halbtonschritte liegen wie immer bei Dur zwischen 3–4 und 7–8, bei Moll zwischen 2–3 und 5–6. Nur liegen jetzt mehr Töne auf schwarzen Tasten.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die fehlenden Töne an. Wie bisher werden die vorgegebenen Töne weniger.</div>
-                <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten3_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
+                <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten3_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bilden nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 check: {
                     q: 'Kurz geprüft: H-Dur beginnt mit H, Cis. Welcher Ton kommt als Nächstes?',
                     sub: 'Halbtonschritte in Dur nur bei 3–4 und 7–8.',
@@ -8999,10 +8999,10 @@
             ton4_schreiben_einfach: {
                 title: 'Schreiben (einfach)',
                 step: true,
-                body: `<p><strong>Du kannst schon:</strong> Tonleitern auf der Tastatur bauen.</p>
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern auf der Tastatur bilden.</p>
                         <p><strong>Jetzt lernst du:</strong> eine Tonleiter ins Notensystem schreiben. Alle acht Töne kommen ins leere Notensystem. <strong>Die Stammtöne gehen der Reihe nach, jede Stufe bekommt ihren eigenen:</strong> D-Dur: D, E, F, G, A, H, C, D. Erst setzt du diese acht Noten. Dann prüfst du das Muster und setzt die Vorzeichen davor: Fis und Cis. Die 3. Stufe heißt darum F mit <span class="vz-sharp"></span>, nicht G mit <span class="vz-flat"></span>.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts ins Notensystem. Für ein Vorzeichen wählst du vorher „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“.</div>
-                <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
+                <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bilden nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 check: {
                     q: 'Kurz geprüft: In D-Dur ist die 3. Stufe Fis. Welche Note schreibst du?',
                     sub: 'Die Stammtöne gehen der Reihe nach: D, E, dann?',
@@ -9014,7 +9014,7 @@
             ton4_schreiben_schwer: {
                 title: 'Schreiben (viele Vorzeichen)',
                 step: true,
-                body: `<p><strong>Du kannst schon:</strong> Tonleitern mit vielen Vorzeichen auf der Tastatur bauen.</p>
+                body: `<p><strong>Du kannst schon:</strong> Tonleitern mit vielen Vorzeichen auf der Tastatur bilden.</p>
                         <p><strong>Jetzt lernst du:</strong> Tonleitern mit vielen Vorzeichen schreiben. Jeder Ton, der eins braucht, bekommt sein eigenes Vorzeichen; bei vier bis sechs Vorzeichen sind das die meisten Töne. <strong>Das Vorgehen bleibt: Stammtöne aufwärts setzen → Muster prüfen → an jeder Stelle, wo der Abstand nicht stimmt, ein Vorzeichen setzen.</strong></p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts, jede Note mit ihrem Vorzeichen.</div>
                 <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton5_vorz_ableitung')"><summary>Unsicher, woher die Reihenfolge kommt?</summary><div class="lk-ask-a">Sie steckt im Quintenzirkel: Jedes weitere Kreuz liegt eine Quinte über dem vorigen, F, C, G, D … <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton5_vorz_ableitung', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
@@ -9032,7 +9032,7 @@
                 body: `<p><strong>Du kannst schon:</strong> Tonleitern mit vielen Vorzeichen ins Notensystem schreiben.</p>
                         <p><strong>Jetzt lernst du:</strong> Tonleitern ohne Hörbeispiel schreiben. Ab jetzt ohne Hörbeispiel, mit null bis sechs Vorzeichen. <strong>Immer in derselben Reihenfolge:</strong> Stammtöne aufwärts setzen → nach dem Muster prüfen → Vorzeichen setzen.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Tonleiter aufwärts ins Notensystem.</div>
-                <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bauen nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`,
+                <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bilden nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten4_vorzeichen')"><summary>Unsicher beim Vorzeichen-Werkzeug?</summary><div class="lk-ask-a">„<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ antippen, dann die Note setzen. Das Werkzeug bleibt an, bis du es noch einmal antippst. Eine gesetzte Note noch einmal antippen löscht sie. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten4_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details></div>`,
                 check: {
                     q: 'Kurz geprüft: Was setzt du zuerst?',
                     sub: 'Die Reihenfolge steht oben, fett.',
@@ -9048,7 +9048,7 @@
                 // Schritt 0 vor der ersten Aufgabe (statt Overlay), gestrafft nach dem Lernkarten-Format:
                 // ein Prinzip in „Neu“, Vorzeichenzahlen im Bild, Regel-Kasten in der Rückfrage „Quinte abzählen“
                 step: true,
-                body: `<p><strong>Du kannst schon:</strong> Dur-Tonleitern bauen. Dabei hast du gesehen: G-Dur braucht 1 <span class="vz-sharp"></span>, D-Dur 2 <span class="vz-sharp"></span>, F-Dur 1 <span class="vz-flat"></span>.</p>
+                body: `<p><strong>Du kannst schon:</strong> Dur-Tonleitern bilden. Dabei hast du gesehen: G-Dur braucht 1 <span class="vz-sharp"></span>, D-Dur 2 <span class="vz-sharp"></span>, F-Dur 1 <span class="vz-flat"></span>.</p>
                         <p><strong>Jetzt lernst du:</strong> den Quintenzirkel lesen. Der Quintenzirkel ordnet die Dur-Tonarten nach ihren Vorzeichen. C-Dur steht oben (0). <strong>Jeder Schritt im Uhrzeigersinn bringt ein <span class="vz-sharp"></span> mehr, jeder Schritt gegen den Uhrzeigersinn ein <span class="vz-flat"></span> mehr.</strong> Die Nachbarn liegen immer eine Quinte auseinander (C → G → D …), daher der Name.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Zahl der Vorzeichen zu einer Dur-Tonart, oder die Tonart zu einer Zahl. Manchmal ist eine Nachbartonart schon genannt. Bei den ersten Aufgaben steht der ganze Zirkel da, ab der 8. nur noch C, G und F.</div>
