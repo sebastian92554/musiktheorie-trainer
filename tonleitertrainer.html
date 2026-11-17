@@ -1927,6 +1927,11 @@
         .wq-panel .es-task svg { max-height: 130px; }
         .wq-panel .es-ul { font-size: 0.9rem; text-align: center; margin: 2px 0 0; }
         .wq-panel .es-boxes { margin: 6px 0 14px; }
+        /* Quintenzirkel: beide Versuche nebeneinander, Zirkel klein, Satz darunter */
+        .wq-panel .es-boxes.es-two { display: grid; grid-template-columns: 1fr 1fr; }
+        .wq-panel .es-two > .es-tt, .wq-panel .es-two > .es-task { grid-column: 1 / -1; }
+        .wq-panel .es-qzb .qz-visual { margin: 0; }
+        .wq-panel .es-qzb svg.es-qz { width: 100%; max-width: 160px; margin: 0 auto; }
         .wq-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 12px; }
         .wq-overlay .wq-panel { margin: 0; width: 100%; max-height: 88vh; overflow-y: auto; animation: none; }
         body.wq-open .lernkarte-overlay { z-index: 2100; }
@@ -2659,15 +2664,71 @@
     }
     // Quintenzirkel: Bild des Trainers (alle Namen), darüber Markierungen
     // QUINTENZIRKEL ist im Trainer erst weiter unten definiert → nur innerhalb von Funktionen verwenden
-    const hourOf = k => k === 'Ges' ? 6 : QUINTENZIRKEL.allKeys.indexOf(k);
+    // Stelle im Zirkel aus dem Grundton, für jede Schreibweise (Cis = Des, Gis = As, Heses = A …):
+    // Tonhöhenklasse × 7 (Quinten) mod 12. Unbekannter Name → -1
+    function pcOf(name) {
+        let t = (name || '').trim().toLowerCase();
+        if (t === 'b') return 10;
+        const base = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, h: 11 }[t[0]];
+        if (base === undefined) return -1;
+        let rest = t.slice(1);
+        if ('ae'.includes(t[0]) && rest[0] === 's') rest = 'e' + rest;   // as, es, ases, eses
+        let alt = 0;
+        if (/^(is)+$/.test(rest)) alt = rest.length / 2;
+        else if (/^(es)+$/.test(rest)) alt = -rest.length / 2;
+        else if (rest) return -1;
+        return ((base + alt) % 12 + 12) % 12;
+    }
+    const hourOf = k => { const pc = pcOf(k); return pc < 0 ? -1 : pc * 7 % 12; };
+    const mollHour = m => { const pc = pcOf(m); return pc < 0 ? -1 : (pc + 3) % 12 * 7 % 12; };   // an der Stelle der Durparallele
+    const QZ_FONT = 1.6;   // Schrift im verkleinerten Zirkel (qzSmall)
     function qzImg(sub, marks) {
-        const base = app._buildQzVisual(sub === 'innenkr' ? 'innenkr' : 'aussenkr', { showAll: true });
+        let base = app._buildQzVisual(sub === 'innenkr' ? 'innenkr' : 'aussenkr', { showAll: true });
+        // Jede Stelle trägt im Bild nur einen Namen (Fis, Des, H …). Steht dort ein markierter Name in anderer
+        // Schreibweise (Ges, Cis, Ces, Gis …), wird die Stelle so beschriftet: zuerst wie in der Aufgabe, sonst wie
+        // in der eigenen Antwort. Außen- und Innenkreis dazu passend (Cis-Dur ↔ ais-Moll).
+        const PM = QUINTENZIRKEL.parallelMinor, K = QUINTENZIRKEL.allKeys;
+        const up = n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
+        const outName = [], inName = [];
+        marks.forEach(m => {
+            if (!m.name || m.h < 0 || outName[m.h]) return;
+            const n = m.name.toLowerCase(), pc = pcOf(n);
+            // Paarname: zur Moll-Tonart die Durparallele (kleine Terz höher), zur Dur-Tonart die Mollparallele
+            const shift = (s, k) => {   // Name eine kleine Terz höher (k=+1) bzw. tiefer (k=-1), Buchstabe zwei Stufen weiter
+                if (s === 'b') s = 'hes';
+                const L = 'cdefgah', li = L.indexOf(s[0]), nl = L[(li + 7 + 2 * k) % 7];
+                const want = ((pc + 3 * k) % 12 + 12) % 12, nat = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, h: 11 }[nl];
+                let d = ((want - nat) % 12 + 12) % 12; if (d > 6) d -= 12;
+                if (nl === 'h' && d === -1) return 'b';
+                const acc = d > 0 ? 'is'.repeat(d) : 'es'.repeat(-d);
+                return (nl === 'e' || nl === 'a') && d < 0 ? nl + acc.slice(1) : nl + acc;
+            };
+            if (m.inner) { inName[m.h] = n; outName[m.h] = up(shift(n, 1)); }
+            else { outName[m.h] = up(n); inName[m.h] = shift(n, -1); }
+        });
+        K.forEach((k, h) => {
+            if (outName[h] && outName[h] !== k) base = base.replace(`>${k}</text>`, `>${outName[h]}</text>`);
+            // Anker im Innenkreis (a, e, d) stehen schon im Bild
+            if (inName[h] && [0, 1, 11].includes(h) && inName[h] !== PM[k]) base = base.replace(`>${PM[k]}</text>`, `>${inName[h]}</text>`);
+        });
         const cx = app._qzCx, cy = app._qzCy, r = app._qzR, smallR = r - 18, innerR = app._qzInnerR;
         const posAt = (h, rad) => { const a = (h * 30 - 90) * Math.PI / 180; return { x: cx + rad * Math.cos(a), y: cy + rad * Math.sin(a) }; };
         let add = '';
+        // Innenkreis wie der Außenkreis ganz beschriftet (das Bild der Übung zeigt nur a, e, d),
+        // damit eine falsche Moll-Antwort an ihrem Namen steht
+        if (sub === 'innenkr') QUINTENZIRKEL.allKeys.forEach((k, h) => {
+            if ([0, 1, 11].includes(h) || !PM[k]) return;
+            const p = posAt(h, innerR - 8);
+            add += `<text x="${p.x}" y="${p.y + 4}" text-anchor="middle" font-size="13" font-weight="400" fill="#94a3b8">${inName[h] || PM[k]}</text>`;
+        });
         marks.forEach(({ h, inner, col, label }) => {
             const p = posAt(h, inner ? innerR - 8 : smallR);
-            add += `<circle cx="${p.x}" cy="${p.y}" r="15" fill="${col}" fill-opacity="0.18" stroke="${col}" stroke-width="2.5"/>`;
+            // Markierung als Fläche ohne Rand (mit Rand wirkt sie wie ein Knopf), mittig um den Namen:
+            // Grundlinie wie im Bild (außen y+5, innen y+4, G/F um 2 versetzt), Mitte eines Großbuchstabens 0,36 Schriftgröße darüber.
+            // Das Bild erscheint nur verkleinert im Feld (qzSmall), darum mit der dort vergrößerten Schrift gerechnet.
+            const fs = (inner ? 13 : 15) * QZ_FONT;
+            const mx = p.x + (inner ? 0 : h === 1 ? 2 : h === 11 ? -2 : 0), my = p.y + (inner ? 4 : 5) - 0.36 * fs;
+            add += `<circle cx="${mx}" cy="${my}" r="${inner ? 19 : 21}" fill="${col}" fill-opacity="0.28"/>`;
             if (label) add += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-size="13" font-weight="700" fill="${col}">${label}</text>`;
         });
         return base.replace('</svg>', add + '</svg>');
@@ -2830,7 +2891,7 @@
     function qzOwn(q, answers, ok) {
         const sub = q.subSkillId, txt = q.question;
         const BLUE = '#2563eb', R = '#dc2626', G = '#16a34a';
-        const durOf = s => (s || '').replace(/-Dur$/, '');
+        const durOf = s => (s || '').replace(/-?dur$/i, '').trim();
         const given = (txt.match(/([A-H][a-z]*)-Dur/) || [])[1];
         if (sub === 'aussenkr') {
             const mCount = txt.match(/Wie viele Vorzeichen hat ([A-H][a-z]*)-Dur/);
@@ -2838,22 +2899,20 @@
                 const target = mCount[1];
                 const ref = (txt.match(/^([A-H][a-z]*)-Dur hat/) || [])[1] || 'C';
                 // Nur die gefragte Tonart einkreisen (und die Bezugstonart); gezählt wird selbst
-                const marks = [{ h: hourOf(target), col: BLUE }];
-                if (ref !== 'C') marks.push({ h: hourOf(ref), col: BLUE });
+                const marks = [{ h: hourOf(target), col: BLUE, name: target }];
+                if (ref !== 'C') marks.push({ h: hourOf(ref), col: BLUE, name: ref });
                 return qzImg(sub, marks);
             }
             // Welche Dur-Tonart hat …? → C blau, eigene Tonart rot
-            return qzImg(sub, [{ h: 0, col: BLUE }, ...answers.filter(a => hourOf(durOf(a)) >= 0).map(a => ({ h: hourOf(durOf(a)), col: R }))]);
+            return qzImg(sub, [{ h: 0, col: BLUE }, ...answers.filter(a => hourOf(durOf(a)) >= 0).map(a => ({ h: hourOf(durOf(a)), col: R, name: durOf(a) }))]);
         }
         if (sub === 'innenkr') {
-            const PM = QUINTENZIRKEL.parallelMinor;
-            const durForMoll = m => Object.keys(PM).find(d => PM[d].toLowerCase() === (m || '').replace(/-Moll$/, '').toLowerCase());
+            const mollOf = s => (s || '').replace(/-?moll$/i, '').trim();
             if (/Mollparallele von/.test(txt)) {
-                return qzImg(sub, [{ h: hourOf(given), col: BLUE }, ...answers.map(a => durForMoll(a)).filter(Boolean).map(d => ({ h: hourOf(d), inner: true, col: R }))]);
+                return qzImg(sub, [{ h: hourOf(given), col: BLUE, name: given }, ...answers.filter(a => mollHour(mollOf(a)) >= 0).map(a => ({ h: mollHour(mollOf(a)), inner: true, col: R, name: mollOf(a) }))]);
             }
             const moll = (txt.match(/von ([a-h][a-z]*)-Moll/) || [])[1];
-            const d0 = durForMoll(moll);
-            return qzImg(sub, [...(d0 ? [{ h: hourOf(d0), inner: true, col: BLUE }] : []), ...answers.filter(a => hourOf(durOf(a)) >= 0).map(a => ({ h: hourOf(durOf(a)), col: R }))]);
+            return qzImg(sub, [...(mollHour(moll) >= 0 ? [{ h: mollHour(moll), inner: true, col: BLUE, name: moll }] : []), ...answers.filter(a => hourOf(durOf(a)) >= 0).map(a => ({ h: hourOf(durOf(a)), col: R, name: durOf(a) }))]);
         }
         if (sub === 'vorz_ableitung') return reiheImg(!/♭/.test(txt), answers[0]);
         if (sub === 'enharmonisch') {
@@ -2871,7 +2930,7 @@
             return wqKbSvg(keys, br);
         }
         if (sub === 'verwandte' || sub === 'symmetrien') {
-            return qzImg(sub, [...(given ? [{ h: hourOf(given), col: BLUE }] : []), ...answers.filter(a => hourOf(durOf(a)) >= 0).map(a => ({ h: hourOf(durOf(a)), col: ok(a) ? G : R }))]);
+            return qzImg(sub, [...(given ? [{ h: hourOf(given), col: BLUE, name: given }] : []), ...answers.filter(a => hourOf(durOf(a)) >= 0).map(a => ({ h: hourOf(durOf(a)), col: ok(a) ? G : R, name: durOf(a) }))]);
         }
         return '';
     }
@@ -3146,7 +3205,10 @@
         const one = two[0].id === two[1].id;
         const steps = one && two[0].mode === 'name' && two[1].mode === 'mark';
         const line = x => x.fpic ? '' : `<p class="es-ul">Du hast ${x.uhtml} ${x.verb}.</p>`;
-        const box = (h, x, img) => `<div class="es-box"><p class="es-n">${h}</p>${img || ''}${x.own || ''}${line(x)}</div>`;
+        const box = (h, x, img) => {
+            const qz = /<svg width="370" height="310"/.test(x.own || '');
+            return `<div class="es-box${qz ? ' es-qzb' : ''}"><p class="es-n">${h}</p>${img || ''}${qz ? qzSmall(x.own) : x.own || ''}${line(x)}</div>`;
+        };
         let cases;
         if (steps) {
             const T = ['Tonleiter benennen', 'Halbtonschritte finden'];
@@ -3160,7 +3222,22 @@
             cases = two.map((x, i) => box(`${i + 1}. Aufgabe${x.task ? ': ' + x.task : ''}`, x, x.img)).join('');
         }
         const head = steps ? 'Deine beiden Schritte:' : one ? 'Deine beiden Versuche:' : 'Deine beiden Aufgaben:';
-        return `<p class="es-head">${head}</p><div class="es-boxes">${cases}</div>`;
+        // Zwei Quintenzirkel nebeneinander (untereinander bliebe neben dem kurzen Satz viel leere Fläche)
+        const qz2 = two.every(x => /<svg width="370" height="310"/.test(x.own || ''));
+        return `<p class="es-head">${head}</p><div class="es-boxes${qz2 ? ' es-two' : ''}">${fitPics(cases)}</div>`;
+    }
+    // Bilder nicht auf Kastenbreite strecken (.es-box svg { width: 100% }): Tastaturen und Vorzeichen-Reihe
+    // in fester Tastengröße wie kbFit (21 px je 24 Einheiten)
+    function fitPics(html) {
+        return html
+            .replace(/<svg class="wq-kbsvg" viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) /g, (m, x, y, w) => `<svg class="wq-kbsvg" style="width:${Math.round(w / 24 * 21)}px; max-width:100%" viewBox="${x} ${y} ${w} `);
+    }
+    // Quintenzirkel im Feld klein: leere Ränder abschneiden (Kreis mit Pfeilen x 22–338),
+    // Schrift größer, damit sie bei etwa 150 px lesbar bleibt
+    function qzSmall(svg) {
+        return svg
+            .replace('<svg width="370" height="310" viewBox="0 0 370 310">', '<svg class="es-qz" width="316" height="310" viewBox="22 0 316 310">')
+            .replace(/font-size="(\d+)"/g, (m, s) => `font-size="${Math.round(s * QZ_FONT)}"`);
     }
     function answer(choice, label, c) {
         const two = attempts.slice(-2);
