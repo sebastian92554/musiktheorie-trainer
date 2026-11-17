@@ -1856,6 +1856,46 @@
         .lernkarte .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
         .lernkarte .lk-choice:disabled { cursor: default; }
         .lk-hidden { display: none; }
+        /* ---- Lernkarte als erster Quiz-Schritt (Karten mit step: true, seit 17.11.2026) ----
+           Befund 9. Klasse: Das Overlay (dunkler Hintergrund, weißer Kasten, ein Bestätigen-Knopf)
+           wirkt wie ein Cookie-Banner und wird ungelesen weggeklickt. Die Karte steht darum vor der
+           ersten Aufgabe dort, wo gleich die Aufgabe steht; am Ende eine Kontrollfrage, erst die
+           richtige Antwort gibt „Zur ersten Aufgabe“ frei. Entwurf: _entwicklung/mock_tt_lernkarte_schritt.html */
+        .lk-step { display: none; padding: 18px 20px 20px; border-top: 4px solid #0891b2; }
+        .lk-step.active { display: block; }
+        .lk-step h2 { font-size: 1.25rem; color: #155e75; margin-bottom: 12px; }
+        .lk-step p { color: #374151; margin-bottom: 8px; line-height: 1.5; font-size: 0.92rem; }
+        .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0891b2; margin-bottom: 4px; }
+        body.lk-step-open #quintenzirkelCard, body.lk-step-open #staffCard, body.lk-step-open #inputCard, body.lk-step-open #keyboardCard { display: none !important; }
+        .lk-check { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        .lk-check-q { font-weight: 600; color: #164e63; font-size: 0.95rem; margin-bottom: 4px; }
+        .lk-check-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 6px; }
+        .lk-check .lk-choice {
+            display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
+            background: #fff; color: #164e63; border: 2px solid #a5f3fc; border-radius: 8px;
+            font-size: 0.88rem; font-weight: 500; cursor: pointer;
+        }
+        .lk-check .lk-choice:hover:not(:disabled) { border-color: #0891b2; background: #ecfeff; }
+        .lk-check .lk-choice.right { border-color: #22c55e; background: #dcfce7; color: #166534; font-weight: 600; }
+        .lk-check .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
+        .lk-check .lk-choice:disabled { cursor: default; }
+        .lk-check-fb { margin-top: 8px; font-size: 0.88rem; color: #334155; min-height: 1.2em; }
+        .lk-check-fb.ok { color: #166534; }
+        .lk-check-fb.nope { color: #991b1b; }
+        .lk-go {
+            width: 100%; padding: 14px; background: #0891b2; color: white; border: none; border-radius: 10px;
+            font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 14px;
+        }
+        .lk-go:hover { background: #0e7490; }
+        .lk-go:disabled { background: #cbd5e1; color: #f8fafc; cursor: default; }
+        /* Fortschritt: Schritt „Erklärung“ als erstes Segment vor den 10 Aufgaben */
+        .header-progress-step { display: none; position: absolute; top: 0; left: 0; height: 100%; width: 9.09%; background: #0891b2; border-radius: 3px; }
+        .header-progress-dual.has-step .header-progress-step { display: block; }
+        .header-progress-dual.has-step .header-progress-total, .header-progress-dual.has-step .header-progress-correct { left: 9.09%; }
+        /* Hilfe neutral (Sebo 17.11.2026): Rückfragen ohne grüne Hülle, Grün bleibt „richtig“ vorbehalten.
+           Gelb nur für „Deine Aufgabe“, Trainerfarbe für Bild und Überschrift. */
+        .lk-tip-ask { background: none; border-left: none; border-radius: 0; padding: 0; margin: 10px 0 0; color: inherit; }
+        .lk-ask summary { color: #334155; }
         .vz-sharp, .vz-flat {
             display: inline-block;
             vertical-align: middle;
@@ -2197,6 +2237,7 @@
                     <div class="header-exercise-label" id="headerExerciseLabel"></div>
                     <div class="header-exercise-task" id="headerExerciseTask"></div>
                     <div class="header-progress-dual">
+                        <div class="header-progress-step" id="headerProgressStep"></div>
                         <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
                         <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
                     </div>
@@ -2262,6 +2303,15 @@
         </div>
 
         </div><!-- /main-content-wrapper -->
+
+        <!-- Lernkarte als erster Quiz-Schritt (Karten mit step: true, z. B. 5a) -->
+        <div id="lkStep" class="card lk-step">
+            <div class="lk-step-kicker">So geht die Übung</div>
+            <h2 id="lkStepTitle"></h2>
+            <div id="lkStepBody"></div>
+            <div class="lk-check" id="lkStepCheck"></div>
+            <button type="button" class="lk-go" id="lkStepGo" onclick="app.finishLernkarteStep()">Zur ersten Aufgabe</button>
+        </div>
 
         <!-- Quintenzirkel-Übungsbereich (Knoten 4) -->
         <div id="quintenzirkelCard" class="card qz-card" style="display:none;">
@@ -2523,7 +2573,7 @@
         // Hilfe-Knopf geöffnet (where: 'quiz' oder 'menu'); seit „Woran liegt es?“ ohne Hilfe-Nudge
         helpOpen(p) { this._send('help_open', { level: p.level, subskill: p.subskill, where: p.where }); },
         cardDismiss(p) {
-            this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart });
+            this._send('card_dismiss', Object.assign({ nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart }, p.step ? { step: true, tries: p.tries || 0 } : {}));
             this._lastDismiss = { nodeId: p.nodeId, ms: p.ms_visible || 0, ts: Date.now() };
         },
         activity() { this.lastActivity = Date.now(); }
@@ -4733,6 +4783,7 @@
             const lastNode = this.selectedNode;
             this.selectedNode = null;
             this.selectedSub = null;
+            app._closeLernkarteStep(false);
             this.hideQuizOverlay();
             document.getElementById('appTitle').textContent = 'Tonleitertrainer';
             this.updateAllProgress();
@@ -7464,6 +7515,15 @@
                     `<text x="${pB.x - 2}" y="${pB.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">B</text>`;
             }
 
+            // showCounts (5a-Lernkarte): Vorzeichenzahlen innen neben C, G, D, F, B
+            let countLabels = '';
+            if (opts && opts.showCounts) {
+                [[0, '0'], [1, '1♯'], [2, '2♯'], [11, '1♭'], [10, '2♭']].forEach(([h, t]) => {
+                    const p = posAt(h, r - 40);
+                    countLabels += `<text x="${p.x}" y="${p.y + 4}" text-anchor="middle" font-size="12" font-weight="600" fill="#0891b2">${t}</text>`;
+                });
+            }
+
             // Pfeile
             const arrowR = r + 6;
             const aSS = posAt(1, arrowR);
@@ -7513,7 +7573,7 @@
                     <text x="${pC.x}" y="${pC.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">C</text>
                     <text x="${pG.x + 2}" y="${pG.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">G</text>
                     <text x="${pF.x - 2}" y="${pF.y + 5}" text-anchor="middle" font-size="15" font-weight="400" fill="#94a3b8">F</text>
-                    ${moreLabels}
+                    ${moreLabels}${countLabels}
                     ${innerContent}
                     <path d="M${aSS.x},${aSS.y} A${arrowR},${arrowR} 0 0,1 ${aSE.x},${aSE.y}" fill="none" stroke="#0891b2" stroke-width="1.8" marker-end="url(#${sharpId})"/>
                     <text x="${sharpMid.x}" y="${sharpMid.y}" text-anchor="middle" font-size="18" font-weight="400" fill="#0891b2">♯</text>
@@ -7580,6 +7640,7 @@
 
         // ---- Quintenzirkel-Aufgaben ----
         generateQuintenzirkelTask() {
+            this._closeLernkarteStep(false);   // falls die Karte noch als Schritt 0 steht (Zurücksetzen)
             // Aktive Sub-Skills bestimmen (Cascade: alle bis zum höchsten)
             const activeSubSkills = quickStart.currentOptions.filter(
                 opt => QUINTENZIRKEL.allKeys && ['aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'symmetrien', 'verwandte'].includes(opt)
@@ -8593,6 +8654,8 @@
             }
             const content = this.lernkartenContent[key];
             if (!content) return false;
+            // Karten mit step: true stehen vor der ersten Aufgabe als Schritt 0 im Fluss, nicht als Overlay
+            if (fromStart && content.step) return this.showLernkarteStep(key, subSkillId, content);
             // „Verstanden“-Button wieder zeigen (die Regel-Frage blendet ihn bis zur Antwort aus)
             const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
             if (lkBtn) lkBtn.style.display = '';
@@ -8652,6 +8715,93 @@
                     this.generateNewTask();
                 }
             }
+        },
+
+        // ---- Lernkarte als Schritt 0 (Karten mit step: true; Entwurf mock_tt_lernkarte_schritt.html) ----
+        // Vor der ersten Aufgabe steht die Karte im Fluss statt als Overlay. Mit check: Kontrollfrage
+        // am Ende (ein Klick); falsch → nur diese Antwort rot und ein Hinweis aufs Prinzip, die anderen
+        // bleiben wählbar (es geht um Aufmerksamkeit, nicht um Wissen); richtig → „Zur ersten Aufgabe“.
+        showLernkarteStep(key, subSkillId, content) {
+            quickStart.hideTaskInstruction();
+            this._stepKey = key;
+            this._stepId = subSkillId;
+            this._stepOpenedAt = Date.now();
+            this._stepTries = 0;
+            const step = document.getElementById('lkStep');
+            document.getElementById('lkStepTitle').textContent = content.title;
+            // Overlay-Körper leeren: render() sucht per ID (lkVisual1), und das Overlay steht im DOM davor
+            document.getElementById('lernkarteBody').innerHTML = '';
+            document.getElementById('lkStepBody').innerHTML = content.body;
+            if (typeof content.render === 'function') content.render.call(this);
+            const chk = content.check;
+            const checkEl = document.getElementById('lkStepCheck');
+            const go = document.getElementById('lkStepGo');
+            if (chk) {
+                const choices = chk.choices.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
+                checkEl.innerHTML = `<div class="lk-check-q">${chk.q}</div>` +
+                    (chk.sub ? `<div class="lk-check-sub">${chk.sub}</div>` : '') +
+                    choices.map(c => `<button type="button" class="lk-choice" data-ok="${c.ok ? 1 : 0}" onclick="app._pickStepChoice(this)">${c.t}</button>`).join('') +
+                    '<div class="lk-check-fb" id="lkStepFb"></div>';
+                checkEl.style.display = '';
+                go.style.display = 'none';
+                go.disabled = true;
+            } else {
+                checkEl.innerHTML = '';
+                checkEl.style.display = 'none';
+                go.style.display = '';
+                go.disabled = false;
+            }
+            step.querySelectorAll('.vz-sharp').forEach(el => {
+                el.innerHTML = this._inlineVz(this._sharpPathD, this._SHARP_REF, 19, 27);
+            });
+            step.querySelectorAll('.vz-flat').forEach(el => {
+                el.innerHTML = this._inlineVz(this._flatPathD, this._FLAT_REF, 15, 27);
+            });
+            document.body.classList.add('lk-step-open');
+            step.classList.add('active');
+            // Kopfzeile: „5a Außenkreis + Merksätze — Erklärung, dann 10 Aufgaben“ + Segment im Balken
+            const label = document.getElementById('headerExerciseLabel');
+            label.textContent = label.textContent.replace(/ — .*$/, '') + ' — Erklärung, dann ' + quickStart.totalQuestions + ' Aufgaben';
+            document.querySelector('.header-progress-dual').classList.add('has-step');
+            window.scrollTo(0, 0);
+            return true;
+        },
+        _pickStepChoice(btn) {
+            const content = this.lernkartenContent[this._stepKey];
+            const chk = content && content.check;
+            const fb = document.getElementById('lkStepFb');
+            const go = document.getElementById('lkStepGo');
+            this._stepTries++;
+            if (btn.dataset.ok === '1') {
+                document.querySelectorAll('#lkStepCheck .lk-choice').forEach(b => { b.disabled = true; });
+                btn.classList.add('right');
+                fb.textContent = chk ? chk.ok : '';
+                fb.className = 'lk-check-fb ok';
+                go.disabled = false;
+                go.style.display = '';
+            } else {
+                btn.classList.add('wrong');
+                btn.disabled = true;
+                fb.textContent = chk ? chk.nope : '';
+                fb.className = 'lk-check-fb nope';
+            }
+        },
+        finishLernkarteStep() {
+            this._closeLernkarteStep(true);
+            this.generateNewTask();
+        },
+        // Schritt schließen (auch bei „Zurücksetzen“ oder „Lernpfad“ während der Karte);
+        // meldet card_dismiss mit step: true und der Zahl der Versuche an der Kontrollfrage
+        _closeLernkarteStep(updateLabel) {
+            const step = document.getElementById('lkStep');
+            if (!step.classList.contains('active')) return;
+            try {
+                tracker.cardDismiss({ nodeId: this._stepId, ms_visible: Date.now() - this._stepOpenedAt, fromStart: true, step: true, tries: this._stepTries });
+            } catch (e) {}
+            step.classList.remove('active');
+            document.body.classList.remove('lk-step-open');
+            document.querySelector('.header-progress-dual').classList.remove('has-step');
+            if (updateLabel) quickStart.updateQuizOverlay();
         },
 
         // Lernkarten-Staff (Notensystem, 1:1 Algorithmus aus NT)
@@ -9384,14 +9534,24 @@
             // ===== ton5: Quintenzirkel (Meister) =====
             ton5_aussenkr: {
                 title: 'Der Quintenzirkel — Außenkreis',
-                body: `<p><strong>Du kannst schon:</strong> Dur-Tonleitern mit Vorzeichen bauen.</p>
-                        <p><strong>Neu:</strong> Der Quintenzirkel ordnet alle Dur-Tonarten nach ihren Vorzeichen. C-Dur steht oben (keine Vorzeichen). Im Uhrzeigersinn kommt mit jeder Tonart ein <span class="vz-sharp"></span> dazu (G-Dur 1, D-Dur 2 …), gegen den Uhrzeigersinn ein <span class="vz-flat"></span>.</p>
+                // Schritt 0 vor der ersten Aufgabe (statt Overlay), gestrafft nach dem Lernkarten-Format:
+                // ein Prinzip in „Neu“, Vorzeichenzahlen im Bild, Regel-Kasten in der Rückfrage „Quinte abzählen“
+                step: true,
+                body: `<p><strong>Du kannst schon:</strong> Dur-Tonleitern bauen. Dabei hast du gesehen: G-Dur braucht 1 <span class="vz-sharp"></span>, D-Dur 2 <span class="vz-sharp"></span>, F-Dur 1 <span class="vz-flat"></span>.</p>
+                        <p><strong>Neu:</strong> Der Quintenzirkel ordnet die Dur-Tonarten nach ihren Vorzeichen. C-Dur steht oben (0). <strong>Jeder Schritt im Uhrzeigersinn bringt ein <span class="vz-sharp"></span> mehr, jeder Schritt gegen den Uhrzeigersinn ein <span class="vz-flat"></span> mehr.</strong> Die Nachbarn liegen immer eine Quinte auseinander (C → G → D …), daher der Name.</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
-                        <div class="lk-rule"><strong>Nachbarn liegen eine Quinte auseinander:</strong> Das sind 7 Halbtonschritte. Nach rechts zählst du aufwärts (C → G), nach links abwärts (C → F). Die Tastatur unter der Aufgabe hilft dir dabei.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib an, wie viele Vorzeichen eine Dur-Tonart hat, oder welche Dur-Tonart eine bestimmte Zahl hat. In manchen Aufgaben ist eine Nachbartonart schon genannt, z.&nbsp;B. „G-Dur hat 1 <span class="vz-sharp"></span>. Wie viele hat A-Dur?“</div>
-                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei der Reihenfolge der Tonarten?</summary><div class="lk-ask-a"><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen den Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:rein')"><summary>Unsicher, wie man eine Quinte abzählt?</summary><div class="lk-ask-a">Eine reine Quinte hat 7 Halbtonschritte: von C aus Cis, D, Dis, E, F, Fis, G. <a class="lk-ask-more" href="#" onclick="openCardFrame('intervalltrainer.html?lernkarte=rein'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die Zahl der Vorzeichen zu einer Dur-Tonart, oder die Tonart zu einer Zahl. Manchmal ist eine Nachbartonart schon genannt. Bei den ersten Aufgaben steht der ganze Zirkel da, ab der 8. nur noch C, G und F.</div>
+                        <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher bei der Reihenfolge der Tonarten?</summary><div class="lk-ask-a"><strong>Kreuz-Tonarten</strong> (Uhrzeigersinn ab C): <strong>G</strong>eh <strong>D</strong>u <strong>A</strong>lter <strong>E</strong>sel <strong>H</strong>ole <strong>Fis</strong>che.<br><strong>Be-Tonarten</strong> (gegen den Uhrzeigersinn): <strong>F</strong>reche <strong>B</strong>uben <strong>Es</strong>sen <strong>As</strong>pirin <strong>Des</strong>halb <strong>Ges</strong>und.</div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'intervalltrainer:rein')"><summary>Unsicher, wie man eine Quinte abzählt?</summary><div class="lk-ask-a">Eine Quinte sind 7 Halbtonschritte: von C aus Cis, D, Dis, E, F, Fis, G. Nach rechts im Zirkel zählst du aufwärts (C → G), nach links abwärts (C → F). Die Tastatur unter der Aufgabe hilft dir dabei. <a class="lk-ask-more" href="#" onclick="openCardFrame('intervalltrainer.html?lernkarte=rein'); return false">Ausführlich im Intervalltrainer ↗</a></div></details></div>`,
+                // Kontrollfrage: wendet das Prinzip einmal an (Form der Aufgaben 2–4: Nachbar genannt)
+                check: {
+                    q: 'Kurz geprüft: D-Dur hat 2 <span class="vz-sharp"></span>. Wie viele hat A-Dur, die nächste Tonart im Uhrzeigersinn?',
+                    sub: 'Das Prinzip steht oben, fett.',
+                    choices: [{ t: '1 <span class="vz-sharp"></span>' }, { t: '2 <span class="vz-sharp"></span>' }, { t: '3 <span class="vz-sharp"></span>', ok: true }, { t: '4 <span class="vz-sharp"></span>' }],
+                    ok: 'Genau. Ein Schritt weiter, ein Kreuz mehr.',
+                    nope: 'Schau noch einmal nach oben: Jeder Schritt im Uhrzeigersinn bringt ein Kreuz mehr.'
+                },
                 render() {
-                    document.getElementById('lkVisual1').innerHTML = this._buildQzVisual('aussenkr', { showMore: true });
+                    document.getElementById('lkVisual1').innerHTML = this._buildQzVisual('aussenkr', { showMore: true, showCounts: true });
                 }
             },
             ton5_innenkr: {
