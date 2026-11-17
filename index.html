@@ -157,6 +157,39 @@
             line-height: 1.45;
         }
 
+        /* Karte als Ganzes klickbar (Link mit Überlagerung), Chips darüber als eigene Links */
+        .trainer-card { position: relative; }
+        .trainer-main { display: block; color: inherit; text-decoration: none; }
+        .trainer-main::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+
+        /* ── Themen-Chips: ein Chip je Knoten des Trainers ── */
+        .trainer-chips {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-top: 0.7rem;
+        }
+
+        .tc-chip {
+            font-size: 0.74rem;
+            line-height: 1.2;
+            padding: 0.25rem 0.55rem;
+            border-radius: 999px;
+            text-decoration: none;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tc-chip:hover, .tc-chip:focus-visible { border-color: currentColor; }
+
+        .trainer-card.noten .tc-chip { background: #eef2ff; color: #4338ca; }
+        .trainer-card.intervall .tc-chip { background: #fff7ed; color: #c2410c; }
+        .trainer-card.tonleiter .tc-chip { background: #ecfeff; color: #0e7490; }
+        .trainer-card.dreiklang .tc-chip { background: #ecfdf5; color: #047857; }
+        .trainer-card.rhythmus .tc-chip { background: #f5f3ff; color: #6d28d9; }
+
         /* ── Lernpfad-Tree ── */
         .lp-fund-col {
             flex: 1;
@@ -411,23 +444,29 @@
             <div class="lp-fundament">
                 <div class="lp-fund-col melodik-col">
                     <div class="lp-bereich-label">Melodik</div>
-                    <a href="notentrainer.html" class="trainer-card noten">
+                    <div class="trainer-card noten" data-trainer="nt">
+                    <a href="notentrainer.html" class="trainer-main">
                     <div class="trainer-top">
                         <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="13" rx="2.6" ry="2.0" stroke="none" transform="rotate(-18 12 13)"/></g></svg></div>
                         <div class="trainer-name">Notentrainer</div>
                     </div>
                     <div class="trainer-desc">Noten im Violin- und Bassschlüssel lesen, Position der Töne auf der Tastatur lernen – und selbst in das Notensystem setzen. Stammtöne, Vorzeichen, Lagen und Hilfslinien.</div>
                     </a>
+                    <div class="trainer-chips"></div>
+                    </div>
                 </div>
                 <div class="lp-fund-col rhythmik-col">
                     <div class="lp-bereich-label">Rhythmik</div>
-                    <a href="rhythmustrainer.html" class="trainer-card rhythmus">
+                    <div class="trainer-card rhythmus" data-trainer="rt">
+                    <a href="rhythmustrainer.html" class="trainer-main">
                     <div class="trainer-top">
                         <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><ellipse cx="5" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 5 17)"/><ellipse cx="11" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 11 17)"/><ellipse cx="17" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 17 17)"/><line x1="7.3" y1="16.3" x2="7.3" y2="7" stroke-width="0.8" fill="none"/><line x1="13.3" y1="16.3" x2="13.3" y2="7" stroke-width="0.8" fill="none"/><line x1="19.3" y1="16.3" x2="19.3" y2="7" stroke-width="0.8" fill="none"/><line x1="7.3" y1="7" x2="19.3" y2="7" stroke-width="1.6" stroke-linecap="butt" fill="none"/><text x="13.3" y="4.8" text-anchor="middle" font-size="4.2" font-weight="700" font-family="sans-serif" fill="currentColor" stroke="none">3</text></g></svg></div>
                         <div class="trainer-name">Rhythmustrainer</div>
                     </div>
                     <div class="trainer-desc">Notenwerte erkennen, Taktarten bestimmen, Rhythmusdiktat lösen – und unvollständige Takte ergänzen.</div>
                     </a>
+                    <div class="trainer-chips"></div>
+                    </div>
                 </div>
             </div>
 
@@ -439,13 +478,16 @@
 
             <!-- IT zentriert -->
             <div class="lp-mitte">
-                <a href="intervalltrainer.html" class="trainer-card intervall">
+                <div class="trainer-card intervall" data-trainer="it">
+                <a href="intervalltrainer.html" class="trainer-main">
                     <div class="trainer-top">
                         <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="7" y1="9" x2="18" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="7" y1="13" x2="18" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="7" y1="17" x2="18" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="17" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 17)"/><ellipse cx="12" cy="9" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 9)"/><path d="M 21 9 H 23 V 17 H 21" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></svg></div>
                         <div class="trainer-name">Intervalltrainer</div>
                     </div>
                     <div class="trainer-desc">Intervalle benennen, Halbtonschritte zählen, Feinbestimmung üben – und mittels Tastatur und Notensystem eingeben.</div>
                 </a>
+                <div class="trainer-chips"></div>
+                </div>
             </div>
 
             <!-- Fork: IT → TT + DT -->
@@ -455,23 +497,29 @@
             <div class="lp-fork-branches">
                 <div class="lp-branch-col">
                     <div class="lp-branch-stub tonleiter"></div>
-                    <a href="tonleitertrainer.html" class="trainer-card tonleiter">
+                    <div class="trainer-card tonleiter" data-trainer="tt">
+                    <a href="tonleitertrainer.html" class="trainer-main">
                         <div class="trainer-top">
                             <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="3" y1="9" x2="21" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="3" y1="13" x2="21" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="3" y1="17" x2="21" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="6" cy="15" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 6 15)"/><ellipse cx="12" cy="13" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 13)"/><ellipse cx="18" cy="11" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 18 11)"/></g></svg></div>
                             <div class="trainer-name">Tonleitertrainer</div>
                         </div>
                         <div class="trainer-desc">Dur- und Moll-Tonleitern erkennen, Ganz- und Halbtonschritte unterscheiden, Tonleitern bauen und den Quintenzirkel meistern.</div>
                     </a>
+                    <div class="trainer-chips"></div>
+                    </div>
                 </div>
                 <div class="lp-branch-col">
                     <div class="lp-branch-stub dreiklang"></div>
-                    <a href="dreiklangstrainer.html" class="trainer-card dreiklang">
+                    <div class="trainer-card dreiklang" data-trainer="dt">
+                    <a href="dreiklangstrainer.html" class="trainer-main">
                         <div class="trainer-top">
                             <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="17" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 17)"/><ellipse cx="12" cy="13" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 13)"/><ellipse cx="12" cy="9" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 9)"/></g></svg></div>
                             <div class="trainer-name">Dreiklangstrainer</div>
                         </div>
                         <div class="trainer-desc">Dreiklangstypen bestimmen, Umkehrungen erkennen – und Akkorde mittels Tastatur und Notensystem eingeben.</div>
                     </a>
+                    <div class="trainer-chips"></div>
+                    </div>
                 </div>
             </div>
 
@@ -495,6 +543,12 @@
         <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
     </footer>
 
+    <!-- REGISTER:START -->
+    <script>
+    // Erzeugt von _entwicklung/register_erzeugen.js aus den fünf Trainern – nicht von Hand ändern.
+    const REGISTER = {"nt":{"name":"Notentrainer","file":"notentrainer.html","store":"notentrainer_quickstart_v1","nodes":[{"n":1,"name":"Violinschlüssel","desc":"Noten lesen","level":"einsteiger","chip":"Violinschlüssel lesen","subs":[["Stammtöne","noten1_basis","Stammtöne im Violinschlüssel",""],["+ Vorzeichen","noten1_vorzeichen","Mit Vorzeichen",""],["+ Lagen","noten1_lagen","Lagen bestimmen",""],["+ Hilfslinien","noten1_hilfslinien","Mit Hilfslinien",""]]},{"n":2,"name":"Bassschlüssel","desc":"Noten lesen","level":"aufsteiger","chip":"Bassschlüssel lesen","subs":[["Stammtöne","noten2_basis","Stammtöne im Bassschlüssel",""],["+ Vorzeichen","noten2_vorzeichen","Vorzeichen im Bassschlüssel",""],["+ Lagen","noten2_lagen","Lagen im Bassschlüssel",""],["+ Hilfslinien","noten2_hilfslinien","Hilfslinien im Bassschlüssel",""]]},{"n":3,"name":"Beide Schlüssel","desc":"Noten auf der Tastatur finden","level":"profi","chip":"Noten auf der Tastatur","subs":[["Stammtöne","noten3_basis","Stammtöne auf der Tastatur",""],["+ Vorzeichen","noten3_vorzeichen","Vorzeichen auf der Tastatur",""],["+ Lagen","noten3_lagen","Lagen auf der Tastatur",""],["+ Hilfslinien","noten3_hilfslinien","Hilfslinien auf der Tastatur",""]]},{"n":4,"name":"Violinschlüssel","desc":"Noten schreiben","level":"bild_violin","chip":"Violinschlüssel schreiben","subs":[["Stammtöne","noten4_basis","Stammtöne schreiben (Violinschlüssel)",""],["+ Vorzeichen","noten4_vorzeichen","Mit Vorzeichen schreiben",""],["+ Lagen","noten4_lagen","Mit Lagen schreiben",""],["+ Hilfslinien","noten4_hilfslinien","Mit Hilfslinien schreiben",""]]},{"n":5,"name":"Bassschlüssel","desc":"Noten schreiben","level":"bild_bass","chip":"Bassschlüssel schreiben","subs":[["Stammtöne","noten5_basis","Stammtöne schreiben (Bassschlüssel)",""],["+ Vorzeichen","noten5_vorzeichen","Mit Vorzeichen schreiben (Bass)",""],["+ Lagen","noten5_lagen","Mit Lagen schreiben (Bass)",""],["+ Hilfslinien","noten5_hilfslinien","Mit Hilfslinien schreiben (Bass)",""]]},{"n":6,"name":"Beide Schlüssel","desc":"Noten schreiben","level":"bild_beide","chip":"Beide Schlüssel schreiben","subs":[["Stammtöne","noten6_basis","Stammtöne schreiben (beide Schlüssel)",""],["+ Vorzeichen","noten6_vorzeichen","Mit Vorzeichen schreiben (beide)",""],["+ Lagen","noten6_lagen","Mit Lagen schreiben (beide)",""],["+ Hilfslinien","noten6_hilfslinien","Mit Hilfslinien schreiben (beide)",""]]}]},"it":{"name":"Intervalltrainer","file":"intervalltrainer.html","store":"intervalltrainer_quickstart_progress","nodes":[{"n":1,"name":"Intervall grob bestimmen","desc":"Grundintervalle erkennen (Prime bis Oktave)","level":"einsteiger","chip":"Intervall grob bestimmen","subs":[["Grundintervalle (Prime–Oktave)","int1_basis","1a — Grundintervalle — Prime bis Oktave",""],["+ erweiterte Intervalle","int1_extended","1b — Erweiterte Intervalle — None bis Duodezime",""],["ohne Dropdown","int1_nohelp","1c — Freie Eingabe — Ohne Auswahlfeld",""]]},{"n":2,"name":"Intervalle auf der Tastatur","desc":"Töne auf Klaviatur finden","level":"aufsteiger","chip":"Intervalle auf der Tastatur","subs":[["Stammtöne auf der Tastatur","int2_basis","2a — Stammtöne auf der Tastatur",""],["+ Vorzeichen","int2_augdim","2b — Vorzeichen auf der Tastatur",""],["+ beide Schlüssel","int2_bothclefs","2c — Beide Schlüssel",""]]},{"n":3,"name":"Halbtonschritte zählen","desc":"Intervallgröße durch Halbtonschritte bestimmen","level":"profi","chip":"Halbtonschritte zählen","subs":[["Halbtonschritte zählen","int3_basis","3a — Halbtonschritte zählen",""],["+ übermäßig/vermindert","int3_augdim","3b — Halbtonschritte mit Vorzeichen",""],["+ beide Schlüssel","int3_bothclefs","3c — Beide Schlüssel — Halbtonschritte",""],["ohne Hörbeispiel","int3_noaudio","3d — Ohne Hörbeispiel — Halbtonschritte",""]]},{"n":4,"name":"Feinbestimmung lernen","desc":"Rein, groß, klein, übermäßig, vermindert","level":"meister","chip":"Feinbestimmung lernen","subs":[["Reine Intervalle","int4_rein","4a — Reine Intervalle — Die 4 Ankerpunkte",""],["+ große & kleine","int4_grossklein","4b — Große & kleine Intervalle",""],["+ Komplementär","int4_komplement","4c — Komplementärintervalle",""],["+ übermäßig & vermindert","int4_augdim","4d — Übermäßig & vermindert",""],["alle gemischt","int4_alles","4e — Alle Typen gemischt",""]]},{"n":5,"name":"Intervalle präzise bestimmen","desc":"Feinbestimmung am Notenbild","level":"experte","chip":"Intervalle präzise bestimmen","subs":[["Grundbestimmung","int5_basis","5a — Intervalle vollständig bestimmen",""],["+ übermäßig/vermindert","int5_augdim","5b — Mit übermäßig & vermindert",""],["+ erweiterte","int5_extended","5c — Erweiterte Intervalle vollständig",""],["+ beide Schlüssel","int5_bothclefs","5d — Beide Schlüssel — vollständig",""],["ohne Hörbeispiel","int5_noaudio","5e — Ohne Hörbeispiel",""]]},{"n":6,"name":"Tastatur bilden","desc":"Intervalle auf der Tastatur","level":"bilden_tastatur","chip":"Tastatur bilden","subs":[["Reine Intervalle","int6_rein","6a — Reine Intervalle bilden — Tastatur",""],["+ große & kleine","int6_grossklein","6b — Große & kleine Intervalle bilden",""],["+ übermäßig & vermindert","int6_augdim","6c — Übermäßig & vermindert bilden",""],["+ erweiterte","int6_erweitert","6d — Erweiterte Intervalle bilden — None bis Tredezime",""]]},{"n":7,"name":"Notensystem schreiben","desc":"Intervalle im Notensystem","level":"bilden_staff","chip":"Notensystem schreiben","subs":[["Reine Intervalle","int7_rein","7a — Reine Intervalle schreiben — Notensystem",""],["+ große & kleine","int7_grossklein","7b — Große & kleine Intervalle schreiben",""],["+ übermäßig & vermindert","int7_augdim","7c — Übermäßig & vermindert schreiben",""],["+ erweiterte","int7_erweitert","7d — Erweiterte Intervalle schreiben — None bis Tredezime",""],["ohne Hörbeispiel","int7_noaudio","7e — Ohne Hörbeispiel schreiben",""]]}]},"dt":{"name":"Dreiklangstrainer","file":"dreiklangstrainer.html","store":"dreiklangstrainer_quickstart_v2","nodes":[{"n":1,"name":"Tastaturorientierung","desc":"Töne auf der Tastatur finden","level":"einsteiger","chip":"Tastaturorientierung","subs":[["Dur & Moll","drei1_basis","1a — Dur- und Moll-Dreiklänge",""],["+ Vorzeichen","drei1_vorzeichen","1b — Mit Vorzeichen",""],["+ hohe/tiefe Lage","drei1_range","1c — Großer Tonumfang",""]]},{"n":2,"name":"Terzen bestimmen","desc":"Halbtonschritte bestimmen","level":"aufsteiger","chip":"Terzen bestimmen","subs":[["Dur & Moll","drei2_basis","2a — Halbtonschritte zählen",""],["+ Vorzeichen","drei2_vorzeichen","2b — Mit Vorzeichen",""],["+ übermäßig & vermindert","drei2_augmented","2c — Übermäßig und vermindert",""],["+ hohe/tiefe Lage","drei2_range","2d — Großer Tonumfang",""],["ohne Hörbeispiel","drei2_noaudio","2e — Ohne Hörbeispiel",""]]},{"n":3,"name":"Dreiklänge benennen","desc":"Alle Dreiklangstypen benennen","level":"profi","chip":"Dreiklänge benennen","subs":[["Dur & Moll","drei3_basis","3a — Dreiklänge benennen",""],["+ Vorzeichen","drei3_vorzeichen","3b — Mit Vorzeichen",""],["+ übermäßig & vermindert","drei3_augmented","3c — Übermäßig und vermindert",""],["+ hohe/tiefe Lage","drei3_range","3d — Großer Tonumfang",""],["ohne Hörbeispiel","drei3_noaudio","3e — Ohne Hörbeispiel",""],["+ Doppelvorzeichen","drei3_doubleAccidentals","3f — Mit Doppelvorzeichen",""]]},{"n":4,"name":"Umkehrungen","desc":"Stellung und Dreiklang erkennen","level":"meister","chip":"Umkehrungen","subs":[["Dur & Moll","drei4_basis","4a — Umkehrungen erkennen",""],["+ Vorzeichen","drei4_vorzeichen","4b — Mit Vorzeichen",""],["+ übermäßig & vermindert","drei4_augmented","4c — Übermäßig und vermindert",""],["+ hohe/tiefe Lage","drei4_range","4d — Großer Tonumfang",""],["ohne Hörbeispiel","drei4_noaudio","4e — Ohne Hörbeispiel",""],["+ Doppelvorzeichen","drei4_doubleAccidentals","4f — Mit Doppelvorzeichen",""]]},{"n":5,"name":"Dreiklänge bilden","desc":"Akkorde auf der Tastatur bauen","level":"bilden_key","chip":"Dreiklänge bilden","subs":[["Dur & Moll","drei5_basis","5a — Dur & Moll bilden — Tastatur",""],["+ Vorzeichen","drei5_vorzeichen","5b — Dreiklänge mit Vorzeichen bilden",""],["+ übermäßig & vermindert","drei5_augdim","5c — Übermäßig & vermindert bilden — Tastatur",""]]},{"n":6,"name":"Dreiklänge notieren","desc":"Akkorde im Notensystem bauen","level":"bilden_staff","chip":"Dreiklänge notieren","subs":[["Dur & Moll","drei6_basis","6a — Dur & Moll notieren — Notensystem",""],["+ Vorzeichen","drei6_vorzeichen","6b — Dreiklänge mit Vorzeichen notieren",""],["+ übermäßig & vermindert","drei6_augdim","6c — Übermäßig & vermindert notieren",""]]},{"n":7,"name":"Umkehrungen bilden","desc":"Akkordlagen auf der Tastatur","level":"bilden_umk_key","chip":"Umkehrungen bilden","subs":[["Dur & Moll","drei7_basis","7a — Umkehrungen bilden — Tastatur",""],["+ Vorzeichen","drei7_vorzeichen","7b — Umkehrungen mit Vorzeichen bilden",""],["+ übermäßig & vermindert","drei7_augdim","7c — Übermäßig & vermindert in Umkehrungen — Tastatur",""]]},{"n":8,"name":"Umkehrungen notieren","desc":"Akkordlagen im Notensystem","level":"bilden_umk_staff","chip":"Umkehrungen notieren","subs":[["Dur & Moll","drei8_basis","8a — Umkehrungen notieren — Notensystem",""],["+ Vorzeichen","drei8_vorzeichen","8b — Umkehrungen mit Vorzeichen notieren",""],["+ übermäßig & vermindert","drei8_augdim","8c — Übermäßig & vermindert in Umkehrungen notieren",""]]}]},"tt":{"name":"Tonleitertrainer","file":"tonleitertrainer.html","store":"tonleitertrainer_quickstart_v1","nodes":[{"n":1,"name":"Ganzton oder Halbton?","desc":"","level":"einsteiger","chip":"Ganzton oder Halbton?","subs":[["Stammtöne (C–H)","ton1_basis","Ganzton- und Halbtonschritte","Ganzton und Halbton unterscheiden"],["+ Vorzeichen","ton1_vorzeichen","Mit Vorzeichen","Abstände mit Vorzeichen bestimmen"],["ohne Hörbeispiel","ton1_noaudio","Ohne Hörbeispiel","ohne Hörbeispiel entscheiden"]]},{"n":2,"name":"Halbtonschritte finden","desc":"","level":"aufsteiger","chip":"Halbtonschritte finden","subs":[["HS-Stufen wählen","ton2_basis","Halbtonschritte finden","die Halbtonschritte einer Tonleiter finden"],["HS-Paare auswählen","ton2_stufenpaare","Stufenpaare auswählen","Halbtonschritte als Stufenpaare angeben"],["+ erweiterte Tonarten","ton2_mehr_tonarten","Erweiterte Tonarten","Halbtonschritte in Tonleitern mit vielen Vorzeichen finden"],["ohne Hörbeispiel","ton2_noaudio","Ohne Hörbeispiel","Halbtonschritte ohne Hörbeispiel finden"]]},{"n":3,"name":"Welche Tonleiter ist das?","desc":"","level":"profi","chip":"Welche Tonleiter ist das?","subs":[["Tongeschlecht bestimmen","ton3_muster_lernen","Tongeschlecht bestimmen","Dur und Moll unterscheiden"],["HS-Stufen + benennen","ton3_muster_erkennen","Tonleiter benennen","eine Tonleiter benennen"],["Ohne Halbtonschritt-Hilfe","ton3_alles","Tonleiter benennen ohne Hilfe","Tonleitern im Kopf benennen"],["Ohne Klaviatur-Hilfe","ton3_ohne_hilfe","Ohne Klaviatur-Hilfe","Halbtonschritte ohne Tastatur bestimmen"],["Ohne Hörbeispiel","ton3_noaudio","Ohne Hörbeispiel","Tonleitern ohne Hörbeispiel benennen"]]},{"n":4,"name":"Tonleiter bauen","desc":"","level":"bilden","chip":"Tonleiter bauen","subs":[["Tastatur (einfach)","ton4_tastatur_einfach","Tastatur (einfach)","eine Tonleiter selbst bauen"],["Schreiben (einfach)","ton4_schreiben_einfach","Schreiben (einfach)","eine Tonleiter ins Notensystem schreiben"],["Tastatur (viele Vorzeichen)","ton4_tastatur_schwer","Tastatur (viele Vorzeichen)","Tonleitern mit vielen Vorzeichen bauen"],["Schreiben (viele Vorzeichen)","ton4_schreiben_schwer","Schreiben (viele Vorzeichen)","Tonleitern mit vielen Vorzeichen schreiben"],["Ohne Hörbeispiel","ton4_noaudio","Ohne Hörbeispiel","Tonleitern ohne Hörbeispiel schreiben"]]},{"n":5,"name":"Quintenzirkel","desc":"","level":"meister","chip":"Quintenzirkel","subs":[["Außenkreis + Merksätze","ton5_aussenkr","Der Quintenzirkel — Außenkreis","den Quintenzirkel lesen"],["Innenkreis + Mollparallelen","ton5_innenkr","Innenkreis — Mollparallelen","die Mollparallele finden"],["Vorzeichen-Ableitung","ton5_vorz_ableitung","Vorzeichen-Ableitung","die Vorzeichen einer Tonart ableiten"],["Enharmonik","ton5_enharmonisch","Enharmonische Verwechslung","den zweiten Namen einer Tonart finden"],["Verwandte Tonarten","ton5_verwandte","Verwandte Tonarten","die Nachbarn einer Tonart im Zirkel finden"],["Symmetrien","ton5_symmetrien","Symmetrien im Quintenzirkel","Figuren im Quintenzirkel finden"]]}]},"rt":{"name":"Rhythmustrainer","file":"rhythmustrainer.html","store":"rhythmustrainer_skilltree_v2","nodes":[{"n":1,"name":"Notenwerte addieren","desc":"Notenwerte zusammenrechnen","level":"einsteiger","chip":"Notenwerte addieren","subs":[["Basis","rhy1_basis","1a — Notenwerte addieren",""],["+ Achtel","rhy1_8tel","1b — Mit Achtelnoten",""],["+ Pausen","rhy1_pausen","1c — Mit Pausen",""],["+ Sechzehntel","rhy1_16tel","1d — Mit Sechzehntelnoten",""],["+ Punktierte","rhy1_punktierte","1e — Mit punktierten Noten",""],["+ Triolen","rhy1_triolen","1f — Mit Triolen",""]]},{"n":2,"name":"Taktarten erkennen","desc":"Welche Taktart hat dieser Rhythmus?","level":"taktarten","chip":"Taktarten erkennen","subs":[["Regelmäßig (2/4, 3/4, 4/4)","rhy2_regelmaessig","2a — Taktarten erkennen",""],["4/4, 5/4, 7/4","rhy2_unregelmaessig1","2b — Unregelmäßige Taktarten",""],["5/4, 7/4, 7/8, 9/8","rhy2_unregelmaessig2","2c — Achtel-Taktarten",""]]},{"n":3,"name":"Zählzeiten bestimmen","desc":"Position im Takt erkennen","level":"fortgeschrittener","chip":"Zählzeiten bestimmen","subs":[["Basis","rhy3_basis","3a — Zählzeiten bestimmen",""],["+ Pausen","rhy3_pausen","3b — Mit Pausen",""],["+ Achtel","rhy3_8tel","3c — Mit Achtelnoten",""],["+ Sechzehntel","rhy3_16tel","3d — Mit Sechzehntelnoten",""],["+ Punktierte","rhy3_punktierte","3e — Mit punktierten Noten",""],["ohne Hörbeispiel","rhy3_noaudio","3f — Ohne Hörbeispiel",""]]},{"n":4,"name":"Rhythmussprache","desc":"Rhythmussilben richtig sprechen","level":"profi","chip":"Rhythmussprache","subs":[["Basis (Achtel)","rhy4_basis","4a — Rhythmussilben sprechen",""],["+ Sechzehntel","rhy4_16tel","4b — Mit Sechzehntelnoten",""],["+ Punktierte","rhy4_punktierte","4c — Mit punktierten Noten",""],["+ Triolen","rhy4_triolen","4d — Mit Triolen",""],["ohne Hörbeispiel","rhy4_noaudio","4e — Ohne Hörbeispiel",""]]},{"n":5,"name":"Fehlenden Wert ergänzen","desc":"Welcher Notenwert fehlt im Takt?","level":"notenwert_bilden","chip":"Fehlenden Wert ergänzen","subs":[["Basis (bis Achtel)","rhy5_8tel","5a — Fehlenden Notenwert ergänzen",""],["+ Punktierte","rhy5_punktierte","5b — Mit punktierten Noten",""],["+ Sechzehntel","rhy5_16tel","5c — Mit Sechzehntelnoten",""]]},{"n":6,"name":"Rhythmusdiktat","desc":"Gehörten Rhythmus nachschreiben","level":"rhythmusdiktat","chip":"Rhythmusdiktat","subs":[["Basis (bis Achtel)","rhy6_8tel","6a — Rhythmusdiktat",""],["+ Punktierte","rhy6_punktierte","6b — Mit punktierten Noten",""],["+ Sechzehntel","rhy6_16tel","6c — Mit Sechzehntelnoten",""]]}]}};
+    </script>
+    <!-- REGISTER:END -->
     <script src="account.js"></script>
 
     <script>
@@ -550,10 +604,27 @@
 
         _trackLanding('page_view', 'Landing', {});
 
-        document.querySelectorAll('.trainer-card').forEach(card => {
-            card.addEventListener('click', function () {
+        document.querySelectorAll('.trainer-main').forEach(link => {
+            link.addEventListener('click', function () {
                 const name = this.querySelector('.trainer-name').textContent;
                 _trackLanding('landing_click', name, {});
+            });
+        });
+
+        // Themen-Chips: ein Chip je Knoten, Link auf die erste Lernkarte des Knotens (?lernkarte=…).
+        // Knotennamen und Schlüssel kommen aus REGISTER (aus den Trainern erzeugt, s. _entwicklung/register_erzeugen.js).
+        document.querySelectorAll('.trainer-card[data-trainer]').forEach(card => {
+            const t = REGISTER[card.dataset.trainer];
+            const row = card.querySelector('.trainer-chips');
+            if (!t || !row) return;
+            t.nodes.forEach(node => {
+                const a = document.createElement('a');
+                a.className = 'tc-chip';
+                a.href = t.file + '?lernkarte=' + encodeURIComponent(node.subs[0][1]);
+                a.textContent = node.chip;
+                if (node.desc) a.title = node.desc;
+                a.addEventListener('click', () => _trackLanding('landing_click', t.name, { node: card.dataset.trainer + node.n, chip: node.chip }));
+                row.appendChild(a);
             });
         });
     </script>
