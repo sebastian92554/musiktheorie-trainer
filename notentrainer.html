@@ -2538,14 +2538,14 @@
         // Nennt Schlüssel, Linie/Zwischenraum, Richtung über/unter dem System, Vorzeichen und Lage
         // der Aufgabe, aber nie den gesuchten Ton. Beispiele schließen den Stammton der Aufgabe aus.
         const CLEF = {
-            treble: { name: 'Violinschlüssel', anchor: 'Anker ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet.',
+            treble: { name: 'Violinschlüssel', anchor: 'Von der G-Linie aus abzählen (2. Linie von unten, um sie windet sich der Schlüssel).',
                 lines: 'Merksatz für die Linien von unten: <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß.',
                 spaces: 'Die Zwischenräume von unten ergeben das Wort <strong>F-A-C-E</strong>.',
                 bottom: 'E', top: 'F', down: 'E – D – C – H – A – G – F', up: 'F – G – A – H – C – D – E',
                 lage: { unten: 'Unter c\' (1. Hilfslinie unter dem System) beginnt die kleine Oktave.',
                         system: 'Im System wechselt die Lage bei c\'\' im 3. Zwischenraum: darunter eingestrichen, ab c\'\' zweigestrichen.',
                         oben: 'Ab c\'\'\' (2. Hilfslinie über dem System) beginnt die dreigestrichene Oktave, darunter ist alles zweigestrichen.' } },
-            bass: { name: 'Bassschlüssel', anchor: 'Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten.',
+            bass: { name: 'Bassschlüssel', anchor: 'Von der F-Linie aus abzählen (4. Linie von unten, zwischen den beiden Punkten).',
                 lines: 'Merksatz für die Linien von unten: <strong>G</strong>ute <strong>H</strong>unde <strong>D</strong>ürfen <strong>F</strong>utter <strong>A</strong>uswählen.',
                 spaces: 'Für die Zwischenräume: <strong>A</strong>lle <strong>C</strong>oolen <strong>E</strong>ssen <strong>G</strong>ummibärchen.',
                 bottom: 'G', top: 'A', down: 'G – F – E – D – C – H – A', up: 'A – H – C – D – E – F – G',
@@ -2948,7 +2948,7 @@
 
             panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div><div class="wq-bub wq-bub-u">${label}</div>`
                 + `<div class="wq-bub">${[rel, gap ? 'Auffällig ist jedoch: ' + cmp : cmp].filter(Boolean).join(' ')}</div></div>`
-                + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                + (asks.length ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
                 + '<button class="wq-go">Weiter üben</button>';
             panel.querySelector('.wq-go').onclick = closePanel;
             panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
@@ -3109,19 +3109,19 @@
         }
         function recosEnd(items) {
             return items.map(([, lvl, opts, label]) => `<button class="reco-item" onclick="quickStart.goToRecommendedLevel('${lvl}','${opts}')">${label}</button>`).join('')
-                + '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                + '<button class="reco-item" onclick="quickStart.retry()">Erklärung lesen und noch einmal üben</button>';
         }
         // Tipp für den nächsten Schritt: die häufigste Fehlerart erst gezielt üben, sonst die Lernkarte
         function tipEnd(kinds, by, items) {
-            const PR = { stamm: 'die Stammtöne', vz: 'die Vorzeichen', lage: 'die Lagen', taste: 'das Finden der Tasten' };
+            const PR = { stamm: 'die Stammtöne', vz: 'die Vorzeichen', lage: 'die Lagen', taste: 'die Tasten auf der Tastatur' };
             // bei mehreren Übungen zuerst die Grundlage (wie auf den Lernkarten: Stammton bzw. Taste vor Vorzeichen und Lage)
             const ORD = ['stamm', 'taste', 'vz', 'lage'];
             const it = items.slice().sort((a, b) => ORD.indexOf(a[0]) - ORD.indexOf(b[0]))[0];
-            if (it) return `Übe vor dem nächsten Durchgang erst ${PR[it[0]]}. Dafür gibt es unten den Knopf „${it[3]}“.`;
+            if (it) return `Übe erst noch einmal ${PR[it[0]]}, bevor du diese Übung wiederholst. Dafür gibt es unten den Knopf „${it[3]}“.`;
             const P = { stamm: 'den Stammton', hilf: 'die Hilfslinien', vz: 'das Vorzeichen', lage: 'die Lage', taste: 'die Taste' };
             const schl = by[kinds[0]].length >= 2 && by[kinds[0]].every(x => x.schl);
-            if (by[kinds[0]].length >= 2) return `Lies vor dem nächsten Durchgang die Lernkarte noch einmal und achte dabei besonders auf ${schl ? 'den Schlüssel' : P[kinds[0]]}.`;
-            return 'Lies vor dem nächsten Durchgang die Lernkarte noch einmal und prüf jede Antwort, bevor du sie abschickst.';
+            if (by[kinds[0]].length >= 2) return `Lies die Erklärung noch einmal, bevor du die Übung wiederholst, und achte dabei besonders auf ${schl ? 'den Schlüssel' : P[kinds[0]]}.`;
+            return 'Lies die Erklärung noch einmal und prüf jede Antwort, bevor du sie abschickst.';
         }
         // ---- Fehlerliste als Bild-Kästen (wie im RT, Sebo 15.11.2026) ----
         // Die Lösung steht im Bild, damit der Schüler unmittelbar vergleichen kann. Je Fehler ein System:
@@ -3234,7 +3234,7 @@
         function endAll() {
             const ov = document.createElement('div');
             ov.className = 'es-all';
-            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieses Durchgangs</b><button class="es-x" aria-label="Schließen">×</button></div>'
+            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieser Übung</b><button class="es-x" aria-label="Schließen">×</button></div>'
                 + '<div class="es-all-g">' + endXs.map((x, i) => `<div class="es-box"><p class="es-n">${i + 1}. Fehler</p>${x.pic || `<p>${x.line}</p>`}</div>`).join('') + '</div></div>';
             ov.onclick = e => { if (e.target === ov || e.target.classList.contains('es-x')) ov.remove(); };
             document.body.appendChild(ov);
@@ -3308,7 +3308,7 @@
                     + `<div class="wq-bub wq-bub-u">${labels.join('<br>')}</div>`
                     + `<div class="wq-bub">${[rel.join(' '), concl && gap ? 'Auffällig ist jedoch: ' + concl : concl].filter(Boolean).join(' ')}</div>`
                     + `<div class="wq-bub">${tipEnd(kinds, by, items)}</div></div>`
-                    + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                    + (asks.length ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
                     + '</div>';
                 endFit(msg);
                 rec.innerHTML = recosEnd(items);
@@ -4389,7 +4389,7 @@
                         const tg = ax.target(quickStart.currentLevel);
                         recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
                     });
-                    recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                    recos += '<button class="reco-item" onclick="quickStart.retry()">Erklärung lesen und noch einmal üben</button>';
                     _rec.innerHTML = recos;
                     // Mit protokollierten Fehlern: Fehlerliste → „Woran lag es?“ → Befund (ersetzt Nachricht und Empfehlungen)
                     woranPanel.endScreen(_msg, _rec);
@@ -4512,10 +4512,10 @@
             _cardHintHtml(subSkillId) {
                 const b = this._cardHintBucket(subSkillId);
                 if (b === 'skip') {
-                    return '<div class="gf-axis"><p>Du hast die Lernkarte sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Erklärung sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 if (b === 'short') {
-                    return '<div class="gf-axis"><p>Du hast die Lernkarte nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Erklärung nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 return '';
             },
@@ -7423,7 +7423,7 @@
                             if (levelHelp[opt]) html += levelHelp[opt];
                         }
                     }
-                    if (!html) html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Teilkompetenz als bestanden.</p>';
+                    if (!html) html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Übung als bestanden.</p>';
                     contentEl.innerHTML = html;
 
                 } else {
@@ -7432,8 +7432,8 @@
                     contentEl.innerHTML = `
                         <p>Willkommen im <strong>Notentrainer</strong>! Hier lernst du Schritt für Schritt, Noten sicher zu lesen und zu benennen.</p>
                         <p><strong>So funktioniert's:</strong></p>
-                        <p>Dein Lernpfad besteht aus drei Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
-                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+                        <p>Dein Lernpfad besteht aus drei Kompetenz-Knoten. Klicke auf einen Knoten, um die Übungen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Übung anklicken.</p>
+                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Übung als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
                     `;
                 }
 
