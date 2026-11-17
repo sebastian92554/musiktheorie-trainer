@@ -1617,6 +1617,15 @@
         .wq-overlay .wq-panel { margin: 0; width: 100%; max-height: 88vh; overflow-y: auto; }
         /* „Ausführlich nachlesen“ aus dem Feld: Lernkarte über dem Feld-Fenster, nicht dahinter */
         body.wq-open .lernkarte-overlay { z-index: 2100; }
+        /* „Woran liegt es?“ wie der Endbildschirm (17.11.2026) */
+        .wq-panel .wq-bar { margin-top: 10px; }
+        .wq-panel .es-head { font-size: 1.1rem; color: #374151; margin: 0 0 5px; text-align: center; }
+        .wq-panel .wq-bar-l { font-size: 0.85rem; color: #6b7280; margin: 0 0 6px; }
+        .wq-panel .es-ul { font-size: 0.9rem; text-align: center; margin: 2px 0 0; }
+        .wq-panel .es-boxes { margin: 6px 0 14px; }
+        /* Lineale in fester Größe (1 Einheit = 1 px, wie im Endbildschirm), nicht auf Kastenbreite gestreckt */
+        .wq-panel .es-box svg.wq-kbsvg { width: var(--w, 100%) !important; max-width: 100%; margin: 4px auto 0; }
+        .wq-overlay .wq-panel { animation: none; }
         #successMessage .wq-panel { margin-top: 14px; }
         /* Mit Fehler-Kästen so breit wie das Woran-Feld: Seitenränder von Endbildschirm und Karte schmaler
            (sonst gehen auf dem Handy je Seite gut 40 px mehr verloren; ältere Browser ohne :has behalten die Ränder) */
@@ -2470,8 +2479,8 @@
             const max = app.getMaxValue(), pos = countPos(pc);
             if (pos < 0 || pos > max) return svg;
             const x = 145 + pos / max * 515, y = 140;
-            const mark = `<line x1="${x}" y1="${y + 48}" x2="${x}" y2="${y + 62}" stroke="#dc2626" stroke-width="4"/>`
-                + `<text x="${x}" y="${y + 94}" text-anchor="middle" font-size="34" font-weight="700" fill="#dc2626">${raw}</text>`;
+            // Eigene Zählzeit: nur eine rote gestrichelte Linie durch den Takt an ihrer Stelle; die Zählzeit selbst nennt der Satz darunter
+            const mark = `<line x1="${x}" y1="${y - 60}" x2="${x}" y2="${y + 50}" stroke="#dc2626" stroke-width="4" stroke-dasharray="10,7"/>`;
             return svg.replace('</svg>', mark + '</svg>');
         }
         // Addieren: Summanden als Blöcke auf einem Viertel-Raster, darüber eine Klammer über alle Summanden
@@ -2563,7 +2572,7 @@
                 const beatOk = !!u && !!k && u.beat === k.beat;
                 // Eine Zählzeit („3 und“) ist eine Einheit wie ein Notenname → ganz rot
                 const uhtml = red(raw);
-                return { ...base, kind: beatOk ? 'unter' : 'schlag', beat: u && u.beat, suf: u && u.suf, user: raw, uhtml, verb: 'eingegeben', img: '', own: markCount(barImg(true), raw) };
+                return { ...base, kind: beatOk ? 'unter' : 'schlag', beat: u && u.beat, suf: u && u.suf, user: raw, uhtml: 'Zählzeit ' + uhtml, verb: 'eingegeben', img: '', own: markCount(barImg(true), raw) };
             }
             if (c.mode === 'gap') {
                 const t = app.gapFillCurrentTask, sel = app._lastGapAnswer;
@@ -2679,16 +2688,47 @@
         let attempts = [], panel = null, overlay = null;
         function closePanel() { if (overlay) { overlay.remove(); overlay = null; panel = null; } document.body.classList.remove('wq-open'); }
 
+        const Q_FIELD = 'Zweimal daneben. Was glaubst du: Woran liegt es?';
+        let fieldBoxes = '';
+        // Kästen wie im Endbildschirm, aber immer beide Versuche: Aufgabenbild einmal oben, im Kasten das eigene Bild
+        // (Klammer mit eigener Summe, eigene Zählzeit im Raster, Lücke mit eigener Wahl, eigener Rhythmus) und die Antwort
+        function boxesHtml(c) {
+            const two = attempts.slice(-2), one = two[0].id === two[1].id;
+            const line = x => `<p class="es-ul">Du hast ${x.kind === 'silbe' ? `„${x.uhtml}“` : x.uhtml} ${x.verb}.</p>`;
+            const fix = svg => (svg || '').replace(/<svg class="wq-kbsvg" viewBox="0 0 ([\d.]+) /g, '<svg class="wq-kbsvg" style="--w:$1px" viewBox="0 0 $1 ');
+            const box = (h, x, img) => `<div class="es-box"><p class="es-n">${h}</p>${img || ''}${fix(x.own)}${line(x)}</div>`;
+            const cases = one ? (two[1].img ? `<div class="es-box es-task">${two[1].img}</div>` : '') + two.map((x, i) => box(`${i + 1}. Versuch`, x)).join('')
+                : two.map((x, i) => box(`${i + 1}. Aufgabe`, x, x.img)).join('');
+            return `<p class="es-head">${one ? 'Deine beiden Versuche:' : 'Deine beiden Aufgaben:'}</p><div class="es-boxes">${cases}</div>`;
+        }
+        // Vermutungen: „Punkt“ nur, wenn eine der beiden Aufgaben eine punktierte Note hatte
+        function optionsFor(c, two) {
+            return options(c, two.find(x => x.dot)).filter(([k]) => k !== 'punkt' || two.some(x => x.dot));
+        }
+        // Sicher ausgeschlossen (Sebo 16.11.2026) → keine Hilfe zur Vermutung
+        function guessExcluded(k, two) {
+            if (k === 'punkt') return !two.some(x => x.dot);
+            if (k === 'schlag') return two.every(x => x.kind === 'unter');   // Schlag beide Male richtig
+            return false;
+        }
+        // Hilfe zur Vermutung über die passende Fehlerart der Übung (helpFor arbeitet mit Fehlerarten)
+        function guessHelp(k, two, c) {
+            const K = { add: { wert: 'summe', rechnen: 'summe', punkt: 'punkt' }, ts: { zaehlen: 'takt', bedeutung: 'takt' }, zz: { schlag: 'schlag', unter: 'unter' },
+                silbe: { silbe: 'silbe', position: 'silbe' }, gap: { rest: 'luecke', wert: 'luecke' }, dict: { hoeren: 'diktat', wert: 'diktat' } }[c.mode] || {};
+            return K[k] ? helpFor([{ ...two[1], kind: K[k] }].concat(two), c).filter((h, i, a) => a.indexOf(h) === i) : [];
+        }
         function showPanel() {
             const c = ctx();
             closePanel();
+            const two = attempts.slice(-2);
             panel = document.createElement('div');
             panel.className = 'wq-panel';
-            panel.innerHTML = `<p class="wq-q">Zweimal daneben. Was glaubst du: Woran liegt es?</p><div class="wq-opts">`
-                + options(c, attempts[attempts.length - 1]).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
-                + '<button class="wq-opt secondary" data-k="klick">Ich habe mich verklickt.</button>'
-                + '<button class="wq-opt secondary" data-k="weiss">Weiß ich nicht.</button></div>';
-            panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => { try { answer(b.dataset.k, c); } catch (e) { wqError('answer', e); } });
+            fieldBoxes = boxesHtml(c);
+            panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div></div>`
+                + '<div class="wq-bar"><p class="wq-bar-l">Wähle eine Antwort:</p><div class="wq-opts">'
+                + optionsFor(c, two).concat([['klick', 'Ich habe mich verklickt.'], ['weiss', 'Weiß ich nicht.']]).map(([k, t]) => `<button class="wq-opt" data-k="${k}">${t}</button>`).join('')
+                + '</div></div>';
+            panel.querySelectorAll('.wq-opt').forEach(b => b.onclick = () => { try { answer(b.dataset.k, c, b.textContent); } catch (e) { wqError('answer', e); } });
             overlay = document.createElement('div');
             overlay.className = 'wq-overlay';
             overlay.appendChild(panel);
@@ -2697,41 +2737,45 @@
             sendPhase(c, 'shown');
             outcomeCtx = c;
         }
-
-        function answer(choice, c) {
+        function answer(choice, c, label) {
             const two = attempts.slice(-2);
             const kinds = two.map(x => x.kind);
             const same = kinds[0] === kinds[1];
             const observed = same ? kinds[0] : null;
             const one = two[0].id === two[1].id;
 
+            // Erwiderung wie im Endbildschirm; „Verklickt“ und „Weiß ich nicht“ bleiben unkommentiert
+            const X = { wert: 'An den Notenwerten', punkt: 'Am Punkt', rechnen: 'Am Zusammenzählen', zaehlen: 'Am Zusammenzählen der Notenwerte',
+                bedeutung: 'An der Bedeutung der Taktart', schlag: 'Am Mitzählen der Schläge',
+                unter: c.opts.includes('16tel') ? 'An „e“, „und“ und „te“' : 'Am „und“',
+                silbe: 'An den Silben', position: 'An der Zählzeit der Note', rest: 'Am Rest im Takt', hoeren: 'Am Hören' };
             let rel = '';
-            if (choice === 'klick') rel = same ? 'Zweimal an derselben Stelle verklickt man sich selten.' : 'Gut möglich, dass du dich verklickt hast.';
-            else if (choice === 'punkt' && !two.some(x => x.dot)) rel = 'In der Aufgabe gibt es aber keine punktierte Note.';
-            else if (choice === 'weiss' || (observed && OPEN.includes(observed))) rel = '';
-            else if (same && (FITS[observed] || []).includes(choice)) rel = 'Das passt zu deiner Vermutung.';
-            else if (kinds.some(k => (FITS[k] || []).includes(choice))) rel = same ? '' : 'Einer der beiden Fehler passt zu deiner Vermutung.';
-
-            // Immer beide Versuche in eigenen Kästen; das Aufgabenbild einmal oben
-            const u = x => `<div class="wq-case-u">Du hast ${x.uhtml} ${x.verb}.</div>`;
-            let cases;
-            if (one) {
-                const shared = two[1].img ? `<div class="wq-case wq-task">${two[1].img}</div>` : '';
-                cases = shared + two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Versuch</div>${x.own || ''}${u(x)}</div>`).join('');
-            } else {
-                cases = two.map((x, i) => `<div class="wq-case"><div class="wq-case-h">${i + 1}. Aufgabe</div>${x.img || ''}${x.own || ''}${u(x)}</div>`).join('');
+            if (X[choice]) {
+                const hits = two.filter(x => (FITS[x.kind] || []).includes(choice)).length;
+                const why = choice === 'punkt' && !two.some(x => x.dot) ? (one ? 'In der Aufgabe gibt es keine punktierte Note.' : 'In beiden Aufgaben gibt es keine punktierte Note.') : '';
+                // Nicht trennbare Ursachen (Summe, Taktart, Silbe, Lücke, Diktat) → nur „kann“
+                if (why) rel = `${X[choice]} lag es nicht: ${why}`;
+                else if (hits && kinds.every(k => OPEN.includes(k))) rel = `${X[choice]} kann es gelegen haben.`;
+                else if (hits === 2) rel = `${X[choice]} lag es tatsächlich.`;
+                else if (hits) rel = `${X[choice]} lag es zum Teil.`;
+                else rel = `${X[choice]} lag es nicht.`;
             }
-            const asks = helpFor(two, c);
-            const colLayout = two.some(x => x.own);
-            panel.innerHTML = `<p class="wq-q">${one ? 'Vergleiche deine beiden Versuche:' : 'Vergleiche deine beiden Aufgaben:'}</p><div class="wq-cases${colLayout ? ' wq-col' : ''}">${cases}</div>`
-                + `<div class="lk-tip lk-tip-ask"><details class="lk-ask wq-cmp"><summary>Was haben deine beiden Fehler gemeinsam?</summary><div class="lk-ask-a">${common(two, c, one)}${rel ? ' ' + rel : ''}</div></details></div>`
+            const gap = / nicht[.:]| zum Teil\./.test(rel);
+            const cmp = common(two, c, one);
+
+            // Hilfe zur Vermutung zuerst, dann zu den beobachteten Fehlern (jede Frage nur einmal)
+            const sumQ = h => (h.match(/<summary>(.*?)<\/summary>/) || [])[1] || h;
+            const gh = X[choice] && !guessExcluded(choice, two) ? guessHelp(choice, two, c) : [];
+            const asks = gh.concat(helpFor(two, c).filter(h => !gh.some(g => sumQ(g) === sumQ(h))));
+
+            panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div><div class="wq-bub wq-bub-u">${label}</div>`
+                + `<div class="wq-bub">${[rel, gap ? 'Auffällig ist jedoch: ' + cmp : cmp].filter(Boolean).join(' ')}</div></div>`
                 + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
                 + '<button class="wq-go">Weiter üben</button>';
             panel.querySelector('.wq-go').onclick = closePanel;
             panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
             send(c, choice, observed, kinds);
         }
-
         function send(c, choice, observed, kinds, opened) {
             const p = { level: c.lvl, subskill: c.sub, choice, observed, errors: kinds, match: observed && !['klick', 'weiss'].includes(choice) && !OPEN.includes(observed) ? (FITS[observed] || []).includes(choice) : null };
             p.phase = opened ? 'open' : 'choice';
