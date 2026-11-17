@@ -3356,6 +3356,9 @@
                 this.selectedSub = null;
                 app._closeLernkarteStep(false);
                 this.hideQuizOverlay();
+                // Tastaturkarte der letzten Übung ausblenden (Schreib-Modus ruft updateUI() nicht auf)
+                const kbCard = document.getElementById('keyboardCard');
+                if (kbCard) kbCard.classList.remove('active');
                 document.getElementById('appTitle').textContent = 'Notentrainer';
                 this.updateAllProgress();
                 this.showQuickStart();
@@ -3493,6 +3496,13 @@
                 // Clef-Badge nur bei both einblenden
                 const badges = document.getElementById('staffBadges');
                 if (badges) badges.style.display = (app.settings.clef === 'both') ? '' : 'none';
+
+                // Schreib-Modus: keine Tastatur (generateBuildingNote ruft updateUI() nicht auf,
+                // sonst bliebe die Karte aus einer vorherigen Tastatur-Übung stehen)
+                if (app.buildingMode) {
+                    const kbCard = document.getElementById('keyboardCard');
+                    if (kbCard) kbCard.classList.remove('active');
+                }
 
                 app.score = { correct: 0, total: 0 };
 
