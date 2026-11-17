@@ -5313,22 +5313,38 @@
                 // ---- NOTEN1: Einsteiger (Violinschlüssel) ----
                 'basis': {
                     title: 'Stammtöne im Violinschlüssel',
-                    body: `<p><strong>Neu:</strong> Es gibt sieben Stammtöne: <strong>C – D – E – F – G – A – H</strong>, danach beginnt die Reihe wieder bei C. Jeder Ton hat im Notensystem einen festen Platz: auf einer <strong>Linie</strong> oder in einem <strong>Zwischenraum</strong>.</p>
-                        <div class="lk-rule"><strong>Der Ankerpunkt ist fest:</strong> Der Violinschlüssel windet sich um die <strong>G-Linie</strong> (2. Linie von unten). Von dort zählst du Schritt für Schritt weiter: Der Zwischenraum über der G-Linie ist A, die Linie darüber H.</div>
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Welcher Ton liegt im Zwischenraum direkt über der G-Linie?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "A", ok: true }, { t: "H" }, { t: "F" }, { t: "G" }],
+                        ok: "Genau. Ein Platz weiter, ein Ton weiter.",
+                        nope: "Zähle von der G-Linie aus: Der nächste Platz ist der Zwischenraum darüber, und die Reihe geht genau einen Ton weiter."
+                    },
+                    body: `<p><strong>Jetzt lernst du:</strong> Noten im Violinschlüssel lesen. Es gibt sieben Stammtöne: <strong>C – D – E – F – G – A – H</strong>, danach beginnt die Reihe wieder bei C. Im Notensystem hat jeder Ton seinen festen Platz, auf einer Linie oder in einem Zwischenraum. <strong>Der Violinschlüssel windet sich um die G-Linie (2. Linie von unten). Von dort zählst du Platz für Platz weiter, und mit jedem Platz geht die Reihe einen Ton weiter:</strong> der Zwischenraum darüber ist A, die Linie darüber H.</p>
                         <div class="lk-visual" id="lkVisualBasisStammtoene"></div>
                         <p>Das C unter den fünf Linien steht auf einer kurzen <strong>Hilfslinie</strong>.</p>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Note im Violinschlüssel. Gib ihren Namen ein, z.&nbsp;B. „G“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Note im Violinschlüssel. Tippe ihren Namen ein, z.&nbsp;B. „G“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link_1')"><summary>Unsicher, welcher Ton auf welcher Linie liegt?</summary><div class="lk-ask-a">Merksatz für die Linien von unten: <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß. Die Zwischenräume von unten ergeben das Wort <strong>F-A-C-E</strong>.<div class="lk-visual" id="lkVisualBasisMerkhilfe"></div></div></details>
                         </div>`
                 },
                 'vorzeichen': {
                     title: 'Mit Vorzeichen',
-                    body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violinschlüssel benennen.</p>
-                        <p><strong>Neu:</strong> Ein Vorzeichen vor der Note verändert den Ton. <span class="vz-sharp"></span> (Kreuz) erhöht ihn um einen Halbtonschritt, also eine Taste nach rechts. <span class="vz-flat"></span> (Be) erniedrigt ihn um einen, also eine Taste nach links. <strong>Achtung:</strong> Diese Taste ist nicht immer schwarz. F mit <span class="vz-flat"></span> heißt Fes und ist die weiße Taste E.</p>
-                        <div class="lk-rule"><strong>Der Name folgt einer festen Regel:</strong> Mit <span class="vz-sharp"></span> hängst du „is“ an (F → Fis), mit <span class="vz-flat"></span> „es“ (D → Des). Drei Ausnahmen: <strong>Es</strong>, <strong>As</strong> und <strong>B</strong> (nicht Ees, Aes, Hes).</div>
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Vor der Note auf der G-Linie steht ein <span class=\"vz-flat\"></span>. Wie heißt der Ton?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "Ges", ok: true }, { t: "Gis" }, { t: "G" }, { t: "Fes" }],
+                        ok: "Genau. Be, also „es“ angehängt.",
+                        nope: "Schau auf die Regel oben: Welche Silbe hängt ein Be an den Stammton?"
+                    },
+                    body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violinschlüssel lesen.</p>
+                        <p><strong>Jetzt lernst du:</strong> Noten mit Vorzeichen lesen. Ein Vorzeichen steht vor der Note und verändert den Ton: <span class="vz-sharp"></span> (Kreuz) erhöht ihn um einen Halbtonschritt, eine Taste nach rechts; <span class="vz-flat"></span> (Be) erniedrigt ihn um einen, eine Taste nach links. <strong>Der Name folgt einer festen Regel: Mit <span class="vz-sharp"></span> hängst du „is“ an (F → Fis), mit <span class="vz-flat"></span> „es“ (D → Des).</strong> Drei Ausnahmen: Es, As und B. Die Taste ist nicht immer schwarz: Fes ist die weiße Taste E.</p>
                         <div class="lk-visual" id="lkVisualVorzeichen"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies erst den Stammton ab, dann das Vorzeichen davor, und gib den ganzen Namen ein, z.&nbsp;B. „Fis“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies erst den Stammton ab, dann das Vorzeichen davor, und tippe den ganzen Namen ein, z.&nbsp;B. „Fis“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_basis')"><summary>Unsicher beim Stammton?</summary><div class="lk-ask-a">Lies die Note zuerst ohne Vorzeichen: Liegt sie auf der G-Linie, ist der Stammton G. Mit <span class="vz-sharp"></span> heißt sie dann Gis. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link_1')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Fes die Taste E, Eis die Taste F, Ces die Taste H und His die Taste C: Fes und E sind <strong>enharmonisch</strong> gleich. Der Name bleibt trotzdem Fes, Eis, Ces oder His.</div></details>
@@ -5336,11 +5352,19 @@
                 },
                 'hilfslinien': {
                     title: 'Mit Hilfslinien',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: c' steht auf der 1. Hilfslinie unter dem System. Welcher Ton liegt im Zwischenraum direkt darunter?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "h", ok: true }, { t: "a" }, { t: "d'" }, { t: "c" }],
+                        ok: "Genau. Abwärts läuft die Reihe rückwärts: c', h, a …",
+                        nope: "Ein Platz tiefer ist ein Ton tiefer. Welcher Ton kommt in der Reihe vor dem C?"
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit ihrer Lage bestimmen, von c' bis h''.</p>
-                        <p><strong>Neu:</strong> Mit <strong>Hilfslinien</strong> geht es in beide Richtungen weiter, bis zur 3. Hilfslinie: unter c' in die <strong>kleine Oktave</strong> (h, a, g, f), über h'' in die <strong>dreigestrichene Oktave</strong> (c''', d''', e''').</p>
-                        <div class="lk-rule"><strong>Hilfslinien zählen wie normale Linien:</strong> abwechselnd Linie und Zwischenraum. Unten: c' auf der 1., a auf der 2., f auf der 3. Hilfslinie. Oben: a'' auf der 1., c''' auf der 2., e''' auf der 3. Hilfslinie.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten auf Hilfslinien lesen. Über und unter dem System geht es mit kurzen Hilfslinien weiter, hier bis zur 3. Hilfslinie. <strong>Hilfslinien zählen wie normale Linien: abwechselnd Linie und Zwischenraum, und die Tonreihe läuft einfach weiter.</strong> Unten: c' auf der 1., a auf der 2., f auf der 3. Hilfslinie, das ist die kleine Oktave. Oben: a'' auf der 1., c''' auf der 2., e''' auf der 3. Hilfslinie, ab c''' dreigestrichen.</p>
                         <div class="lk-visual" id="lkVisualHilfslinien"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib Name und Lage ein: unter c' „kleine Oktave“, ab c''' „dreigestrichene Oktave“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe Name und Lage ein: unter c' „kleine Oktave“, ab c''' „dreigestrichene Oktave“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_basis')"><summary>Unsicher beim Weiterzählen über und unter dem System?</summary><div class="lk-ask-a">Abwärts läuft die Reihe rückwärts: … C – H – A, aufwärts vorwärts: … H – C – D – E. Unter c' kommen also h, a, g, f, über h'' c''', d''', e'''. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_lagen')"><summary>Unsicher bei den Lagen?</summary><div class="lk-ask-a">Die Lage wechselt beim C: unter c' klein, c' bis h' eingestrichen, ab c'' zweigestrichen, ab c''' dreigestrichen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5348,11 +5372,19 @@
                 },
                 'lagen': {
                     title: 'Lagen bestimmen',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Ein A liegt im 2. Zwischenraum, also unter dem c'' im 3. Zwischenraum. In welcher Lage ist es?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "eingestrichen: a'", ok: true }, { t: "zweigestrichen: a''" }, { t: "klein: a" }],
+                        ok: "Genau. Unter dem c'' ist alles noch eingestrichen.",
+                        nope: "Die Lage wechselt erst beim c'' im 3. Zwischenraum. Liegt das A darüber oder darunter?"
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne im Violinschlüssel benennen, auch mit Vorzeichen.</p>
-                        <p><strong>Neu:</strong> Über mehrere Oktaven wiederholen sich die Stammtöne: Nach h' beginnt die Reihe mit c'' von vorn. Die <strong>Lage</strong> sagt, welcher Ton gemeint ist: c' heißt eingestrichen, c'' zweigestrichen.</p>
-                        <div class="lk-rule"><strong>Die Lage wechselt immer beim C:</strong> Von c' (auf der Hilfslinie unter dem System) bis h' ist alles eingestrichen. Ab c'' (3. Zwischenraum) ist alles zweigestrichen.</div>
+                        <p><strong>Jetzt lernst du:</strong> die Lage eines Tons bestimmen. Nach h' beginnt die Reihe mit c'' von vorn, die Stammtöne wiederholen sich. Die Lage sagt, welches davon gemeint ist: c' heißt eingestrichen, c'' zweigestrichen. <strong>Die Lage wechselt immer beim C: Von c' (Hilfslinie unter dem System) bis h' ist alles eingestrichen, ab c'' (3. Zwischenraum) alles zweigestrichen.</strong></p>
                         <div class="lk-visual" id="lkVisualLagen"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den Namen ein und wähle im Auswahlfeld die Lage: „eingestrichene Oktave“ oder „zweigestrichene Oktave“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Namen ein und wähle im Auswahlfeld die Lage: „eingestrichene Oktave“ oder „zweigestrichene Oktave“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link_1')"><summary>Unsicher, ob ein Ton über oder unter c'' liegt?</summary><div class="lk-ask-a">Zähle vom c'' im 3. Zwischenraum aus: Darunter ist alles eingestrichen, z.&nbsp;B. a' im 2. Zwischenraum. Ab c'' aufwärts ist alles zweigestrichen, z.&nbsp;B. e'' im 4. Zwischenraum.</div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_vorzeichen')"><summary>Unsicher bei den Vorzeichen?</summary><div class="lk-ask-a">Mit <span class="vz-sharp"></span> hängst du „is“ an, mit <span class="vz-flat"></span> „es“: F wird Fis, D wird Des. Ausnahmen: Es, As, B. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5361,23 +5393,39 @@
                 // ---- NOTEN2: Aufsteiger (Bassschlüssel) ----
                 'noten2_basis': {
                     title: 'Stammtöne im Bassschlüssel',
-                    body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violinschlüssel benennen.</p>
-                        <p><strong>Neu:</strong> Im <strong>Bassschlüssel</strong> gelten dieselben Stammtöne, aber sie liegen an anderen Plätzen. Eine Note auf derselben Linie heißt hier anders: Die 2. Linie von unten ist im Violinschlüssel G, im Bassschlüssel H.</p>
-                        <div class="lk-rule"><strong>Der Ankerpunkt ist fest:</strong> Die beiden Punkte des Bassschlüssels umschließen die <strong>F-Linie</strong> (4. Linie von unten). Von dort zählst du Schritt für Schritt weiter: Der Zwischenraum über der F-Linie ist G, die Linie darüber A.</div>
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Welcher Ton liegt im Bassschlüssel im Zwischenraum direkt unter der F-Linie?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "E", ok: true }, { t: "G" }, { t: "D" }, { t: "A" }],
+                        ok: "Genau. Ein Platz tiefer, ein Ton tiefer.",
+                        nope: "Zähle von der F-Linie aus abwärts: Welcher Ton kommt in der Reihe vor dem F?"
+                    },
+                    body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violinschlüssel lesen.</p>
+                        <p><strong>Jetzt lernst du:</strong> Noten im Bassschlüssel lesen. Die Stammtöne sind dieselben, aber ihre Plätze sind andere: Die 2. Linie von unten ist im Violinschlüssel G, im Bassschlüssel H. <strong>Die beiden Punkte des Bassschlüssels umschließen die F-Linie (4. Linie von unten). Von dort zählst du Platz für Platz weiter:</strong> der Zwischenraum darüber ist G, die Linie darüber A.</p>
                         <div class="lk-visual" id="lkVisualNoten2BasisStammtoene"></div>
                         <p>Unter dem System stehen schon Töne auf Hilfslinien: E auf der 1., C auf der 2. Hilfslinie.</p>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Note im Bassschlüssel. Gib ihren Namen ein, z.&nbsp;B. „F“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Du siehst eine Note im Bassschlüssel. Tippe ihren Namen ein, z.&nbsp;B. „F“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link_1')"><summary>Unsicher, welcher Ton auf welcher Linie liegt?</summary><div class="lk-ask-a">Merksatz für die Linien von unten: <strong>G</strong>ute <strong>H</strong>unde <strong>D</strong>ürfen <strong>F</strong>utter <strong>A</strong>uswählen. Für die Zwischenräume: <strong>A</strong>lle <strong>C</strong>oolen <strong>E</strong>ssen <strong>G</strong>ummibärchen.<div class="lk-visual" id="lkVisualNoten2BasisMerkhilfe"></div></div></details>
                         </div>`
                 },
                 'noten2_vorzeichen': {
                     title: 'Vorzeichen im Bassschlüssel',
-                    body: `<p><strong>Du kannst schon:</strong> Stammtöne im Bassschlüssel benennen und Vorzeichen im Violinschlüssel.</p>
-                        <p><strong>Neu:</strong> Vorzeichen funktionieren im Bassschlüssel genauso. Neu ist nur, wo der Stammton liegt. Auch hier landet ein Vorzeichen nicht immer auf einer schwarzen Taste: C mit <span class="vz-flat"></span> heißt Ces und ist die weiße Taste H.</p>
-                        <div class="lk-rule"><strong>Die Namensregel bleibt:</strong> Mit <span class="vz-sharp"></span> hängst du „is“ an (A → Ais), mit <span class="vz-flat"></span> „es“ (D → Des). Ausnahmen: <strong>Es</strong>, <strong>As</strong>, <strong>B</strong>.</div>
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Vor der Note auf der F-Linie des Bassschlüssels steht ein <span class=\"vz-sharp\"></span>. Wie heißt der Ton?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "Fis", ok: true }, { t: "Dis" }, { t: "Fes" }, { t: "F" }],
+                        ok: "Genau. F mit Kreuz.",
+                        nope: "Erst der Stammton: Die 4. Linie liegt zwischen den Punkten des Bassschlüssels. Dann die Silbe für das Kreuz."
+                    },
+                    body: `<p><strong>Du kannst schon:</strong> Stammtöne im Bassschlüssel lesen und Vorzeichen im Violinschlüssel.</p>
+                        <p><strong>Jetzt lernst du:</strong> Vorzeichen im Bassschlüssel lesen. Sie wirken hier genauso, neu ist nur der Platz des Stammtons. <strong>Erst den Stammton im Bassschlüssel ablesen, dann die Silbe anhängen: <span class="vz-sharp"></span> (Kreuz) „is“ (A → Ais), <span class="vz-flat"></span> (Be) „es“ (D → Des).</strong> Ausnahmen bleiben Es, As und B. Die Taste ist nicht immer schwarz: Ces ist die weiße Taste H.</p>
                         <div class="lk-visual" id="lkVisualNoten2Vorzeichen"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies den Stammton im Bassschlüssel ab, dann das Vorzeichen davor, und gib den ganzen Namen ein, z.&nbsp;B. „As“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies den Stammton im Bassschlüssel ab, dann das Vorzeichen davor, und tippe den ganzen Namen ein, z.&nbsp;B. „As“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_basis')"><summary>Unsicher beim Stammton im Bassschlüssel?</summary><div class="lk-ask-a">Zähle von der F-Linie (4. Linie von unten) aus: Der Zwischenraum darüber ist G, die oberste Linie A. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_vorzeichen')"><summary>Unsicher bei den Vorzeichennamen?</summary><div class="lk-ask-a">Mit <span class="vz-sharp"></span> „is“, mit <span class="vz-flat"></span> „es“: A wird Ais, D wird Des. Ausnahmen: Es, As, B. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5386,11 +5434,19 @@
                 },
                 'noten2_hilfslinien': {
                     title: 'Hilfslinien im Bassschlüssel',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: c' steht auf der 1. Hilfslinie über dem Bassschlüssel-System. Welcher Ton liegt auf der 2. Hilfslinie darüber?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "e'", ok: true }, { t: "d'" }, { t: "f'" }, { t: "c''" }],
+                        ok: "Genau. Zwischenraum d', nächste Hilfslinie e'.",
+                        nope: "Zwischen zwei Hilfslinien liegt ein Zwischenraum: Von c' aus sind es zwei Plätze, also zwei Töne weiter."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne im Bassschlüssel mit ihrer Lage bestimmen, vom großen C bis zum kleinen h.</p>
-                        <p><strong>Neu:</strong> Mit Hilfslinien geht es in beide Richtungen weiter: unter dem großen C in die <strong>Kontra-Oktave</strong> (geschrieben mit Komma: H, A, …), über dem kleinen h in die <strong>eingestrichene Oktave</strong>: c' bis g'. Jeweils bis zur 3. Hilfslinie.</p>
-                        <div class="lk-rule"><strong>Hilfslinien zählen wie normale Linien:</strong> Unten liegt unter dem großen C (2. Hilfslinie) H, im Zwischenraum, darunter A, auf der 3. Hilfslinie. Oben: c' auf der 1., e' auf der 2., g' auf der 3. Hilfslinie.</div>
+                        <p><strong>Jetzt lernst du:</strong> Hilfslinien im Bassschlüssel lesen. Über und unter dem System geht es weiter, bis zur 3. Hilfslinie. <strong>Hilfslinien zählen wie normale Linien, die Tonreihe läuft weiter, und die Lage wechselt wieder beim C.</strong> Unten: unter dem großen C (2. Hilfslinie) kommt H im Zwischenraum, dann A auf der 3. Hilfslinie, das ist die Kontra-Oktave, geschrieben mit Komma: H, A,. Oben: c' auf der 1., e' auf der 2., g' auf der 3. Hilfslinie, die eingestrichene Oktave.</p>
                         <div class="lk-visual" id="lkVisualNoten2Hilfslinien"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib Name und Lage ein: unter dem großen C „Kontra-Oktave“, ab c' „eingestrichene Oktave“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe Name und Lage ein: unter dem großen C „Kontra-Oktave“, ab c' „eingestrichene Oktave“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_basis')"><summary>Unsicher beim Weiterzählen über und unter dem System?</summary><div class="lk-ask-a">Abwärts läuft die Reihe rückwärts: … C – H – A, aufwärts vorwärts: … A – H – C – D – E – F – G. Unter dem großen C kommen also H, und A,, über dem kleinen h c' bis g'. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_lagen')"><summary>Unsicher bei den Lagen?</summary><div class="lk-ask-a">Die Lage wechselt beim C: ab c' eingestrichen, ab dem kleinen c (2. Zwischenraum) klein, darunter groß bis zum großen C, darunter Kontra. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5398,11 +5454,19 @@
                 },
                 'noten2_lagen': {
                     title: 'Lagen im Bassschlüssel',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Ein A liegt im 1. Zwischenraum, also unter dem kleinen c im 2. Zwischenraum. In welcher Lage ist es?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "große Oktave: A", ok: true }, { t: "kleine Oktave: a" }, { t: "eingestrichen: a'" }],
+                        ok: "Genau. Unter dem kleinen c ist alles groß.",
+                        nope: "Die Lage wechselt beim c im 2. Zwischenraum. Liegt das A darüber oder darunter?"
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne im Bassschlüssel benennen, auch mit Vorzeichen.</p>
-                        <p><strong>Neu:</strong> Im Bassschlüssel liegen die tiefen Lagen: die <strong>große Oktave</strong> (mit Großbuchstaben: C, D …) und die <strong>kleine Oktave</strong> (mit Kleinbuchstaben: c, d …).</p>
-                        <div class="lk-rule"><strong>Die Lage wechselt auch hier beim C:</strong> Das kleine c liegt im 2. Zwischenraum. Darunter ist alles groß, bis zum großen C auf der 2. Hilfslinie.</div>
+                        <p><strong>Jetzt lernst du:</strong> die Lage im Bassschlüssel bestimmen. Hier liegen die tiefen Lagen: die große Oktave (großgeschrieben: C, D …) und die kleine Oktave (kleingeschrieben: c, d …). <strong>Die Lage wechselt auch hier beim C: Das kleine c liegt im 2. Zwischenraum. Darunter ist alles groß, bis zum großen C auf der 2. Hilfslinie.</strong></p>
                         <div class="lk-visual" id="lkVisualNoten2Lagen"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Gib den Namen ein und wähle im Auswahlfeld „große Oktave“ oder „kleine Oktave“.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe den Namen ein und wähle im Auswahlfeld „große Oktave“ oder „kleine Oktave“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link_1')"><summary>Unsicher, ob ein Ton über oder unter dem kleinen c liegt?</summary><div class="lk-ask-a">Zähle vom c im 2. Zwischenraum aus: Darunter sind H, A und G groß. Darüber ist alles klein, z.&nbsp;B. das f auf der F-Linie.</div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_lagen')"><summary>Unsicher, wie es im Violinschlüssel war?</summary><div class="lk-ask-a">Dort wechselt die Lage ebenfalls beim C: von c' bis h' eingestrichen, ab c'' zweigestrichen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5411,23 +5475,39 @@
                 // ---- NOTEN3: Profi (Tastatur) ----
                 'noten3_basis': {
                     title: 'Stammtöne auf der Tastatur',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Welche weiße Taste liegt direkt links neben der Gruppe aus drei schwarzen Tasten?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "F", ok: true }, { t: "C" }, { t: "E" }, { t: "H" }],
+                        ok: "Genau. Zwei schwarze Tasten: C davor. Drei schwarze Tasten: F davor.",
+                        nope: "Schau auf die Ankerpunkte oben: Die Zweier- und die Dreiergruppe haben je einen festen Nachbarn links."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Noten im Violin- und im Bassschlüssel benennen.</p>
-                        <p><strong>Neu:</strong> Jetzt suchst du den Ton auf der Klaviatur. Der Schlüssel wechselt von Aufgabe zu Aufgabe.</p>
-                        <div class="lk-rule"><strong>Die Tastatur hat feste Ankerpunkte:</strong> Links neben den zwei schwarzen Tasten liegt immer <strong>C</strong>, links neben den drei schwarzen Tasten immer <strong>F</strong>.</div>
+                        <p><strong>Jetzt lernst du:</strong> Töne auf der Tastatur finden. Der Schlüssel wechselt von Aufgabe zu Aufgabe. <strong>Auf der Tastatur ist fest: Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.</strong> Von dort gehst du Taste für Taste weiter.</p>
                         <div class="lk-visual" id="lkVisualNoten3Basis"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note, achte auf den Schlüssel und klicke die passende weiße Taste. Die Lage spielt noch keine Rolle.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note, achte auf den Schlüssel und klicke die passende weiße Taste an. Die Lage spielt noch keine Rolle.</div>
                         <div class="lk-tip lk-tip-ask">
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_basis')"><summary>Unsicher im Violinschlüssel?</summary><div class="lk-ask-a">Anker ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Anker ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_basis')"><summary>Unsicher im Violinschlüssel?</summary><div class="lk-ask-a">Fest ist die G-Linie (2. Linie von unten), um die sich der Schlüssel windet. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Fest ist die F-Linie (4. Linie von unten) zwischen den beiden Punkten. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 'noten3_vorzeichen': {
                     title: 'Vorzeichen auf der Tastatur',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Welche Taste ist Eis?",
+                        sub: "Vom Stammton E eine Taste weiter.",
+                        choices: [{ t: "die weiße Taste F", ok: true }, { t: "die schwarze Taste rechts von E" }, { t: "die weiße Taste E" }, { t: "die schwarze Taste links von E" }],
+                        ok: "Genau. Zwischen E und F liegt keine schwarze Taste, also ist Eis die Taste F.",
+                        nope: "Von E eine Taste nach rechts. Liegt dort überhaupt eine schwarze Taste?"
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Stammtöne auf der Tastatur finden.</p>
-                        <p><strong>Neu:</strong> Mit Vorzeichen gehst du vom Stammton eine Taste weiter: <span class="vz-sharp"></span> nach rechts, <span class="vz-flat"></span> nach links. Meist ist das eine schwarze Taste, aber nicht immer: Fes ist die weiße Taste E, His die weiße Taste C.</p>
-                        <div class="lk-rule"><strong>Eine Taste, zwei Namen — das heißt Enharmonik:</strong> Cis und Des sind enharmonisch gleich, also dieselbe Taste. Ebenso Dis = Es, Fis = Ges, Gis = As, Ais = B und bei den weißen Tasten E = Fes, F = Eis, H = Ces, C = His.</div>
+                        <p><strong>Jetzt lernst du:</strong> Töne mit Vorzeichen auf der Tastatur finden. <strong>Vom Stammton eine Taste weiter: <span class="vz-sharp"></span> (Kreuz) nach rechts, <span class="vz-flat"></span> (Be) nach links.</strong> Meist ist das eine schwarze Taste, aber nicht immer: Fes ist die weiße Taste E, His die weiße Taste C. Cis und Des sind zwei Namen derselben Taste, das nennt man enharmonische Verwechslung.</p>
                         <div class="lk-visual" id="lkVisualNoten3Vorzeichen"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note mit Vorzeichen und klicke ihre Taste, z.&nbsp;B. bei Es die schwarze Taste links neben E, bei Fes die weiße Taste E.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note mit Vorzeichen und klicke ihre Taste an, z.&nbsp;B. bei Es die schwarze Taste links neben E, bei Fes die weiße Taste E.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_vorzeichen')"><summary>Unsicher bei den Vorzeichennamen?</summary><div class="lk-ask-a">Mit <span class="vz-sharp"></span> „is“, mit <span class="vz-flat"></span> „es“: F wird Fis, D wird Des. Ausnahmen: Es, As, B. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link_1')"><summary>Unsicher, ob es eine schwarze Taste sein muss?</summary><div class="lk-ask-a">Nein. Zwischen E und F und zwischen H und C liegt keine schwarze Taste. Darum ist Fes die Taste E, Eis die Taste F, Ces die Taste H und His die Taste C: Fes und E sind <strong>enharmonisch</strong> gleich. Der Name bleibt trotzdem Fes, Eis, Ces oder His.</div></details>
@@ -5435,10 +5515,18 @@
                 },
                 'noten3_lagen': {
                     title: 'Lagen auf der Tastatur',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Zwischen welchen beschrifteten Tasten liegt das e'?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "zwischen c' und c''", ok: true }, { t: "zwischen c und c'" }, { t: "zwischen c'' und c'''" }],
+                        ok: "Genau. Ab c' ist alles eingestrichen, bis zum c''.",
+                        nope: "Die Lage steckt im Strich: e' gehört zur eingestrichenen Oktave, und die beginnt bei c'."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen auf der Tastatur finden, in irgendeiner Lage.</p>
-                        <p><strong>Neu:</strong> Über mehrere Oktaven wiederholen sich die Stammtöne: Auf der Tastatur gibt es jedes G mehrmals. Unterscheiden lassen sie sich über die <strong>Lage</strong>: g, g', g'' … Jetzt muss das G in der richtigen Lage angeklickt werden.</p>
-                        <div class="lk-rule"><strong>Die C-Tasten sind beschriftet</strong> (C, c, c', c''). Von dort zählst du weiter: g' liegt zwischen c' und c'', das kleine f zwischen c und c'.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Entscheide, welcher Ton in der richtigen Lage liegt, indem du dich an den beschrifteten C-Tasten orientierst.</div>
+                        <p><strong>Jetzt lernst du:</strong> die richtige Lage auf der Tastatur treffen. Jedes G gibt es auf der Tastatur mehrmals: g, g', g'' … <strong>Die C-Tasten sind beschriftet (C, c, c', c''). Von dort zählst du weiter:</strong> g' liegt zwischen c' und c'', das kleine f zwischen c und c'.</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies Name und Lage ab und klicke die Taste in dieser Lage an. Orientiere dich an den beschrifteten C-Tasten.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_lagen')"><summary>Unsicher bei den Lagen im Violinschlüssel?</summary><div class="lk-ask-a">c' steht auf der Hilfslinie unter dem System. Ab c'' (3. Zwischenraum) ist alles zweigestrichen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_lagen')"><summary>Unsicher bei den Lagen im Bassschlüssel?</summary><div class="lk-ask-a">Das kleine c liegt im 2. Zwischenraum. Darunter ist alles groß. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5446,10 +5534,18 @@
                 },
                 'noten3_hilfslinien': {
                     title: 'Hilfslinien auf der Tastatur',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Im Violinschlüssel steht eine Note auf der 1. Hilfslinie unter dem System. Welche Taste ist das?",
+                        sub: "Von der nächsten bekannten Note abzählen, dann die Lage.",
+                        choices: [{ t: "c'", ok: true }, { t: "c" }, { t: "c''" }, { t: "a" }],
+                        ok: "Genau. Unter e' auf der 1. Linie kommt d' im Zwischenraum, dann c' auf der Hilfslinie.",
+                        nope: "Zähle vom tiefsten Ton im System, e' auf der 1. Linie, abwärts: Zwischenraum, dann die Hilfslinie."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne in der richtigen Lage auf der Tastatur finden.</p>
-                        <p><strong>Neu:</strong> Die Noten stehen jetzt auch auf Hilfslinien, über und unter dem System. Die Tastatur zeigt dafür einen größeren Ausschnitt.</p>
-                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Schlüssel prüfen → von der nächsten bekannten Note abzählen → am beschrifteten C die Lage finden → Taste klicken.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note, auch auf Hilfslinien, und klicke die Taste in der richtigen Lage.</div>
+                        <p><strong>Jetzt lernst du:</strong> auch Noten auf Hilfslinien auf der Tastatur finden. Die Noten stehen jetzt auch über und unter dem System, die Tastatur zeigt dafür einen größeren Ausschnitt. <strong>Immer in derselben Reihenfolge: Schlüssel prüfen → von der nächsten bekannten Note abzählen → am beschrifteten C die Lage finden → Taste anklicken.</strong></p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note, auch auf Hilfslinien, und klicke die Taste in der richtigen Lage an.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_hilfslinien')"><summary>Unsicher bei Hilfslinien im Violinschlüssel?</summary><div class="lk-ask-a">Unten: c' auf der 1., a auf der 2., f auf der 3. Hilfslinie (unter c' kleine Oktave). Oben: a'' auf der 1., c''' auf der 2., e''' auf der 3. Hilfslinie (ab c''' dreigestrichen). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_hilfslinien', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_hilfslinien')"><summary>Unsicher bei Hilfslinien im Bassschlüssel?</summary><div class="lk-ask-a">Unten: E auf der 1., C auf der 2., A, auf der 3. Hilfslinie (unter C Kontra-Oktave). Oben: c' auf der 1., e' auf der 2., g' auf der 3. Hilfslinie (eingestrichen). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_hilfslinien', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5459,22 +5555,38 @@
                 // ===== NOTEN4: Bilden Violinschlüssel =====
                 'noten4_basis': {
                     title: 'Stammtöne schreiben (Violinschlüssel)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wohin tippst du für ein H?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "auf die 3. Linie", ok: true }, { t: "auf die 2. Linie" }, { t: "in den 2. Zwischenraum" }, { t: "in den 3. Zwischenraum" }],
+                        ok: "Genau. G-Linie, A im Zwischenraum darüber, H auf der 3. Linie.",
+                        nope: "Von der G-Linie (2. Linie) aus zwei Plätze aufwärts zählen."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Noten im Violinschlüssel lesen.</p>
-                        <p><strong>Neu:</strong> Jetzt andersherum: Du siehst einen Namen und schreibst die Note selbst ins Notensystem.</p>
-                        <div class="lk-rule"><strong>Der Anker bleibt die G-Linie</strong> (2. Linie von unten). Von dort zählst du Schritt für Schritt zum gesuchten Ton: Der Zwischenraum über der G-Linie ist A, die Linie darüber H.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten selbst schreiben. Du siehst einen Namen und setzt die Note ins Notensystem. <strong>Fest bleibt die G-Linie (2. Linie von unten): Von dort zählst du Platz für Platz bis zum gesuchten Ton,</strong> aufwärts A im Zwischenraum darüber und H auf der Linie darüber, abwärts F im Zwischenraum darunter.</p>
                         <div class="lk-visual" id="lkVisualNT_noten4_basis"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf die Linie oder den Zwischenraum, wo der Ton hingehört. Die Note erscheint dort, ein weiterer Tipp verschiebt sie. Dann prüfen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf die Linie oder den Zwischenraum, wo der Ton hingehört. Die Note erscheint dort, ein weiterer Tipp verschiebt sie. Dann „Prüfen“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_basis')"><summary>Unsicher, welcher Ton wo liegt?</summary><div class="lk-ask-a">Merksatz für die Linien von unten: <strong>E</strong>s <strong>G</strong>eht <strong>H</strong>alt <strong>D</strong>urch <strong>F</strong>leiß. Die Zwischenräume ergeben F-A-C-E. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 'noten4_vorzeichen': {
                     title: 'Mit Vorzeichen schreiben',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Du sollst „B“ schreiben. Welches Werkzeug, welcher Platz?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "Be, auf den Platz des H", ok: true }, { t: "Be, auf den Platz des B" }, { t: "Kreuz, auf den Platz des H" }, { t: "kein Werkzeug, auf den Platz des H" }],
+                        ok: "Genau. B ist H mit Be.",
+                        nope: "B ist eine der drei Ausnahmen oben: Welcher Stammton steckt darin, und welches Zeichen?"
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violinschlüssel schreiben.</p>
-                        <p><strong>Neu:</strong> Für Töne mit Vorzeichen wählst du zuerst das Werkzeug „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ und tippst dann auf die Linie oder den Zwischenraum des Stammtons. Das Vorzeichen erscheint vor der Note.</p>
-                        <div class="lk-rule"><strong>Der Name sagt dir das Werkzeug:</strong> „is“ heißt <span class="vz-sharp"></span> (Fis = F mit <span class="vz-sharp"></span>), „es“ heißt <span class="vz-flat"></span> (Des = D mit <span class="vz-flat"></span>). Es, As und B sind E, A und H mit <span class="vz-flat"></span>.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten mit Vorzeichen schreiben. Dafür wählst du zuerst das Werkzeug „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“ und tippst dann auf den Platz des Stammtons; das Vorzeichen erscheint vor der Note. <strong>Der Name sagt dir das Werkzeug: „is“ heißt <span class="vz-sharp"></span> (Fis = F mit <span class="vz-sharp"></span>), „es“ heißt <span class="vz-flat"></span> (Des = D mit <span class="vz-flat"></span>).</strong> Es, As und B sind E, A und H mit <span class="vz-flat"></span>.</p>
                         <div class="lk-visual" id="lkVisualNT_noten4_vorzeichen"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe den Ton mit dem richtigen Vorzeichen, z.&nbsp;B. Fis: „<span class="vz-sharp"></span> Kreuz“ wählen, dann auf das F tippen.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe den Ton mit Vorzeichen, z.&nbsp;B. Fis: „<span class="vz-sharp"></span> Kreuz“ wählen, dann auf den Platz des F tippen. Dann „Prüfen“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_vorzeichen')"><summary>Unsicher bei den Vorzeichennamen?</summary><div class="lk-ask-a">Mit <span class="vz-sharp"></span> „is“, mit <span class="vz-flat"></span> „es“: F wird Fis, D wird Des. Ausnahmen: Es, As, B. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_vorzeichen', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link_1')"><summary>Unsicher, wie man das Werkzeug wieder abwählt?</summary><div class="lk-ask-a">Tippe noch einmal auf das aktive Werkzeug, dann ist es aus. Der nächste Tipp setzt eine Note ohne Vorzeichen.</div></details>
@@ -5482,9 +5594,17 @@
                 },
                 'noten4_lagen': {
                     title: 'Mit Lagen schreiben',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wohin gehört das d''?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "auf die 4. Linie", ok: true }, { t: "auf die 3. Linie" }, { t: "in den 3. Zwischenraum" }, { t: "auf die 1. Hilfslinie unter dem System" }],
+                        ok: "Genau. Über dem c'' im 3. Zwischenraum kommt d'' auf der 4. Linie.",
+                        nope: "Zweigestrichen beginnt beim c'' im 3. Zwischenraum. Das d'' ist ein Platz darüber."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen im Violinschlüssel schreiben.</p>
-                        <p><strong>Neu:</strong> Der Name zeigt jetzt die Lage: ein Strich (g') heißt eingestrichen, zwei Striche (e'') zweigestrichen. Es gibt nur noch einen richtigen Platz.</p>
-                        <div class="lk-rule"><strong>Der Wechsel liegt beim C:</strong> c'' steht im 3. Zwischenraum. Darunter schreibst du eingestrichene Töne, ab c'' zweigestrichene. So steht e' auf der 1. Linie, e'' im 4. Zwischenraum.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten in der angegebenen Lage schreiben. Der Name zeigt jetzt die Lage: ein Strich (g') heißt eingestrichen, zwei Striche (e'') zweigestrichen, und es gibt nur noch einen richtigen Platz. <strong>Der Wechsel liegt beim C: c'' steht im 3. Zwischenraum. Darunter schreibst du eingestrichene Töne, ab c'' zweigestrichene.</strong> So steht e' auf der 1. Linie, e'' im 4. Zwischenraum.</p>
                         <div class="lk-visual" id="lkVisualNT_noten4_lagen"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note in der angegebenen Lage, z.&nbsp;B. f' in den 1. Zwischenraum, f'' auf die 5. Linie.</div>
                         <div class="lk-tip lk-tip-ask">
@@ -5493,11 +5613,19 @@
                 },
                 'noten4_hilfslinien': {
                     title: 'Mit Hilfslinien schreiben',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wohin gehört das a (kleine Oktave)?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "auf die 2. Hilfslinie unter dem System", ok: true }, { t: "auf die 1. Hilfslinie unter dem System" }, { t: "in den 2. Zwischenraum" }, { t: "auf die 1. Hilfslinie über dem System" }],
+                        ok: "Genau. c' auf der 1., a auf der 2. Hilfslinie.",
+                        nope: "Unter c' (1. Hilfslinie) läuft die Reihe rückwärts weiter: h im Zwischenraum, dann die nächste Hilfslinie."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Lage im Violinschlüssel schreiben, innerhalb der fünf Linien.</p>
-                        <p><strong>Neu:</strong> Jetzt kommen Töne über und unter dem System dazu, bis zu drei Hilfslinien.</p>
-                        <div class="lk-rule"><strong>Hilfslinien zählen wie normale Linien.</strong> Unten: c' auf der 1., a auf der 2., f auf der 3. Hilfslinie. Oben: a'' auf der 1., c''' auf der 2., e''' auf der 3. Hilfslinie.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten über und unter dem System schreiben, bis zu drei Hilfslinien. <strong>Hilfslinien zählen wie normale Linien, die Tonreihe läuft weiter.</strong> Unten: c' auf der 1., a auf der 2., f auf der 3. Hilfslinie. Oben: a'' auf der 1., c''' auf der 2., e''' auf der 3. Hilfslinie.</p>
                         <div class="lk-visual" id="lkVisualNT_noten4_hilfslinien"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note an den genauen Platz, auch über oder unter dem System.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auch über oder unter dem System auf den genauen Platz des Tons.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_hilfslinien')"><summary>Unsicher beim Weiterzählen über und unter dem System?</summary><div class="lk-ask-a">Aufwärts: … F – G – A – H – C, abwärts: … C – H – A – G – F. Über f'' kommen also g'', a'', h''. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_hilfslinien', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
@@ -5506,20 +5634,36 @@
                 // ===== NOTEN5: Bilden Bassschlüssel =====
                 'noten5_basis': {
                     title: 'Stammtöne schreiben (Bassschlüssel)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wohin tippst du im Bassschlüssel für ein D?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "auf die 3. Linie", ok: true }, { t: "auf die 4. Linie" }, { t: "in den 3. Zwischenraum" }, { t: "auf die 2. Linie" }],
+                        ok: "Genau. Von der F-Linie zwei Plätze abwärts: E im Zwischenraum, D auf der 3. Linie.",
+                        nope: "Von der F-Linie (4. Linie) aus abwärts zählen: erst der Zwischenraum, dann die nächste Linie."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Noten im Bassschlüssel lesen und im Violinschlüssel schreiben.</p>
-                        <p><strong>Neu:</strong> Jetzt schreibst du im Bassschlüssel. Die Plätze sind andere als im Violinschlüssel.</p>
-                        <div class="lk-rule"><strong>Der Anker ist die F-Linie</strong> (4. Linie von unten, zwischen den Punkten des Schlüssels).</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten im Bassschlüssel schreiben. Die Plätze sind andere als im Violinschlüssel. <strong>Fest ist die F-Linie (4. Linie von unten, zwischen den Punkten des Schlüssels). Von dort zählst du Platz für Platz:</strong> G im Zwischenraum darüber, A auf der 5. Linie, E im Zwischenraum darunter.</p>
                         <div class="lk-visual" id="lkVisualNT_noten5_basis"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Platz des Tons im Bassschlüssel und prüfe. Noch zählt nur der richtige Name, nicht die Höhe.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf den Platz des Tons im Bassschlüssel, dann „Prüfen“. Noch zählt nur der richtige Name, nicht die Höhe.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_basis')"><summary>Unsicher, welcher Ton wo liegt?</summary><div class="lk-ask-a">Linien von unten: <strong>G</strong>ute <strong>H</strong>unde <strong>D</strong>ürfen <strong>F</strong>utter <strong>A</strong>uswählen. Zwischenräume: <strong>A</strong>lle <strong>C</strong>oolen <strong>E</strong>ssen <strong>G</strong>ummibärchen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 'noten5_vorzeichen': {
                     title: 'Mit Vorzeichen schreiben (Bass)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Du sollst im Bassschlüssel „Gis“ schreiben. Was tust du?",
+                        sub: "Zwei Dinge: Silbe im Namen, Platz des Stammtons.",
+                        choices: [{ t: "„Kreuz“ wählen, dann auf die 1. Linie tippen", ok: true }, { t: "„Be“ wählen, dann auf die 1. Linie tippen" }, { t: "„Kreuz“ wählen, dann auf die 2. Linie tippen" }, { t: "ohne Werkzeug auf die 1. Linie tippen" }],
+                        ok: "Genau. „is“ heißt Kreuz, und G liegt im Bassschlüssel auf der 1. Linie.",
+                        nope: "Welche Silbe steckt im Namen, und auf welcher Linie liegt das G im Bassschlüssel (von der F-Linie aus zählen)?"
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Stammtöne im Bassschlüssel schreiben.</p>
-                        <p><strong>Neu:</strong> Vorzeichen setzt du wie im Violinschlüssel: Werkzeug wählen, dann auf den Platz des Stammtons tippen.</p>
-                        <div class="lk-rule"><strong>Der Name sagt dir das Werkzeug:</strong> „is“ heißt <span class="vz-sharp"></span>, „es“ heißt <span class="vz-flat"></span>. Es, As und B sind E, A und H mit <span class="vz-flat"></span>.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten mit Vorzeichen im Bassschlüssel schreiben. Das Werkzeug wählst du wie im Violinschlüssel, dann tippst du auf den Platz des Stammtons. <strong>Der Name sagt dir das Werkzeug: „is“ heißt <span class="vz-sharp"></span> (Kreuz), „es“ heißt <span class="vz-flat"></span> (Be); Es, As und B sind E, A und H mit <span class="vz-flat"></span>.</strong></p>
                         <div class="lk-visual" id="lkVisualNT_noten5_vorzeichen"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe den Ton mit Vorzeichen, z.&nbsp;B. As: „<span class="vz-flat"></span> Be“ wählen, dann auf den Platz des A tippen.</div>
                         <div class="lk-tip lk-tip-ask">
@@ -5529,9 +5673,17 @@
                 },
                 'noten5_lagen': {
                     title: 'Mit Lagen schreiben (Bass)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wohin gehört das kleine d?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "auf die 3. Linie", ok: true }, { t: "auf die 1. Linie" }, { t: "in den 2. Zwischenraum" }, { t: "auf die 2. Hilfslinie unter dem System" }],
+                        ok: "Genau. Über dem kleinen c im 2. Zwischenraum kommt d auf der 3. Linie.",
+                        nope: "Die kleine Oktave beginnt beim c im 2. Zwischenraum. Das d ist ein Platz darüber."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen im Bassschlüssel schreiben.</p>
-                        <p><strong>Neu:</strong> Jetzt zählt die Lage. Ein Großbuchstabe (G) heißt große Oktave, ein Kleinbuchstabe (g) kleine Oktave.</p>
-                        <div class="lk-rule"><strong>Der Wechsel liegt beim C:</strong> Das kleine c steht im 2. Zwischenraum. Darunter sind G, A und H groß: G auf der 1. Linie, A im 1. Zwischenraum, H auf der 2. Linie.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten in der angegebenen Lage im Bassschlüssel schreiben. Großgeschrieben (G) heißt große Oktave, kleingeschrieben (g) kleine Oktave. <strong>Der Wechsel liegt beim C: Das kleine c steht im 2. Zwischenraum. Darunter sind G, A und H groß:</strong> G auf der 1. Linie, A im 1. Zwischenraum, H auf der 2. Linie.</p>
                         <div class="lk-visual" id="lkVisualNT_noten5_lagen"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note in der angegebenen Lage, z.&nbsp;B. G auf die 1. Linie, g in den 4. Zwischenraum.</div>
                         <div class="lk-tip lk-tip-ask">
@@ -5540,11 +5692,19 @@
                 },
                 'noten5_hilfslinien': {
                     title: 'Mit Hilfslinien schreiben (Bass)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wohin gehört das große C?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "auf die 2. Hilfslinie unter dem System", ok: true }, { t: "auf die 1. Hilfslinie unter dem System" }, { t: "in den 2. Zwischenraum" }, { t: "auf die 1. Hilfslinie über dem System" }],
+                        ok: "Genau. E auf der 1., C auf der 2. Hilfslinie.",
+                        nope: "Unter dem System: 1. Hilfslinie E, Zwischenraum D, dann die nächste Hilfslinie."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Lage im Bassschlüssel schreiben, innerhalb der fünf Linien.</p>
-                        <p><strong>Neu:</strong> Jetzt auch über und unter dem System, bis zu drei Hilfslinien. Ganz unten kommt die Kontra-Oktave dazu, geschrieben mit Komma: A,.</p>
-                        <div class="lk-rule"><strong>Hilfslinien zählen wie normale Linien.</strong> Unten: E auf der 1., C auf der 2., A, auf der 3. Hilfslinie. Oben: c' auf der 1., e' auf der 2., g' auf der 3. Hilfslinie.</div>
+                        <p><strong>Jetzt lernst du:</strong> Noten über und unter dem System im Bassschlüssel schreiben, bis zu drei Hilfslinien. Ganz unten kommt die Kontra-Oktave dazu, geschrieben mit Komma: A,. <strong>Hilfslinien zählen wie normale Linien, die Tonreihe läuft weiter.</strong> Unten: E auf der 1., C auf der 2., A, auf der 3. Hilfslinie. Oben: c' auf der 1., e' auf der 2., g' auf der 3. Hilfslinie.</p>
                         <div class="lk-visual" id="lkVisualNT_noten5_hilfslinien"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note an den genauen Platz, auch über oder unter dem System.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auch über oder unter dem System auf den genauen Platz des Tons.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_hilfslinien')"><summary>Unsicher bei den Hilfslinien im Bassschlüssel?</summary><div class="lk-ask-a">Unter dem großen C (2. Hilfslinie) kommen H, und A,. Über der obersten Linie A kommen h und dann c' auf der 1. Hilfslinie. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_hilfslinien', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
@@ -5553,20 +5713,36 @@
                 // ===== NOTEN6: Bilden Beide Schlüssel =====
                 'noten6_basis': {
                     title: 'Stammtöne schreiben (beide Schlüssel)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Im Bassschlüssel sollst du ein G schreiben. Welche Linie?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "die 1. Linie", ok: true }, { t: "die 2. Linie" }, { t: "die 4. Linie" }],
+                        ok: "Genau. Im Bassschlüssel liegt G auf der 1. Linie, die 2. Linie wäre H.",
+                        nope: "Die 2. Linie ist nur im Violinschlüssel das G. Zähle im Bassschlüssel von der F-Linie aus abwärts."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violin- und im Bassschlüssel schreiben.</p>
-                        <p><strong>Neu:</strong> Der Schlüssel wechselt jetzt von Aufgabe zu Aufgabe.</p>
-                        <div class="lk-rule"><strong>Derselbe Platz hat zwei Namen:</strong> Die 2. Linie von unten ist im Violinschlüssel G, im Bassschlüssel H. Darum zuerst den Schlüssel prüfen, dann den Anker suchen: G-Linie oder F-Linie.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schau auf den Schlüssel und schreibe den Stammton an seinen Platz.</div>
+                        <p><strong>Jetzt lernst du:</strong> mit wechselndem Schlüssel schreiben. Der Schlüssel wechselt jetzt von Aufgabe zu Aufgabe. <strong>Derselbe Platz hat zwei Namen: Die 2. Linie von unten ist im Violinschlüssel G, im Bassschlüssel H. Darum zuerst den Schlüssel prüfen, dann die feste Linie suchen: G-Linie oder F-Linie.</strong></p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schau auf den Schlüssel und tippe den Stammton an seinen Platz.</div>
                         <div class="lk-tip lk-tip-ask">
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten4_basis')"><summary>Unsicher im Violinschlüssel?</summary><div class="lk-ask-a">Anker ist die G-Linie (2. Linie von unten). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten4_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten5_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Anker ist die F-Linie (4. Linie von unten). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten5_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten4_basis')"><summary>Unsicher im Violinschlüssel?</summary><div class="lk-ask-a">Fest ist die G-Linie (2. Linie von unten). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten4_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten5_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Fest ist die F-Linie (4. Linie von unten). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten5_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 'noten6_vorzeichen': {
                     title: 'Mit Vorzeichen schreiben (beide)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Im Bassschlüssel sollst du „Es“ schreiben. Welches Werkzeug, welcher Platz?",
+                        sub: "Erst der Stammton im Bassschlüssel, dann das Zeichen.",
+                        choices: [{ t: "Be, 3. Zwischenraum", ok: true }, { t: "Be, 1. Linie" }, { t: "Kreuz, 3. Zwischenraum" }, { t: "Be, 4. Zwischenraum" }],
+                        ok: "Genau. Es ist E mit Be, und E liegt im Bassschlüssel im 3. Zwischenraum.",
+                        nope: "Es ist eine der Ausnahmen: E mit Be. Und im Bassschlüssel liegt das E nicht auf der 1. Linie, zähle von der F-Linie aus."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen in beiden Schlüsseln schreiben.</p>
-                        <p><strong>Neu:</strong> Vorzeichen und wechselnder Schlüssel kommen zusammen.</p>
-                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> 1. Schlüssel prüfen, 2. Platz des Stammtons finden, 3. Werkzeug wählen und tippen.</div>
+                        <p><strong>Jetzt lernst du:</strong> Vorzeichen bei wechselndem Schlüssel setzen. <strong>Immer in derselben Reihenfolge: 1. Schlüssel prüfen, 2. Platz des Stammtons finden, 3. Werkzeug wählen und tippen.</strong></p>
                         <div class="lk-visual" id="lkVisualNT_noten6_vorzeichen"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe den Ton mit Vorzeichen im angezeigten Schlüssel.</div>
                         <div class="lk-tip lk-tip-ask">
@@ -5575,21 +5751,37 @@
                 },
                 'noten6_lagen': {
                     title: 'Mit Lagen schreiben (beide)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wo steht das c' im Bassschlüssel?",
+                        sub: "Das Prinzip steht oben, fett.",
+                        choices: [{ t: "auf der 1. Hilfslinie über dem System", ok: true }, { t: "im 2. Zwischenraum" }, { t: "auf der 1. Hilfslinie unter dem System" }],
+                        ok: "Genau. Im Bassschlüssel liegt c' über dem System, im Violinschlüssel darunter.",
+                        nope: "Im 2. Zwischenraum des Bassschlüssels liegt das kleine c. Das c' ist eine Oktave höher."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Lage in beiden Schlüsseln schreiben.</p>
-                        <p><strong>Neu:</strong> Lage und wechselnder Schlüssel kommen zusammen.</p>
-                        <div class="lk-rule"><strong>Der Lagenwechsel liegt immer beim C:</strong> c'' im 3. Zwischenraum des Violinschlüssels, das kleine c im 2. Zwischenraum des Bassschlüssels.</div>
+                        <p><strong>Jetzt lernst du:</strong> Lagen bei wechselndem Schlüssel treffen. <strong>Der Lagenwechsel liegt immer beim C: c'' im 3. Zwischenraum des Violinschlüssels, das kleine c im 2. Zwischenraum des Bassschlüssels.</strong> Von dort zählst du zum gesuchten Ton.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note in der angegebenen Lage im angezeigten Schlüssel.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten4_lagen')"><summary>Unsicher bei den Lagen im Violinschlüssel?</summary><div class="lk-ask-a">Ein Strich (g') heißt eingestrichen, zwei Striche (e'') zweigestrichen. Der Wechsel liegt bei c''. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten4_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten5_lagen')"><summary>Unsicher bei den Lagen im Bassschlüssel?</summary><div class="lk-ask-a">Großbuchstabe (G) heißt große Oktave, Kleinbuchstabe (g) kleine Oktave. Der Wechsel liegt beim kleinen c. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten5_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten5_lagen')"><summary>Unsicher bei den Lagen im Bassschlüssel?</summary><div class="lk-ask-a">Großgeschrieben (G) heißt große Oktave, kleingeschrieben (g) kleine Oktave. Der Wechsel liegt beim kleinen c. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten5_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 'noten6_hilfslinien': {
                     title: 'Mit Hilfslinien schreiben (beide)',
+                    // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_nt_lernkarte_schritt.html
+                    step: true,
+                    check: {
+                        q: "Kurz geprüft: Wohin gehört das a'' im Violinschlüssel?",
+                        sub: "Von der G-Linie aus abzählen, über das System hinaus.",
+                        choices: [{ t: "auf die 1. Hilfslinie über dem System", ok: true }, { t: "in den 4. Zwischenraum" }, { t: "auf die 5. Linie" }, { t: "auf die 2. Hilfslinie über dem System" }],
+                        ok: "Genau. Über f'' auf der 5. Linie kommt g'' im Zwischenraum, dann a'' auf der 1. Hilfslinie.",
+                        nope: "Die 5. Linie ist f''. Zähle von dort weiter: Zwischenraum, dann die erste Hilfslinie."
+                    },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Lage und Vorzeichen in beiden Schlüsseln schreiben.</p>
-                        <p><strong>Neu:</strong> Alles zusammen: Hilfslinien, Lagen, Vorzeichen und wechselnder Schlüssel.</p>
-                        <div class="lk-rule"><strong>Immer in derselben Reihenfolge:</strong> Schlüssel prüfen → Anker suchen → abzählen, auch über die Hilfslinien hinaus → Vorzeichen-Werkzeug wählen.</div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note an den genauen Platz, egal in welchem Schlüssel und auch auf Hilfslinien.</div>
+                        <p><strong>Jetzt lernst du:</strong> alles zusammen anwenden: Hilfslinien, Lagen, Vorzeichen und wechselnder Schlüssel. <strong>Immer in derselben Reihenfolge: Schlüssel prüfen → G-Linie oder F-Linie suchen → abzählen, auch über die Hilfslinien hinaus → Vorzeichen-Werkzeug wählen.</strong></p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note an den genauen Platz, egal in welchem Schlüssel, auch auf Hilfslinien.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten4_hilfslinien')"><summary>Unsicher bei Hilfslinien im Violinschlüssel?</summary><div class="lk-ask-a">Unten: c' auf der 1., a auf der 2. Hilfslinie. Oben: a'' auf der 1., c''' auf der 2. Hilfslinie. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten4_hilfslinien', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten5_hilfslinien')"><summary>Unsicher bei Hilfslinien im Bassschlüssel?</summary><div class="lk-ask-a">Unten: E auf der 1., C auf der 2. Hilfslinie. Oben: c' auf der 1., e' auf der 2. Hilfslinie. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten5_hilfslinien', false); return false">Ausführlich nachlesen ›</a></div></details>
