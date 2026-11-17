@@ -4634,7 +4634,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: Welche Taste ist B?",
-            sub: "B ist H mit Be.",
+            sub: "B ist H mit Be. Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1 }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "die schwarze Taste links von H", ok: true }, { t: "die weiße Taste H" }, { t: "die schwarze Taste rechts von H" }, { t: "die weiße Taste C" }],
             ok: "Genau. Be heißt eine Taste nach links.",
             nope: "B ist H mit Be. In welche Richtung geht ein Be?"
@@ -4752,7 +4753,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: A-Dur ist A, Cis, E. Wie viele Halbtonschritte sind es von A bis Cis?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "4", ok: true }, { t: "3" }, { t: "5" }],
             ok: "Genau. Dur beginnt mit 4, egal auf welchem Ton.",
             nope: "Das Muster ändert sich mit Vorzeichen nicht. Womit beginnt Dur?"
@@ -4823,7 +4825,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft, ohne zu hören: E, G, H. Wie viele Halbtonschritte sind es von E bis G?",
-            sub: "Zähle die Tasten nach dem E bis zum G, jede ist ein Halbtonschritt.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung. Zähle die Tasten nach dem E bis zum G, jede ist ein Halbtonschritt.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "3", ok: true }, { t: "4" }, { t: "2" }],
             ok: "Genau. F (1), Fis (2), G (3).",
             nope: "Zwischen E und F liegt keine schwarze Taste, zwischen F und G schon. Zähle jede Taste nach dem E."
@@ -4933,7 +4936,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: Auf welcher Taste liegt Fisis?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "G", ok: true }, { t: "Fis" }, { t: "Gis" }, { t: "F" }],
             ok: "Genau. Von F zwei Tasten nach rechts: Fis, G.",
             nope: "Doppelkreuz heißt zwei Tasten nach rechts vom Stammton F."
@@ -5109,7 +5113,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: a-Moll. Welche drei Tasten?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "A, C, E", ok: true }, { t: "A, Cis, E" }, { t: "A, C, Es" }, { t: "A, D, E" }],
             ok: "Genau. A, 3 weiter C, 4 weiter E.",
             nope: "Moll: vom Grundton 3 Halbtonschritte, dann 4. Zähle von A aus, schwarze Tasten mit."
@@ -5140,7 +5145,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: fis-Moll. Welche Taste ist der Terzton?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "A", ok: true }, { t: "Ais" }, { t: "G" }, { t: "As" }],
             ok: "Genau. Von Fis 3 Halbtonschritte: G, Gis, A.",
             nope: "Moll beginnt mit 3 Halbtonschritten. Zähle von Fis aus jede Taste."
@@ -5172,7 +5178,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: D-vermindert. Welche drei Tasten?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "D, F, As", ok: true }, { t: "D, F, A" }, { t: "D, Fis, Ais" }, { t: "D, Fis, A" }],
             ok: "Genau. 3 + 3: D, F, As.",
             nope: "Vermindert ist zweimal 3. Zähle von D aus 3 Tasten, dann noch einmal 3."
@@ -5218,7 +5225,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: A-Dur, Stammtöne A, C, E. Welche Note bekommt ein Vorzeichen?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "C → Cis", ok: true }, { t: "A → Ais" }, { t: "E → Es" }, { t: "keine" }],
             ok: "Genau. A bis C sind 3 Halbtonschritte, Dur braucht 4.",
             nope: "Stammtöne setzen, dann zählen: A bis C sind 3 Halbtonschritte. Reicht das für Dur?"
@@ -5237,7 +5245,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: Es-Dur, Stammtöne E, G, H. Welche Noten bekommen ein Be?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "Es und B, das G bleibt", ok: true }, { t: "nur Es" }, { t: "alle drei" }, { t: "Es und G" }],
             ok: "Genau. Es bis G sind 4, G bis B sind 3.",
             nope: "Stammtöne setzen, dann zählen: Es bis G sind 4 (passt). G bis H wären 4, Dur braucht oben 3."
@@ -5256,7 +5265,8 @@ const _lernkartenContent = {
         step: true,
         check: {
             q: "Kurz geprüft: C-übermäßig, Stammtöne C, E, G. Welche Note bekommt ein Vorzeichen?",
-            sub: "Das Prinzip steht oben, fett.",
+            sub: "Schau auf der Tastatur nach, wie gleich in der Übung.",
+            visual() { return renderLernkarteTastatur({ numOctaves: 1, showBlackLabels: true }); },   // dasselbe Bild wie im Quiz: die Tastatur
             choices: [{ t: "G → Gis", ok: true }, { t: "E → Es" }, { t: "C → Cis" }, { t: "keine" }],
             ok: "Genau. E bis G sind 3, übermäßig braucht oben 4.",
             nope: "4 + 4: C bis E passt mit 4. E bis G sind nur 3, was fehlt oben?"
