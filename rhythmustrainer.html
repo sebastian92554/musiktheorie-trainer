@@ -2763,8 +2763,8 @@
                     else add('Unsicher, wann „und“ dazukommt?', 'Liegt eine Note genau zwischen zwei Schlägen, heißt die Stelle „und“: 1 – und – 2 – und.', 'rhy3_8tel');
                 }
                 if (k === 'silbe') {
-                    add('Unsicher bei du, dei und te?', '„du“ steht auf dem Schlag, „dei“ auf dem „und“ zwischen zwei Schlägen, „te“ füllt die Sechzehntel dazwischen: du – te – dei – te.', o.includes('16tel') ? 'rhy4_16tel' : 'rhy4_basis');
-                    add('Unsicher bei der Zählzeit der Note?', 'Zähle vom Taktanfang die Notenwerte vor der markierten Note zusammen. So findest du ihre Zählzeit: auf einem Schlag, auf dem „und“ oder dazwischen.', o.includes('16tel') ? 'rhy3_16tel' : 'rhy3_8tel');
+                    add('Unsicher bei du, dei und te?', '„du“ steht auf dem Schlag, „dei“ auf dem „und“ zwischen zwei Schlägen, „te“ sind die Sechzehntel zwischen „du“ und „dei“: du – te – dei – te.', o.includes('16tel') ? 'rhy4_16tel' : 'rhy4_basis');
+                    add('Unsicher bei der Zählzeit der Note?', 'Zähle vom Taktanfang die Notenwerte vor der markierten Note zusammen. So findest du ihre Zählzeit: auf einem Schlag, auf dem „und“ oder auf „e“ bzw. „te“.', o.includes('16tel') ? 'rhy3_16tel' : 'rhy3_8tel');
                 }
                 if (k === 'luecke') add('Unsicher, wie viel noch in den Takt passt?', 'Zähle die Notenwerte, die schon im Takt stehen, zusammen und ziehe sie von der Taktart ab. Der Rest gehört in die Lücke.', 'rhy5_8tel');
                 if (k === 'diktat') {
@@ -2862,7 +2862,7 @@
 
             panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div><div class="wq-bub wq-bub-u">${label}</div>`
                 + `<div class="wq-bub">${[rel, gap ? 'Auffällig ist jedoch: ' + cmp : cmp].filter(Boolean).join(' ')}</div></div>`
-                + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+                + (asks.length ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
                 + '<button class="wq-go">Weiter üben</button>';
             panel.querySelector('.wq-go').onclick = closePanel;
             panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
@@ -3168,7 +3168,7 @@
             const xs = quizErrs.slice();
             const ov = document.createElement('div');
             ov.className = 'es-all';
-            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieses Durchgangs</b><button class="es-x" aria-label="Schließen">×</button></div>'
+            ov.innerHTML = '<div class="es-all-p"><div class="es-all-h"><b>Alle Fehler dieser Übung</b><button class="es-x" aria-label="Schließen">×</button></div>'
                 + '<div class="es-all-g">' + xs.map((x, i) => `<div class="es-box"><p class="es-n">${i + 1}. Fehler</p>${x.pic || `<p>${endLine(x)}</p>`}</div>`).join('') + '</div></div>';
             ov.onclick = e => { if (e.target === ov || e.target.classList.contains('es-x')) ov.remove(); };
             document.body.appendChild(ov);
@@ -3223,20 +3223,20 @@
             // Sub-Skills kumulativ bis zum Ziel (wie startFromSkilltree)
             const opts = (node, idx) => quickStart.nodeSubSkills[node].slice(0, idx + 1).map(s => s.id).join(',');
             return items.map(([, node, idx, label]) => `<button class="reco-item" onclick="quickStart.goToRecommendedLevel('${quickStart.nodeToLevel[node]}','${opts(node, idx)}')">${label}</button>`).join('')
-                + '<button class="reco-item" onclick="quickStart.retryQuiz()">Lernkarte lesen und Übung wiederholen</button>';
+                + '<button class="reco-item" onclick="quickStart.retryQuiz()">Erklärung lesen und noch einmal üben</button>';
         }
         // Tipp für den nächsten Schritt: die häufigste Fehlerart erst gezielt üben, sonst die Lernkarte
         function endTip(kinds, by, items, c) {
-            const PR = { summe: 'das Zusammenzählen der Notenwerte', punkt: 'die punktierten Noten', takt: 'das Zusammenzählen der Notenwerte',
-                luecke: 'das Zusammenzählen der Notenwerte', schlag: 'die Zählzeiten', unter: 'die Zählzeiten', silbe: 'die Zählzeiten', diktat: 'die Zählzeiten' };
+            const PR = { summe: 'die Notenwerte', punkt: 'die punktierten Noten', takt: 'die Notenwerte',
+                luecke: 'die Notenwerte', schlag: 'die Zählzeiten', unter: 'die Zählzeiten', silbe: 'die Zählzeiten', diktat: 'die Zählzeiten' };
             // bei mehreren Übungen zuerst die Grundlage: Notenwerte vor Punkt, Schlag vor Unterteilung
             const ORD = ['summe', 'punkt', 'takt', 'luecke', 'schlag', 'unter', 'silbe', 'diktat'];
             const it = items.slice().sort((a, b) => ORD.indexOf(a[0]) - ORD.indexOf(b[0]))[0];
-            if (it) return `Übe vor dem nächsten Durchgang erst ${PR[it[0]]}. Dafür gibt es unten den Knopf „${it[3]}“.`;
-            const P = { summe: 'die Werte der Noten', punkt: 'den Punkt', takt: 'das Zusammenzählen der Notenwerte', schlag: 'die Schläge',
+            if (it) return `Übe erst noch einmal ${PR[it[0]]}, bevor du diese Übung wiederholst. Dafür gibt es unten den Knopf „${it[3]}“.`;
+            const P = { summe: 'die Werte der Noten', punkt: 'den Punkt', takt: 'die Summe der Notenwerte', schlag: 'die Schläge',
                 unter: c.opts.includes('16tel') ? '„e“, „und“ und „te“' : 'das „und“', silbe: 'die Silben', luecke: 'den Rest im Takt', diktat: 'die Notenwerte' };
-            if (by[kinds[0]].length >= 2) return `Lies vor dem nächsten Durchgang die Lernkarte noch einmal und achte dabei besonders auf ${P[kinds[0]]}.`;
-            return 'Lies vor dem nächsten Durchgang die Lernkarte noch einmal und prüf jede Antwort, bevor du sie abschickst.';
+            if (by[kinds[0]].length >= 2) return `Lies die Erklärung noch einmal, bevor du die Übung wiederholst, und achte dabei besonders auf ${P[kinds[0]]}.`;
+            return 'Lies die Erklärung noch einmal und prüf jede Antwort, bevor du sie abschickst.';
         }
         // Ersetzt Nachricht und Empfehlungen des Endbildschirms; false, wenn keine Fehler festgehalten sind
         function endScreen(msg, rec) {
@@ -3307,7 +3307,7 @@
                     + `<div class="wq-bub wq-bub-u">${labels.join('<br>')}</div>`
                     + `<div class="wq-bub">${[rel.join(' '), concl && gap ? 'Auffällig ist jedoch: ' + concl : concl].filter(Boolean).join(' ')}</div>`
                     + `<div class="wq-bub">${endTip(kinds, by, items, c)}</div></div>`
-                    + (asksHtml ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asksHtml}</div>` : '')
+                    + (asksHtml ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asksHtml}</div>` : '')
                     + '</div>';
                 endFit(msg);
                 rec.innerHTML = endRecos(items);
@@ -3508,7 +3508,7 @@
                 },
                 zaehlzeit: {
                     name: 'Zählzeit',
-                    why: 'das Bestimmen der Zählzeit noch nicht sicher sitzt',
+                    why: 'du die Zählzeit noch nicht sicher bestimmst',
                     tip: 'Nutze das Zählraster aus den ersten Quiz-Aufgaben: jede Note startet auf einer bestimmten Zählzeit und verbraucht den Raum ihres Notenwertes, sodass die nächste Note direkt an die nächste freie Zählzeit anschließt.',
                     counter: null,
                     cta: 'Zählzeit üben',
@@ -4919,7 +4919,7 @@
                         } else {
                             messageEl.innerHTML = `
                                 <p><strong>🏆 GLÜCKWUNSCH!</strong></p>
-                                <p>Du hast ALLE Teilkompetenzen in dieser Stufe gemeistert!</p>
+                                <p>Du hast alle Übungen dieser Stufe gemeistert!</p>
                             `;
                         }
                     }
@@ -4978,7 +4978,7 @@
                         const tg = ax.target(quickStart.currentLevel);
                         recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
                     });
-                    recos += '<button class="reco-item" onclick="quickStart.retryQuiz()">Lernkarte lesen und Übung wiederholen</button>';
+                    recos += '<button class="reco-item" onclick="quickStart.retryQuiz()">Erklärung lesen und noch einmal üben</button>';
                     if (recEl) recEl.innerHTML = recos;
                     // Fehler festgehalten → Dialog „Woran lag es?“ ersetzt Nachricht und Empfehlungen
                     woranPanel.endScreen(messageEl, recEl);
@@ -5058,10 +5058,10 @@
             _cardHintHtml(subSkillId) {
                 const b = this._cardHintBucket(subSkillId);
                 if (b === 'skip') {
-                    return '<div class="gf-axis"><p>Du hast die Lernkarte sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Erklärung sofort weggeklickt, ohne sie zu lesen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe anschauen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 if (b === 'short') {
-                    return '<div class="gf-axis"><p>Du hast die Lernkarte nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
+                    return '<div class="gf-axis"><p>Du hast die Erklärung nur sehr kurz gesehen. Beim Wiederholen erscheint sie automatisch — diesmal in Ruhe lesen, die Tipps darauf helfen direkt bei der Aufgabe.</p></div>';
                 }
                 return '';
             },
@@ -5580,7 +5580,7 @@
                         }
                     }
                     if (!html) {
-                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt eine Teilkompetenz als bestanden.</p>';
+                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt eine Übung als bestanden.</p>';
                     }
                     // Notenwert-Referenz anhängen
                     html += `<hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
@@ -5671,7 +5671,7 @@
                         2. <strong>Zählzeiten bestimmen</strong> — Finde die Position im Takt<br>
                         3. <strong>Rhythmussprache</strong> — Sprich die richtige Silbe</p>
 
-                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Übung als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
 
                         <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
 
@@ -10945,7 +10945,7 @@ Gerät:
                     sub: "Das Prinzip steht oben, fett.",
                     choices: [{ t: "am Taktanfang, bei 1", ok: true }, { t: "bei der markierten Note" }, { t: "bei der Note davor" }],
                     ok: "Genau. Vom Taktanfang Note für Note bis zur markierten Note.",
-                    nope: "Schau oben: Das Zählen beginnt immer an derselben Stelle."
+                    nope: "Schau oben: Du fängst immer an derselben Stelle an zu zählen."
                 },
                 body: `<p><strong>Du kannst schon:</strong> Zählzeiten auch nach punktierten Noten bestimmen.</p>
                         <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel zählen. <strong>Immer gleich vorgehen: Vom Taktanfang Note für Note mitzählen (1 e und te 2 e und te …), bis du bei der markierten Note bist. Wo du dann stehst, ist ihre Zählzeit.</strong></p>
@@ -11192,7 +11192,7 @@ Gerät:
                     sub: "Das Prinzip steht oben, fett.",
                     choices: [{ t: "te", ok: true }, { t: "du" }, { t: "dei" }],
                     ok: "Genau. „e“ liegt zwischen Schlag und „und“, das ist „te“.",
-                    nope: "Auf dem Schlag „du“, auf dem „und“ „dei“. Und dazwischen?"
+                    nope: "Auf dem Schlag „du“, auf dem „und“ „dei“. Und auf „e“ oder „te“?"
                 },
                 body: `<p><strong>Du kannst schon:</strong> Silben für alle Notenwerte, punktierte Noten und Triolen.</p>
                         <p><strong>Jetzt lernst du:</strong> ohne Hörbeispiel die Silbe finden. <strong>Immer in derselben Reihenfolge: Vom Taktanfang mitzählen bis zur markierten Note → Silbe bestimmen: auf dem Schlag „du“, auf dem „und“ „dei“, Sechzehntel, die auf „e“ oder „te“ beginnen, „te“; in der Triole du, da, di.</strong></p>
