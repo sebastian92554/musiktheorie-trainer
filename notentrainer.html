@@ -1858,11 +1858,25 @@
             init() {
                 if (this._inited) return; // idempotent (wird 2x aufgerufen)
                 this._inited = true;
+                // Eingebettete Karte (openCardFrame eines anderen Trainers): kein eigener Besuch, das Lesen erfasst der Trainer, aus dem der Link kam
+                if (new URLSearchParams(location.search).get('embed') === '1') return;
                 this.sessionId = this.generateSessionId();
                 this.sessionStart = Date.now();
                 this.lastActivity = Date.now();
 
                 this._send('page_view', {});
+                // Hilfe im Endbildschirm aufgeklappt (im Feld meldet das woranPanel selbst, phase 'open'); toggle steigt nicht auf → capture
+                document.addEventListener('toggle', e => {
+                    const d = e.target;
+                    if (!d.matches || !d.matches('details.lk-ask') || !d.open || this.gfFrom() !== 'end') return;
+                    const sm = d.querySelector('summary');
+                    this.gfLink('help', { opened: sm ? sm.textContent : '' });
+                }, true);
+                // Übungsknöpfe unter dem Ergebnis
+                document.addEventListener('click', e => {
+                    const b = e.target.closest && e.target.closest('#successScreen .reco-item');
+                    if (b) this.gfLink('reco', { label: b.textContent.trim().slice(0, 60) });
+                }, true);
                 this._scheduleHb();
 
                 document.addEventListener('visibilitychange', () => {
@@ -1888,7 +1902,25 @@
 
             quizStart(p) {
                 this._lastQuizStart = { ts: Date.now(), level: p.level, subskill: p.subskill, mode: p.mode };
-                this._send('quiz_start', { level: p.level, subskill: p.subskill, mode: p.mode });
+                this._lastQuiz = { level: p.level, subskill: p.subskill };
+                // via: Start über „Erst hier üben“ bzw. einen Übungsknopf aus Feld/Endbildschirm/Karte oder per Deep-Link
+                const via = this._via || null;
+                this._via = null;
+                this._send('quiz_start', Object.assign({ level: p.level, subskill: p.subskill, mode: p.mode }, via ? { via } : {}));
+            },
+            // „Woran liegt es?“ und Endbildschirm: Links, Hilfen, „Erst hier üben“, Übungsknöpfe (self_assess phase 'link', seit 17.11.2026).
+            // from: field (Feld offen), end (Endbildschirm sichtbar), card (Sprung aus einer gewöhnlichen Lernkarte)
+            gfFrom() {
+                if (document.body.classList.contains('wq-open')) return 'field';
+                const ss = document.getElementById('successScreen');
+                return ss && ss.offsetParent !== null ? 'end' : 'card';
+            },
+            gfLink(act, extra) {
+                // „Erst hier üben“ nach einem Deep-Link aus einem anderen Trainer: dort schon als practice_ext erfasst
+                if (this._ueben) { this._ueben = false; this._via = 'deeplink'; return; }
+                const from = this.gfFrom(), q = this._lastQuiz || {};
+                if (act === 'practice' || act === 'reco') this._via = from + '_' + act;
+                this._send('self_assess', Object.assign({ phase: 'link', from, act, level: q.level, subskill: q.subskill }, extra || {}));
             },
             quizComplete(payload) {
                 this._lastQuizStart = null;
@@ -2827,7 +2859,9 @@
             ov.appendChild(panel);
             document.body.appendChild(ov);
             document.body.classList.add('wq-open');
-            sendPhase(c, 'shown');
+            // offered: angebotene Antworten (unnütze bzw. fehlende Optionen erkennen)
+            sendPhase(c, 'shown', { offered: [...panel.querySelectorAll('.wq-opt')].map(b => b.dataset.k) });
+            outcomeCtrl = false;
             outcomeCtx = c;
         }
         function answer(choice, c, label) {
@@ -2874,11 +2908,19 @@
             const p = { level: c.lvl, subskill: c.sub, choice, observed, errors: kinds, match: observed && WQ[choice] ? observed === choice : null };
             p.phase = opened ? 'open' : 'choice';
             if (opened) p.opened = opened;
+            // Bei der Wahl: angebotene Hilfen, Erwiderung und die beiden eigenen Antworten – zum Prüfen der Sätze in Stichproben
+            if (!opened && panel) {
+                p.helps = [...panel.querySelectorAll('details.lk-ask summary')].map(x => x.textContent);
+                const bub = panel.querySelectorAll('.wq-chat .wq-bub');
+                p.reply = bub.length > 2 ? bub[bub.length - 1].textContent.slice(0, 300) : '';
+                p.ans = attempts.slice(-2).map(x => String(x.user == null ? '' : x.user).slice(0, 40));
+            }
             try { tracker.selfAssess(p); } catch (e) {}
         }
 
         // Feld angezeigt (auch ohne Wahl danach) und Ergebnis der nächsten Antwort danach
         let outcomeCtx = null;
+        let outcomeCtrl = false;   // Vergleichsgruppe: zwei Fehler in Folge, Feld in diesem Durchgang schon verbraucht
         function sendPhase(c, phase, extra) {
             const p = Object.assign({ level: c.lvl, subskill: c.sub, phase, errors: attempts.slice(-2).map(x => x.kind) }, extra || {});
             try { tracker.selfAssess(p); } catch (e) {}
@@ -3219,7 +3261,7 @@
                     + '</div>';
                 endFit(msg);
                 rec.innerHTML = recosEnd(items);
-                try { tracker.selfAssess({ phase: 'end', level: c.lvl, subskill: c.sub, choice: sel.join(','), observed: top, errors: Object.fromEntries(kinds.map(k => [k, by[k].length])), match: comp.length ? comp.some(k => part(k) === part(top)) : null }); } catch (e) {}
+                try { tracker.selfAssess({ phase: 'end', level: c.lvl, subskill: c.sub, offered: bs.map(o => o.dataset.k), helps: [...msg.querySelectorAll('details.lk-ask summary')].map(x => x.textContent), reply: [...msg.querySelectorAll('.wq-chat .wq-bub')].slice(2).map(x => x.textContent).join(' | ').slice(0, 400), choice: sel.join(','), observed: top, errors: Object.fromEntries(kinds.map(k => [k, by[k].length])), match: comp.length ? comp.some(k => part(k) === part(top)) : null }); } catch (e) {}
             }
             return true;
         }
@@ -3246,8 +3288,10 @@
             ready() { return attempts.length >= 2; },
             show: showPanel,
             // Nur ein richtiger Erstversuch unterbricht die Fehlerfolge (wie _nudgeWrongInARow)
+            // Vergleichsgruppe: zwei Fehler in Folge, das Feld kam in diesem Durchgang schon → nächste Antwort ohne Feld festhalten
+            control() { try { const c = ctx(); if (c && c.mode) { outcomeCtx = c; outcomeCtrl = true; } } catch (e) {} },
             onAnswer(ok, isRetry) {
-                if (outcomeCtx) { sendPhase(outcomeCtx, 'outcome', { ok: !!ok, retry: !!isRetry }); outcomeCtx = null; }
+                if (outcomeCtx) { sendPhase(outcomeCtx, outcomeCtrl ? 'control' : 'outcome', { ok: !!ok, retry: !!isRetry }); outcomeCtx = null; outcomeCtrl = false; }
                 if (ok) { if (!isRetry) attempts = []; closePanel(); }
             },
             reset() { attempts = []; outcomeCtx = null; closePanel(); endN = 0; document.getElementById('successScreen')?.classList.remove('wq-pending'); },
@@ -4099,7 +4143,7 @@
                 if (!this._nudgeSpent && this._nudgeWrongInARow >= this.NUDGE_WRONG_THRESHOLD && woranPanel.ready()) {
                     this._nudgeSpent = true;
                     woranPanel.show();
-                }
+                } else if (this._nudgeWrongInARow === this.NUDGE_WRONG_THRESHOLD && woranPanel.ready()) woranPanel.control();
             },
 
             // ---- Handle Answer ----
@@ -4714,12 +4758,13 @@
                     ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                     : { label: 'Zurück zum Menü' });
                 // Aus einem eingebetteten Fenster mit „Erst hier üben“: gleich das Quiz, die Karte nicht noch einmal
-                if (ueben) document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click();
+                if (ueben) { tracker._ueben = true; document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click(); }
             },
 
             // Sprung aus „Woran liegt es?“ oder vom Endbildschirm: Karte mit Wahl
             // „Zurück zur Aufgabe“ bzw. label / „Erst hier üben“
             showLernkarteMitWahl(key, label) {
+                try { tracker.gfLink('read', { key }); } catch (e) {}
                 // Der Endbildschirm blendet #originalApp aus → Karte wie beim Deep-Link nach body holen
                 const ov = document.getElementById('lernkarteOverlay');
                 if (ov.closest('#originalApp') && !document.getElementById('originalApp').classList.contains('active')) document.body.appendChild(ov);
@@ -4749,12 +4794,14 @@
                     (sub && !same ? `<button type="button" class="lk-btn-secondary" data-act="practice">Erst hier üben<span class="lk-btn-sub">${sub.preview || sub.label}</span></button>` : '');
                 card.appendChild(box);
                 box.querySelector('[data-act="back"]').onclick = () => {
+                    try { tracker.gfLink('back', { key }); } catch (e) {}
                     this._removeNextChoice();
                     app.dismissLernkarte();
                     if (back.after) back.after();
                 };
                 const practice = box.querySelector('[data-act="practice"]');
                 if (practice) practice.onclick = () => {
+                    try { tracker.gfLink('practice', { key }); } catch (e) {}
                     this._removeNextChoice();
                     this._lernkarteFromStart = false;   // keine Aufgabe des alten Quiz mehr erzeugen
                     app.dismissLernkarte();

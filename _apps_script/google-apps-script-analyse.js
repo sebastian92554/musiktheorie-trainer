@@ -761,6 +761,179 @@ function runAnalyse() {
   push('  Lesehilfe Endbildschirm', 'Trefferquote am Ende mit der im Feld vergleichen: Beim Rückblick auf alle Fehler sollte sie höher liegen. „Gewählt“ unter den nicht bestandenen Quizzen = wie oft die Frage beantwortet statt übersprungen wird.');
   push('');
 
+  // GF-PRÜFUNG (seit 17.11.2026) — Daten, um Lücken und Fehler im Feld und im Endbildschirm zu finden.
+  // Neu in self_assess: shown.offered (angebotene Antworten), choice.helps/reply/ans (angebotene Hilfen,
+  // Erwiderung, beide eigenen Antworten), end.offered/helps/reply, phase 'control' (zwei Fehler in Folge,
+  // Feld im Durchgang schon verbraucht → nächste Antwort ohne Feld) und phase 'link' (from: field | end | card;
+  // act: help, read, read_ext, back, back_ext, practice, practice_ext, reco). quiz_start.via = Herkunft des Starts.
+  const gfSA = [];   // alle self_assess mit Session-Bezug, zeitlich geordnet je Session
+  sessions.forEach(s => (s.evAll || []).forEach((e, i) => { if (e.eventType === 'self_assess') gfSA.push({ s, e, i, p: e.payload || {} }); }));
+  const inc = (o, k, n) => { o[k] = (o[k] || 0) + (n === undefined ? 1 : n); };
+  const pv = (a, b) => { const v = _pct(a, b); return v === null ? '–' : v + '%'; };   // Prozent oder „–“ ohne Basis
+  const top = (o, n) => Object.keys(o).sort((x, y) => o[y] - o[x]).slice(0, n);
+
+  // 1) Links und „Erst hier üben“
+  push('— LINKS UND „ERST HIER ÜBEN“ (self_assess phase link, quiz_start.via; seit 17.11.2026) —');
+  const lk = {};            // from → {act → n}
+  const lkKey = {};         // from · act · key → n
+  sessions.forEach(s => (s.evAll || []).forEach(e => {
+    if (e.eventType !== 'self_assess' || (e.payload || {}).phase !== 'link') return;
+    const p = e.payload;
+    inc(lk[p.from] = lk[p.from] || {}, p.act);
+    if (p.key || p.opened || p.label) inc(lkKey, (p.from || '?') + ' · ' + p.act + ' · ' + (p.key || p.opened || p.label));
+  }));
+  const ACTS = ['help', 'read', 'read_ext', 'back', 'back_ext', 'practice', 'practice_ext', 'reco'];
+  ['field', 'end', 'card'].forEach(fr => {
+    const a = lk[fr];
+    if (!a) return;
+    push('  ' + ({ field: 'Woran-Feld', end: 'Endbildschirm', card: 'aus Lernkarten' })[fr], ACTS.filter(k => a[k]).map(k => k + ' ' + a[k]).join(' | '));
+  });
+  if (!Object.keys(lk).length) push('  (noch keine link-Events)');
+  push('  Basis', 'Feld: Wahlen ' + wqAll.choice + ' | Endbildschirm: Antworten ' + Object.keys(wqEnd).reduce((n, tr) => n + (wqEnd[tr].n || 0), 0)
+    + ' | Hilfen im Feld aufgeklappt ' + gfSA.filter(x => x.p.phase === 'open').length);
+  push('  Häufigste Ziele', '');
+  top(lkKey, 15).forEach(k => push('    ' + k, lkKey[k]));
+  // Starts mit Herkunft und was daraus wurde: bestanden (≥ 80 %) im selben Durchgang; bei Sprüngen aus Feld/Endbildschirm
+  // zusätzlich, ob die ursprüngliche Übung danach in derselben Sitzung wieder gestartet und bestanden wurde
+  const via = {};           // via → {n, done, pass, back, backPass}
+  sessions.forEach(s => {
+    const ev = s.evAll || [];
+    ev.forEach((e, i) => {
+      if (e.eventType !== 'quiz_start' || !(e.payload || {}).via) return;
+      const p = e.payload, v = via[p.via] = via[p.via] || { n: 0, done: 0, pass: 0, back: 0, backPass: 0 };
+      v.n++;
+      const qc = ev.slice(i + 1).find(x => x.eventType === 'quiz_complete' || x.eventType === 'quiz_start');
+      if (qc && qc.eventType === 'quiz_complete') { v.done++; if ((qc.payload || {}).pct >= 80) v.pass++; }
+      // Herkunft: letzter link-Sprung davor (practice/reco) mit Level/Sub-Skill der ursprünglichen Übung
+      const ln = ev.slice(0, i).reverse().find(x => x.eventType === 'self_assess' && (x.payload || {}).phase === 'link' && ['practice', 'reco'].includes(x.payload.act));
+      if (!ln || !ln.payload.subskill || ln.payload.subskill === p.subskill) return;
+      const j = ev.findIndex((x, k) => k > i && x.eventType === 'quiz_start' && (x.payload || {}).subskill === ln.payload.subskill && (x.payload || {}).level === ln.payload.level);
+      if (j < 0) return;
+      v.back++;
+      const qc2 = ev.slice(j + 1).find(x => x.eventType === 'quiz_complete' || x.eventType === 'quiz_start');
+      if (qc2 && qc2.eventType === 'quiz_complete' && (qc2.payload || {}).pct >= 80) v.backPass++;
+    });
+  });
+  push('  Starts mit Herkunft (via)', '');
+  Object.keys(via).sort((x, y) => via[y].n - via[x].n).forEach(k => {
+    const v = via[k];
+    push('    ' + k, v.n + ' Starts | beendet ' + v.done + ' | bestanden ' + v.pass + ' (' + pv(v.pass, v.done) + ') | zurück zur Ausgangsübung ' + v.back + ', dort bestanden ' + v.backPass);
+  });
+  if (!Object.keys(via).length) push('    (noch keine Starts mit via)');
+  push('  Lesehilfe', 'field_practice/end_practice = „Erst hier üben“ im Feld bzw. Endbildschirm, end_reco = Übungsknopf, deeplink = „Erst hier üben“ in der Karte eines anderen Trainers (eigene Sitzung im Zieltrainer, daher ohne Rückkehr). read_ext ohne practice_ext = Karte gelesen und zurück zur Aufgabe.');
+  push('');
+
+  // 2) Antwortmöglichkeiten: angeboten vs. gewählt, „Weiß ich nicht“ je Fehlerart, Vermutung × Befund
+  push('— ANTWORTMÖGLICHKEITEN (Feld und Endbildschirm) —');
+  const opt = {};           // trainer · subskill · option → {off, ch}
+  const conf = {};          // trainer · beobachtet → {choice → n}
+  const kindStat = {};      // trainer · Fehlerart (beide gleich) → {n, weiss, klick, miss}
+  gfSA.forEach(({ s, e, i, p }) => {
+    const ev = s.evAll;
+    if (p.phase === 'shown' && Array.isArray(p.offered)) {
+      const ch = ev.slice(i + 1).find(x => x.eventType === 'self_assess' && (x.payload || {}).phase === 'choice');
+      p.offered.forEach(k => { const o = opt[s.trainer + ' · ' + p.subskill + ' · ' + k] = opt[s.trainer + ' · ' + p.subskill + ' · ' + k] || { off: 0, ch: 0 }; o.off++; if (ch && ch.payload.choice === k) o.ch++; });
+    }
+    if (p.phase === 'end' && Array.isArray(p.offered)) {
+      const chosen = String(p.choice || '').split(',');
+      p.offered.forEach(k => { const o = opt[s.trainer + ' · ' + p.subskill + ' · ' + k + ' (Ende)'] = opt[s.trainer + ' · ' + p.subskill + ' · ' + k + ' (Ende)'] || { off: 0, ch: 0 }; o.off++; if (chosen.includes(k)) o.ch++; });
+    }
+    if (p.phase === 'choice' && p.observed) {
+      inc(conf[s.trainer + ' · ' + p.observed] = conf[s.trainer + ' · ' + p.observed] || {}, p.choice);
+      const ks = kindStat[s.trainer + ' · ' + p.observed] = kindStat[s.trainer + ' · ' + p.observed] || { n: 0, weiss: 0, klick: 0, miss: 0 };
+      ks.n++;
+      if (p.choice === 'weiss') ks.weiss++;
+      if (p.choice === 'klick') ks.klick++;
+      if (p.match === false) ks.miss++;
+    }
+  });
+  push('  Nie oder kaum gewählt (ab 10× angeboten, unter 5 %)', '');
+  const rare = Object.keys(opt).filter(k => opt[k].off >= 10 && opt[k].ch / opt[k].off < 0.05).sort((x, y) => opt[y].off - opt[x].off);
+  rare.slice(0, 15).forEach(k => push('    ' + k, 'angeboten ' + opt[k].off + ', gewählt ' + opt[k].ch));
+  if (!rare.length) push('    (keine – oder noch zu wenig Daten)');
+  push('  Gleicher Fehler zweimal: Antworten je Fehlerart', '');
+  top(Object.fromEntries(Object.keys(kindStat).map(k => [k, kindStat[k].n])), 20).forEach(k => {
+    const a = kindStat[k], c = conf[k] || {};
+    push('    ' + k, a.n + ' | weiß nicht ' + pv(a.weiss, a.n) + ' | verklickt ' + pv(a.klick, a.n) + ' | Vermutung daneben ' + pv(a.miss, a.n) + ' | gewählt: ' + top(c, 5).map(x => x + ' ' + c[x]).join(', '));
+  });
+  push('  Lesehilfe', 'Viel „weiß nicht“ oder „daneben“ bei einer Fehlerart = passende Antwort fehlt oder ist unverständlich formuliert. „Verklickt“ bei zweimal demselben Fehler ist selten ein echtes Verklicken. Nie gewählte Antworten streichen oder umformulieren.');
+  push('');
+
+  // 3) „Verklickt“ nach Übung und Gerät — Hinweis auf schwierige Eingabe
+  push('— „VERKLICKT“ NACH ÜBUNG UND GERÄT (Feld und Endbildschirm) —');
+  const kl = {};            // trainer · level · subskill · device → {n, k}
+  gfSA.forEach(({ s, p }) => {
+    if (p.phase !== 'choice' && p.phase !== 'end') return;
+    const a = kl[_sk(s.trainer, p.level, p.subskill) + ' · ' + (s.device || '?')] = kl[_sk(s.trainer, p.level, p.subskill) + ' · ' + (s.device || '?')] || { n: 0, k: 0 };
+    a.n++;
+    if (String(p.choice || '').split(',').includes('klick')) a.k++;
+  });
+  Object.keys(kl).filter(k => kl[k].k).sort((x, y) => kl[y].k / kl[y].n - kl[x].k / kl[x].n || kl[y].n - kl[x].n).slice(0, 15)
+    .forEach(k => push('  ' + k, 'verklickt ' + kl[k].k + ' von ' + kl[k].n + ' (' + pv(kl[k].k, kl[k].n) + ')'));
+  if (!Object.keys(kl).some(k => kl[k].k)) push('  (noch keine „verklickt“-Antworten)');
+  push('  Lesehilfe', 'Hohe Quote bei einer Übung auf einem Gerätetyp (z. B. Tastatur auf dem Handy) = Eingabe dort prüfen: Tasten zu klein, Ziehen statt Tippen, Doppelklick.');
+  push('');
+
+  // 4) Hilfen: angeboten, aufgeklappt, danach richtig; Felder ohne passende Hilfe
+  push('— HILFEN (angeboten → aufgeklappt → nächste Antwort richtig) —');
+  const hp = {};            // trainer · Frage → {off, open, after, afterOk}
+  let noHelp = 0, withChoice = 0;
+  gfSA.forEach(({ s, i, p }) => {
+    if ((p.phase === 'choice' || p.phase === 'end') && Array.isArray(p.helps)) {
+      if (p.phase === 'choice' && !['klick', 'weiss'].includes(p.choice)) { withChoice++; if (!p.helps.length) noHelp++; }
+      const ev = s.evAll;
+      // aufgeklappt: open (Feld) bzw. link help (Endbildschirm) bis zur nächsten Wahl
+      const nxt = ev.findIndex((x, k) => k > i && x.eventType === 'self_assess' && ['choice', 'end', 'shown'].includes((x.payload || {}).phase));
+      const win = ev.slice(i + 1, nxt < 0 ? undefined : nxt);
+      const opened = win.filter(x => x.eventType === 'self_assess' && ((x.payload || {}).phase === 'open' || ((x.payload || {}).phase === 'link' && x.payload.act === 'help'))).map(x => x.payload.opened);
+      const out = p.phase === 'choice' ? win.find(x => x.eventType === 'self_assess' && (x.payload || {}).phase === 'outcome') : null;
+      p.helps.forEach(h => {
+        const a = hp[s.trainer + ' · ' + h] = hp[s.trainer + ' · ' + h] || { off: 0, open: 0, after: 0, afterOk: 0 };
+        a.off++;
+        if (opened.includes(h)) { a.open++; if (out) { a.after++; if (out.payload.ok) a.afterOk++; } }
+      });
+    }
+  });
+  push('  Feld-Wahlen ohne passende Hilfe', noHelp + ' von ' + withChoice + ' (' + pv(noHelp, withChoice) + ', ohne „verklickt“/„weiß nicht“)');
+  top(Object.fromEntries(Object.keys(hp).map(k => [k, hp[k].off])), 25).forEach(k => {
+    const a = hp[k];
+    push('  ' + k, 'angeboten ' + a.off + ' | aufgeklappt ' + a.open + ' (' + pv(a.open, a.off) + ') | danach richtig ' + (a.after ? pv(a.afterOk, a.after) + ' von ' + a.after : '–'));
+  });
+  if (!Object.keys(hp).length) push('  (noch keine Hilfen-Daten)');
+  push('  Lesehilfe', 'Oft angeboten, kaum aufgeklappt = Frage trifft die Unsicherheit nicht. Oft aufgeklappt, danach selten richtig = Kurzantwort hilft nicht. Viele Wahlen ohne Hilfe = Hilfe fehlt für diese Vermutung.');
+  push('');
+
+  // 5) Wirkt das Feld? Nächste Antwort mit Feld (outcome) vs. ohne Feld (control)
+  push('— MIT UND OHNE FELD (nächste Antwort nach zwei Fehlern in Folge) —');
+  const mf = {};            // trainer → {o, oOk, c, cOk}
+  gfSA.forEach(({ s, p }) => {
+    if (p.phase !== 'outcome' && p.phase !== 'control') return;
+    const a = mf[s.trainer] = mf[s.trainer] || { o: 0, oOk: 0, c: 0, cOk: 0 };
+    if (p.phase === 'outcome') { a.o++; if (p.ok) a.oOk++; } else { a.c++; if (p.ok) a.cOk++; }
+  });
+  Object.keys(mf).forEach(tr => {
+    const a = mf[tr];
+    push('  ' + tr, 'mit Feld ' + pv(a.oOk, a.o) + ' richtig (' + a.o + ') | ohne Feld ' + (a.c ? pv(a.cOk, a.c) + ' (' + a.c + ')' : '– (noch keine control-Events)'));
+  });
+  if (!Object.keys(mf).length) push('  (noch keine Daten)');
+  push('  Lesehilfe', 'Ohne Feld = zweite Fehlerfolge im selben Durchgang (Feld schon verbraucht). Diese Schüler sind schon länger in der Übung – der Vergleich ist ein Hinweis, kein Beweis.');
+  push('');
+
+  // 6) Erwiderungen: Verteilung und Stichproben zum Gegenlesen
+  push('— ERWIDERUNGEN IM FELD (zum Gegenlesen) —');
+  const rc = {};
+  const smp = [];
+  gfSA.forEach(({ s, e, p }) => {
+    if (p.phase !== 'choice' || p.reply === undefined) return;
+    const r = String(p.reply || '');
+    inc(rc, /tatsächlich/.test(r) ? 'tatsächlich' : /zum Teil/.test(r) ? 'zum Teil' : /kann es gelegen/.test(r) ? 'kann' : / lag es nicht/.test(r) ? 'nicht' : 'ohne Urteil');
+    smp.push([e.ts, s.trainer + ' · ' + p.subskill + ' · ' + p.choice + ' / ' + p.observed + ' · ' + (p.ans || []).join(' | '), r]);
+  });
+  push('  Urteile', Object.keys(rc).map(k => k + ' ' + rc[k]).join(' | ') || '(noch keine)');
+  push('  Letzte 20 (Übung · Vermutung / Befund · Antworten)', 'Erwiderung');
+  smp.sort((x, y) => y[0] - x[0]).slice(0, 20).forEach(x => push('    ' + x[1], x[2]));
+  push('');
+
   // FEHLER IM FELD (wq_error) — abgefangene Fehler von „Woran liegt es?“. Das Quiz läuft
   // dabei weiter, nur das Feld fehlt. Jeder Eintrag hier ist ein Bug mit Fundstelle.
   push('— FEHLER IM FELD „WORAN LIEGT ES?“ (wq_error, alle Segmente) —');
@@ -812,7 +985,7 @@ function runAnalyse() {
   const tipKeys = Object.keys(tip).sort((x, y) => tip[y] - tip[x]);
   tipKeys.slice(0, 20).forEach(k => push('  ' + k, tip[k]));
   if (!tipKeys.length) push('  (keine tip_open-Events — Feature noch frisch oder Code.gs-Whitelist prüfen)');
-  push('  Lesehilfe', 'Karte → Ziel der Rückfrage. Häufig aufgeklappt = diese Vorkenntnis fehlt oft; dort Lernkarte/Übung davor stärken.');
+  push('  Lesehilfe', 'Karte → Ziel der Rückfrage. Häufig aufgeklappt = diese Vorkenntnis fehlt oft; dort Lernkarte/Übung davor stärken. Enthält auch Hilfen aus dem Endbildschirm (dort zusätzlich als link help erfasst).');
   push('');
 
   // Engagement-Tiefe (Abschließer organik)
