@@ -72,6 +72,73 @@
             padding: 1.5rem;
         }
 
+        /* ── Suchregister: Begriff → Trainer, Knoten, Lernkarte ── */
+        .search-box {
+            position: relative;
+            max-width: 560px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.7rem 1rem 0.7rem 2.5rem;
+            font: inherit;
+            font-size: 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='16.5' y1='16.5' x2='21' y2='21'/%3E%3C/svg%3E") 0.8rem center / 1.1rem no-repeat;
+            color: #1e293b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        .search-box input:focus { outline: 2px solid #334155; outline-offset: 1px; border-color: transparent; }
+
+        .search-hits {
+            position: absolute;
+            left: 0; right: 0;
+            z-index: 20;
+            margin-top: 0.35rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+
+        .search-hits:empty { display: none; }
+
+        .sr-hit {
+            display: block;
+            padding: 0.55rem 0.9rem;
+            text-decoration: none;
+            color: inherit;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .sr-hit:first-child { border-top: none; }
+        .sr-hit:hover, .sr-hit:focus { background: #f8fafc; outline: none; }
+
+        .sr-term { font-weight: 600; font-size: 0.95rem; }
+        .sr-term mark { background: #fef08a; color: inherit; border-radius: 2px; }
+
+        .sr-path {
+            display: block;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 0.1rem;
+        }
+
+        .sr-path::before {
+            content: '';
+            display: inline-block;
+            width: 0.55em; height: 0.55em;
+            border-radius: 50%;
+            margin-right: 0.4em;
+            background: var(--tc, #94a3b8);
+        }
+
+        .sr-none { padding: 0.6rem 0.9rem; font-size: 0.85rem; color: #64748b; }
+
         /* ── Kompetenzbaum ── */
         .kompetenzbaum {
             margin-bottom: 2rem;
@@ -434,6 +501,12 @@
             <div class="account-bar"></div>
         </section>
 
+        <section class="search-box">
+            <label for="searchInput" hidden>Thema suchen</label>
+            <input id="searchInput" type="search" placeholder="Was möchtest du üben? z. B. Triole" autocomplete="off" spellcheck="false">
+            <div class="search-hits" id="searchHits"></div>
+        </section>
+
         <section class="kompetenzbaum">
             <h2>Lernpfad</h2>
             <p class="kompetenzbaum-info">
@@ -603,6 +676,91 @@
         }
 
         _trackLanding('page_view', 'Landing', {});
+
+        // Suchregister: Begriffe aus REGISTER (Knotennamen, Chip-Namen, Sub-Skill-Labels, Kartentitel) plus
+        // gängige Schülerwörter (BEGRIFFE, von Hand gepflegt; register_erzeugen.js prüft, dass jeder Schlüssel existiert).
+        // Ergebnis: Links auf Trainer?lernkarte=<Schlüssel>; Klick sendet landing_click mit dem Suchwort.
+        const BEGRIFFE = [
+            ['Vorzeichen', 'noten1_vorzeichen'], ['Kreuz ♯', 'noten1_vorzeichen'], ['b ♭', 'noten1_vorzeichen'], ['Auflösungszeichen', 'noten1_vorzeichen'],
+            ['Hilfslinien', 'noten1_hilfslinien'], ['Oktavlagen (c, c\', c\'\')', 'noten1_lagen'], ['Stammtöne (C D E F G A H)', 'noten1_basis'],
+            ['Noten lesen', 'noten1_basis'], ['Notenschlüssel', 'noten1_basis'], ['Violinschlüssel', 'noten1_basis'], ['Bassschlüssel', 'noten2_basis'],
+            ['Tastatur / Klaviatur', 'noten3_basis'], ['Noten schreiben', 'noten4_basis'],
+            ['Intervalle', 'int1_basis'], ['Prime, Sekunde, Terz, Quarte, Quinte, Sexte, Septime, Oktave', 'int1_basis'], ['None, Dezime', 'int1_extended'],
+            ['Halbtonschritte zählen', 'int3_basis'], ['Feinbestimmung (rein, groß, klein)', 'int4_rein'], ['reine Intervalle', 'int4_rein'],
+            ['große und kleine Intervalle', 'int4_grossklein'], ['übermäßig und vermindert', 'int4_augdim'], ['Komplementärintervall', 'int4_komplement'],
+            ['Dreiklang', 'drei1_basis'], ['Akkord', 'drei1_basis'], ['Dur-Dreiklang / Moll-Dreiklang', 'drei1_basis'], ['Terzen schichten', 'drei2_basis'],
+            ['Umkehrung', 'drei4_basis'], ['Grundstellung, Sextakkord, Quartsextakkord', 'drei4_basis'], ['Doppelvorzeichen', 'drei3_doubleAccidentals'],
+            ['Ganzton / Halbton', 'ton1_basis'], ['Tonleiter', 'ton3_muster_lernen'], ['Dur-Tonleiter / Moll-Tonleiter', 'ton3_muster_lernen'],
+            ['Tonleiter bauen', 'ton4_tastatur_einfach'], ['Quintenzirkel', 'ton5_aussenkr'], ['Merksatz Quintenzirkel (Geh du alter Esel …)', 'ton5_aussenkr'],
+            ['Mollparallele / Paralleltonart', 'ton5_innenkr'], ['Tonart erkennen (Vorzeichen zählen)', 'ton5_vorz_ableitung'],
+            ['enharmonische Verwechslung', 'ton5_enharmonisch'], ['verwandte Tonarten', 'ton5_verwandte'],
+            ['Notenwerte (Ganze, Halbe, Viertel)', 'rhy1_basis'], ['Achtelnoten', 'rhy1_8tel'], ['Sechzehntelnoten', 'rhy1_16tel'], ['Pausen', 'rhy1_pausen'],
+            ['punktierte Note', 'rhy1_punktierte'], ['Triole', 'rhy1_triolen'], ['Taktart (3/4, 4/4 …)', 'rhy2_regelmaessig'],
+            ['Zählzeiten (1 und 2 und …)', 'rhy3_basis'], ['Rhythmussilben (du te dei te)', 'rhy4_basis'], ['Rhythmusdiktat', 'rhy6_8tel'],
+            ['Takt ergänzen (fehlender Notenwert)', 'rhy5_8tel']
+        ];
+        const TRAINER_COLOR = { nt: '#4f46e5', it: '#ea580c', dt: '#10b981', tt: '#0891b2', rt: '#8b5cf6' };
+        const _norm = t => String(t).toLowerCase().replace(/ß/g, 'ss').replace(/[^a-z0-9äöü\/ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+        // Suchindex: [Begriff, Trainerkürzel, Knotenname, Sub-Skill-Label, Schlüssel, Rang] – Rang 0 = Schülerwort, 1 = Knoten, 2 = Teilkompetenz
+        const SEARCH_INDEX = (function () {
+            const byKey = {}, out = [];
+            Object.keys(REGISTER).forEach(c => REGISTER[c].nodes.forEach(n => n.subs.forEach(s => { byKey[s[1]] = { c, n, s }; })));
+            BEGRIFFE.forEach(([term, key]) => { const e = byKey[key]; if (e) out.push([term, e.c, e.n.chip, e.s[0], key, 0]); });
+            Object.keys(REGISTER).forEach(c => REGISTER[c].nodes.forEach(n => {
+                [n.name, n.chip].filter((v, i, a) => a.indexOf(v) === i).forEach(term => out.push([term, c, n.chip, n.subs[0][0], n.subs[0][1], 1]));
+                n.subs.forEach(s => {
+                    const label = s[0].replace(/^\+\s*/, ''), title = s[2].replace(/^\d[a-z]\s*[—–-]\s*/, '');
+                    [label, title, s[3] || ''].filter((v, i, a) => v && a.indexOf(v) === i).forEach(term => out.push([term, c, n.chip, s[0], s[1], 2]));
+                });
+            }));
+            return out;
+        })();
+        function searchTerms(q) {
+            q = _norm(q);
+            if (q.length < 2) return [];
+            const hits = [];
+            SEARCH_INDEX.forEach(e => {
+                const t = _norm(e[0]);
+                let score = -1;
+                if (t === q) score = 0;
+                else if (t.startsWith(q)) score = 1;
+                else if (t.split(' ').some(w => w.startsWith(q))) score = 2;
+                else if (t.includes(q)) score = 3;
+                else if (q.length >= 5 && t.split(' ').some(w => w.length >= 5 && q.includes(w))) score = 4;
+                if (score >= 0) hits.push({ e, score: score * 10 + e[5] });
+            });
+            hits.sort((a, b) => a.score - b.score);
+            // je Schlüssel und je Begriff+Trainer nur der beste Treffer („Hilfslinien“ sonst sechsmal aus dem NT; die Chips zeigen die übrigen Knoten)
+            const seen = {}, out = [];
+            hits.forEach(h => { const k1 = h.e[4], k2 = _norm(h.e[0]) + '|' + h.e[1]; if (!seen[k1] && !seen[k2]) { seen[k1] = seen[k2] = 1; out.push(h.e); } });
+            return out.slice(0, 8);
+        }
+        const _esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        function renderSearch() {
+            const q = document.getElementById('searchInput').value;
+            const box = document.getElementById('searchHits');
+            if (_norm(q).length < 2) { box.innerHTML = ''; return; }
+            if (typeof resolveCode === 'function' && resolveCode(q)) { const h = resolveCode(q);
+                box.innerHTML = `<a class="sr-hit" href="${_esc(h.href)}" data-term="${_esc(q)}" data-key="code"><span class="sr-term">Code ${_esc(h.code)}</span><span class="sr-path" style="--tc:${TRAINER_COLOR[h.code.slice(0, 2)]}">${_esc(h.trainer)} › ${_esc(h.label)}</span></a>`; return; }
+            const hits = searchTerms(q);
+            if (!hits.length) { box.innerHTML = '<div class="sr-none">Nichts gefunden. Probier ein anderes Wort – oder schau auf die Themen unter den Trainern.</div>'; return; }
+            const re = new RegExp('(' + _norm(q).split(' ').filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'ig');
+            box.innerHTML = hits.map(e => {
+                const t = REGISTER[e[1]];
+                return `<a class="sr-hit" href="${_esc(t.file)}?lernkarte=${encodeURIComponent(e[4])}" data-term="${_esc(q)}" data-key="${_esc(e[4])}">` +
+                    `<span class="sr-term">${_esc(e[0]).replace(re, '<mark>$1</mark>')}</span>` +
+                    `<span class="sr-path" style="--tc:${TRAINER_COLOR[e[1]]}">${_esc(t.name)} › ${_esc(e[2])} › ${_esc(e[3])}</span></a>`;
+            }).join('');
+        }
+        const _searchInput = document.getElementById('searchInput');
+        _searchInput.addEventListener('input', renderSearch);
+        _searchInput.addEventListener('focus', renderSearch);
+        _searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') { const a = document.querySelector('#searchHits .sr-hit'); if (a) a.click(); } });
+        document.addEventListener('click', e => { if (!e.target.closest('.search-box')) document.getElementById('searchHits').innerHTML = ''; });
+        document.getElementById('searchHits').addEventListener('click', e => {
+            const a = e.target.closest('.sr-hit');
+            if (a) _trackLanding('landing_click', 'Suche', { term: a.dataset.term, key: a.dataset.key });
+        });
 
         // Kurzcodes für den Unterricht: tt5a = Trainer (nt/it/dt/tt/rt) + Knoten + Teilkompetenz (a, b, c …);
         // ohne Buchstaben (tt5) die erste Teilkompetenz des Knotens. Ziel: Trainer mit ?lernkarte=<Schlüssel>.
