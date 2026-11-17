@@ -2620,18 +2620,18 @@
         const o = [];
         const m = c.mode;
         if (m === 'ton1') {
-            o.push(['tasten', 'Ich verzähle mich bei den Tasten dazwischen.']);
+            o.push(['tasten', 'Ich zähle die Tasten zwischen den beiden Tönen falsch.']);
             if (c.opts.includes('vorzeichen')) o.push(['vz', 'Ich weiß nicht, welche Taste zum Vorzeichen gehört.']);
             o.push(['lesen', 'Ich lese die Noten falsch.']);
         } else if (m === 'mark' || m === 'paare') {
-            o.push(['tasten', 'Ich verzähle mich bei den Tasten dazwischen.']);
+            o.push(['tasten', 'Ich zähle die Tasten zwischen den beiden Tönen falsch.']);
             if (m === 'paare') o.push(['stufen', 'Ich verzähle mich bei den Stufen.']);
             if (last && last.acc) o.push(['vz', 'Ich weiß nicht, welche Taste zum Vorzeichen gehört.']);
         } else if (m === 'tg') {
             o.push(['muster', 'Ich verwechsle das Muster von Dur und Moll.']);
-            o.push(['stufen', 'Ich finde die Stufen der markierten Noten nicht.']);
+            o.push(['stufen', 'Ich weiß nicht, welche Stufen die markierten Noten haben.']);
         } else if (m === 'paarname' || m === 'name') {
-            if (m === 'paarname') o.push(['tasten', 'Ich verzähle mich bei den Tasten dazwischen.']);
+            if (m === 'paarname') o.push(['tasten', 'Ich zähle die Tasten zwischen den beiden Tönen falsch.']);
             if (last && last.kind === 'tg') o.push(['muster', 'Ich verwechsle das Muster von Dur und Moll.']);
             o.push(['gt', 'Ich weiß nicht, welcher Ton der Grundton ist.']);
             if (m === 'name' && last && last.rootAcc) o.push(['vzname', 'Ich verwechsle „is“ und „es“.']);
@@ -2640,14 +2640,14 @@
             // „verwechsle“ nur, wenn ein eigener Halbton dort liegt, wo ihn das andere Tongeschlecht hat (Sebo 16.11.2026)
             const other = last && { Dur: 'Moll', Moll: 'Dur' }[last.type];
             if (other && (last.ht || []).some(h => HALF_STEPS[other].includes(h) && !HALF_STEPS[last.type].includes(h))) o.push(['muster', 'Ich verwechsle das Muster von Dur und Moll.']);
-            else if (last && last.type) o.push(['musterk', `Ich kenne das Halbtonschrittmuster von ${last.type} noch nicht richtig.`]);
+            else if (last && last.type) o.push(['musterk', `Ich weiß nicht genau, wo in ${last.type} die Halbtonschritte liegen.`]);
             if (m === 'bild_staff') o.push(['vz', 'Ich weiß nicht, welches Vorzeichen ich brauche.']);
         } else if (m === 'qz') {
             const sub = last ? last.sub : c.sub;
             if (sub === 'aussenkr') { o.push(['merk', 'Ich bin unsicher beim Merksatz.']); o.push(['zaehl', 'Ich verzähle mich im Quintenzirkel.']); }
             if (sub === 'innenkr') { o.push(['parallel', 'Ich weiß nicht, wo die Mollparallele liegt.']); o.push(['zaehl', 'Ich verzähle mich im Quintenzirkel.']); }
             if (sub === 'vorz_ableitung') { o.push(['reihe', 'Ich bin unsicher bei der Reihenfolge der Vorzeichen.']); o.push(['zaehl', 'Ich verzähle mich in der Reihe.']); }
-            if (sub === 'enharmonisch') { o.push(['enh', 'Ich weiß nicht, welcher Grundton auf derselben Taste liegt.']); o.push(['vz', 'Ich verwechsle, in welche Richtung ♯ und ♭ gehen.']); }
+            if (sub === 'enharmonisch') { o.push(['enh', 'Ich weiß nicht, welcher zweite Name zu der Taste gehört.']); o.push(['vz', 'Ich verwechsle, in welche Richtung ♯ und ♭ gehen.']); }
             if (sub === 'verwandte') { o.push(['nachbar', 'Ich weiß nicht, welche Tonarten Nachbarn sind.']); o.push(['zaehl', 'Ich verzähle mich im Quintenzirkel.']); }
             if (sub === 'symmetrien') { o.push(['zaehl', 'Ich verzähle mich beim Abstand im Quintenzirkel.']); }
         }
@@ -2670,14 +2670,14 @@
 
     // ---- Vergleich ----
     function partW(x) {
-        return { gtht: 'der Tonschritt', mark: 'die Markierung der Halbtonschritte', paare: 'die Wahl der Stufenpaare', tg: 'das Tongeschlecht', gt: 'der Grundton', stufe: 'ein Ton der Tonleiter', vz: 'ein Vorzeichen' }[x.kind] || 'die Antwort';
+        return { gtht: 'der Schritt', mark: 'die Halbtonschritte', paare: 'die Stufenpaare', tg: 'das Tongeschlecht', gt: 'der Grundton', stufe: 'ein Ton der Tonleiter', vz: 'ein Vorzeichen' }[x.kind] || 'die Antwort';
     }
     function common(two, c, one) {
         const [a, b] = two;
         const same = a.kind === b.kind;
-        if (!same) return `Nicht gestimmt hat ${one ? 'beim 1. Versuch' : 'bei der 1. Aufgabe'} ${partW(a)}, ${one ? 'beim 2. Versuch' : 'bei der 2. Aufgabe'} ${partW(b)}.`;
+        if (!same) return `${one ? 'Beim 1. Versuch' : 'Bei der 1. Aufgabe'} ${['die Halbtonschritte', 'die Stufenpaare'].includes(partW(a)) ? 'stimmten' : 'stimmte'} ${partW(a)} nicht, ${one ? 'beim 2. Versuch' : 'bei der 2. Aufgabe'} ${partW(b)}.`;
         const k = a.kind;
-        if (k === 'gtht') return one ? `Beide Male stimmte der Tonschritt zwischen ${a.n1} und ${a.n2} nicht.` : `Bei beiden Aufgaben stimmte der Tonschritt nicht: erst zwischen ${a.n1} und ${a.n2}, dann zwischen ${b.n1} und ${b.n2}.`;
+        if (k === 'gtht') return one ? `Beide Male hast du den Schritt zwischen ${a.n1} und ${a.n2} falsch bestimmt: Ganzton oder Halbton?` : `Bei beiden Aufgaben hast du den Schritt falsch bestimmt: erst zwischen ${a.n1} und ${a.n2}, dann zwischen ${b.n1} und ${b.n2}.`;
         if (k === 'mark') {
             const both = a.found.filter(h => b.found.includes(h));
             const sc = app.currentScale;
@@ -2753,7 +2753,7 @@
         const sc = app.currentScale;
         // Beispiel nie mit dem Tonschritt der Aufgabe
         const exEF = two.some(x => x.mode === 'ton1' && /^e/i.test(x.n1)) ? 'Von H nach C liegt keine Taste dazwischen: ein Halbtonschritt.' : 'Von E nach F liegt keine Taste dazwischen: ein Halbtonschritt.';
-        const count = () => add('Unsicher beim Zählen der Tasten dazwischen?', `Halbtonschritt: keine Taste dazwischen, auch keine schwarze. Ganzton: genau eine Taste dazwischen. ${exEF}`, 'ton1_basis');
+        const count = () => add('Unsicher beim Zählen des Abstands zwischen den Tönen?', `Halbtonschritt: Zwischen den beiden Tönen liegt keine Taste, auch keine schwarze. Ganztonschritt: genau eine Taste dazwischen. ${exEF}`, 'ton1_basis');
         kinds.forEach(k => {
             if (k === 'gtht' || k === 'mark' || k === 'paare') {
                 count();
@@ -2769,7 +2769,7 @@
                 if (two.some(x => x.rootAcc)) add('Unsicher bei den Vorzeichennamen?', `Mit ${SHARP} hängst du „is“ an, mit ${FLAT} „es“. Ausnahmen: Es, As, B.`, 'nt:vorzeichen');
             }
             if (k === 'stufe') {
-                add('Unsicher beim Muster der Schritte?', 'Dur: Ganz – Ganz – Halb – Ganz – Ganz – Ganz – Halb. Moll: Ganz – Halb – Ganz – Ganz – Halb – Ganz – Ganz.', 'ton4_tastatur_einfach');
+                add('Unsicher beim Muster von Dur und Moll?', 'Dur: Halbtonschritte zwischen der 3.–4. und der 7.–8. Stufe. Moll: zwischen der 2.–3. und der 5.–6. Stufe. Alle anderen Schritte sind Ganztonschritte.', 'ton4_tastatur_einfach');
                 count();
             }
             if (k === 'vz') add('Unsicher, welches Vorzeichen du brauchst?', `Zähle vom Ton davor den verlangten Schritt auf der Tastatur ab. Dann wähle ${SHARP} oder ${FLAT} so, dass der Stammton auf diese Taste kommt.`, 'nt:noten4_vorzeichen');
@@ -2779,7 +2779,7 @@
                 const taskNames = x2.q.enharmonicPair || [];
                 const EX = [['Cis', 'Des', 'C', 'D'], ['Fis', 'Ges', 'F', 'G'], ['Dis', 'Es', 'D', 'E']];
                 const e = EX.find(x => !taskNames.includes(x[0]) && !taskNames.includes(x[1])) || EX[0];
-                add('Unsicher, was enharmonisch verwechselt heißt?', `Die Grundtöne beider Tonarten liegen auf derselben Taste, heißen aber anders: Statt des Stammtons links daneben mit ${SHARP} nimmst du den Stammton rechts daneben mit ${FLAT} (oder umgekehrt). Beispiel: ${e[0]}-Dur und ${e[1]}-Dur, beide auf der Taste zwischen ${e[2]} und ${e[3]}.`, 'nt:noten3_vorzeichen');
+                add('Unsicher, was enharmonisch verwechselt heißt?', `Enharmonische Verwechslung heißt: Dieselbe Taste hat zwei Namen. ${e[0]} ist ${e[2]} eine Taste nach rechts, ${e[1]} ist ${e[3]} eine Taste nach links, beide liegen auf derselben schwarzen Taste. Darum klingen ${e[0]}-Dur und ${e[1]}-Dur gleich.`, 'nt:noten3_vorzeichen');
                 add(`Unsicher, in welche Richtung ${SHARP} und ${FLAT} gehen?`, `${SHARP} heißt eine Taste nach rechts, ${FLAT} eine nach links.`, 'nt:noten3_vorzeichen');
             }
             const QZQ = { aussenkr: 'Unsicher, wie viele Vorzeichen eine Tonart hat?', innenkr: 'Unsicher bei den Mollparallelen?', vorz_ableitung: 'Unsicher, welches Vorzeichen dazukommt?', verwandte: 'Unsicher bei den Nachbarn im Quintenzirkel?', symmetrien: 'Unsicher beim Abstand im Quintenzirkel?' };
@@ -2806,10 +2806,10 @@
         if (c.mode.startsWith('bild')) at.task = sc.displayName;
     }
     // Erwiderung wie im Endbildschirm: die Sache der Vermutung statt „daran“
-    const XF = { tasten: 'Am Zählen der Tasten dazwischen', vz: 'An den Vorzeichen', lesen: 'Am Lesen der Noten', stufen: 'Am Zählen der Stufen',
-        muster: 'Am Muster von Dur und Moll', musterk: 'Am Halbtonschrittmuster', gt: 'Am Grundton', vzname: 'An den Vorzeichennamen', hs: 'Am Zählen der Ganz- und Halbtonschritte',
+    const XF = { tasten: 'Am Zählen der Tasten zwischen den Tönen', vz: 'An den Vorzeichen', lesen: 'Am Lesen der Noten', stufen: 'Am Zählen der Stufen',
+        muster: 'Am Muster von Dur und Moll', musterk: 'An der Lage der Halbtonschritte', gt: 'Am Grundton', vzname: 'An den Vorzeichennamen', hs: 'Am Zählen der Ganz- und Halbtonschritte',
         merk: 'Am Merksatz', zaehl: 'Am Abzählen', parallel: 'An der Lage der Mollparallele', reihe: 'An der Reihenfolge der Vorzeichen',
-        enh: 'Am Grundton auf derselben Taste', nachbar: 'An den Nachbarn im Quintenzirkel' };
+        enh: 'Am zweiten Namen der Taste', nachbar: 'An den Nachbarn im Quintenzirkel' };
     const Q_FIELD = 'Zweimal daneben. Was glaubst du: Woran liegt es?';
     function showPanel() {
         const c = ctx();
@@ -2856,7 +2856,7 @@
         const out = [];
         if (k === 'tasten' || k === 'hs') {
             const ex = /(^|[ ,])e/i.test(tones) ? 'Von H nach C liegt keine Taste dazwischen: ein Halbtonschritt.' : 'Von E nach F liegt keine Taste dazwischen: ein Halbtonschritt.';
-            out.push(ask('Unsicher beim Zählen der Tasten dazwischen?', `Halbtonschritt: keine Taste dazwischen, auch keine schwarze. Ganzton: genau eine Taste dazwischen. ${ex}`, 'ton1_basis'));
+            out.push(ask('Unsicher beim Zählen des Abstands zwischen den Tönen?', `Halbtonschritt: Zwischen den beiden Tönen liegt keine Taste, auch keine schwarze. Ganztonschritt: genau eine Taste dazwischen. ${ex}`, 'ton1_basis'));
         }
         if (k === 'lesen') {
             const ah = /(^|[ ,])[ah]/i.test(tones);
@@ -2873,7 +2873,7 @@
             else out.push(ask('Unsicher beim Zählen der Stufen?', 'Der Grundton ist die 1. Stufe. Zähle jede Note der Tonleiter weiter: 1, 2, 3 … bis zur 8. Stufe, dem Grundton oben.', 'ton2_stufenpaare'));
         }
         if (k === 'muster' || k === 'musterk') {
-            if (has('bild_key') || has('bild_staff')) out.push(ask('Unsicher beim Muster der Schritte?', 'Dur: Ganz – Ganz – Halb – Ganz – Ganz – Ganz – Halb. Moll: Ganz – Halb – Ganz – Ganz – Halb – Ganz – Ganz.', 'ton4_tastatur_einfach'));
+            if (has('bild_key') || has('bild_staff')) out.push(ask('Unsicher beim Muster von Dur und Moll?', 'Dur: Halbtonschritte zwischen der 3.–4. und der 7.–8. Stufe. Moll: zwischen der 2.–3. und der 5.–6. Stufe. Alle anderen Schritte sind Ganztonschritte.', 'ton4_tastatur_einfach'));
             else out.push(ask('Unsicher beim Muster von Dur und Moll?', 'Dur: Halbtonschritte zwischen der 3.–4. und der 7.–8. Stufe. Moll: zwischen der 2.–3. und der 5.–6. Stufe.', 'ton3_muster_lernen'));
         }
         if (k === 'gt') out.push(ask('Unsicher beim Grundton?', 'Die Tonleiter beginnt und endet mit dem Grundton: Er ist die erste und die letzte Note.', 'ton3_muster_erkennen'));
@@ -2953,7 +2953,7 @@
         // wie im Endbildschirm: Kästen bleiben stehen, die Wahl wird zur Schüler-Blase, darunter die Erwiderung
         panel.innerHTML = fieldBoxes + `<div class="wq-chat"><div class="wq-bub">${Q_FIELD}</div><div class="wq-bub wq-bub-u">${label}</div>`
             + `<div class="wq-bub">${[rel, gap && !steps ? 'Auffällig ist jedoch: ' + cmp : cmp].filter(Boolean).join(' ')}</div></div>`
-            + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
+            + (asks.length ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asks.join('')}</div>` : '')
             + '<button class="wq-go">Weiter üben</button>';
         panel.querySelector('.wq-go').onclick = closePanel;
         panel.querySelectorAll('details.lk-ask').forEach(d => d.addEventListener('toggle', () => { if (d.open) send(c, choice, observed, kinds, d.querySelector('summary').textContent); }));
@@ -3236,9 +3236,9 @@
     // said: Erwiderung und Tipp nennen die einzige Fehlerart schon → hier nicht ein drittes Mal (zweimal ist in Ordnung);
     // was zusätzlich stimmte, bleibt stehen.
     function endConclusion(kinds, by, c, total, said) {
-        const P = { gtht: 'der Tonschritt', mark: 'die Markierung der Halbtonschritte', paare: 'die Wahl der Stufenpaare', tg: 'das Tongeschlecht',
-            gt: 'der Grundton', stufe: 'ein Ton der Tonleiter', vz: 'ein Vorzeichen', aussenkr: 'die Antwort zum Außenkreis', innenkr: 'die Parallele',
-            vorz_ableitung: 'das neue Vorzeichen', enharmonisch: 'die enharmonische Verwechslung', verwandte: 'die Wahl der Nachbarn', symmetrien: 'die gesuchte Tonart' };
+        const P = { gtht: 'der Schritt', mark: 'die Halbtonschritte', paare: 'die Stufenpaare', tg: 'das Tongeschlecht',
+            gt: 'der Grundton', stufe: 'ein Ton der Tonleiter', vz: 'ein Vorzeichen', aussenkr: 'die Zahl der Vorzeichen oder die Tonart', innenkr: 'die Parallele',
+            vorz_ableitung: 'das neue Vorzeichen', enharmonisch: 'die enharmonische Verwechslung', verwandte: 'die Nachbarn', symmetrien: 'die gesuchte Tonart' };
         const top = kinds[0], n = by[top].length, all = total > 1 ? 'bei allen Fehlern' : 'bei deinem Fehler', each = total > 1 ? ' jedes Mal' : '';
         // Bauen/Schreiben: immer dieselbe Stufe falsch (z. B. die 7. Stufe)?
         const sameStufe = xs => total > 1 && xs.every(x => x.bad && x.bad.length === 1 && x.bad[0] === xs[0].bad[0]) ? ` Betroffen war immer die ${xs[0].bad[0] + 1}. Stufe.` : '';
@@ -3267,12 +3267,13 @@
             // Halbtonschritte markieren / Stufenpaare: einer von beiden jedes Mal gefunden?
             else if ((top === 'mark' || top === 'paare') && xs.every(x => x.found && x.found.length === 1))
                 s = `Einen der beiden Halbtonschritte hast du${each} gefunden${said ? '' : ', den anderen nicht'}.`;
-            else s = said ? '' : `${cap(P[top])} stimmte ${all} nicht.`;
+            else if (top === 'mark') s = said ? '' : `Die Halbtonschritte hast du ${all} falsch markiert.`;
+            else s = said ? '' : `${cap(P[top])} ${['paare', 'verwandte'].includes(top) ? 'stimmten' : 'stimmte'} ${all} nicht.`;
         } else {
             const eq = kinds.filter(k => by[k].length === n), rest = kinds.filter(k => by[k].length < n);
             const restTxt = rest.length ? `, außerdem ${andList(rest.map(k => `${times(by[k].length)} ${P[k]}`))}` : '';
             s = eq.length === 1
-                ? `Meistens stimmte ${P[top]} nicht (${n} von ${total} Fehlern)${restTxt}.`
+                ? `Meistens ${['mark', 'paare', 'verwandte'].includes(top) ? 'stimmten' : 'stimmte'} ${P[top]} nicht (${n} von ${total} Fehlern)${restTxt}.`
                 : `${cap(andList(eq.map(k => P[k])))} stimmten je ${times(n)} nicht${restTxt}.`;
         }
         return s.trim();
@@ -3292,7 +3293,7 @@
     }
     function endRecos(items) {
         return items.map(([, node, idx, label]) => `<button class="reco-item" onclick="quickStart.selectedNode='${node}'; quickStart.selectedSub={ nodeId: '${node}', index: ${idx} }; quickStart.startFromSkilltree()">${label}</button>`).join('')
-            + '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+            + '<button class="reco-item" onclick="quickStart.retry()">Erklärung lesen und noch einmal üben</button>';
     }
     // Tipp für den nächsten Schritt: die häufigste Fehlerart erst gezielt üben, sonst die Lernkarte
     function endTip(kinds, by, items) {
@@ -3302,12 +3303,12 @@
         // bei mehreren Übungen zuerst die Grundlage: Ganz-/Halbton vor Halbtonschritten, Stufen, Muster; Außenkreis vor dem Rest
         const ORD = ['gtht', 'stufe', 'mark', 'paare', 'tg', 'aussenkr', 'innenkr', 'vorz_ableitung', 'enharmonisch', 'verwandte'];
         const it = items.slice().sort((a, b) => ORD.indexOf(a[0]) - ORD.indexOf(b[0]))[0];
-        if (it) return `Übe vor dem nächsten Durchgang erst ${PR[it[0]]}. Dafür gibt es unten den Knopf „${it[3]}“.`;
-        const P = { gtht: 'die Tasten zwischen den beiden Tönen', mark: 'die Tasten zwischen den Tönen', paare: 'das Zählen der Stufen', tg: 'das Muster von Dur und Moll',
-            gt: 'den Grundton', stufe: 'die Ganz- und Halbtonschritte', vz: 'die Vorzeichen', aussenkr: 'den Merksatz', innenkr: 'die Lage der Parallelen',
-            vorz_ableitung: 'die Reihenfolge der Vorzeichen', enharmonisch: 'die Taste des Grundtons', verwandte: 'die Nachbarn im Kreis', symmetrien: 'die Abstände im Kreis' };
-        if (by[kinds[0]].length >= 2) return `Lies vor dem nächsten Durchgang die Lernkarte noch einmal und achte dabei besonders auf ${P[kinds[0]]}.`;
-        return 'Lies vor dem nächsten Durchgang die Lernkarte noch einmal und prüf jede Antwort, bevor du sie abschickst.';
+        if (it) return `Übe erst noch einmal „${it[3].replace(/ üben$/, '')}“, bevor du diese Übung wiederholst. Dafür gibt es unten den Knopf „${it[3]}“.`;
+        const P = { gtht: 'die Tasten zwischen den beiden Tönen', mark: 'die Tasten zwischen den Tönen', paare: 'die Stufen', tg: 'das Muster von Dur und Moll',
+            gt: 'den Grundton', stufe: 'die Ganz- und Halbtonschritte', vz: 'die Vorzeichen', aussenkr: 'den Merksatz', innenkr: 'die Lage der Mollparallele',
+            vorz_ableitung: 'die Reihenfolge der Vorzeichen', enharmonisch: 'den zweiten Namen der Taste', verwandte: 'die Nachbarn im Quintenzirkel', symmetrien: 'die Schritte im Quintenzirkel' };
+        if (by[kinds[0]].length >= 2) return `Lies die Erklärung noch einmal, bevor du die Übung wiederholst, und achte dabei besonders auf ${P[kinds[0]]}.`;
+        return 'Lies die Erklärung noch einmal und prüf jede Antwort, bevor du sie abschickst.';
     }
     // Ersetzt Nachricht und Empfehlungen des Endbildschirms; false, wenn keine Fehler festgehalten sind
     function endScreen(msg, rec) {
@@ -3338,10 +3339,10 @@
         function choose(sel, labels) {
             document.getElementById('successScreen').classList.remove('wq-pending');
             // Erwiderung nennt die Sache jeder Vermutung, damit der Bezug ohne „daran“ klar ist
-            const X = { tasten: 'Am Zählen der Tasten dazwischen', vz: 'An den Vorzeichen', lesen: 'Am Lesen der Noten', stufen: 'Am Zählen der Stufen',
-                muster: 'Am Muster von Dur und Moll', musterk: 'Am Halbtonschrittmuster', gt: 'Am Grundton', vzname: 'An den Vorzeichennamen', hs: 'Am Zählen der Ganz- und Halbtonschritte',
+            const X = { tasten: 'Am Zählen der Tasten zwischen den Tönen', vz: 'An den Vorzeichen', lesen: 'Am Lesen der Noten', stufen: 'Am Zählen der Stufen',
+                muster: 'Am Muster von Dur und Moll', musterk: 'An der Lage der Halbtonschritte', gt: 'Am Grundton', vzname: 'An den Vorzeichennamen', hs: 'Am Zählen der Ganz- und Halbtonschritte',
                 merk: 'Am Merksatz', zaehl: 'Am Abzählen', parallel: 'An der Lage der Mollparallele', reihe: 'An der Reihenfolge der Vorzeichen',
-                enh: 'Am Grundton auf derselben Taste', nachbar: 'An den Nachbarn im Quintenzirkel' };
+                enh: 'Am zweiten Namen der Taste', nachbar: 'An den Nachbarn im Quintenzirkel' };
             const by = {};
             xs.forEach(x => (by[x.kind] = by[x.kind] || []).push(x));
             const kinds = Object.keys(by).sort((a, b) => by[b].length - by[a].length);
@@ -3390,7 +3391,7 @@
                 + `<div class="wq-bub wq-bub-u">${labels.join('<br>')}</div>`
                 + `<div class="wq-bub">${[rel.join(' '), concl && gap ? 'Auffällig ist jedoch: ' + concl : concl, zw].filter(Boolean).join(' ')}</div>`
                 + `<div class="wq-bub">${endTip(kinds, by, items)}</div></div>`
-                + (asks.length ? `<p class="wq-sub">Hilfe zum Aufklappen:</p><div class="lk-tip lk-tip-ask">${asksHtml}</div>` : '')
+                + (asks.length ? `<p class="wq-sub">Brauchst du Hilfe?</p><div class="lk-tip lk-tip-ask">${asksHtml}</div>` : '')
                 + '</div>';
             endFit(msg);
             rec.innerHTML = endRecos(items);
@@ -4658,7 +4659,7 @@
                     const tg = ax.target(quickStart.currentLevel);
                     recos += '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + tg.level + '\',\'' + tg.options.join(',') + '\')">' + ax.cta + '</button>';
                 });
-                recos += '<button class="reco-item" onclick="quickStart.retry()">Lernkarte lesen und Übung wiederholen</button>';
+                recos += '<button class="reco-item" onclick="quickStart.retry()">Erklärung lesen und noch einmal üben</button>';
                 _rec.innerHTML = recos;
                 // Mit festgehaltenen Fehlern: Fehlerliste → „Woran lag es?“ → Befund (ersetzt Nachricht und Empfehlungen)
                 woranPanel.endScreen(_msg, _rec);
@@ -9677,7 +9678,7 @@
                 this.setFreeRetry(true);
                 const clickedBtn = (answer === 'ganzton') ? btnG : btnH;
                 clickedBtn.classList.add('flash-incorrect');
-                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Tonschritt: <span style="color:#ef4444;">✗</span> — Schau auf der Tastatur: Liegt zwischen ${n1} und ${n2} noch eine Taste?`);
+                this.showFeedback(false, `⚠️ <strong>Prüfe nochmal:</strong><br>Schritt: <span style="color:#ef4444;">✗</span> — Schau auf der Tastatur: Liegt zwischen ${n1} und ${n2} noch eine Taste?`);
             }
 
             // GF ton1: Ganzton/Halbton-Unterscheidung → eigene Achse `gtht`
