@@ -294,96 +294,73 @@
 
         .tp-bar span { display: block; height: 100%; border-radius: 3px; background: var(--tc, #94a3b8); }
 
-        /* ── Lernpfad-Tree ── */
-        .lp-fund-col {
-            flex: 1;
-            max-width: 420px;
+        /* ── Schritte: Nummer links, Karte rechts, Linie zwischen den Nummern ── */
+        .lp-steps {
             display: flex;
             flex-direction: column;
+            gap: 1.1rem;
         }
 
-        .lp-bereich-label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #94a3b8;
+        .lp-step {
+            position: relative;
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            gap: 0.9rem;
+            align-items: start;
+        }
+
+        .lp-step-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #334155;
+            color: white;
             font-weight: 700;
-            padding-left: 0.25rem;
-            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
         }
 
-        .lp-fundament {
+        /* Linie von Nummer zu Nummer */
+        .lp-step:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 17px;
+            top: 2.5rem;
+            bottom: -1.1rem;
+            width: 2px;
+            background: #cbd5e1;
+        }
+
+        /* Rhythmus: unabhängig – gestrichelte Linie, heller Kreis */
+        .lp-step-extra .lp-step-num { background: white; color: #334155; border: 2px solid #94a3b8; }
+        .lp-step-extra::after {
+            content: '';
+            position: absolute;
+            left: 17px;
+            top: -1.1rem;
+            height: 2.5rem;
+            border-left: 2px dashed #cbd5e1;
+        }
+
+        .lp-step-note {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin: 0.2rem 0 0.5rem;
+        }
+
+        .lp-step-body .trainer-card { max-width: none; }
+
+        .lp-pair {
             display: flex;
             gap: 0.75rem;
-            justify-content: center;
         }
 
-        /* L-förmiger Connector: NT → IT (durchgehender SVG-Pfad) */
-        .lp-connector-svg {
-            display: block;
-            max-width: calc(840px + 0.75rem);
-            margin: 0 auto;
-            pointer-events: none;
-            overflow: visible;
-        }
-
-        /* IT zentriert */
-        .lp-mitte {
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Fork-Stem: vertikale Linie unter IT */
-        .lp-fork-stem {
-            display: flex;
-            justify-content: center;
-            height: 14px;
-        }
-
-        .lp-fork-stem::before {
-            content: '';
-            width: 2px;
-            height: 100%;
-            background: #94a3b8;
-        }
-
-        /* Fork-Bracket: geschwungene Gabelung */
-        .lp-fork-bracket {
-            width: calc(50% + 0.375rem + 2px);
-            margin: 0 auto;
-            height: 22px;
-            border: 2px solid #94a3b8;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-        }
-
-        /* Fork-Branches: TT + DT nebeneinander */
-        .lp-fork-branches {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-        }
-
-        /* Kleine Connector-Stubs über den Fork-Branch-Karten */
-        .lp-branch-stub {
-            display: flex;
-            justify-content: center;
-            height: 10px;
-        }
-
-        .lp-branch-stub::before {
-            content: '';
-            width: 2px;
-            height: 100%;
-            background: #94a3b8;
-        }
-
-        .lp-branch-col {
-            flex: 1;
-            max-width: 420px;
-            display: flex;
-            flex-direction: column;
-        }
+        .lp-pair .trainer-card { flex: 1; min-width: 0; }
 
         /* ── Info-Bereich ── */
         .info-section {
@@ -447,76 +424,16 @@
                 padding: 1rem;
             }
 
-            .lp-fundament {
+            .lp-step {
+                grid-template-columns: 30px 1fr;
+                gap: 0.6rem;
+            }
+
+            .lp-step-num { width: 30px; height: 30px; font-size: 0.9rem; }
+            .lp-step:not(:last-child)::before, .lp-step-extra::after { left: 14px; }
+
+            .lp-pair {
                 flex-direction: column;
-                align-items: center;
-            }
-
-            .lp-fundament .trainer-card {
-                max-width: 100%;
-                width: 100%;
-            }
-
-            /* Spalten (Label + Karte) volle Breite. RT (Rhythmik) ist eigenständig →
-               ganz nach oben, NT führt darunter die melodische Kette NT→IT→TT→DT an. */
-            .lp-fund-col {
-                max-width: 100%;
-                width: 100%;
-            }
-
-            .rhythmik-col {
-                order: -1;
-            }
-
-            /* L-Connector SVG wird via JS auf Mobile zur vertikalen Linie */
-
-            .lp-mitte .trainer-card {
-                max-width: 100%;
-                width: 100%;
-            }
-
-            .lp-fork-bracket {
-                display: none;
-            }
-
-            .lp-fork-branches {
-                flex-direction: column;
-                align-items: center;
-                gap: 0;
-            }
-
-            .lp-branch-col {
-                max-width: 100%;
-                width: 100%;
-            }
-
-            /* TT/DT auf volle Breite wie alle anderen Karten (sonst 420px, linksbündig) */
-            .lp-fork-branches .trainer-card {
-                max-width: 100%;
-                width: 100%;
-            }
-
-            /* Einheitliche Connector-Länge (16px) für NT→IT und IT→TT */
-            .lp-connector-svg {
-                height: 16px;
-            }
-
-            .lp-fork-stem {
-                height: 16px;
-            }
-
-            .lp-branch-stub {
-                display: none;
-            }
-
-            /* Einfache vertikale Connectors auf Mobile */
-            .lp-fork-stem + .lp-fork-bracket + .lp-fork-branches .lp-branch-col + .lp-branch-col::before {
-                content: '';
-                display: block;
-                width: 2px;
-                height: 16px;
-                background: #94a3b8;
-                margin: 0 auto;
             }
 
             .info-section {
@@ -552,85 +469,79 @@
                 Jede Übung erklärt zuerst kurz, dann löst du zehn Aufgaben und bekommst zu jeder sofort Rückmeldung.
             </p>
 
-            <!-- Fundament: NT + RT nebeneinander, je mit Bereich-Label darüber -->
-            <div class="lp-fundament">
-                <div class="lp-fund-col melodik-col">
-                    <div class="lp-bereich-label">Melodik</div>
-                    <div class="trainer-card noten" data-trainer="nt">
-                    <a href="notentrainer.html" class="trainer-main">
-                    <div class="trainer-top">
+            <div class="lp-steps">
+                <div class="lp-step">
+                    <div class="lp-step-num">1</div>
+                    <div class="lp-step-body">
+                        <div class="trainer-card noten" data-trainer="nt">
+                        <a href="notentrainer.html" class="trainer-main">
+                        <div class="trainer-top">
                         <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="13" rx="2.6" ry="2.0" stroke="none" transform="rotate(-18 12 13)"/></g></svg></div>
                         <div class="trainer-name">Notentrainer</div>
-                    </div>
-                    <div class="trainer-desc">Noten im Violin- und Bassschlüssel lesen, Position der Töne auf der Tastatur lernen – und selbst in das Notensystem setzen. Stammtöne, Vorzeichen, Lagen und Hilfslinien.</div>
-                    </a>
-                    <div class="trainer-chips"></div>
-                    </div>
-                </div>
-                <div class="lp-fund-col rhythmik-col">
-                    <div class="lp-bereich-label">Rhythmik</div>
-                    <div class="trainer-card rhythmus" data-trainer="rt">
-                    <a href="rhythmustrainer.html" class="trainer-main">
-                    <div class="trainer-top">
-                        <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><ellipse cx="5" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 5 17)"/><ellipse cx="11" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 11 17)"/><ellipse cx="17" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 17 17)"/><line x1="7.3" y1="16.3" x2="7.3" y2="7" stroke-width="0.8" fill="none"/><line x1="13.3" y1="16.3" x2="13.3" y2="7" stroke-width="0.8" fill="none"/><line x1="19.3" y1="16.3" x2="19.3" y2="7" stroke-width="0.8" fill="none"/><line x1="7.3" y1="7" x2="19.3" y2="7" stroke-width="1.6" stroke-linecap="butt" fill="none"/><text x="13.3" y="4.8" text-anchor="middle" font-size="4.2" font-weight="700" font-family="sans-serif" fill="currentColor" stroke="none">3</text></g></svg></div>
-                        <div class="trainer-name">Rhythmustrainer</div>
-                    </div>
-                    <div class="trainer-desc">Notenwerte erkennen, Taktarten bestimmen, Rhythmusdiktat lösen – und unvollständige Takte ergänzen.</div>
-                    </a>
-                    <div class="trainer-chips"></div>
+                        </div>
+                        <div class="trainer-desc">Noten im Violin- und Bassschlüssel lesen, Position der Töne auf der Tastatur lernen – und selbst in das Notensystem setzen. Stammtöne, Vorzeichen, Lagen und Hilfslinien.</div>
+                        </a>
+                        <div class="trainer-chips"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- L-förmiger Connector: NT → IT -->
-            <!-- L-förmiger Connector: NT → IT (durchgehender SVG-Pfad) -->
-            <svg class="lp-connector-svg" width="100%" height="56" aria-hidden="true">
-                <path fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-
-            <!-- IT zentriert -->
-            <div class="lp-mitte">
-                <div class="trainer-card intervall" data-trainer="it">
-                <a href="intervalltrainer.html" class="trainer-main">
-                    <div class="trainer-top">
+                <div class="lp-step">
+                    <div class="lp-step-num">2</div>
+                    <div class="lp-step-body">
+                        <div class="trainer-card intervall" data-trainer="it">
+                        <a href="intervalltrainer.html" class="trainer-main">
+                        <div class="trainer-top">
                         <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="7" y1="9" x2="18" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="7" y1="13" x2="18" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="7" y1="17" x2="18" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="17" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 17)"/><ellipse cx="12" cy="9" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 9)"/><path d="M 21 9 H 23 V 17 H 21" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></svg></div>
                         <div class="trainer-name">Intervalltrainer</div>
+                        </div>
+                        <div class="trainer-desc">Intervalle benennen, Halbtonschritte zählen, Feinbestimmung üben – und mittels Tastatur und Notensystem eingeben.</div>
+                        </a>
+                        <div class="trainer-chips"></div>
+                        </div>
                     </div>
-                    <div class="trainer-desc">Intervalle benennen, Halbtonschritte zählen, Feinbestimmung üben – und mittels Tastatur und Notensystem eingeben.</div>
-                </a>
-                <div class="trainer-chips"></div>
                 </div>
-            </div>
-
-            <!-- Fork: IT → TT + DT -->
-            <div class="lp-fork-stem"></div>
-            <div class="lp-fork-bracket"></div>
-
-            <div class="lp-fork-branches">
-                <div class="lp-branch-col">
-                    <div class="lp-branch-stub tonleiter"></div>
-                    <div class="trainer-card tonleiter" data-trainer="tt">
-                    <a href="tonleitertrainer.html" class="trainer-main">
+                <div class="lp-step">
+                    <div class="lp-step-num">3</div>
+                    <div class="lp-step-body">
+                        <div class="lp-step-note">Beide bauen auf Schritt 2 auf – die Reihenfolge ist egal.</div>
+                        <div class="lp-pair">
+                        <div class="trainer-card tonleiter" data-trainer="tt">
+                        <a href="tonleitertrainer.html" class="trainer-main">
                         <div class="trainer-top">
-                            <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="3" y1="9" x2="21" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="3" y1="13" x2="21" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="3" y1="17" x2="21" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="6" cy="15" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 6 15)"/><ellipse cx="12" cy="13" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 13)"/><ellipse cx="18" cy="11" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 18 11)"/></g></svg></div>
-                            <div class="trainer-name">Tonleitertrainer</div>
+                        <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="3" y1="9" x2="21" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="3" y1="13" x2="21" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="3" y1="17" x2="21" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="6" cy="15" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 6 15)"/><ellipse cx="12" cy="13" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 13)"/><ellipse cx="18" cy="11" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 18 11)"/></g></svg></div>
+                        <div class="trainer-name">Tonleitertrainer</div>
                         </div>
                         <div class="trainer-desc">Dur- und Moll-Tonleitern erkennen, Ganz- und Halbtonschritte unterscheiden, Tonleitern bauen und den Quintenzirkel meistern.</div>
-                    </a>
-                    <div class="trainer-chips"></div>
-                    </div>
-                </div>
-                <div class="lp-branch-col">
-                    <div class="lp-branch-stub dreiklang"></div>
-                    <div class="trainer-card dreiklang" data-trainer="dt">
-                    <a href="dreiklangstrainer.html" class="trainer-main">
+                        </a>
+                        <div class="trainer-chips"></div>
+                        </div>
+                        <div class="trainer-card dreiklang" data-trainer="dt">
+                        <a href="dreiklangstrainer.html" class="trainer-main">
                         <div class="trainer-top">
-                            <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="17" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 17)"/><ellipse cx="12" cy="13" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 13)"/><ellipse cx="12" cy="9" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 9)"/></g></svg></div>
-                            <div class="trainer-name">Dreiklangstrainer</div>
+                        <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="17" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 17)"/><ellipse cx="12" cy="13" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 13)"/><ellipse cx="12" cy="9" rx="2.4" ry="1.9" stroke="none" transform="rotate(-18 12 9)"/></g></svg></div>
+                        <div class="trainer-name">Dreiklangstrainer</div>
                         </div>
                         <div class="trainer-desc">Dreiklangstypen bestimmen, Umkehrungen erkennen – und Akkorde mittels Tastatur und Notensystem eingeben.</div>
-                    </a>
-                    <div class="trainer-chips"></div>
+                        </a>
+                        <div class="trainer-chips"></div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lp-step lp-step-extra">
+                    <div class="lp-step-num">+</div>
+                    <div class="lp-step-body">
+                        <div class="lp-step-note">Unabhängig von den Schritten 1–3 – jederzeit.</div>
+                        <div class="trainer-card rhythmus" data-trainer="rt">
+                        <a href="rhythmustrainer.html" class="trainer-main">
+                        <div class="trainer-top">
+                        <div class="trainer-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><ellipse cx="5" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 5 17)"/><ellipse cx="11" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 11 17)"/><ellipse cx="17" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 17 17)"/><line x1="7.3" y1="16.3" x2="7.3" y2="7" stroke-width="0.8" fill="none"/><line x1="13.3" y1="16.3" x2="13.3" y2="7" stroke-width="0.8" fill="none"/><line x1="19.3" y1="16.3" x2="19.3" y2="7" stroke-width="0.8" fill="none"/><line x1="7.3" y1="7" x2="19.3" y2="7" stroke-width="1.6" stroke-linecap="butt" fill="none"/><text x="13.3" y="4.8" text-anchor="middle" font-size="4.2" font-weight="700" font-family="sans-serif" fill="currentColor" stroke="none">3</text></g></svg></div>
+                        <div class="trainer-name">Rhythmustrainer</div>
+                        </div>
+                        <div class="trainer-desc">Notenwerte erkennen, Taktarten bestimmen, Rhythmusdiktat lösen – und unvollständige Takte ergänzen.</div>
+                        </a>
+                        <div class="trainer-chips"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -664,37 +575,6 @@
     <script src="account.js"></script>
 
     <script>
-        // L-Connector SVG-Pfad: durchgehende Linie NT → IT
-        function updateLpConnector() {
-            const svg = document.querySelector('.lp-connector-svg');
-            if (!svg) return;
-            const path = svg.querySelector('path');
-            const w = svg.clientWidth;
-            const h = svg.clientHeight || 56;
-            const r = 10;
-
-            if (w < 500) {
-                const cx = w * 0.5;
-                path.setAttribute('d', `M ${cx} 0 V ${h}`);
-                return;
-            }
-
-            const x1 = w * 0.25 - 3;
-            const x2 = w * 0.5;
-            const yBend = 24;
-
-            path.setAttribute('d',
-                `M ${x1} 0` +
-                ` V ${yBend - r}` +
-                ` Q ${x1} ${yBend} ${x1 + r} ${yBend}` +
-                ` H ${x2 - r}` +
-                ` Q ${x2} ${yBend} ${x2} ${yBend + r}` +
-                ` V ${h}`
-            );
-        }
-        updateLpConnector();
-        window.addEventListener('resize', updateLpConnector);
-
         // Landing Page Tracking — Schema 3, einheitlich für page_view + landing_click.
         // Beide Events nutzen dieselbe sessionId, damit Klick-Funnel später nachvollziehbar.
         const _TRACK_URL = 'https://script.google.com/macros/s/AKfycbwE-fiSObVYJhCy4bzdXpDej3tXitdElyWNtY4cZAC78SubWjlK_YAIxeOFsbUalvaTpw/exec';
