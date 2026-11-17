@@ -1591,6 +1591,47 @@
         .lernkarte .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
         .lernkarte .lk-choice:disabled { cursor: default; }
         .lk-hidden { display: none; }
+        /* ---- Lernkarte als erster Quiz-Schritt (Karten mit step: true, seit 17.11.2026; Muster aus dem TT) ----
+           Befund 9. Klasse: Das Overlay (dunkler Hintergrund, weißer Kasten, ein Bestätigen-Knopf)
+           wirkt wie ein Cookie-Banner und wird ungelesen weggeklickt. Die Karte steht darum vor der
+           ersten Aufgabe dort, wo gleich die Aufgabe steht; am Ende eine Kontrollfrage, erst die
+           richtige Antwort gibt „Zur ersten Aufgabe“ frei. Entwurf: _entwicklung/mock_dt_lernkarte_schritt.html */
+        .lk-step { display: none; padding: 18px 20px 20px; border-top: 4px solid #10b981; }
+        .lk-step.active { display: block; }
+        .lk-step h2 { font-size: 1.25rem; color: #065f46; margin-bottom: 12px; }
+        .lk-step p { color: #374151; margin-bottom: 8px; line-height: 1.5; font-size: 0.92rem; }
+        .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #10b981; margin-bottom: 4px; }
+        body.lk-step-open .staff-and-hs-wrapper, body.lk-step-open #keyboardCard, body.lk-step-open #inputCard, body.lk-step-open #keyboardStatus, body.lk-step-open #feedback { display: none !important; }
+        body.lk-step-open .input-card .input-actions { margin-top: 0; padding-top: 0; border-top: none; }
+        .lk-check { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        .lk-check-q { font-weight: 600; color: #065f46; font-size: 0.95rem; margin-bottom: 4px; }
+        .lk-check-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 6px; }
+        .lk-check .lk-choice {
+            display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
+            background: #fff; color: #065f46; border: 2px solid #a7f3d0; border-radius: 8px;
+            font-size: 0.88rem; font-weight: 500; cursor: pointer;
+        }
+        .lk-check .lk-choice:hover:not(:disabled) { border-color: #10b981; background: #ecfdf5; }
+        .lk-check .lk-choice.right { border-color: #22c55e; background: #dcfce7; color: #166534; font-weight: 600; }
+        .lk-check .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
+        .lk-check .lk-choice:disabled { cursor: default; }
+        .lk-check-fb { margin-top: 8px; font-size: 0.88rem; color: #334155; min-height: 1.2em; }
+        .lk-check-fb.ok { color: #166534; }
+        .lk-check-fb.nope { color: #991b1b; }
+        .lk-go {
+            width: 100%; padding: 14px; background: #10b981; color: white; border: none; border-radius: 10px;
+            font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 14px;
+        }
+        .lk-go:hover { background: #059669; }
+        .lk-go:disabled { background: #cbd5e1; color: #f8fafc; cursor: default; }
+        /* Fortschritt: Schritt „Erklärung“ als erstes Segment vor den 10 Aufgaben */
+        .header-progress-step { display: none; position: absolute; top: 0; left: 0; height: 100%; width: 9.09%; background: #10b981; border-radius: 3px; }
+        .header-progress-dual.has-step .header-progress-step { display: block; }
+        .header-progress-dual.has-step .header-progress-total, .header-progress-dual.has-step .header-progress-correct { left: 9.09%; }
+        /* Hilfe neutral (Sebo 17.11.2026): Rückfragen ohne farbige Hülle, Grün bleibt „richtig“ vorbehalten.
+           Gelb nur für „Deine Aufgabe“, Trainerfarbe für Bild und Überschrift. */
+        .lk-tip-ask { background: none; border-left: none; border-radius: 0; padding: 0; margin: 10px 0 0; color: inherit; }
+        .lk-ask summary { color: #334155; }
         .lk-contrast {
             display: flex;
             gap: 12px;
@@ -1991,6 +2032,7 @@
                     <div class="header-exercise-label" id="headerExerciseLabel"></div>
                     <div class="header-exercise-task" id="headerExerciseTask"></div>
                     <div class="header-progress-dual">
+                        <div class="header-progress-step" id="headerProgressStep"></div>
                         <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
                         <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
                     </div>
@@ -1998,6 +2040,16 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- Lernkarte als erster Quiz-Schritt (Karten mit step: true), Muster aus dem TT.
+             Vor dem Wrapper, nicht darin: im Querformat ist der Wrapper ein Zweispalten-Grid. -->
+        <div id="lkStep" class="card lk-step">
+            <div class="lk-step-kicker">So geht die Übung</div>
+            <h2 id="lkStepTitle"></h2>
+            <div id="lkStepBody"></div>
+            <div class="lk-check" id="lkStepCheck"></div>
+            <button type="button" class="lk-go" id="lkStepGo" onclick="app.finishLernkarteStep()">Zur ersten Aufgabe</button>
         </div>
 
         <!-- Staff & Keyboard Wrapper für Landscape Layout -->
@@ -2297,7 +2349,7 @@
             // Hilfe-Knopf geöffnet (where: 'quiz' oder 'menu'); seit „Woran liegt es?“ ohne Hilfe-Nudge
             helpOpen(p) { this._send('help_open', { level: p.level, subskill: p.subskill, where: p.where }); },
             cardDismiss(p) {
-                this._send('card_dismiss', { nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart });
+                this._send('card_dismiss', Object.assign({ nodeId: p.nodeId, ms_visible: p.ms_visible, fromStart: !!p.fromStart }, p.step ? { step: true, tries: p.tries || 0 } : {}));
                 this._lastDismiss = { nodeId: p.nodeId, ms: p.ms_visible || 0, ts: Date.now() };
             },
             activity() { this.lastActivity = Date.now(); }
@@ -4922,6 +4974,7 @@
                 this.selectedNode = null;
                 this.selectedSub = null;
                 this.isSkipping = false;
+                app._closeLernkarteStep(false);
                 this.hideQuizOverlay();
                 document.getElementById('appTitle').textContent = 'Dreiklangstrainer';
                 this.isActive = false;
@@ -4942,6 +4995,7 @@
                     if (this.isActive) {
                         this.questionsAnswered = 0;
                         this.questionsCorrect = 0;
+                        app._closeLernkarteStep(false);
                         this.showQuickStart();
                     }
 
@@ -6284,6 +6338,7 @@ const _lernkartenContent = {
             _buildingRecentRoots: [],
 
             generateBuildingTask() {
+                this._closeLernkarteStep(false);   // falls die Karte noch als Schritt 0 steht (Zurücksetzen)
                 const pool = this._getBuildingPool(this.buildingSubIdx);
                 this.buildingSelectedKeys = [];
                 this.buildingStaffNotes = [];
@@ -6941,6 +6996,7 @@ const _lernkartenContent = {
             },
 
             generateChord() {
+                this._closeLernkarteStep(false);   // falls die Karte noch als Schritt 0 steht (Zurücksetzen)
                 // Building-Mode Router
                 if (this.buildingMode) { this.generateBuildingTask(); return; }
 
@@ -8705,6 +8761,8 @@ const _lernkartenContent = {
                 if (key === 'drei2_basis' && subSkillId === 'basis' && !this._drei2Learning()) key = 'drei2_basis_regel';
                 const content = this.lernkartenContent[key];
                 if (!content) return false;
+                // Karten mit step: true stehen vor der ersten Aufgabe als Schritt 0 im Fluss, nicht als Overlay
+                if (fromStart && content.step) return this.showLernkarteStep(key, subSkillId, content);
                 // „Verstanden“-Button wieder zeigen (die Regel-Frage blendet ihn bis zur Antwort aus)
                 const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
                 if (lkBtn) lkBtn.style.display = '';
@@ -8757,6 +8815,97 @@ const _lernkartenContent = {
                         this.generateChord();
                     }
                 }
+            },
+
+            // ---- Lernkarte als Schritt 0 (Karten mit step: true; Muster aus dem TT, Entwurf mock_dt_lernkarte_schritt.html) ----
+            // Vor der ersten Aufgabe steht die Karte im Fluss statt als Overlay. Mit check: Kontrollfrage
+            // am Ende (ein Klick); falsch → nur diese Antwort rot und ein Hinweis aufs Prinzip, die anderen
+            // bleiben wählbar (es geht um Aufmerksamkeit, nicht um Wissen); richtig → „Zur ersten Aufgabe“.
+            showLernkarteStep(key, subSkillId, content) {
+                quickStart.hideTaskInstruction();
+                this._stepKey = key;
+                this._stepId = subSkillId;
+                this._stepOpenedAt = Date.now();
+                this._stepTries = 0;
+                const step = document.getElementById('lkStep');
+                document.getElementById('lkStepTitle').textContent = content.title;
+                // Overlay-Körper leeren: die Bilder werden per ID gesucht (lkVisual…), und das Overlay steht im DOM davor
+                document.getElementById('lernkarteBody').innerHTML = '';
+                document.getElementById('lkStepBody').innerHTML = content.body;
+                if (typeof content.render === 'function') content.render();
+                const chk = content.check;
+                const checkEl = document.getElementById('lkStepCheck');
+                const go = document.getElementById('lkStepGo');
+                if (chk) {
+                    const choices = chk.choices.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
+                    checkEl.innerHTML = `<div class="lk-check-q">${chk.q}</div>` +
+                        (chk.sub ? `<div class="lk-check-sub">${chk.sub}</div>` : '') +
+                        choices.map(c => `<button type="button" class="lk-choice" data-ok="${c.ok ? 1 : 0}" onclick="app._pickStepChoice(this)">${c.t}</button>`).join('') +
+                        '<div class="lk-check-fb" id="lkStepFb"></div>';
+                    checkEl.style.display = '';
+                    go.style.display = 'none';
+                    go.disabled = true;
+                } else {
+                    checkEl.innerHTML = '';
+                    checkEl.style.display = 'none';
+                    go.style.display = '';
+                    go.disabled = false;
+                }
+                step.querySelectorAll('.vz-sharp').forEach(el => {
+                    el.innerHTML = _inlineVz(_sharpPathD, _SHARP_REF, 19, 27);
+                });
+                step.querySelectorAll('.vz-flat').forEach(el => {
+                    el.innerHTML = _inlineVz(_flatPathD, _FLAT_REF, 15, 27);
+                });
+                document.body.classList.add('lk-step-open');
+                step.classList.add('active');
+                // Kopfzeile: „1a … — Erklärung, dann 10 Aufgaben“ + Segment im Balken
+                const label = document.getElementById('headerExerciseLabel');
+                label.textContent = label.textContent.replace(/ — .*$/, '') + ' — Erklärung, dann ' + quickStart.totalQuestions + ' Aufgaben';
+                document.querySelector('.header-progress-dual').classList.add('has-step');
+                window.scrollTo(0, 0);
+                return true;
+            },
+            _pickStepChoice(btn) {
+                const content = this.lernkartenContent[this._stepKey];
+                const chk = content && content.check;
+                const fb = document.getElementById('lkStepFb');
+                const go = document.getElementById('lkStepGo');
+                this._stepTries++;
+                if (btn.dataset.ok === '1') {
+                    document.querySelectorAll('#lkStepCheck .lk-choice').forEach(b => { b.disabled = true; });
+                    btn.classList.add('right');
+                    fb.textContent = chk ? chk.ok : '';
+                    fb.className = 'lk-check-fb ok';
+                    go.disabled = false;
+                    go.style.display = '';
+                } else {
+                    btn.classList.add('wrong');
+                    btn.disabled = true;
+                    fb.textContent = chk ? chk.nope : '';
+                    fb.className = 'lk-check-fb nope';
+                }
+            },
+            finishLernkarteStep() {
+                this._closeLernkarteStep(true);
+                if (this.buildingMode) {
+                    this.generateBuildingTask();
+                } else {
+                    this.generateChord();
+                }
+            },
+            // Schritt schließen (auch bei „Zurücksetzen“, „Lernpfad“ oder Fortschritt zurücksetzen während der Karte);
+            // meldet card_dismiss mit step: true und der Zahl der Versuche an der Kontrollfrage
+            _closeLernkarteStep(updateLabel) {
+                const step = document.getElementById('lkStep');
+                if (!step.classList.contains('active')) return;
+                try {
+                    tracker.cardDismiss({ nodeId: this._stepId, ms_visible: Date.now() - this._stepOpenedAt, fromStart: true, step: true, tries: this._stepTries });
+                } catch (e) {}
+                step.classList.remove('active');
+                document.body.classList.remove('lk-step-open');
+                document.querySelector('.header-progress-dual').classList.remove('has-step');
+                if (updateLabel) quickStart.updateQuizOverlay();
             },
 
             // ---- Web Audio: Dreiklang abspielen (Piano-ähnlich) ----
