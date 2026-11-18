@@ -3914,10 +3914,14 @@
             b.className = 'coach below';
             b.textContent = text;
             document.body.appendChild(b);
-            const r = anchorEl.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+            // Pfeil zeigt auf den Anker (Mitte, bei breiten Ankern 40 px vom linken Rand); passt die Blase rechts nicht mehr hin,
+            // wandert der Pfeil nach rechts und die Blase nach links – so hängt sie nicht am Fensterrand (Sebo 18.11.2026)
+            const r = anchorEl.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY, w = b.offsetWidth;
+            const cx = r.left + Math.min(r.width / 2, 40);
+            let left = cx - 26;
+            if (left + w > window.innerWidth - 8) { b.classList.add('right'); left = cx + 26 - w; }
             b.style.top = (r.bottom + sy + 10) + 'px';
-            b.style.left = Math.max(8, r.left + sx) + 'px';
-            if (r.left + 260 > window.innerWidth) { b.classList.add('right'); b.style.left = Math.max(8, r.right + sx - 260) + 'px'; }
+            b.style.left = (Math.max(8, left) + sx) + 'px';
             setTimeout(() => b.classList.add('show'), 20);
             this.el = b; this.key = key;
             this.mark(key);
