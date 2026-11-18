@@ -36,33 +36,40 @@
             color: #1e293b;
         }
 
-        /* ── Header ── */
+        /* ── Header: dasselbe Band wie der Skilltree der Trainer (Maße, Schrift, Konto-Links im Band),
+           damit beim Wechsel Halle ↔ Zimmer nichts springt (Sebo 18.11.2026) ── */
         .site-header {
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             color: white;
-            padding: 2rem 1.5rem;
+            padding: 1.6rem 1.5rem 1.4rem;
             text-align: center;
+            position: relative;
         }
 
         .site-header h1 {
             font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
             letter-spacing: -0.02em;
         }
 
         .site-header p {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             opacity: 0.85;
             max-width: 600px;
             margin: 0 auto;
             line-height: 1.5;
         }
-
-        .account-strip {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 1rem;
+        .band-links { position: absolute; top: 0.8rem; left: 0; right: 0; display: flex; justify-content: flex-end; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
+        .band-links .account-bar { gap: 0.7rem; }
+        .band-links .account-bar .acc-btn { background: none; color: #fff; opacity: 0.85; padding: 0; font-size: 0.8rem; font-weight: 500; border-radius: 0; }
+        .band-links .account-bar .acc-btn:hover { background: none; opacity: 1; text-decoration: underline; }
+        .band-links .account-bar .acc-who { font-size: 0.8rem; color: #fff; }
+        .band-links .account-bar .acc-who small { color: #cbd5e1; }
+        @media (max-width: 599px) {
+            .site-header { padding: 2.2rem 1rem 1.2rem; }
+            .site-header h1 { font-size: 1.5rem; }
+            .site-header p { font-size: 0.9rem; }
         }
 
         /* ── Container ── */
@@ -445,15 +452,12 @@
 <body>
 
     <header class="site-header">
+        <div class="band-links"><div class="account-bar"></div></div>
         <h1>Musiktheorie-Trainer</h1>
-        <p>Musiktheorie üben – Schritt für Schritt, kostenlos, ohne Anmeldung.</p>
+        <p>Musiktheorie üben – kostenlos, ohne Anmeldung.</p>
     </header>
 
     <main class="container">
-
-        <section class="account-strip">
-            <div class="account-bar"></div>
-        </section>
 
         <section class="search-box">
             <label for="searchInput" hidden>Thema suchen</label>
