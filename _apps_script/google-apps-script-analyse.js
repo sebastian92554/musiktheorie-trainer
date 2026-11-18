@@ -651,6 +651,56 @@ function runAnalyse() {
   push('  Lesehilfe', 'Hoher Anteil Hauptaktion = der Baum wird als Weg gelesen; hoher Anteil Übungszeile = Schüler wählen gezielt (Lehrer-Vorgabe „5a“) oder ignorieren den Knopf');
   push('');
 
+  // WEGWEISER UND BLASEN (seit 18.11.2026): arrive = Ankunft im Skilltree über ?knoten= aus der Landing
+  // (via chip = Themen-Chip, search = Suche/Kurzcode mit Übung); node_select.where = topic = Start über die
+  // Karte „Dein Thema“. coach = Blase für Erstbesucher (key thema/hilfe/konto; phase shown bzw. dismiss mit
+  // secs bis zum Tipp). Unter 1,5 s gilt als weggetippt, ohne gelesen zu haben (wie beim alten Overlay).
+  push('— WEGWEISER UND BLASEN (arrive, coach, alle Segmente) —');
+  const arrB = {};     // trainer → {chip:{n,start,topic}, search:{n,start,topic}}
+  const coachB = {};   // key → {shown, dismiss, secs[]}
+  sessions.forEach(s => {
+    const ev = s.evAll || [];
+    ev.forEach((e, i) => {
+      if (e.eventType === 'arrive') {
+        const tr = e.trainer || s.trainer || '?', p = e.payload || {};
+        const via = p.via === 'search' ? 'search' : 'chip';
+        const a = arrB[tr] = arrB[tr] || { chip: { n: 0, start: 0, topic: 0 }, search: { n: 0, start: 0, topic: 0 } };
+        a[via].n++;
+        const rest = ev.slice(i + 1);
+        if (rest.some(x => x.eventType === 'quiz_start')) a[via].start++;
+        if (rest.some(x => x.eventType === 'node_select' && (x.payload || {}).where === 'topic')) a[via].topic++;
+      } else if (e.eventType === 'coach') {
+        const p = e.payload || {}, k = String(p.key || '?');
+        const c = coachB[k] = coachB[k] || { shown: 0, dismiss: 0, secs: [] };
+        if (p.phase === 'shown') c.shown++;
+        else if (p.phase === 'dismiss') { c.dismiss++; if (p.secs != null && !isNaN(Number(p.secs))) c.secs.push(Number(p.secs)); }
+      }
+    });
+  });
+  let anyArr = false;
+  Object.keys(arrB).sort().forEach(tr => {
+    const a = arrB[tr];
+    ['chip', 'search'].forEach(via => {
+      const v = a[via]; if (!v.n) return; anyArr = true;
+      push('  ' + tr + ' · ' + (via === 'chip' ? 'Chip' : 'Suche/Kurzcode'), v.n + ' Ankünfte · danach Übung gestartet ' + v.start + ' (' + _pct(v.start, v.n) + '%) · davon über „Dein Thema“ ' + v.topic);
+    });
+  });
+  if (!anyArr) push('  (noch keine arrive — Wegweiser noch nicht im Einsatz)');
+  const coachOrder = ['thema', 'hilfe', 'konto'];
+  Object.keys(coachB).forEach(k => { if (coachOrder.indexOf(k) < 0) coachOrder.push(k); });
+  let anyCoach = false;
+  coachOrder.forEach(k => {
+    const c = coachB[k]; if (!c || !c.shown) return; anyCoach = true;
+    const secs = c.secs.slice().sort((x, y) => x - y);
+    const med = secs.length ? (secs.length % 2 ? secs[(secs.length - 1) / 2] : (secs[secs.length / 2 - 1] + secs[secs.length / 2]) / 2) : null;
+    const quick = secs.filter(x => x < 1.5).length;
+    push('  Blase „' + k + '“', 'gezeigt ' + c.shown + ' · geschlossen ' + c.dismiss + (secs.length ? ' · Median ' + (Math.round(med * 10) / 10) + ' s · unter 1,5 s: ' + quick + ' (' + _pct(quick, secs.length) + '%)' : ''));
+  });
+  if (!anyCoach) push('  (noch keine coach-Events — Blasen noch nicht im Einsatz)');
+  push('');
+  push('  Lesehilfe', 'Ankünfte ohne Start = Chip war nur Orientierung (erlaubt); „Dein Thema“ hoch = die Karte trägt. Blase: Median unter 1,5 s = weggetippt wie das alte Overlay, dann Text oder Moment ändern');
+  push('');
+
   // LERNKARTEN-DIAGNOSE — „kurz gesehen" × Quiz-Erfolg (Hypothesen-Trennung)
   // 2-5s auf Karte + danach Quiz: Mastery → „kannte es schon"; <80% → „überfordert/abgesprungen".
   // Korreliert pro Session: card_dismiss(fromStart=true) → folgendes quiz_complete für denselben subskill.

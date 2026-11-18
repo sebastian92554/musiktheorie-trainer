@@ -621,8 +621,8 @@
         const TRAINER_COLOR = { nt: '#4f46e5', it: '#ea580c', dt: '#10b981', tt: '#0891b2', rt: '#8b5cf6' };
         // Wegweiser (18.11.2026): Trainer, die ?knoten= verstehen, zeigen das Thema aufgeklappt und pulsierend mit der Karte
         // „Dein Thema“ statt der Erklärung als Fenster (Sebo: Chip = Wegweiser, Ankunft im Zimmer mit offener Tür). Suche und
-        // Kurzcode mit Buchstabe nennen zusätzlich die Übung (&uebung=b). Übrige Trainer vorerst weiter ?lernkarte=<Schlüssel>.
-        const KNOTEN_PREFIX = { tt: 'ton' };
+        // Kurzcode mit Buchstabe nennen zusätzlich die Übung (&uebung=b). ?lernkarte=<Schlüssel> bleibt der Rückfall.
+        const KNOTEN_PREFIX = { nt: 'noten', it: 'int', dt: 'drei', tt: 'ton', rt: 'rhy' };
         function targetHref(c, key, withSub) {
             const t = REGISTER[c], pre = KNOTEN_PREFIX[c];
             if (pre) for (const n of t.nodes) {
