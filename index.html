@@ -619,6 +619,18 @@
             ['Takt ergänzen (fehlender Notenwert)', 'rhy5_8tel']
         ];
         const TRAINER_COLOR = { nt: '#4f46e5', it: '#ea580c', dt: '#10b981', tt: '#0891b2', rt: '#8b5cf6' };
+        // Wegweiser (18.11.2026): Trainer, die ?knoten= verstehen, zeigen das Thema aufgeklappt und pulsierend mit der Karte
+        // „Dein Thema“ statt der Erklärung als Fenster (Sebo: Chip = Wegweiser, Ankunft im Zimmer mit offener Tür). Suche und
+        // Kurzcode mit Buchstabe nennen zusätzlich die Übung (&uebung=b). Übrige Trainer vorerst weiter ?lernkarte=<Schlüssel>.
+        const KNOTEN_PREFIX = { tt: 'ton' };
+        function targetHref(c, key, withSub) {
+            const t = REGISTER[c], pre = KNOTEN_PREFIX[c];
+            if (pre) for (const n of t.nodes) {
+                const i = n.subs.findIndex(s => s[1] === key);
+                if (i >= 0) return t.file + '?knoten=' + pre + n.n + (withSub ? '&uebung=' + String.fromCharCode(97 + i) : '');
+            }
+            return t.file + '?lernkarte=' + encodeURIComponent(key);
+        }
         // Vergleichsform: klein, ß → ss, Umlaute und ae/oe/ue → Grundbuchstabe (Dreiklänge = Dreiklaenge = Dreiklange),
         // Satzzeichen und Bindestriche → Leerzeichen; verglichen wird zusätzlich ohne Leerzeichen (Halbton-Schritte = Halbtonschritte)
         const _norm = t => String(t).toLowerCase().replace(/ß/g, 'ss').replace(/ä|ae/g, 'a').replace(/ö|oe/g, 'o').replace(/ü|ue/g, 'u')
@@ -671,7 +683,7 @@
                 .replace(/ss/g, '(ss|ß)').replace(/a/g, '[aä]').replace(/o/g, '[oö]').replace(/u/g, '[uü]')).join('|') + ')', 'ig');
             box.innerHTML = hits.map(e => {
                 const t = REGISTER[e[1]];
-                return `<a class="sr-hit" href="${_esc(t.file)}?lernkarte=${encodeURIComponent(e[4])}" data-term="${_esc(q)}" data-key="${_esc(e[4])}">` +
+                return `<a class="sr-hit" href="${_esc(targetHref(e[1], e[4], true))}" data-term="${_esc(q)}" data-key="${_esc(e[4])}">` +
                     `<span class="sr-term">${_esc(e[0]).replace(re, '<mark>$1</mark>')}</span>` +
                     `<span class="sr-path" style="--tc:${TRAINER_COLOR[e[1]]}">${_esc(t.name)} › ${_esc(e[2])} › ${_esc(e[3])}</span></a>`;
             }).join('');
@@ -711,7 +723,7 @@
             const node = t && t.nodes.find(n => n.n === +m[2]);
             const sub = node && node.subs[m[3] ? m[3].charCodeAt(0) - 97 : 0];
             if (!sub) return null;
-            return { code: m[0], trainer: t.name, href: t.file + '?lernkarte=' + encodeURIComponent(sub[1]), label: node.name + ' – ' + sub[0] };
+            return { code: m[0], trainer: t.name, href: targetHref(m[1], sub[1], !!m[3]), label: node.name + ' – ' + sub[0] };
         }
         // index.html#tt5a (Link von der Tafel, aus dem Chat, von der Schulwebsite) → direkt weiter;
         // unbekannter Code: steht im Suchfeld, damit man sieht, was nicht passte
@@ -737,7 +749,7 @@
             t.nodes.forEach(node => {
                 const a = document.createElement('a');
                 a.className = 'tc-chip';
-                a.href = t.file + '?lernkarte=' + encodeURIComponent(node.subs[0][1]);
+                a.href = targetHref(card.dataset.trainer, node.subs[0][1], false);
                 a.textContent = node.chip;
                 if (node.desc) a.title = node.desc;
                 a.dataset.node = node.n;
@@ -772,14 +784,14 @@
                     const d = node.subs.length - open.length;
                     chip.classList.toggle('done', !open.length);
                     chip.classList.remove('next');
-                    chip.href = t.file + '?lernkarte=' + encodeURIComponent(node.subs[0][1]);
+                    chip.href = targetHref(card.dataset.trainer, node.subs[0][1], false);
                     chip.innerHTML = node.chip + (!open.length ? '<span class="tc-state">✓</span>' : d ? `<span class="tc-state">${d}/${node.subs.length}</span>` : '');
                     if (!next && open.length) next = { node, sub: open[0], chip };
                 });
                 if (!p || !done) { prog.innerHTML = ''; return; }
                 if (next) {
                     next.chip.classList.add('next');
-                    next.chip.href = t.file + '?lernkarte=' + encodeURIComponent(next.sub[1]);
+                    next.chip.href = targetHref(card.dataset.trainer, next.sub[1], true);
                     next.chip.title = 'Hier geht’s weiter: ' + next.sub[0].replace(/^\+\s*/, '');
                 }
                 const color = getComputedStyle(card).borderLeftColor;

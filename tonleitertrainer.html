@@ -179,32 +179,33 @@
             min-height: auto;
         }
 
-        /* Skilltree Container */
+        /* Skilltree Container: 900 px wie die Landing (Sebo 18.11.2026: die Trainer nähern sich der Landing an) */
         .skilltree-container {
-            max-width: 40rem;
+            max-width: 900px;
             margin: 0 auto;
         }
 
-        .skilltree-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 0.9rem;
+        /* Kopfband wie .site-header der Landing (Slate-Verlauf, Titel zentriert, Untertitel); „‹ Alle Trainer“ links und
+           Konto rechts als weiße Textlinks im Band (Sebo 17.11.2026: kein Konto-Banner vor dem Lernen). Das Band läuft über
+           die Ränder von body und .level-screen (je 1rem) bis an den Fensterrand. */
+        .site-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 1.6rem 1.5rem 1.4rem; text-align: center; position: relative; margin: -2rem -2rem 1rem; }
+        .site-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.35rem; letter-spacing: -0.02em; color: #fff; }
+        .site-header p { font-size: 1.05rem; opacity: 0.85; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+        .band-links { position: absolute; top: 0.8rem; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
+        .band-links .st-home-link { color: #fff; opacity: 0.85; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
+        .band-links .st-home-link:hover { opacity: 1; text-decoration: underline; }
+        .band-links .account-bar { gap: 0.7rem; }
+        .band-links .account-bar .acc-btn { background: none; color: #fff; opacity: 0.85; padding: 0; font-size: 0.8rem; font-weight: 500; border-radius: 0; }
+        .band-links .account-bar .acc-btn:hover { background: none; opacity: 1; text-decoration: underline; }
+        .band-links .account-bar .acc-who { font-size: 0.8rem; color: #fff; }
+        .band-links .account-bar .acc-who small { color: #cbd5e1; }
+        /* Anker einer Blase (Coach Mark) pulsiert wie der Hilfe-Knopf beim Nudge: gefüllt + Ring */
+        .band-links .account-bar .acc-btn.coach-target { background: #0891b2; opacity: 1; padding: 0.15rem 0.55rem; border-radius: 999px; box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.30); animation: helpNudgePulse 0.9s ease-in-out 3; }
+        @media (max-width: 599px) {
+            .site-header { padding: 2.2rem 1rem 1.2rem; }
+            .site-header h1 { font-size: 1.5rem; }
+            .site-header p { font-size: 0.9rem; }
         }
-
-        .skilltree-header h1 {
-            font-size: 1.5rem;
-            color: #164e63;
-            font-weight: 700;
-        }
-        /* Konto und „Alle Trainer“ als kleine Links oben rechts (Sebo 17.11.2026: kein Konto-Banner vor dem Lernen) */
-        .st-head-links { display: flex; align-items: center; gap: 0.9rem; font-size: 0.8rem; }
-        .skilltree-header .account-bar { gap: 0.6rem; }
-        .skilltree-header .account-bar .acc-btn { background: none; color: #0891b2; padding: 0; font-size: 0.8rem; font-weight: 500; border-radius: 0; }
-        .skilltree-header .account-bar .acc-btn:hover { background: none; color: #0e7490; text-decoration: underline; }
-        .skilltree-header .account-bar .acc-who { font-size: 0.8rem; }
 
         /* Skilltree Card */
         .skilltree-card {
@@ -303,6 +304,44 @@
         .st-progress-info { text-align: center; font-size: 0.78rem; color: #64748b; margin-top: 0.9rem; }
         .st-progress-bar-bg { height: 6px; border-radius: 3px; background: #e2e8f0; margin-top: 0.35rem; overflow: hidden; }
         .st-progress-bar-fill { height: 100%; background: #0891b2; border-radius: 3px; transition: width 0.4s ease; }
+
+        /* ---- Angleichung an die Landing (18.11.2026; Entwurf _entwicklung/mock_tt_skilltree_layout.html): Streifen links an jeder
+           Themenkarte, Zeitleiste mit Linie und Ringen auf der Linie (das Paar 3/4 mit einem Punkt, Ringe im Kopf); auf dem Handy
+           eine einfache Liste wie bisher. Hauptaktion mit Knopf „Start“ statt Pfeil. ---- */
+        .st-node { border-left: 4px solid #0891b2; }
+        .st-node.done { border-left-color: #22c55e; }
+        .skilltree-card.st-next-card { border-left: 4px solid #0891b2; }
+        .st-next-go { flex-shrink: 0; background: #fff; color: #0891b2; border-radius: 0.45rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; }
+        .st-steps { position: relative; }
+        .st-step { display: flex; gap: 0.8rem; align-items: flex-start; }
+        .st-step-mark { width: 2.3rem; flex-shrink: 0; display: none; justify-content: center; position: relative; }
+        .st-step-mark .st-ring { position: relative; z-index: 1; }
+        .st-step-mark .st-step-dot { width: 0.9rem; height: 0.9rem; border-radius: 50%; background: #cbd5e1; margin-top: 0.75rem; position: relative; z-index: 1; }
+        .st-step-body { flex: 1; min-width: 0; }
+        .st-steps::before { content: ''; position: absolute; left: calc(1.15rem - 1px); top: 1.2rem; bottom: 1.2rem; width: 2px; background: #cbd5e1; display: none; }
+        .st-step.done .st-step-mark .st-ring { background: #22c55e; }
+        .st-step.done .st-step-mark .st-ring::before { background: #22c55e; }
+        .st-step.done .st-step-mark .st-ring span { color: #fff; }
+        @media (min-width: 600px) {
+            .st-step-mark { display: flex; }
+            .st-steps::before { display: block; }
+            .st-step.single .st-node-head > .st-ring { display: none; }
+        }
+        /* Wegweiser (Ankunft über ?knoten=…): das Thema pulsiert viermal wie der Hilfe-Knopf beim Nudge, dann bleibt der Rahmen */
+        .st-node.pulse { border-color: #0891b2; animation: nodePulse 1.1s ease-in-out 4; box-shadow: 0 0 0 3px #cffafe; }
+        @keyframes nodePulse {
+            0%   { box-shadow: 0 0 0 0    rgba(8, 145, 178, 0.55); }
+            70%  { box-shadow: 0 0 0 18px rgba(8, 145, 178, 0.0); }
+            100% { box-shadow: 0 0 0 3px  #cffafe; }
+        }
+        /* Blase (Coach Mark): wie .help-nudge-bubble, frei auf der Seite positioniert, Pfeil oben oder unten; Tipp irgendwohin schließt */
+        .coach { position: absolute; z-index: 30; background: #0891b2; color: #fff; font-size: 0.8rem; line-height: 1.4; padding: 0.55rem 0.75rem; border-radius: 0.5rem; max-width: 260px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateY(-5px); transition: opacity 0.22s ease, transform 0.22s ease; pointer-events: none; }
+        .coach.show { opacity: 1; transform: translateY(0); }
+        .coach::after { content: ""; position: absolute; border: 6px solid transparent; }
+        .coach.below::after { bottom: 100%; left: 20px; border-bottom-color: #0891b2; }
+        .coach.above::after { top: 100%; left: 20px; border-top-color: #0891b2; }
+        .coach.right::after { left: auto; right: 20px; }
+        @media (prefers-reduced-motion: reduce) { .st-node.pulse, .band-links .account-bar .acc-btn.coach-target { animation: none; } .coach { transition: none; } }
 
         /* ---- Schreib-Modus (Knoten 4): Werkzeugleiste und interaktives Notensystem; stand vorher im Skilltree-Block
            und ging mit Commit 6414f27 verloren (Nebenbefund der Skilltree-Session, 17.11.2026) ---- */
@@ -1697,26 +1736,28 @@
 
     <!-- ======================== QUICK START SCREEN (Skilltree) ======================== -->
     <div id="quickStartScreen" class="level-screen active">
-        <div class="skilltree-container">
-            <div class="skilltree-header">
-                <h1>Tonleitertrainer</h1>
-                <div class="st-head-links">
-                    <a href="index.html" class="st-home-link" title="Zur Übersicht">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                        Alle Trainer
-                    </a>
-                    <div class="account-bar"></div>
-                </div>
+        <!-- Kopfband wie die Landing; „‹ Alle Trainer“ und Konto als Links im Band -->
+        <header class="site-header">
+            <div class="band-links">
+                <a href="index.html" class="st-home-link" title="Zur Übersicht">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    Alle Trainer
+                </a>
+                <div class="account-bar"></div>
             </div>
-            <!-- Hauptaktion: nächste offene Übung (gerendert in updateAllProgress) -->
-            <div class="skilltree-card" id="stNextCard"></div>
+            <h1>Tonleitertrainer</h1>
+            <p>Dein Weg durch Tonleitern und Quintenzirkel</p>
+        </header>
+        <div class="skilltree-container">
+            <!-- Hauptaktion: nächste offene Übung bzw. „Dein Thema“ nach Ankunft über ?knoten= (gerendert in updateAllProgress) -->
+            <div class="skilltree-card st-next-card" id="stNextCard"></div>
             <div class="skilltree-card">
                 <div class="skilltree-title">
                     <span>Dein Weg</span>
                     <span id="stMapCount"></span>
                 </div>
-                <!-- Landkarte (gerendert in updateAllProgress) -->
-                <div class="skilltree" id="skilltreeView"></div>
+                <!-- Landkarte als Zeitleiste (gerendert in updateAllProgress) -->
+                <div class="skilltree st-steps" id="skilltreeView"></div>
                 <!-- Fortschritt -->
                 <div class="st-progress-info" id="stProgressInfo"></div>
             </div>
@@ -2144,6 +2185,8 @@
             });
         },
         nodeSelect(p) { this._send('node_select', { node: p.node, subskill: p.subskill, where: p.where || null }); },
+        // Blasen für Erstbesucher: gezeigt / geschlossen (mit Sekunden bis zum Tipp)
+        coach(p) { this._send('coach', { key: p.key, phase: p.phase, secs: p.secs == null ? null : p.secs }); },
         subskillDismiss(p) { this._send('subskill_dismiss', { node: p.node, subskill: p.subskill }); },
         cardView(p) { this._send('card_view', { nodeId: p.nodeId, cardIndex: p.cardIndex }); },
         tipOpen(p) { this._send('tip_open', { card: p.card, target: p.target }); },
@@ -3843,6 +3886,54 @@
     // =============================================
     // QUICKSTART SYSTEM
     // =============================================
+    // ---- Blasen (Coach Marks) für Erstbesucher (18.11.2026; Entwurf _entwicklung/mock_tt_skilltree_layout.html) ----
+    // Je eine pro Moment, kein Abdunkeln, ein Tipp irgendwohin schließt (auch der Tipp, mit dem man die Aktion selbst macht),
+    // einmal pro Gerät (Merker ohne Ablauf, für alle Trainer gemeinsam), Tracking „coach“ mit Sekunden bis zum Schließen.
+    const coach = {
+        el: null, anchor: null, key: null, shownAt: 0, _pending: null,
+        seen(key) { try { return localStorage.getItem('musik_coach_' + key) === '1'; } catch (e) { return true; } },
+        mark(key) { try { localStorage.setItem('musik_coach_' + key, '1'); } catch (e) {} this.shownAt = Date.now(); try { tracker.coach({ key, phase: 'shown' }); } catch (e) {} },
+        dismissed(key) { try { tracker.coach({ key, phase: 'dismiss', secs: +((Date.now() - this.shownAt) / 1000).toFixed(1) }); } catch (e) {} },
+        // Zeigen, wenn noch nicht gesehen: findAnchor() liefert das Element, decorate(el) hebt es hervor (Puls)
+        maybe(key, findAnchor, text, decorate) {
+            if (this.seen(key) || this.el || this._pending) return;
+            this._pending = setTimeout(() => {
+                this._pending = null;
+                const el = findAnchor();
+                if (!el || !document.getElementById('quickStartScreen').classList.contains('active')) return;
+                this.show(key, el, text, decorate);
+            }, 600);
+        },
+        show(key, anchorEl, text, decorate) {
+            this.hide(false);
+            if (decorate) decorate(anchorEl);
+            this.anchor = anchorEl;
+            const b = document.createElement('div');
+            b.className = 'coach below';
+            b.textContent = text;
+            document.body.appendChild(b);
+            const r = anchorEl.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+            b.style.top = (r.bottom + sy + 10) + 'px';
+            b.style.left = Math.max(8, r.left + sx) + 'px';
+            if (r.left + 260 > window.innerWidth) { b.classList.add('right'); b.style.left = Math.max(8, r.right + sx - 260) + 'px'; }
+            setTimeout(() => b.classList.add('show'), 20);
+            this.el = b; this.key = key;
+            this.mark(key);
+            setTimeout(() => { document.addEventListener('pointerdown', coach._any, { capture: true, once: true }); document.addEventListener('keydown', coach._any, { capture: true, once: true }); }, 50);
+        },
+        _any() { coach.hide(true); },
+        // Beim Verlassen des Skilltrees (Quiz-Start, Ankunft über ?knoten=): nichts mehr zeigen, Vorgemerktes verwerfen
+        cancel() { clearTimeout(this._pending); this._pending = null; this.hide(false); },
+        hide(track) {
+            if (!this.el) return;
+            if (track) this.dismissed(this.key);
+            this.el.remove(); this.el = null;
+            if (this.anchor) { this.anchor.classList.remove('coach-target'); const n = this.anchor.closest && this.anchor.closest('.st-node'); if (n) n.classList.remove('pulse'); this.anchor = null; }
+            document.removeEventListener('pointerdown', coach._any, { capture: true });
+            document.removeEventListener('keydown', coach._any, { capture: true });
+        }
+    };
+
     var quickStart = {
         isActive: false,
         currentLevel: null,
@@ -3961,6 +4052,8 @@
         nodeOrder: ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'],
         nodeTitles: { ton1: 'Ganzton oder Halbton?', ton2: 'Halbtonschritte finden', ton3: 'Welche Tonleiter ist das?', ton4: 'Tonleiter bilden', ton5: 'Quintenzirkel' },
         _openNodes: null,   // aufgeklappte Knoten; null = noch nie gerendert → der nächste Knoten ist offen
+        topic: null,        // Wegweiser: Ankunft über ?knoten=ton2[&uebung=b] → { nodeId, idx }; die Karte oben heißt „Dein Thema“
+        pulseNode: null,    // Thema, das nach der Ankunft einmal pulsiert
 
         _nodeState(nodeId) {
             const level = this.nodeToLevel[nodeId];
@@ -3985,35 +4078,57 @@
 
         _cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; },
         updateAllProgress() {
-            const next = this.nextStep();
+            // Nach der Ankunft über ?knoten= ist das Thema die Hauptaktion; die Empfehlung tritt zurück (bis zur Rückkehr aus dem Quiz)
+            const next = this.topic || this.nextStep();
             if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
             let totalSubs = 0, totalMastered = 0;
             this.nodeOrder.forEach(id => { const st = this._nodeState(id); totalSubs += st.total; totalMastered += st.done; });
 
-            // Hauptaktion
+            // Hauptaktion. Kopfzeile: „Hier anfangen“ / „Deine nächste Übung“ / „Dein Thema: …“ (kein „Hier geht’s weiter“, Sebo 18.11.2026);
+            // das Thema steht in der Unterzeile erst ab der 2. Übung – die 1. Übung heißt fast immer wie das Thema; Knopf „Start“ statt Pfeil
             const nextCard = document.getElementById('stNextCard');
             if (nextCard) {
                 if (next) {
                     const sub = this.nodeSubSkills[next.nodeId][next.idx];
                     const first = totalMastered === 0;
-                    nextCard.innerHTML = `<div class="st-next-label">${first ? 'Hier anfangen' : 'Hier geht’s weiter'}</div>
-                        <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, 'next')">
+                    const title = this.nodeTitles[next.nodeId], phrase = this._cap(sub.phrase || sub.label);
+                    const label = this.topic ? `Dein Thema: ${title}` : (first ? 'Hier anfangen' : 'Deine nächste Übung');
+                    const sameAsTitle = phrase.toLowerCase().replace(/\?$/, '') === title.toLowerCase().replace(/\?$/, '');
+                    const subLine = `Übung&nbsp;${next.idx + 1}&nbsp;von&nbsp;${this.nodeSubSkills[next.nodeId].length}` + (this.topic || sameAsTitle || next.idx === 0 ? '' : ` · Thema: ${title}`);
+                    nextCard.innerHTML = `<div class="st-next-label">${label}</div>
+                        <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, '${this.topic ? 'topic' : 'next'}')">
                             <span class="st-next-code">${this._subCode(next.nodeId, next.idx)}</span>
-                            <span class="st-next-text"><span class="st-next-title">${this._cap(sub.phrase || sub.label)}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
-                            <span class="st-next-arrow">›</span>
+                            <span class="st-next-text"><span class="st-next-title">${phrase}</span><span class="st-next-sub">${subLine}</span></span>
+                            <span class="st-next-go">Start</span>
                         </button>
-                        <div class="st-next-note">${first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`}</div>`;
+                        <div class="st-next-note">${this.topic ? 'Jede Übung erklärt zuerst kurz, dann löst du zehn Aufgaben. Unten siehst du, was sonst noch dazugehört.' : (first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`)}</div>`;
                 } else {
                     nextCard.innerHTML = `<div class="st-next-label">Alles geschafft</div><div class="st-next-note">Du hast alle ${totalSubs} Übungen gemeistert. Unten kannst du jede noch einmal üben.</div>`;
                 }
             }
 
-            // Landkarte
+            // Landkarte als Zeitleiste: Ring auf der Linie bei 1, 2, 5; das Paar 3/4 hängt mit einem Punkt an der Linie, die Ringe bleiben im Kopf
+            const step = (nodeId) => {
+                const st = this._nodeState(nodeId), pct = st.total ? Math.round(st.done / st.total * 100) : 0;
+                return `<div class="st-step single${st.allDone ? ' done' : ''}"><div class="st-step-mark"><div class="st-ring" style="--p:${pct}"><span>${st.allDone ? '✓' : nodeId.replace(/\D/g, '')}</span></div></div><div class="st-step-body">${this._nodeHtml(nodeId, next)}</div></div>`;
+            };
             const view = document.getElementById('skilltreeView');
             if (view) {
-                view.innerHTML = this._nodeHtml('ton1', next) + this._nodeHtml('ton2', next) +
-                    `<div class="st-pair"><div class="st-pair-label">3 und 4: Reihenfolge egal</div><div class="st-branches">${this._nodeHtml('ton3', next)}${this._nodeHtml('ton4', next)}</div></div>` +
-                    `<div class="st-after">Zum Schluss:</div>` + this._nodeHtml('ton5', next);
+                view.innerHTML = step('ton1') + step('ton2') +
+                    `<div class="st-step"><div class="st-step-mark"><div class="st-step-dot"></div></div><div class="st-step-body"><div class="st-pair"><div class="st-pair-label">3 und 4: Reihenfolge egal</div><div class="st-branches">${this._nodeHtml('ton3', next)}${this._nodeHtml('ton4', next)}</div></div></div></div>` +
+                    `<div class="st-after">Zum Schluss:</div>` + step('ton5');
+            }
+            // Wegweiser: das Thema pulsiert einmal, sobald es im Bild ist
+            if (this.pulseNode) { const id = this.pulseNode; this.pulseNode = null; setTimeout(() => { const el = document.getElementById('stNode-' + id); if (el) el.classList.add('pulse'); }, 500); }
+            // Blasen für Erstbesucher (je einmal pro Gerät): „Thema“ beim ersten Direktbesuch, „Konto“ nach der ersten bestandenen Übung
+            if (document.getElementById('quickStartScreen').classList.contains('active')) {
+                if (totalMastered === 0 && !this.topic) {
+                    coach.maybe('thema', () => document.querySelector('#skilltreeView .st-node:not(.open) .st-node-head'),
+                        'Jedes Thema hat mehrere Übungen. Tipp es an, um sie zu sehen.', el => el.closest('.st-node').classList.add('pulse'));
+                } else if (totalMastered >= 1 && !(window.Account && Account.isLoggedIn())) {
+                    coach.maybe('konto', () => document.querySelector('.site-header .account-bar [data-acc="open-register"]'),
+                        'Dein Lernstand bleibt 24 Stunden für dieses Gerät gespeichert. Angemeldet bleibt er erhalten, egal auf welchem Gerät du dich einloggst.', el => el.classList.add('coach-target'));
+                }
             }
             const count = document.getElementById('stMapCount');
             if (count) count.textContent = `${totalMastered} von ${totalSubs}`;
@@ -4047,9 +4162,10 @@
                 </div>`;
             }).join('');
             const starSum = st.subs.reduce((a, s) => a + (st.scores[s.id] || 0), 0);
+            // Keine Marke „Hier geht’s weiter“ mehr am Thema (Sebo 18.11.2026): Rahmen und die Karte oben reichen
             const meta = st.allDone
                 ? `<span class="st-tag">Geschafft</span><span class="st-stars">★</span><span>${starSum} von ${st.total * 3} Sternen</span>`
-                : (isNext ? `<span class="st-tag">Hier geht’s weiter</span>` : '') + `<span>${st.done} von ${st.total} Übungen</span>`;
+                : `<span>${st.done} von ${st.total} Übungen</span>`;
             const pre = (nodeId === 'ton1' && !st.allDone)
                 ? `<div class="st-pre">Dafür brauchst du: Noten im Violinschlüssel lesen. Noch unsicher? <a href="#" onclick="quickStart.openCrossApp('notentrainer'); return false">Zum Notentrainer ↗</a></div>` : '';
             return `<div class="st-node${isNext ? ' next' : ''}${open ? ' open' : ''}${st.allDone ? ' done' : ''}" id="stNode-${nodeId}">
@@ -4102,6 +4218,33 @@
 
         openCrossApp(trainer) {
             window.location.href = trainer + '.html';
+        },
+
+        // Wegweiser von der Landing (Chips, Suche, Kurzcodes): tonleitertrainer.html?knoten=ton2[&uebung=b]
+        // → Thema aufgeklappt und pulsierend, Karte oben „Dein Thema“ mit der ersten offenen bzw. der gesuchten Übung
+        // (Sebo 18.11.2026: kein Erklärungs-Fenster mehr davor; ?lernkarte= bleibt für Karten-Links aus anderen Trainern)
+        openDeepLinkKnoten() {
+            const url = new URL(location.href);
+            const nodeId = url.searchParams.get('knoten');
+            if (!nodeId || !this.nodeSubSkills[nodeId]) return;
+            const letter = url.searchParams.get('uebung') || '';
+            url.searchParams.delete('knoten'); url.searchParams.delete('uebung');
+            history.replaceState(null, '', url);
+            const subs = this.nodeSubSkills[nodeId];
+            let idx = letter ? letter.charCodeAt(0) - 97 : -1;
+            if (idx < 0 || idx >= subs.length) {
+                const st = this._nodeState(nodeId);
+                idx = st.nextIdx >= 0 ? st.nextIdx : 0;
+            }
+            this.topic = { nodeId, idx };
+            this._openNodes = new Set([nodeId]);
+            this.selectedNode = nodeId;
+            this.selectedSub = letter ? { nodeId, index: idx } : null;
+            this.pulseNode = nodeId;
+            coach.cancel();   // die „Thema“-Blase des ersten Renderns ist hier überflüssig, das Pulsieren erklärt es selbst
+            try { tracker._send('arrive', { node: nodeId, subskill: subs[idx].id, via: letter ? 'search' : 'chip' }); } catch (e) {}
+            this.updateAllProgress();
+            setTimeout(() => { const el = document.getElementById('stNode-' + nodeId); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 50);
         },
 
         // ---- Sterne-Score speichern ----
@@ -4161,6 +4304,7 @@
             const lastNode = this.selectedNode;
             this.selectedNode = null;
             this.selectedSub = null;
+            this.topic = null;   // nach dem Quiz gilt wieder die allgemeine Empfehlung
             app._closeLernkarteStep(false);
             this.hideQuizOverlay();
             document.getElementById('appTitle').textContent = 'Tonleitertrainer';
@@ -4172,6 +4316,7 @@
         // ---- Start from Skilltree ----
         startFromSkilltree() {
             if (!this.selectedNode) return;
+            coach.cancel();   // eine offene Blase gehört zum Skilltree, nicht ins Quiz
 
             const nodeId = this.selectedNode;
             const level = this.nodeToLevel[nodeId];
@@ -8178,6 +8323,17 @@
         finishLernkarteStep() {
             this._closeLernkarteStep(true);
             this.generateNewTask();
+            // Blase „Hilfe“ (einmal pro Gerät): Die Erklärung ist gerade verschwunden – wo findet man sie wieder?
+            // Nutzt die Nudge-Blase des Hilfe-Knopfs; ein Tipp irgendwohin schließt sie und stellt den Nudge-Text wieder her.
+            if (!coach.seen('hilfe')) setTimeout(() => {
+                const btn = document.getElementById('helpBtn'), bub = document.getElementById('helpNudgeBubble');
+                if (!btn || !bub || !btn.offsetParent || quickStart._nudgeActive) return;
+                const orig = bub.textContent;
+                bub.textContent = 'Die Erklärung findest du hier wieder.';
+                btn.classList.add('nudge'); bub.classList.add('show');
+                coach.mark('hilfe');
+                document.addEventListener('pointerdown', () => { bub.classList.remove('show'); btn.classList.remove('nudge'); bub.textContent = orig; coach.dismissed('hilfe'); }, { capture: true, once: true });
+            }, 300);
         },
         // Schritt schließen (auch bei „Zurücksetzen“ oder „Lernpfad“ während der Karte);
         // meldet card_dismiss mit step: true und der Zahl der Versuche an der Kontrollfrage
@@ -10544,6 +10700,7 @@ Gerät:
         quickStart.init();
         app.init();
         app.openDeepLinkLernkarte();
+        quickStart.openDeepLinkKnoten();
         document.getElementById('feedbackForm').addEventListener('submit', (e) => app.sendFeedback(e));
     });
 
