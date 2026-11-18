@@ -4342,13 +4342,13 @@
                         const tier = this._gfMilestoneTier();
                         if (tier === 'trainer') {
                             messageEl.innerHTML = `
-                                <p><strong>🏆 Rhythmustrainer abgeschlossen!</strong></p>
-                                <p>Alle Kompetenzen des Rhythmustrainers gemeistert. Starke Leistung.</p>
+                                <p><strong>🏆 Rhythmustrainer geschafft!</strong></p>
+                                <p>Alles im Rhythmustrainer sitzt jetzt. Starke Leistung.</p>
                             `;
                         } else {
                             messageEl.innerHTML = `
-                                <p><strong>🏆 GLÜCKWUNSCH!</strong></p>
-                                <p>Du hast alle Übungen dieser Stufe gemeistert!</p>
+                                <p><strong>🏆 ${this.nodeTitles[nodeId] || 'Geschafft!'}</strong></p>
+                                <p>Geschafft! Das kannst du jetzt, mit allem, was dazugehört. Weiter so.</p>
                             `;
                         }
                     }
@@ -4520,7 +4520,9 @@
                 const subLabel = (nd, id) => {
                     const arr = (this.nodeSubSkills[nd] || []);
                     const hit = arr.find(s => s.id === id);
-                    return hit ? hit.label : id;
+                    const ph = hit ? (hit.phrase || hit.label) : id;
+                    const t = this.nodeTitles[nd] || nd;
+                    return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;   // Knotentitel · Phrase; nur der Titel, wenn beide gleich sind (1. Übung eines Knotens)
                 };
                 if (tier === 'node') {
                     for (const nd of order) {
@@ -4528,7 +4530,7 @@
                         const mm = (this.progress[L] && this.progress[L].mastered) || [];
                         const open = (this.nodeSubSkills[nd] || []).map(s => s.id).find(o => !mm.includes(o));
                         if (open) {
-                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + (GF_RT.nodeName[L] || L) + ' – ' + subLabel(nd, open) + '</button>';
+                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + subLabel(nd, open) + '</button>';
                         }
                     }
                     return '';
@@ -4538,7 +4540,7 @@
                 const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
                 const nx = (this.nodeSubSkills[node] || []).map(s => s.id).find(o => !m.includes(o));
                 if (!nx) return '';
-                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + (GF_RT.nodeName[lvl] || lvl) + ' – ' + subLabel(node, nx) + '</button>';
+                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + subLabel(node, nx) + '</button>';
             },
 
             retryQuiz() {
@@ -9457,7 +9459,8 @@ Gerät:
                 const url = new URL(location.href);
                 const key = url.searchParams.get('lernkarte');
                 if (!key || !(this.lernkartenContent || {})[key]) return;
-                url.searchParams.delete('lernkarte');
+                const ueben = url.searchParams.get('ueben') === '1';
+            url.searchParams.delete('lernkarte'); url.searchParams.delete('ueben');
                 history.replaceState(null, '', url);
                 // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
                 document.body.appendChild(document.getElementById('lernkarteOverlay'));
@@ -9474,6 +9477,7 @@ Gerät:
                 this._appendNextChoice(key, from !== null
                     ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                     : { label: 'Zurück zum Menü' });
+                if (ueben) { tracker._ueben = true; document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click(); }   // „Erst hier üben“ aus einem eingebetteten Fenster: gleich die Übung, die Karte nicht noch einmal (Sebo 17.11.2026)
             },
 
             // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
@@ -9632,6 +9636,10 @@ Gerät:
                 if (!fromStart && !auto) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
+                // Knopf-Text nach Herkunft: vor der ersten Aufgabe „Verstanden, los!“, nach einer automatisch gezeigten Karte „Weiter“,
+                // beim Nachschlagen (Hilfe, Rückfrage aus Schritt 0) nur „Schließen“ (Sebo 17.11.2026)
+                const _lkBtnText = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                if (_lkBtnText) _lkBtnText.textContent = fromStart ? 'Verstanden, los!' : (auto ? 'Weiter' : 'Schließen');
                 document.getElementById('lernkarteOverlay').classList.add('active');
                 // Nur vor der ersten Aufgabe ausblenden (dort stünde noch die alte);
                 // beim Öffnen über „Hilfe" bleibt die Aufgabenstellung stehen

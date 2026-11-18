@@ -3769,14 +3769,14 @@
                     const node = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
                     const tier = this._gfMilestoneTier();
                     if (tier === 'trainer') {
-                        _t.textContent = 'Notentrainer abgeschlossen!';
-                        _msg.innerHTML = '<p>Alle Kompetenzen des Notentrainers gemeistert. Starke Leistung — du liest und schreibst Noten jetzt sicher.</p>';
+                        _t.textContent = 'Notentrainer geschafft!';
+                        _msg.innerHTML = '<p>Alles im Notentrainer sitzt jetzt: Du liest und schreibst Noten sicher. Starke Leistung.</p>';
                     } else if (tier === 'node') {
-                        _t.textContent = (GF_NT.nodeName[node] || 'Kompetenz') + ' gemeistert!';
-                        _msg.innerHTML = '<p>Diese ganze Kompetenz sitzt jetzt — nicht nur eine Teilaufgabe. Weiter so.</p>';
+                        _t.textContent = this.nodeTitles[node] || 'Geschafft!';
+                        _msg.innerHTML = '<p>Geschafft! Das kannst du jetzt, mit allem, was dazugehört. Weiter so.</p>';
                     } else {
                         _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
-                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
+                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Das reicht zum Weitermachen.') + '</p>';
                     }
                     _rec.innerHTML = this._gfForwardItem();
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
@@ -3921,7 +3921,7 @@
                     if (currentIdx < branch.length - 1) {
                         return 'Weiter mit: ' + nodeNames[branch[currentIdx + 1]];
                     }
-                    return 'Alle Kompetenzen gemeistert!';
+                    return 'Alles geschafft!';
                 }
 
                 const labels = {
@@ -3960,6 +3960,13 @@
             _nodeOf(level) {
                 return Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === level);
             },
+            // Knopftext: Knotentitel · Phrase der Übung (nur der Titel, wenn beide gleich sind – 1. Übung eines Knotens)
+            _gfFwdLabel(node, id) {
+                const s = (this.nodeSubSkills[node] || []).find(x => x.id === id);
+                const ph = (s && (s.phrase || s.label)) || GF_NT.subLabel[id] || id;
+                const t = this.nodeTitles[node] || node;
+                return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;
+            },
             _gfFwdBtn(level, csv, label) {
                 return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\''
                     + level + '\',\'' + csv + '\')">Weiter: ' + label + '</button>';
@@ -3995,7 +4002,7 @@
                     const node = this._nodeOf(lvl);
                     const csv = opts.slice(0, opts.indexOf(nx) + 1).join(',');
                     return this._gfFwdBtn(lvl, csv,
-                        (GF_NT.nodeName[node] || lvl) + ' – ' + (GF_NT.subLabel[nx] || nx));
+                        this._gfFwdLabel(node, nx));
                 }
                 // 2) Knoten komplett → nächster Knoten in derselben Branch, dann andere Branch
                 const erk = ['noten1', 'noten2', 'noten3'], bild = ['noten4', 'noten5', 'noten6'];
@@ -4011,7 +4018,7 @@
                     if (open) {
                         const csv2 = o2.slice(0, o2.indexOf(open) + 1).join(',');
                         return this._gfFwdBtn(nl, csv2,
-                            (GF_NT.nodeName[nn] || nl) + ' – ' + (GF_NT.subLabel[open] || open));
+                            this._gfFwdLabel(nn, open));
                     }
                 }
                 // 3) gesamter Trainer fertig → Cross-App
@@ -4248,6 +4255,7 @@
                 // Als Datei geöffnet (file://) hat die Seite keinen Ursprung ("null"), dort ginge die Nachricht sonst verloren
                 const msg = m => parent.postMessage(Object.assign({ lkEmbed: true }, m), location.protocol === 'file:' ? '*' : location.origin);
                 if (!key || !(this.lernkartenContent || {})[key]) { if (embed) msg({ act: 'back' }); return; }
+                const ueben = url.searchParams.get('ueben') === '1';
                 ['lernkarte', 'embed', 'ueben'].forEach(k => url.searchParams.delete(k));
                 history.replaceState(null, '', url);
                 // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
@@ -4276,8 +4284,7 @@
                 this._appendNextChoice(key, from !== null
                     ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                     : { label: 'Zurück zum Menü' });
-                // Auch nach „Erst hier üben“ aus einem eingebetteten Fenster (?ueben=1) erst die Karte mit der Wahl, kein Sofortstart
-                // (wie DT/RT, Sebo 17.11.2026); der Parameter wird oben nur aus der URL entfernt.
+                if (ueben) { tracker._ueben = true; document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click(); }   // „Erst hier üben“ aus einem eingebetteten Fenster: gleich die Übung, die Karte nicht noch einmal (Sebo 17.11.2026)
             },
 
             // Sprung aus „Woran liegt es?“ oder vom Endbildschirm: Karte mit Wahl
@@ -4661,6 +4668,10 @@
                     el.innerHTML = this._inlineVz(this._flatPathD, this._FLAT_REF, 15, 27);
                 });
 
+                // Knopf-Text nach Herkunft: vor der ersten Aufgabe „Verstanden, los!“,
+                // beim Nachschlagen (Hilfe, Rückfrage aus Schritt 0) nur „Schließen“ (Sebo 17.11.2026)
+                const _lkBtnText = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                if (_lkBtnText) _lkBtnText.textContent = fromStart ? 'Verstanden, los!' : 'Schließen';
                 document.getElementById('lernkarteOverlay').classList.add('active');
                 // Sprung über „Ausführlich nachlesen“ aus einer offenen Karte: Wahl statt „Verstanden, los!“
                 if (chained) this._appendNextChoice(linkKey, { label: quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen' });

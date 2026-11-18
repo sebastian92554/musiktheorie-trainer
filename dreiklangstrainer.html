@@ -4000,17 +4000,18 @@
                     _stars.textContent = '⭐'.repeat(starCount);
                     const tier = this._gfMilestoneTier();
                     if (tier === 'trainer') {
-                        _t.textContent = 'Dreiklangstrainer abgeschlossen!';
-                        _msg.innerHTML = '<p>Alle Kompetenzen des Dreiklangstrainers gemeistert. Starke Leistung.</p>';
+                        _t.textContent = 'Dreiklangstrainer geschafft!';
+                        _msg.innerHTML = '<p>Alles im Dreiklangstrainer sitzt jetzt. Starke Leistung.</p>';
                     } else if (tier === 'node') {
-                        _t.textContent = (GF_DT.nodeName[this.currentLevel] || 'Kompetenz') + ' gemeistert!';
-                        _msg.innerHTML = '<p>Diese ganze Kompetenz sitzt jetzt — nicht nur eine Teilaufgabe. Weiter so.</p>';
+                        const _nd = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+                        _t.textContent = this.nodeTitles[_nd] || 'Geschafft!';
+                        _msg.innerHTML = '<p>Geschafft! Das kannst du jetzt, mit allem, was dazugehört. Weiter so.</p>';
                     } else if (this.isSkipping) {
                         _t.textContent = 'ÜBERSPRUNGEN!';
-                        _msg.innerHTML = '<p>Diese Stufe sitzt sicher genug für den Skip.</p>';
+                        _msg.innerHTML = '<p>Übersprungen, und es sitzt trotzdem sicher.</p>';
                     } else {
                         _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
-                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
+                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Das reicht zum Weitermachen.') + '</p>';
                     }
                     _rec.innerHTML = this._gfForwardItem(tier);
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
@@ -4128,7 +4129,7 @@
                     if (currentIdx < nodes.length - 1) {
                         return 'Weiter mit: ' + nodeNames[nodes[currentIdx + 1]];
                     }
-                    return 'Alle Kompetenzen gemeistert!';
+                    return 'Alles geschafft!';
                 }
 
                 const labels = {
@@ -4243,7 +4244,9 @@
                 const subLabel = (nd, id) => {
                     const arr = (this.nodeSubSkills[nd] || []);
                     const hit = arr.find(s => s.id === id);
-                    return hit ? hit.label : id;
+                    const ph = hit ? (hit.phrase || hit.label) : id;
+                    const t = this.nodeTitles[nd] || nd;
+                    return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;   // Knotentitel · Phrase; nur der Titel, wenn beide gleich sind (1. Übung eines Knotens)
                 };
                 if (tier === 'node') {
                     for (const nd of order) {
@@ -4251,7 +4254,7 @@
                         const mm = (this.progress[L] && this.progress[L].mastered) || [];
                         const open = (this.getOptionsForLevel(L) || []).find(o => !mm.includes(o));
                         if (open) {
-                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + (GF_DT.nodeName[L] || L) + ' – ' + subLabel(nd, open) + '</button>';
+                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + subLabel(nd, open) + '</button>';
                         }
                     }
                     return '';
@@ -4261,7 +4264,7 @@
                 const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
                 const nx = (this.getOptionsForLevel(lvl) || []).find(o => !m.includes(o));
                 if (!nx) return '';
-                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + (GF_DT.nodeName[lvl] || lvl) + ' – ' + subLabel(node, nx) + '</button>';
+                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + subLabel(node, nx) + '</button>';
             },
 
             backToStart() {
@@ -8215,7 +8218,8 @@ const _lernkartenContent = {
                 const url = new URL(location.href);
                 const key = url.searchParams.get('lernkarte');
                 if (!key || !(this.lernkartenContent || {})[key]) return;
-                url.searchParams.delete('lernkarte');
+                const ueben = url.searchParams.get('ueben') === '1';
+            url.searchParams.delete('lernkarte'); url.searchParams.delete('ueben');
                 history.replaceState(null, '', url);
                 // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
                 document.body.appendChild(document.getElementById('lernkarteOverlay'));
@@ -8232,6 +8236,7 @@ const _lernkartenContent = {
                 this._appendNextChoice(key, from !== null
                     ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                     : { label: 'Zurück zum Menü' });
+                if (ueben) { tracker._ueben = true; document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click(); }   // „Erst hier üben“ aus einem eingebetteten Fenster: gleich die Übung, die Karte nicht noch einmal (Sebo 17.11.2026)
             },
 
             // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
@@ -8355,6 +8360,10 @@ const _lernkartenContent = {
                 if (!fromStart && !auto) { try { tracker.cardView({ nodeId: subSkillId }); } catch (e) {} }
                 document.getElementById('lernkarteTitle').textContent = content.title;
                 document.getElementById('lernkarteBody').innerHTML = content.body;
+                // Knopf-Text nach Herkunft: vor der ersten Aufgabe „Verstanden, los!“, nach einer automatisch gezeigten Karte „Weiter“,
+                // beim Nachschlagen (Hilfe, Rückfrage aus Schritt 0) nur „Schließen“ (Sebo 17.11.2026)
+                const _lkBtnText = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                if (_lkBtnText) _lkBtnText.textContent = fromStart ? 'Verstanden, los!' : (auto ? 'Weiter' : 'Schließen');
                 document.getElementById('lernkarteOverlay').classList.add('active');
                 // SVG-Visualisierungen dynamisch rendern
                 if (typeof content.render === 'function') content.render();

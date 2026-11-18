@@ -2235,7 +2235,8 @@
                     // Fürs Rahmenintervall zählt nur das Abzählen von Linien und Zwischenräumen, nicht der Notenname.
                     // Beispiel nie mit dem gesuchten Rahmenintervall.
                     const sizes = two.map(x => x.iv ? x.iv.size : (x.task ? x.task.interval.steps : 0));
-                    const ex = [[5, 'Von F bis C sind es F, G, A, H, C, also fünf Stufen, eine Quinte.'], [3, 'Von C bis E sind es C, D, E, also drei Stufen, eine Terz.'], [4, 'Von D bis G sind es D, E, F, G, also vier Stufen, eine Quarte.']].find(e => !sizes.includes(e[0]));
+                    const ex = [[5, 'Von F bis C sind es F, G, A, H, C, also fünf Stufen, eine Quinte.'], [3, 'Von C bis E sind es C, D, E, also drei Stufen, eine Terz.'], [4, 'Von D bis G sind es D, E, F, G, also vier Stufen, eine Quarte.']].find(e => !sizes.includes(e[0]))
+                        || [6, 'Von C bis A sind es C, D, E, F, G, A, also sechs Stufen, eine Sexte.'];   // Endbildschirm: alle drei Beispielgrößen unter den Fehlern → ohne Rückfall brach choose() ab (17.11.2026)
                     add('Unsicher beim Abzählen der Stufen?', `Zähle beide Töne mit und jede Linie und jeden Zwischenraum zwischen den beiden Tönen: ${ex[1]}`, 'int1_basis');
                     if (c.opts.includes('extended') || c.opts.includes('erweitert') || k === 'oktave') add('Unsicher beim Zählen über die Oktave?', 'Zähle einfach weiter: Von C bis zum übernächsten E sind es zehn Stufen, eine Dezime.', 'int1_extended');
                     if (anyAcc && c.mode !== 'bilden_tast' && c.mode !== 'bilden_staff') add('Ändert ein Vorzeichen das Rahmenintervall?', 'Nein. Das Rahmenintervall hängt nur an den Stammtönen: F–C und F–Cis sind beide Quinten.');
@@ -4035,14 +4036,15 @@
                     _stars.textContent = '⭐'.repeat(starCount);
                     const tier = this._gfMilestoneTier();
                     if (tier === 'trainer') {
-                        _t.textContent = 'Intervalltrainer abgeschlossen!';
-                        _msg.innerHTML = '<p>Alle Kompetenzen des Intervalltrainers gemeistert. Starke Leistung.</p>';
+                        _t.textContent = 'Intervalltrainer geschafft!';
+                        _msg.innerHTML = '<p>Alles im Intervalltrainer sitzt jetzt. Starke Leistung.</p>';
                     } else if (tier === 'node') {
-                        _t.textContent = (GF_IT.nodeName[this.currentLevel] || 'Kompetenz') + ' gemeistert!';
-                        _msg.innerHTML = '<p>Diese ganze Kompetenz sitzt jetzt — nicht nur eine Teilaufgabe. Weiter so.</p>';
+                        const _nd = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+                        _t.textContent = this.nodeTitles[_nd] || 'Geschafft!';
+                        _msg.innerHTML = '<p>Geschafft! Das kannst du jetzt, mit allem, was dazugehört. Weiter so.</p>';
                     } else {
                         _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
-                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
+                        _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Das reicht zum Weitermachen.') + '</p>';
                     }
                     _rec.innerHTML = this._gfForwardItem(tier);
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
@@ -4262,6 +4264,11 @@
                     return '<button class="reco-item" onclick="window.location.href=\'tonleitertrainer.html\'">Weiter zum Tonleitertrainer</button>';
                 }
                 const order = Object.keys(this.nodeToLevel);
+                // Knopftext: Knotentitel · Phrase der Übung (nur der Titel, wenn beide gleich sind – 1. Übung eines Knotens)
+                const fwdLabel = (nd, s) => {
+                    const t = this.nodeTitles[nd] || nd, ph = s.phrase || s.label;
+                    return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;
+                };
                 if (tier === 'node') {
                     for (const nd of order) {
                         const L = this.nodeToLevel[nd];
@@ -4269,7 +4276,7 @@
                         const subs = (this.nodeSubSkills[nd] || []);
                         const open = subs.find(s => !mm.includes(s.id));
                         if (open) {
-                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open.id + '\')">Weiter: ' + (GF_IT.nodeName[L] || L) + ' – ' + open.label + '</button>';
+                            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open.id + '\')">Weiter: ' + fwdLabel(nd, open) + '</button>';
                         }
                     }
                     return '';
@@ -4279,7 +4286,7 @@
                 const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
                 const nx = (this.nodeSubSkills[node] || []).find(s => !m.includes(s.id));
                 if (!nx) return '';
-                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx.id + '\')">Weiter: ' + (GF_IT.nodeName[lvl] || lvl) + ' – ' + nx.label + '</button>';
+                return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx.id + '\')">Weiter: ' + fwdLabel(node, nx) + '</button>';
             },
 
             confirmReset() {
@@ -5332,6 +5339,7 @@
                 // Als Datei geöffnet (file://) hat die Seite keinen Ursprung ("null"), dort ginge die Nachricht sonst verloren
                 const msg = m => parent.postMessage(Object.assign({ lkEmbed: true }, m), location.protocol === 'file:' ? '*' : location.origin);
                 if (!key || !(this.lernkartenContent || {})[key]) { if (embed) msg({ act: 'back' }); return; }
+                const ueben = url.searchParams.get('ueben') === '1';
                 ['lernkarte', 'embed', 'ueben'].forEach(k => url.searchParams.delete(k));
                 history.replaceState(null, '', url);
                 // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
@@ -5360,8 +5368,7 @@
                 this._appendNextChoice(key, from !== null
                     ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                     : { label: 'Zurück zum Menü' });
-                // Auch nach „Erst hier üben“ aus einem eingebetteten Fenster (?ueben=1) erst die Karte mit der Wahl, kein Sofortstart
-                // (wie DT/RT, Sebo 17.11.2026); der Parameter wird oben nur aus der URL entfernt.
+                if (ueben) { tracker._ueben = true; document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click(); }   // „Erst hier üben“ aus einem eingebetteten Fenster: gleich die Übung, die Karte nicht noch einmal (Sebo 17.11.2026)
             },
 
             // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
@@ -5789,6 +5796,10 @@
                     el.innerHTML = this._inlineVz(this._flatPathD, this._FLAT_REF, 15, 27);
                 });
 
+                // Knopf-Text nach Herkunft: vor der ersten Aufgabe „Verstanden, los!“, nach einer automatisch gezeigten Karte „Weiter“,
+                // beim Nachschlagen (Hilfe, Rückfrage aus Schritt 0) nur „Schließen“ (Sebo 17.11.2026)
+                const _lkBtnText = document.querySelector('#lernkarteOverlay .lernkarte > button');
+                if (_lkBtnText) _lkBtnText.textContent = fromStart ? 'Verstanden, los!' : (auto ? 'Weiter' : 'Schließen');
                 document.getElementById('lernkarteOverlay').classList.add('active');
                 // Sprung über „Ausführlich nachlesen“ aus einer offenen Karte: Wahl statt „Verstanden, los!“
                 if (chained && !auto) this._appendNextChoice(linkKey, { label: quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen' });
@@ -7083,23 +7094,26 @@
                 const octaves = ['klein', 'eingestrichen', 'zweigestrichen'];
                 const clef = 'treble';
 
-                // Zufälligen Basiston wählen
-                const baseIdx = Math.floor(Math.random() * noteNames.length);
-                const baseName = noteNames[baseIdx];
+                // Basiston so wählen, dass der Zielton höchstens ein Vorzeichen braucht: Doppelvorzeichen (Eeses, Hisis)
+                // kann das Notensystem nicht zeichnen (leeres System mit einem Notenkopf; 17.11.2026, 4d verminderte Sekunde)
                 const baseOctave = 'eingestrichen';
-
-                // Zielton berechnen
-                const steps = intervalSize - 1;
-                const targetIdx = (baseIdx + steps) % 7;
-                const targetName = noteNames[targetIdx];
-                const octaveSteps = Math.floor((baseIdx + steps) / 7);
                 const allOctaves = ['kontra', 'gross', 'klein', 'eingestrichen', 'zweigestrichen', 'dreigestrichen'];
                 const baseOctIdx = allOctaves.indexOf(baseOctave);
-                const targetOctave = allOctaves[baseOctIdx + octaveSteps] || 'zweigestrichen';
-
-                // Vorzeichen berechnen
-                const naturalST = this.calculateNaturalSemitones(baseName, baseOctave, targetName, targetOctave);
-                const diff = targetSemitones - naturalST;
+                const steps = intervalSize - 1;
+                const order = noteNames.map((_, i) => i).sort(() => Math.random() - 0.5);
+                let pick = null;
+                for (const idx of order) {
+                    const tIdx = (idx + steps) % 7;
+                    const tOct = allOctaves[baseOctIdx + Math.floor((idx + steps) / 7)] || 'zweigestrichen';
+                    const d = targetSemitones - this.calculateNaturalSemitones(noteNames[idx], baseOctave, noteNames[tIdx], tOct);
+                    if (!pick || Math.abs(d) < Math.abs(pick.d)) pick = { idx, tIdx, tOct, d };
+                    if (Math.abs(d) <= 1) break;
+                }
+                const baseIdx = pick.idx;
+                const baseName = noteNames[baseIdx];
+                const targetName = noteNames[pick.tIdx];
+                const targetOctave = pick.tOct;
+                const diff = pick.d;
 
                 let finalTarget = targetName;
                 if (diff === 1) finalTarget = targetName + 'is';

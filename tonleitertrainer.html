@@ -4599,14 +4599,15 @@
                 _stars.textContent = '⭐'.repeat(starCount);
                 const tier = this._gfMilestoneTier();
                 if (tier === 'trainer') {
-                    _t.textContent = 'Tonleitertrainer abgeschlossen!';
-                    _msg.innerHTML = '<p>Alle Kompetenzen des Tonleitertrainers gemeistert. Starke Leistung.</p>';
+                    _t.textContent = 'Tonleitertrainer geschafft!';
+                    _msg.innerHTML = '<p>Alles im Tonleitertrainer sitzt jetzt. Starke Leistung.</p>';
                 } else if (tier === 'node') {
-                    _t.textContent = (GF_TT.nodeName[this.currentLevel] || 'Kompetenz') + ' gemeistert!';
-                    _msg.innerHTML = '<p>Diese ganze Kompetenz sitzt jetzt — nicht nur eine Teilaufgabe. Weiter so.</p>';
+                    const _nd = Object.keys(this.nodeToLevel).find(k => this.nodeToLevel[k] === this.currentLevel);
+                    _t.textContent = this.nodeTitles[_nd] || 'Geschafft!';
+                    _msg.innerHTML = '<p>Geschafft! Das kannst du jetzt, mit allem, was dazugehört. Weiter so.</p>';
                 } else {
                     _t.textContent = percentage === 100 ? 'PERFEKT!' : percentage >= 90 ? 'GESCHAFFT!' : 'BESTANDEN!';
-                    _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Die Grundlage steht.') + '</p>';
+                    _msg.innerHTML = '<p>' + (percentage === 100 ? 'Alles richtig. Das sitzt sicher.' : percentage >= 90 ? 'Stark — fast alles sitzt.' : 'Bestanden. Das reicht zum Weitermachen.') + '</p>';
                 }
                 _rec.innerHTML = this._gfForwardItem(tier);
                 _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
@@ -4749,27 +4750,27 @@
                 if (currentIdx < nodes.length - 1) {
                     return `Weiter mit: ${nodeNames[nodes[currentIdx + 1]]}`;
                 }
-                return 'Alle Kompetenzen gemeistert!';
+                return 'Alles geschafft!';
             }
 
             const labels = {
-                'vorzeichen': 'Nächste Teilkompetenz: Mit Vorzeichen',
-                'stufenpaare': 'Nächste Teilkompetenz: HS-Paare auswählen',
-                'mehr_tonarten': 'Nächste Teilkompetenz: Erweiterte Tonarten',
-                'muster_lernen': 'Nächste Teilkompetenz: Tongeschlecht bestimmen',
-                'muster_erkennen': 'Nächste Teilkompetenz: HS-Stufen + Tonleiter benennen',
-                'alles': 'Nächste Teilkompetenz: Alle Tonleitern benennen',
-                'ohne_hilfe': 'Nächste Teilkompetenz: Ohne Klaviatur-Hilfe',
-                'aussenkr': 'Nächste Teilkompetenz: Außenkreis + Merksätze',
-                'innenkr': 'Nächste Teilkompetenz: Innenkreis + Mollparallelen',
-                'vorz_ableitung': 'Nächste Teilkompetenz: Vorzeichen-Ableitung',
-                'symmetrien': 'Nächste Teilkompetenz: Symmetrien',
-                'verwandte': 'Nächste Teilkompetenz: Verwandte Tonarten',
-                'enharmonisch': 'Nächste Teilkompetenz: Enharmonische Verwechslung',
-                'tastatur_einfach': 'Nächste Teilkompetenz: Tastatur (einfach)',
-                'tastatur_schwer': 'Nächste Teilkompetenz: Tastatur (viele Vorzeichen)',
-                'schreiben_einfach': 'Nächste Teilkompetenz: Schreiben (einfach)',
-                'schreiben_schwer': 'Nächste Teilkompetenz: Schreiben (viele Vorzeichen)'
+                'vorzeichen': 'Nächste Übung: Mit Vorzeichen',
+                'stufenpaare': 'Nächste Übung: HS-Paare auswählen',
+                'mehr_tonarten': 'Nächste Übung: Erweiterte Tonarten',
+                'muster_lernen': 'Nächste Übung: Tongeschlecht bestimmen',
+                'muster_erkennen': 'Nächste Übung: HS-Stufen + Tonleiter benennen',
+                'alles': 'Nächste Übung: Alle Tonleitern benennen',
+                'ohne_hilfe': 'Nächste Übung: Ohne Klaviatur-Hilfe',
+                'aussenkr': 'Nächste Übung: Außenkreis + Merksätze',
+                'innenkr': 'Nächste Übung: Innenkreis + Mollparallelen',
+                'vorz_ableitung': 'Nächste Übung: Vorzeichen-Ableitung',
+                'symmetrien': 'Nächste Übung: Symmetrien',
+                'verwandte': 'Nächste Übung: Verwandte Tonarten',
+                'enharmonisch': 'Nächste Übung: Enharmonische Verwechslung',
+                'tastatur_einfach': 'Nächste Übung: Tastatur (einfach)',
+                'tastatur_schwer': 'Nächste Übung: Tastatur (viele Vorzeichen)',
+                'schreiben_einfach': 'Nächste Übung: Schreiben (einfach)',
+                'schreiben_schwer': 'Nächste Übung: Schreiben (viele Vorzeichen)'
             };
             return labels[nextUnmastered] || 'Weiter so!';
         },
@@ -4876,7 +4877,9 @@
             const subLabel = (nd, id) => {
                 const arr = (this.nodeSubSkills[nd] || []);
                 const hit = arr.find(s => s.id === id);
-                return hit ? hit.label : id;
+                const ph = hit ? (hit.phrase || hit.label) : id;
+                const t = this.nodeTitles[nd] || nd;
+                return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;   // Knotentitel · Phrase; nur der Titel, wenn beide gleich sind (1. Übung eines Knotens)
             };
             if (tier === 'node') {
                 for (const nd of order) {
@@ -4884,7 +4887,7 @@
                     const mm = (this.progress[L] && this.progress[L].mastered) || [];
                     const open = (this.getOptionsForLevel(L) || []).find(o => !mm.includes(o));
                     if (open) {
-                        return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + (GF_TT.nodeName[L] || L) + ' – ' + subLabel(nd, open) + '</button>';
+                        return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + L + '\',\'' + open + '\')">Weiter: ' + subLabel(nd, open) + '</button>';
                     }
                 }
                 return '';
@@ -4894,7 +4897,7 @@
             const m = (this.progress[lvl] && this.progress[lvl].mastered) || [];
             const nx = (this.getOptionsForLevel(lvl) || []).find(o => !m.includes(o));
             if (!nx) return '';
-            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + (GF_TT.nodeName[lvl] || lvl) + ' – ' + subLabel(node, nx) + '</button>';
+            return '<button class="reco-item" onclick="quickStart.goToRecommendedLevel(\'' + lvl + '\',\'' + nx + '\')">Weiter: ' + subLabel(node, nx) + '</button>';
         },
 
         // Reset progress for shared devices (Tabletkoffer)
@@ -7903,7 +7906,8 @@
             const url = new URL(location.href);
             const key = url.searchParams.get('lernkarte');
             if (!key || !(this.lernkartenContent || {})[key]) return;
-            url.searchParams.delete('lernkarte');
+            const ueben = url.searchParams.get('ueben') === '1';
+            url.searchParams.delete('lernkarte'); url.searchParams.delete('ueben');
             history.replaceState(null, '', url);
             // Das Overlay kann im (im Menü ausgeblendeten) App-Container liegen → nach body holen
             document.body.appendChild(document.getElementById('lernkarteOverlay'));
@@ -7920,6 +7924,7 @@
             this._appendNextChoice(key, from !== null
                 ? { label: `Zurück zur Aufgabe${from ? `<span class="lk-btn-sub">im ${from}</span>` : ''}`, after: () => window.close() }
                 : { label: 'Zurück zum Menü' });
+            if (ueben) { tracker._ueben = true; document.querySelector('#lernkarteOverlay .lk-next [data-act="practice"]')?.click(); }   // „Erst hier üben“ aus einem eingebetteten Fenster: gleich die Übung, die Karte nicht noch einmal (Sebo 17.11.2026)
         },
 
         // Sprung aus „Woran liegt es?“: Karte mit Wahl „Zurück zur Aufgabe“ / „Erst hier üben“
@@ -8083,6 +8088,10 @@
                 el.innerHTML = this._inlineVz(this._flatPathD, this._FLAT_REF, 15, 27);
             });
 
+            // Knopf-Text nach Herkunft: vor der ersten Aufgabe „Verstanden, los!“, nach einer automatisch gezeigten Karte „Weiter“,
+            // beim Nachschlagen (Hilfe, Rückfrage aus Schritt 0) nur „Schließen“ (Sebo 17.11.2026)
+            const _lkBtnText = document.querySelector('#lernkarteOverlay .lernkarte > button');
+            if (_lkBtnText) _lkBtnText.textContent = fromStart ? 'Verstanden, los!' : (auto ? 'Weiter' : 'Schließen');
             document.getElementById('lernkarteOverlay').classList.add('active');
             // Sprung über „Ausführlich nachlesen“ aus einer offenen Karte: Wahl statt „Verstanden, los!“
             if (chained && !auto) this._appendNextChoice(linkKey, { label: quickStart.isActive ? 'Zurück zur Aufgabe' : 'Schließen' });
@@ -10561,7 +10570,7 @@
                     }
                 }
                 if (!html) {
-                    html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Teilkompetenz als bestanden.</p>';
+                    html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Übung als bestanden.</p>';
                 }
                 contentEl.innerHTML = html;
 
@@ -10571,8 +10580,8 @@
                 contentEl.innerHTML = `
                     <p>Willkommen im <strong>Tonleitertrainer</strong>! Hier lernst du Schritt für Schritt, Tonleitern zu erkennen und zu benennen.</p>
                     <p><strong>So funktioniert's:</strong></p>
-                    <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Teilkompetenzen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Teilkompetenz anklicken.</p>
-                    <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Teilkompetenz als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
+                    <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Übungen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Übung anklicken.</p>
+                    <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Übung als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
                     <p><strong>Voraussetzung:</strong> Grundlegende Notenkenntnisse (Notentrainer: Vorzeichen &amp; Bassschlüssel).</p>
                 `;
             }
