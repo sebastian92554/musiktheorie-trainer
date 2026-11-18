@@ -3888,14 +3888,14 @@
             'ton3': [
                 { id: 'muster_lernen', label: 'Tongeschlecht bestimmen', phrase: 'Dur und Moll unterscheiden', preview: 'Bestimmen des Tongeschlechts (Dur / Moll / Andere)' },
                 { id: 'muster_erkennen', label: 'HS-Stufen + benennen', phrase: 'eine Tonleiter benennen', preview: 'Halbtonschritt-Stufen finden und Tonleiter benennen' },
-                { id: 'alles', label: 'Ohne Halbtonschritt-Hilfe', phrase: 'Tonleitern im Kopf benennen', preview: 'Benennen von Tonleitern ohne Halbtonschritt-Hilfe' },
+                { id: 'alles', label: 'Ohne Halbtonschritt-Hilfe', phrase: 'Tonleitern ohne markierte Halbtonschritte benennen', preview: 'Benennen von Tonleitern ohne Halbtonschritt-Hilfe' },
                 { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe', phrase: 'Halbtonschritte ohne Tastatur bestimmen', preview: 'Benennen von Tonleitern ohne Klaviatur-Hilfe' },
                 { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel benennen', preview: 'Benennen von Tonleitern ohne Hörbeispiel' }
             ],
             'ton4': [
-                { id: 'tastatur_einfach', label: 'Tastatur (einfach)', phrase: 'eine Tonleiter selbst bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
+                { id: 'tastatur_einfach', label: 'Tastatur (einfach)', phrase: 'eine Tonleiter auf der Tastatur bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
                 { id: 'schreiben_einfach', label: 'Schreiben (einfach)', phrase: 'eine Tonleiter ins Notensystem schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (einfach)' },
-                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
+                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen auf der Tastatur bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
                 { id: 'schreiben_schwer', label: 'Schreiben (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (viele Vorzeichen)' },
                 { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel schreiben', preview: 'Konstruieren von Tonleitern ohne Hörbeispiel' }
             ],
@@ -3905,7 +3905,7 @@
                 { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung', phrase: 'die Vorzeichen einer Tonart ableiten', preview: 'Ableiten der Vorzeichen aus dem Quintenzirkel' },
                 { id: 'enharmonisch', label: 'Enharmonik', phrase: 'die enharmonisch gleiche Tonart finden', preview: 'Enharmonische Verwechslungen im Quintenzirkel' },
                 { id: 'verwandte', label: 'Verwandte Tonarten', phrase: 'die Nachbarn einer Tonart im Zirkel finden', preview: 'Verwandte Tonarten im Quintenzirkel' },
-                { id: 'symmetrien', label: 'Symmetrien', phrase: 'Figuren im Quintenzirkel finden', preview: 'Symmetrien im Quintenzirkel (Tritonus, Dreiecke, Raute)' }
+                { id: 'symmetrien', label: 'Symmetrien', phrase: 'Tonleiterbeziehungen im Quintenzirkel finden', preview: 'Symmetrien im Quintenzirkel (Tritonus, Dreiecke, Raute)' }
             ]
         },
 
@@ -3983,6 +3983,7 @@
         _subCode(nodeId, idx) { return nodeId.replace(/\D/g, '') + String.fromCharCode(97 + idx); },
         _starsHtml(k) { return k > 0 ? '★'.repeat(k) + '☆'.repeat(3 - k) : ''; },
 
+        _cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; },
         updateAllProgress() {
             const next = this.nextStep();
             if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
@@ -3998,7 +3999,7 @@
                     nextCard.innerHTML = `<div class="st-next-label">${first ? 'Hier anfangen' : 'Hier geht’s weiter'}</div>
                         <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, 'next')">
                             <span class="st-next-code">${this._subCode(next.nodeId, next.idx)}</span>
-                            <span class="st-next-text"><span class="st-next-title">${sub.phrase || sub.label}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
+                            <span class="st-next-text"><span class="st-next-title">${this._cap(sub.phrase || sub.label)}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
                             <span class="st-next-arrow">›</span>
                         </button>
                         <div class="st-next-note">${first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`}</div>`;
@@ -4040,7 +4041,7 @@
                 const cur = !d && (sel >= 0 ? i === sel : (isNext && i === next.idx));
                 return `<div class="st-row${d ? ' done' : ''}${cur ? ' cur' : ''}" onclick="quickStart.startSub('${nodeId}', ${i}, 'row')">
                     <div class="st-dot">${d ? '✓' : this._subCode(nodeId, i)}</div>
-                    <div class="st-row-text">${sub.phrase || sub.label}</div>
+                    <div class="st-row-text">${this._cap(sub.phrase || sub.label)}</div>
                     ${d ? `<span class="st-row-stars">${this._starsHtml(st.scores[sub.id] || 0)}</span>` : ''}
                     <button type="button" class="st-go">${d ? 'Noch mal' : (cur ? 'Start' : 'Üben')}</button>
                 </div>`;
@@ -4858,7 +4859,7 @@
             const subLabel = (nd, id) => {
                 const arr = (this.nodeSubSkills[nd] || []);
                 const hit = arr.find(s => s.id === id);
-                const ph = hit ? (hit.phrase || hit.label) : id;
+                const ph = this._cap(hit ? (hit.phrase || hit.label) : id);
                 const t = this.nodeTitles[nd] || nd;
                 return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;   // Knotentitel · Phrase; nur der Titel, wenn beide gleich sind (1. Übung eines Knotens)
             };
@@ -8852,7 +8853,7 @@
                 title: 'Tonleiter benennen ohne Hilfe',
                 step: true,
                 body: `<p><strong>Du kannst schon:</strong> Halbtonschritte finden und die Tonleiter benennen.</p>
-                        <p><strong>Jetzt lernst du:</strong> Tonleitern im Kopf benennen. Die Stufen stehen nicht mehr an den Noten, und du wählst keine Stufenpaare mehr aus. Du schreibst nur den Namen. <strong>Immer in derselben Reihenfolge im Kopf:</strong> Halbtonschritte finden → Muster prüfen (Dur 3–4 und 7–8, Moll 2–3 und 5–6) → Grundton + Tongeschlecht. Passt keins der beiden Muster, ist es „Kein Dur/Moll“.</p>
+                        <p><strong>Jetzt lernst du:</strong> Tonleitern ohne markierte Halbtonschritte benennen. Die Stufen stehen nicht mehr an den Noten, und du wählst keine Stufenpaare mehr aus. Du schreibst nur den Namen. <strong>Immer in derselben Reihenfolge im Kopf:</strong> Halbtonschritte finden → Muster prüfen (Dur 3–4 und 7–8, Moll 2–3 und 5–6) → Grundton + Tongeschlecht. Passt keins der beiden Muster, ist es „Kein Dur/Moll“.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Benenne die Tonleiter. Liegst du falsch, markierst du zuerst die Halbtonschritte, dann geht es weiter.</div>
                 <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_lernen')"><summary>Unsicher beim Muster von Dur und Moll?</summary><div class="lk-ask-a">Dur hat die Halbtonschritte zwischen den Stufen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_lernen', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton2_stufenpaare')"><summary>Unsicher beim Finden der Halbtonschritte?</summary><div class="lk-ask-a">Ein Halbtonschritt liegt dort, wo auf der Tastatur keine Taste dazwischen ist: E–F und H–C, aber zum Beispiel auch Fis–G. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton2_stufenpaare', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton3_muster_erkennen')"><summary>Unsicher beim Benennen?</summary><div class="lk-ask-a">Grundton + Tongeschlecht: Beginnt die Tonleiter auf D und hat sie das Dur-Muster, heißt sie D-Dur. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton3_muster_erkennen', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 check: {
@@ -8899,7 +8900,7 @@
                 title: 'Tastatur (einfach)',
                 step: true,
                 body: `<p><strong>Du kannst schon:</strong> Tonleitern am Muster ihrer Halbtonschritte erkennen und benennen.</p>
-                        <p><strong>Jetzt lernst du:</strong> eine Tonleiter selbst bilden. <strong>Dur hat die Halbtonschritte zwischen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. Alle anderen Schritte sind Ganztonschritte.</strong> Daraus ergibt sich, wo ein Vorzeichen nötig ist: In G-Dur ist E die 6. Stufe. Zur 7. Stufe muss ein Ganztonschritt folgen, also Fis statt F. Einige Töne sind vorgegeben (blau), die übrigen klickst du an. Von Aufgabe zu Aufgabe werden es weniger, am Ende ist nur noch der Grundton vorgegeben.</p>
+                        <p><strong>Jetzt lernst du:</strong> eine Tonleiter auf der Tastatur bilden. <strong>Dur hat die Halbtonschritte zwischen 3–4 und 7–8, Moll zwischen 2–3 und 5–6. Alle anderen Schritte sind Ganztonschritte.</strong> Daraus ergibt sich, wo ein Vorzeichen nötig ist: In G-Dur ist E die 6. Stufe. Zur 7. Stufe muss ein Ganztonschritt folgen, also Fis statt F. Einige Töne sind vorgegeben (blau), die übrigen klickst du an. Von Aufgabe zu Aufgabe werden es weniger, am Ende ist nur noch der Grundton vorgegeben.</p>
                         <div style="font-weight:600;text-align:center;color:#155e75;margin-bottom:4px">G-Dur — ergänze die fehlenden Töne</div>
                         <div class="lk-visual" id="lkVisual1"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die fehlenden Töne auf der Tastatur an.</div>
@@ -8994,7 +8995,7 @@
                 title: 'Tastatur (viele Vorzeichen)',
                 step: true,
                 body: `<p><strong>Du kannst schon:</strong> Tonleitern mit bis zu drei Vorzeichen bilden und schreiben.</p>
-                        <p><strong>Jetzt lernst du:</strong> Tonleitern mit vielen Vorzeichen bilden. Nur noch Tonleitern mit vier bis sechs Vorzeichen. <strong>Das Muster bleibt dasselbe:</strong> Die Halbtonschritte liegen wie immer bei Dur zwischen 3–4 und 7–8, bei Moll zwischen 2–3 und 5–6. Nur liegen jetzt mehr Töne auf schwarzen Tasten.</p>
+                        <p><strong>Jetzt lernst du:</strong> Tonleitern mit vielen Vorzeichen auf der Tastatur bilden. Nur noch Tonleitern mit vier bis sechs Vorzeichen. <strong>Das Muster bleibt dasselbe:</strong> Die Halbtonschritte liegen wie immer bei Dur zwischen 3–4 und 7–8, bei Moll zwischen 2–3 und 5–6. Nur liegen jetzt mehr Töne auf schwarzen Tasten.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Klicke die fehlenden Töne an. Wie bisher werden die vorgegebenen Töne weniger.</div>
                 <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:noten3_vorzeichen')"><summary>Unsicher bei den Vorzeichen auf der Tastatur?</summary><div class="lk-ask-a"><span class="vz-sharp"></span> eine Taste nach rechts, <span class="vz-flat"></span> eine nach links: Fis liegt rechts neben F, B links neben H. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=noten3_vorzeichen'); return false">Ausführlich im Notentrainer ↗</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'ton4_tastatur_einfach')"><summary>Unsicher beim Bilden nach dem Muster?</summary><div class="lk-ask-a">Dur: Ganz, Ganz, Halb, Ganz, Ganz, Ganz, Halb. Moll: Ganz, Halb, Ganz, Ganz, Halb, Ganz, Ganz. Vom Grundton aus Schritt für Schritt weiter. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('ton4_tastatur_einfach', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
                 check: {
@@ -9217,7 +9218,7 @@
                 title: 'Symmetrien im Quintenzirkel',
                 step: true,
                 body: `<p><strong>Du kannst schon:</strong> Die Reihenfolge im Quintenzirkel und das Abzählen von Schritten.</p>
-                        <p><strong>Jetzt lernst du:</strong> Figuren im Quintenzirkel finden. Der Zirkel hat 12 Plätze wie eine Uhr. <strong>Immer dieselbe Schrittzahl ergibt eine gleichmäßige Figur:</strong> 6 Schritte → gegenüber, der <strong><span style="color:#dc2626">Tritonus</span></strong> (C ↔ Fis). 4 Schritte → das <strong><span style="color:#2563eb">Großterz-Dreieck</span></strong> (C – E – As). 3 Schritte → die <strong><span style="color:#16a34a">Kleinterz-Raute</span></strong> (C – Es – Fis – A).</p>
+                        <p><strong>Jetzt lernst du:</strong> Tonleiterbeziehungen im Quintenzirkel finden. Der Zirkel hat 12 Plätze wie eine Uhr. <strong>Immer dieselbe Schrittzahl ergibt eine gleichmäßige Figur:</strong> 6 Schritte → gegenüber, der <strong><span style="color:#dc2626">Tritonus</span></strong> (C ↔ Fis). 4 Schritte → das <strong><span style="color:#2563eb">Großterz-Dreieck</span></strong> (C – E – As). 3 Schritte → die <strong><span style="color:#16a34a">Kleinterz-Raute</span></strong> (C – Es – Fis – A).</p>
                         <div class="lk-visual" id="lkVisual1" style="text-align:center"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Wähle die gegenüberliegende Tonart, oder die übrigen Ecken des Dreiecks bzw. der Raute und tippe auf „Fertig“. Ab der 8. Aufgabe stehen nur noch C, G und F im Zirkel.</div>
                         <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'ohne_link')"><summary>Unsicher beim Abzählen im Zirkel?</summary><div class="lk-ask-a">Zähle die Schritte von Tonart zu Tonart: Von C aus sind es 4 Schritte im Uhrzeigersinn bis E, dann noch einmal 4 bis Gis = As.</div></details></div>`,

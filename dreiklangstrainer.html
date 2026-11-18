@@ -3262,15 +3262,15 @@
             // Sub-Skills pro Knoten
             nodeSubSkills: {
                 'drei1': [
-                    { id: 'basis', label: 'Dur & Moll', phrase: 'die drei Töne eines Dreiklangs kennen', preview: 'Finden von Dreiklangstönen auf der Tastatur' },
+                    { id: 'basis', label: 'Dur & Moll', phrase: 'die drei Töne eines Dreiklangs auf der Tastatur finden', preview: 'Finden von Dreiklangstönen auf der Tastatur' },
                     { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Dreiklangstöne mit Vorzeichen finden', preview: 'Finden von Dreiklangstönen mit Vorzeichen auf der Tastatur' },
-                    { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'Dreiklänge in tiefer und hoher Lage lesen', preview: 'Finden von Dreiklangstönen in tiefer oder hoher Lage auf der Tastatur' }
+                    { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'Dreiklangstöne in tiefer und hoher Lage finden', preview: 'Finden von Dreiklangstönen in tiefer oder hoher Lage auf der Tastatur' }
                 ],
                 'drei2': [
                     { id: 'basis', label: 'Dur & Moll', phrase: 'Dur und Moll unterscheiden', preview: 'Bestimmen der Halbtonschritte in Dur- und Moll-Dreiklängen' },
-                    { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'mit Vorzeichen zählen', preview: 'Bestimmen der Halbtonschritte bei Dreiklängen mit Vorzeichen' },
+                    { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Halbtonschritte bei Dreiklängen mit Vorzeichen zählen', preview: 'Bestimmen der Halbtonschritte bei Dreiklängen mit Vorzeichen' },
                     { id: 'augmented', label: '+ übermäßig & vermindert', phrase: 'übermäßige und verminderte Dreiklänge erkennen', preview: 'Bestimmen der Halbtonschritte bei übermäßigen und verminderten Dreiklängen' },
-                    { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'in jeder Lage zählen', preview: 'Bestimmen der Halbtonschritte in tiefer oder hoher Lage' },
+                    { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'Halbtonschritte in jeder Lage zählen', preview: 'Bestimmen der Halbtonschritte in tiefer oder hoher Lage' },
                     { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Halbtonschritte ohne Hörbeispiel zählen', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
                 ],
                 'drei3': [
@@ -3279,7 +3279,7 @@
                     { id: 'augmented', label: '+ übermäßig & vermindert', phrase: 'auch übermäßige und verminderte Dreiklänge benennen', preview: 'Benennen übermäßiger und verminderter Dreiklänge' },
                     { id: 'range', label: '+ hohe/tiefe Lage', phrase: 'Dreiklänge in jeder Lage benennen', preview: 'Benennen von Dreiklängen in tiefer oder hoher Lage' },
                     { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Dreiklänge ohne Hörbeispiel benennen', preview: 'Benennen von Dreiklängen ohne Hörbeispiel' },
-                    { id: 'doubleAccidentals', label: '+ Doppelvorzeichen', phrase: 'Doppelvorzeichen lesen', preview: 'Benennen von Dreiklängen mit Doppelvorzeichen' }
+                    { id: 'doubleAccidentals', label: '+ Doppelvorzeichen', phrase: 'Dreiklänge mit Doppelvorzeichen benennen', preview: 'Benennen von Dreiklängen mit Doppelvorzeichen' }
                 ],
                 'drei4': [
                     { id: 'basis', label: 'Dur & Moll', phrase: 'Umkehrungen erkennen', preview: 'Erkennen von Stellung und Typ bei Dur- und Moll-Dreiklängen' },
@@ -3393,6 +3393,7 @@
             _subCode(nodeId, idx) { return nodeId.replace(/\D/g, '') + String.fromCharCode(97 + idx); },
             _starsHtml(k) { return k > 0 ? '★'.repeat(k) + '☆'.repeat(3 - k) : ''; },
 
+            _cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; },
             updateAllProgress() {
                 const next = this.nextStep();
                 if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
@@ -3408,7 +3409,7 @@
                         nextCard.innerHTML = `<div class="st-next-label">${first ? 'Hier anfangen' : 'Hier geht’s weiter'}</div>
                             <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, 'next')">
                                 <span class="st-next-code">${this._subCode(next.nodeId, next.idx)}</span>
-                                <span class="st-next-text"><span class="st-next-title">${sub.phrase || sub.label}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
+                                <span class="st-next-text"><span class="st-next-title">${this._cap(sub.phrase || sub.label)}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
                                 <span class="st-next-arrow">›</span>
                             </button>
                             <div class="st-next-note">${first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`}</div>`;
@@ -3450,7 +3451,7 @@
                     const cur = !d && (sel >= 0 ? i === sel : (isNext && i === next.idx));
                     return `<div class="st-row${d ? ' done' : ''}${cur ? ' cur' : ''}" onclick="quickStart.startSub('${nodeId}', ${i}, 'row')">
                         <div class="st-dot">${d ? '✓' : this._subCode(nodeId, i)}</div>
-                        <div class="st-row-text">${sub.phrase || sub.label}</div>
+                        <div class="st-row-text">${this._cap(sub.phrase || sub.label)}</div>
                         ${d ? `<span class="st-row-stars">${this._starsHtml(st.scores[sub.id] || 0)}</span>` : ''}
                         <button type="button" class="st-go">${d ? 'Noch mal' : (cur ? 'Start' : 'Üben')}</button>
                     </div>`;
@@ -4232,7 +4233,7 @@
                 const subLabel = (nd, id) => {
                     const arr = (this.nodeSubSkills[nd] || []);
                     const hit = arr.find(s => s.id === id);
-                    const ph = hit ? (hit.phrase || hit.label) : id;
+                    const ph = this._cap(hit ? (hit.phrase || hit.label) : id);
                     const t = this.nodeTitles[nd] || nd;
                     return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;   // Knotentitel · Phrase; nur der Titel, wenn beide gleich sind (1. Übung eines Knotens)
                 };
@@ -4598,7 +4599,7 @@ const _lernkartenContent = {
             nope: "Vom Grundton aus zählen: D (1), E (2), F (3) – der Terzton liegt auf der 3. Stufe, der Quintton auf der 5."
         },
         body: `<p><strong>Du kannst schon:</strong> Noten im Violinschlüssel lesen und auf der Tastatur finden.</p>
-            <p><strong>Jetzt lernst du:</strong> die drei Töne eines Dreiklangs kennen. Ein <strong>Dreiklang</strong> besteht aus drei Tönen, die in Terzen übereinander stehen: <strong>Grundton, Terzton und Quintton</strong>. <strong>Der Terzton liegt zwei Stufen über dem Grundton, der Quintton vier:</strong> von C aus C, E, G. Im Notensystem stehen alle drei auf Linien oder alle in Zwischenräumen. Die zwei wichtigsten Arten sind Dur und Moll.</p>
+            <p><strong>Jetzt lernst du:</strong> die drei Töne eines Dreiklangs auf der Tastatur finden. Ein <strong>Dreiklang</strong> besteht aus drei Tönen, die in Terzen übereinander stehen: <strong>Grundton, Terzton und Quintton</strong>. <strong>Der Terzton liegt zwei Stufen über dem Grundton, der Quintton vier:</strong> von C aus C, E, G. Im Notensystem stehen alle drei auf Linien oder alle in Zwischenräumen. Die zwei wichtigsten Arten sind Dur und Moll.</p>
             <div class="lk-contrast" id="lkContrastBasis"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die drei Töne des Dreiklangs auf der Tastatur und klicke sie an. Die Oktave spielt keine Rolle.</div>
             <div class="lk-tip lk-tip-ask">
@@ -4653,7 +4654,7 @@ const _lernkartenContent = {
             nope: "Schau oben: Die Töne bleiben dieselben, und die Oktave zählt beim Anklicken nicht."
         },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge mit Vorzeichen auf der Tastatur finden.</p>
-            <p><strong>Jetzt lernst du:</strong> Dreiklänge in tiefer und hoher Lage lesen. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Die Töne bleiben dieselben: Ein C-Dur-Dreiklang auf Hilfslinien besteht weiter aus C, E und G.</strong> Lies die Namen ab, die Oktave spielt beim Anklicken keine Rolle.</p>
+            <p><strong>Jetzt lernst du:</strong> Dreiklangstöne in tiefer und hoher Lage finden. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Die Töne bleiben dieselben: Ein C-Dur-Dreiklang auf Hilfslinien besteht weiter aus C, E und G.</strong> Lies die Namen ab, die Oktave spielt beim Anklicken keine Rolle.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Finde die drei Töne auf der Tastatur, auch bei Noten auf Hilfslinien.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:hilfslinien')"><summary>Unsicher bei Noten auf Hilfslinien?</summary><div class="lk-ask-a">Hilfslinien zählen wie normale Linien: unter dem System c' auf der 1., a auf der 2. Hilfslinie; darüber a'' auf der 1., c''' auf der 2. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=hilfslinien'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -4751,7 +4752,7 @@ const _lernkartenContent = {
             nope: "Das Muster ändert sich mit Vorzeichen nicht. Womit beginnt Dur?"
         },
         body: `<p><strong>Du kannst schon:</strong> Dur und Moll an den Halbtonschritten erkennen: Dur 4 + 3, Moll 3 + 4.</p>
-            <p><strong>Jetzt lernst du:</strong> mit Vorzeichen zählen. Die Dreiklänge haben jetzt Vorzeichen, es kommen schwarze Tasten dazu. <strong>Das Muster bleibt fest:</strong> D-Dur ist D, Fis, A, also 4 + 3 Halbtonschritte wie C-Dur.</p>
+            <p><strong>Jetzt lernst du:</strong> Halbtonschritte bei Dreiklängen mit Vorzeichen zählen. Die Dreiklänge haben jetzt Vorzeichen, es kommen schwarze Tasten dazu. <strong>Das Muster bleibt fest:</strong> D-Dur ist D, Fis, A, also 4 + 3 Halbtonschritte wie C-Dur.</p>
             <div class="lk-visual" id="lkVisualDrei2b"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte vom Grundton zum Terzton und vom Terzton zum Quintton und wähle die Zahlen aus.</div>
             <div class="lk-tip lk-tip-ask">
@@ -4804,7 +4805,7 @@ const _lernkartenContent = {
             nope: "Schau oben: Das Muster hängt nicht von der Lage ab."
         },
         body: `<p><strong>Du kannst schon:</strong> Halbtonschritte in Dreiklängen zählen, auch bei übermäßig und vermindert.</p>
-            <p><strong>Jetzt lernst du:</strong> in jeder Lage zählen. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Das Muster hängt nicht von der Lage ab:</strong> Dur bleibt 4 + 3, Moll 3 + 4, übermäßig 4 + 4, vermindert 3 + 3, egal wie hoch der Dreiklang steht.</p>
+            <p><strong>Jetzt lernst du:</strong> Halbtonschritte in jeder Lage zählen. Die Dreiklänge stehen jetzt auch tiefer oder höher, mit mehr Hilfslinien. <strong>Das Muster hängt nicht von der Lage ab:</strong> Dur bleibt 4 + 3, Moll 3 + 4, übermäßig 4 + 4, vermindert 3 + 3, egal wie hoch der Dreiklang steht.</p>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die drei Töne ab und wähle die Halbtonschritte aus.</div>
             <div class="lk-tip lk-tip-ask">
                 <details class="lk-ask" ontoggle="app._askToggled(this, 'notentrainer:hilfslinien')"><summary>Unsicher bei Noten auf Hilfslinien?</summary><div class="lk-ask-a">Hilfslinien zählen wie normale Linien: unter dem System c' auf der 1., a auf der 2. Hilfslinie; darüber a'' auf der 1., c''' auf der 2. <a class="lk-ask-more" href="#" onclick="openCardFrame('notentrainer.html?lernkarte=hilfslinien'); return false">Ausführlich im Notentrainer ↗</a></div></details>
@@ -4934,7 +4935,7 @@ const _lernkartenContent = {
             nope: "Doppelkreuz heißt zwei Tasten nach rechts vom Stammton F."
         },
         body: `<p><strong>Du kannst schon:</strong> Dreiklänge mit Vorzeichen in allen vier Arten benennen.</p>
-            <p><strong>Jetzt lernst du:</strong> Doppelvorzeichen lesen. Vor dem Terzton oder dem Quintton kann ein <strong>Doppelvorzeichen</strong> stehen: Das Doppelkreuz erhöht um zwei Halbtonschritte, das Doppel-Be erniedrigt um zwei. <strong>Notiert wie der Stammton, aber zwei Tasten weiter:</strong> Ais-Dur ist Ais, Cisis, Eis. Cisis wird wie C notiert, liegt aber auf der Taste D.</p>
+            <p><strong>Jetzt lernst du:</strong> Dreiklänge mit Doppelvorzeichen benennen. Vor dem Terzton oder dem Quintton kann ein <strong>Doppelvorzeichen</strong> stehen: Das Doppelkreuz erhöht um zwei Halbtonschritte, das Doppel-Be erniedrigt um zwei. <strong>Notiert wie der Stammton, aber zwei Tasten weiter:</strong> Ais-Dur ist Ais, Cisis, Eis. Cisis wird wie C notiert, liegt aber auf der Taste D.</p>
             <div class="lk-visual" id="lkVisualDrei3DblAccStaff"></div>
             <div class="lk-visual" id="lkVisualDrei3DblAcc"></div>
             <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Abstände wie bisher, das Doppelvorzeichen verschiebt den Ton um zwei Tasten. Dann tippe den Grundton ein und wähle die Art.</div>

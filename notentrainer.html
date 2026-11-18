@@ -3088,7 +3088,7 @@
                 'noten3': [
                     { id: 'basis', label: 'Stammtöne', phrase: 'Töne auf der Tastatur finden', preview: 'Finden von Stammtönen auf der Tastatur' },
                     { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Töne mit Vorzeichen auf der Tastatur finden', preview: 'Finden von Tönen mit Vorzeichen auf der Tastatur' },
-                    { id: 'lagen', label: '+ Lagen', phrase: 'die richtige Lage auf der Tastatur treffen', preview: 'Finden von Tönen verschiedener Oktavlagen auf der Tastatur' },
+                    { id: 'lagen', label: '+ Lagen', phrase: 'Töne in der richtigen Lage auf der Tastatur finden', preview: 'Finden von Tönen verschiedener Oktavlagen auf der Tastatur' },
                     { id: 'hilfslinien', label: '+ Hilfslinien', phrase: 'auch Noten auf Hilfslinien auf der Tastatur finden', preview: 'Finden von Tönen auf Hilfslinien auf der Tastatur' }
                 ],
                 'noten4': [
@@ -3104,10 +3104,10 @@
                     { id: 'hilfslinien', label: '+ Hilfslinien', phrase: 'Noten über und unter dem System im Bassschlüssel schreiben', preview: 'Schreiben von Tönen auf Hilfslinien im Bassschlüssel' }
                 ],
                 'noten6': [
-                    { id: 'basis', label: 'Stammtöne', phrase: 'mit wechselndem Schlüssel schreiben', preview: 'Schreiben von Stammtönen in Violin- und Bassschlüssel' },
+                    { id: 'basis', label: 'Stammtöne', phrase: 'Noten mit wechselndem Schlüssel schreiben', preview: 'Schreiben von Stammtönen in Violin- und Bassschlüssel' },
                     { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Vorzeichen bei wechselndem Schlüssel setzen', preview: 'Schreiben von Tönen mit Vorzeichen in beiden Schlüsseln' },
-                    { id: 'lagen', label: '+ Lagen', phrase: 'Lagen bei wechselndem Schlüssel treffen', preview: 'Schreiben von Tönen in verschiedenen Oktavlagen in beiden Schlüsseln' },
-                    { id: 'hilfslinien', label: '+ Hilfslinien', phrase: 'alles zusammen anwenden', preview: 'Schreiben von Tönen auf Hilfslinien in beiden Schlüsseln' }
+                    { id: 'lagen', label: '+ Lagen', phrase: 'die Lage bei wechselndem Schlüssel richtig schreiben', preview: 'Schreiben von Tönen in verschiedenen Oktavlagen in beiden Schlüsseln' },
+                    { id: 'hilfslinien', label: '+ Hilfslinien', phrase: 'Noten auf Hilfslinien bei wechselndem Schlüssel schreiben', preview: 'Schreiben von Tönen auf Hilfslinien in beiden Schlüsseln' }
                 ]
             },
 
@@ -3186,6 +3186,7 @@
             _subCode(nodeId, idx) { return nodeId.replace(/\D/g, '') + String.fromCharCode(97 + idx); },
             _starsHtml(k) { return k > 0 ? '★'.repeat(k) + '☆'.repeat(3 - k) : ''; },
 
+            _cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; },
             updateAllProgress() {
                 const next = this.nextStep();
                 if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
@@ -3201,7 +3202,7 @@
                         nextCard.innerHTML = `<div class="st-next-label">${first ? 'Hier anfangen' : 'Hier geht’s weiter'}</div>
                             <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, 'next')">
                                 <span class="st-next-code">${this._subCode(next.nodeId, next.idx)}</span>
-                                <span class="st-next-text"><span class="st-next-title">${sub.phrase || sub.label}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
+                                <span class="st-next-text"><span class="st-next-title">${this._cap(sub.phrase || sub.label)}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
                                 <span class="st-next-arrow">›</span>
                             </button>
                             <div class="st-next-note">${first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`}</div>`;
@@ -3241,7 +3242,7 @@
                     const cur = !d && (sel >= 0 ? i === sel : (isNext && i === next.idx));
                     return `<div class="st-row${d ? ' done' : ''}${cur ? ' cur' : ''}" onclick="quickStart.startSub('${nodeId}', ${i}, 'row')">
                         <div class="st-dot">${d ? '✓' : this._subCode(nodeId, i)}</div>
-                        <div class="st-row-text">${sub.phrase || sub.label}</div>
+                        <div class="st-row-text">${this._cap(sub.phrase || sub.label)}</div>
                         ${d ? `<span class="st-row-stars">${this._starsHtml(st.scores[sub.id] || 0)}</span>` : ''}
                         <button type="button" class="st-go">${d ? 'Noch mal' : (cur ? 'Start' : 'Üben')}</button>
                     </div>`;
@@ -3950,7 +3951,7 @@
             // Knopftext: Knotentitel · Phrase der Übung (nur der Titel, wenn beide gleich sind – 1. Übung eines Knotens)
             _gfFwdLabel(node, id) {
                 const s = (this.nodeSubSkills[node] || []).find(x => x.id === id);
-                const ph = (s && (s.phrase || s.label)) || GF_NT.subLabel[id] || id;
+                const ph = this._cap((s && (s.phrase || s.label)) || GF_NT.subLabel[id] || id);
                 const t = this.nodeTitles[node] || node;
                 return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;
             },
@@ -4998,7 +4999,7 @@
                         nope: "Die Lage steckt im Strich: e' gehört zur eingestrichenen Oktave, und die beginnt bei c'."
                     },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen auf der Tastatur finden, in irgendeiner Lage.</p>
-                        <p><strong>Jetzt lernst du:</strong> die richtige Lage auf der Tastatur treffen. Jedes G gibt es auf der Tastatur mehrmals: g, g', g'' … <strong>Die C-Tasten sind beschriftet (C, c, c', c''). Von dort zählst du weiter:</strong> g' liegt zwischen c' und c'', das kleine f zwischen c und c'.</p>
+                        <p><strong>Jetzt lernst du:</strong> Töne in der richtigen Lage auf der Tastatur finden. Jedes G gibt es auf der Tastatur mehrmals: g, g', g'' … <strong>Die C-Tasten sind beschriftet (C, c, c', c''). Von dort zählst du weiter:</strong> g' liegt zwischen c' und c'', das kleine f zwischen c und c'.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies Name und Lage ab und klicke die Taste in dieser Lage an. Orientiere dich an den beschrifteten C-Tasten.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_lagen')"><summary>Unsicher bei den Lagen im Violinschlüssel?</summary><div class="lk-ask-a">c' steht auf der Hilfslinie unter dem System. Ab c'' (3. Zwischenraum) ist alles zweigestrichen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5197,7 +5198,7 @@
                         nope: "Die 2. Linie ist nur im Violinschlüssel das G. Zähle im Bassschlüssel von der F-Linie aus abwärts."
                     },
                     body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violin- und im Bassschlüssel schreiben.</p>
-                        <p><strong>Jetzt lernst du:</strong> mit wechselndem Schlüssel schreiben. Der Schlüssel wechselt jetzt von Aufgabe zu Aufgabe. <strong>Derselbe Platz hat zwei Namen: Die 2. Linie von unten ist im Violinschlüssel G, im Bassschlüssel H. Darum zuerst den Schlüssel prüfen, dann die G-Linie oder die F-Linie suchen und von dort abzählen.</strong></p>
+                        <p><strong>Jetzt lernst du:</strong> Noten mit wechselndem Schlüssel schreiben. Der Schlüssel wechselt jetzt von Aufgabe zu Aufgabe. <strong>Derselbe Platz hat zwei Namen: Die 2. Linie von unten ist im Violinschlüssel G, im Bassschlüssel H. Darum zuerst den Schlüssel prüfen, dann die G-Linie oder die F-Linie suchen und von dort abzählen.</strong></p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schau auf den Schlüssel und tippe den Stammton an seinen Platz.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten4_basis')"><summary>Unsicher im Violinschlüssel?</summary><div class="lk-ask-a">Von der G-Linie (2. Linie von unten) aus abzählen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten4_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5235,7 +5236,7 @@
                         nope: "Im 2. Zwischenraum des Bassschlüssels liegt das kleine c. Das c' ist eine Oktave höher."
                     },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Lage in beiden Schlüsseln schreiben.</p>
-                        <p><strong>Jetzt lernst du:</strong> Lagen bei wechselndem Schlüssel treffen. <strong>Der Lagenwechsel liegt immer beim C: c'' im 3. Zwischenraum des Violinschlüssels, das kleine c im 2. Zwischenraum des Bassschlüssels.</strong> Von dort zählst du zum gesuchten Ton.</p>
+                        <p><strong>Jetzt lernst du:</strong> die Lage bei wechselndem Schlüssel richtig schreiben. <strong>Der Lagenwechsel liegt immer beim C: c'' im 3. Zwischenraum des Violinschlüssels, das kleine c im 2. Zwischenraum des Bassschlüssels.</strong> Von dort zählst du zum gesuchten Ton.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note in der angegebenen Lage im angezeigten Schlüssel.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten4_lagen')"><summary>Unsicher bei den Lagen im Violinschlüssel?</summary><div class="lk-ask-a">Ein Strich (g') heißt eingestrichen, zwei Striche (e'') zweigestrichen. Der Wechsel liegt bei c''. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten4_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -5254,7 +5255,7 @@
                         nope: "Die 5. Linie ist f''. Zähle von dort weiter: Zwischenraum, dann die erste Hilfslinie."
                     },
                     body: `<p><strong>Du kannst schon:</strong> Töne mit Lage und Vorzeichen in beiden Schlüsseln schreiben.</p>
-                        <p><strong>Jetzt lernst du:</strong> alles zusammen anwenden: Hilfslinien, Lagen, Vorzeichen und wechselnder Schlüssel. <strong>Immer in derselben Reihenfolge: Schlüssel prüfen → G-Linie oder F-Linie suchen → abzählen, auch über die Hilfslinien hinaus → Vorzeichen-Werkzeug wählen.</strong></p>
+                        <p><strong>Jetzt lernst du:</strong> Noten auf Hilfslinien bei wechselndem Schlüssel schreiben. Jetzt kommt alles zusammen: Hilfslinien, Lagen, Vorzeichen und wechselnder Schlüssel. <strong>Immer in derselben Reihenfolge: Schlüssel prüfen → G-Linie oder F-Linie suchen → abzählen, auch über die Hilfslinien hinaus → Vorzeichen-Werkzeug wählen.</strong></p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Schreibe die Note an den genauen Platz, egal in welchem Schlüssel, auch auf Hilfslinien.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten4_hilfslinien')"><summary>Unsicher bei Hilfslinien im Violinschlüssel?</summary><div class="lk-ask-a">Unten: c' auf der 1., a auf der 2. Hilfslinie. Oben: a'' auf der 1., c''' auf der 2. Hilfslinie. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten4_hilfslinien', false); return false">Ausführlich nachlesen ›</a></div></details>

@@ -3227,7 +3227,7 @@
                 'int1': [
                     { id: 'basis', label: 'Grundintervalle (Prime–Oktave)', phrase: 'Intervalle bestimmen', preview: 'Grobes Bestimmen von Grundintervallen (Prime bis Oktave)' },
                     { id: 'extended', label: '+ erweiterte Intervalle', phrase: 'Intervalle über der Oktave bestimmen', preview: 'Grobes Bestimmen erweiterter Intervalle (None bis Duodezime)' },
-                    { id: 'nohelp', label: 'ohne Dropdown', phrase: 'den Namen selbst schreiben', preview: 'Grobes Bestimmen von Intervallen mit Texteingabe' }
+                    { id: 'nohelp', label: 'ohne Dropdown', phrase: 'das Rahmenintervall selbst eintippen', preview: 'Grobes Bestimmen von Intervallen mit Texteingabe' }
                 ],
                 'int2': [
                     { id: 'basis', label: 'Stammtöne auf der Tastatur', phrase: 'beide Töne eines Intervalls auf der Tastatur finden', preview: 'Finden von Intervallen aus Stammtönen auf der Tastatur' },
@@ -3235,8 +3235,8 @@
                     { id: 'bothclefs', label: '+ beide Schlüssel', phrase: 'Intervalle auch im Bassschlüssel ablesen', preview: 'Finden von Intervallen auf der Tastatur in beiden Schlüsseln' }
                 ],
                 'int3': [
-                    { id: 'basis', label: 'Halbtonschritte zählen', phrase: 'Abstände in Halbtonschritten messen', preview: 'Halbtonschritte zählen und so den Abstand bestimmen' },
-                    { id: 'augdim', label: '+ übermäßig/vermindert', phrase: 'mit Vorzeichen zählen', preview: 'Halbtonschritte zählen bei übermäßigen und verminderten Intervallen' },
+                    { id: 'basis', label: 'Halbtonschritte zählen', phrase: 'den Abstand zweier Töne in Halbtonschritten zählen', preview: 'Halbtonschritte zählen und so den Abstand bestimmen' },
+                    { id: 'augdim', label: '+ übermäßig/vermindert', phrase: 'Halbtonschritte bei Tönen mit Vorzeichen zählen', preview: 'Halbtonschritte zählen bei übermäßigen und verminderten Intervallen' },
                     { id: 'bothclefs', label: '+ beide Schlüssel', phrase: 'Halbtonschritte auch im Bassschlüssel zählen', preview: 'Halbtonschritte zählen in beiden Schlüsseln' },
                     { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Halbtonschritte ohne Hörbeispiel zählen', preview: 'Halbtonschritte zählen ohne Hörbeispiel' }
                 ],
@@ -3245,7 +3245,7 @@
                     { id: 'grossklein', label: '+ große & kleine', phrase: 'große und kleine Intervalle bestimmen', preview: 'Feinbestimmung großer und kleiner Intervalle' },
                     { id: 'komplement', label: '+ Komplementär', phrase: 'Komplementärintervalle bestimmen', preview: 'Bestimmen von Komplementärintervallen' },
                     { id: 'augdim', label: '+ übermäßig & vermindert', phrase: 'übermäßige und verminderte Intervalle bestimmen', preview: 'Feinbestimmung übermäßiger und verminderter Intervalle' },
-                    { id: 'alles', label: 'alle gemischt', phrase: 'die Aufgabentypen auseinanderhalten', preview: 'Feinbestimmung aller Intervalltypen gemischt' }
+                    { id: 'alles', label: 'alle gemischt', phrase: 'rein, groß, klein, übermäßig und vermindert gemischt bestimmen', preview: 'Feinbestimmung aller Intervalltypen gemischt' }
                 ],
                 'int5': [
                     { id: 'basis', label: 'Grundbestimmung', phrase: 'ein Intervall vollständig bestimmen', preview: 'Präzises Bestimmen reiner, großer und kleiner Intervalle' },
@@ -3261,7 +3261,7 @@
                     { id: 'erweitert', label: '+ erweiterte', phrase: 'Intervalle über der Oktave bilden', preview: 'Bilden erweiterter Intervalle (None–Tredezime) auf der Tastatur' }
                 ],
                 'int7': [
-                    { id: 'rein', label: 'Reine Intervalle', phrase: 'den Zielton ins Notensystem schreiben', preview: 'Schreiben reiner Intervalle ins Notensystem' },
+                    { id: 'rein', label: 'Reine Intervalle', phrase: 'reine Intervalle ins Notensystem schreiben', preview: 'Schreiben reiner Intervalle ins Notensystem' },
                     { id: 'grossklein', label: '+ große & kleine', phrase: 'große und kleine Intervalle schreiben', preview: 'Schreiben großer und kleiner Intervalle ins Notensystem' },
                     { id: 'augdim', label: '+ übermäßig & vermindert', phrase: 'übermäßige und verminderte Intervalle schreiben', preview: 'Schreiben übermäßiger und verminderter Intervalle ins Notensystem' },
                     { id: 'erweitert', label: '+ erweiterte', phrase: 'Intervalle über der Oktave schreiben', preview: 'Schreiben erweiterter Intervalle (None–Tredezime) ins Notensystem' },
@@ -3371,6 +3371,7 @@
             _subCode(nodeId, idx) { return nodeId.replace(/\D/g, '') + String.fromCharCode(97 + idx); },
             _starsHtml(k) { return k > 0 ? '★'.repeat(k) + '☆'.repeat(3 - k) : ''; },
 
+            _cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; },
             updateAllProgress() {
                 const next = this.nextStep();
                 if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
@@ -3386,7 +3387,7 @@
                         nextCard.innerHTML = `<div class="st-next-label">${first ? 'Hier anfangen' : 'Hier geht’s weiter'}</div>
                             <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, 'next')">
                                 <span class="st-next-code">${this._subCode(next.nodeId, next.idx)}</span>
-                                <span class="st-next-text"><span class="st-next-title">${sub.phrase || sub.label}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
+                                <span class="st-next-text"><span class="st-next-title">${this._cap(sub.phrase || sub.label)}</span><span class="st-next-sub">${this.nodeTitles[next.nodeId]} · Übung ${next.idx + 1} von ${this.nodeSubSkills[next.nodeId].length}</span></span>
                                 <span class="st-next-arrow">›</span>
                             </button>
                             <div class="st-next-note">${first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`}</div>`;
@@ -3429,7 +3430,7 @@
                     const cur = !d && (sel >= 0 ? i === sel : (isNext && i === next.idx));
                     return `<div class="st-row${d ? ' done' : ''}${cur ? ' cur' : ''}" onclick="quickStart.startSub('${nodeId}', ${i}, 'row')">
                         <div class="st-dot">${d ? '✓' : this._subCode(nodeId, i)}</div>
-                        <div class="st-row-text">${sub.phrase || sub.label}</div>
+                        <div class="st-row-text">${this._cap(sub.phrase || sub.label)}</div>
                         ${d ? `<span class="st-row-stars">${this._starsHtml(st.scores[sub.id] || 0)}</span>` : ''}
                         <button type="button" class="st-go">${d ? 'Noch mal' : (cur ? 'Start' : 'Üben')}</button>
                     </div>`;
@@ -4254,7 +4255,7 @@
                 const order = Object.keys(this.nodeToLevel);
                 // Knopftext: Knotentitel · Phrase der Übung (nur der Titel, wenn beide gleich sind – 1. Übung eines Knotens)
                 const fwdLabel = (nd, s) => {
-                    const t = this.nodeTitles[nd] || nd, ph = s.phrase || s.label;
+                    const t = this.nodeTitles[nd] || nd, ph = this._cap(s.phrase || s.label);
                     return ph.toLowerCase() === t.toLowerCase() ? t : t + ' · ' + ph;
                 };
                 if (tier === 'node') {
@@ -5968,7 +5969,7 @@
                         nope: "Zähle die Namen in der Reihe durch: Prime, Sekunde, Terz, Quarte, Quinte, …"
                     },
                     body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle bis zur Duodezime bestimmen und im Auswahlfeld wählen.</p>
-                        <p><strong>Jetzt lernst du:</strong> den Namen selbst schreiben. Jetzt gibt es kein Auswahlfeld mehr, du rufst den Namen aus dem Gedächtnis ab. <strong>Gib den Namen ein: Terz, Quinte, None … Eine Zahl allein gilt nicht.</strong> Groß- und Kleinschreibung ist egal.</p>
+                        <p><strong>Jetzt lernst du:</strong> das Rahmenintervall selbst eintippen. Es gibt kein Auswahlfeld mehr, du holst den Namen aus dem Gedächtnis. <strong>Gib den Namen ein: Terz, Quinte, None … Eine Zahl allein gilt nicht.</strong> Groß- und Kleinschreibung ist egal.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Stufen und tippe das Rahmenintervall ein, z.&nbsp;B. „Quinte“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'int1_basis')"><summary>Unsicher, wie das Intervall heißt?</summary><div class="lk-ask-a">Prime 1, Sekunde 2, Terz 3, Quarte 4, Quinte 5, Sexte 6, Septime 7, Oktave 8, None 9, Dezime 10, Undezime 11, Duodezime 12. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -6048,7 +6049,7 @@
                         nope: "Die Starttaste C zählt nicht mit. Zähle jede Taste danach, auch die schwarze."
                     },
                     body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle bestimmen und Töne auf der Tastatur finden.</p>
-                        <p><strong>Jetzt lernst du:</strong> Abstände in Halbtonschritten messen. Ein Halbtonschritt ist der Weg von einer Taste zur direkt benachbarten, weiß oder schwarz. <strong>Die Starttaste zählt nicht mit:</strong> Von C bis E sind es Cis (1), D (2), Dis (3), E (4), also 4 Halbtonschritte. Beim Rahmenintervall war die untere Note dagegen Stufe 1.</p>
+                        <p><strong>Jetzt lernst du:</strong> den Abstand zweier Töne in Halbtonschritten zählen. Ein Halbtonschritt ist der Weg von einer Taste zur direkt benachbarten, weiß oder schwarz. <strong>Die Starttaste zählt nicht mit:</strong> Von C bis E sind es Cis (1), D (2), Dis (3), E (4), also 4 Halbtonschritte. Beim Rahmenintervall war die untere Note dagegen Stufe 1.</p>
                         <div class="lk-visual" id="lkVisualInt3Basis"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte zwischen den beiden Noten und tippe die Zahl ein. Die Tastatur darunter hilft beim Zählen.</div>
                         <div class="lk-tip lk-tip-ask">
@@ -6068,7 +6069,7 @@
                         nope: "Ein Be schiebt die obere Note eine Taste nach links, also näher an das C heran."
                     },
                     body: `<p><strong>Du kannst schon:</strong> Halbtonschritte zählen.</p>
-                        <p><strong>Jetzt lernst du:</strong> mit Vorzeichen zählen. <strong>Ein Vorzeichen verschiebt einen Ton um genau einen Halbtonschritt, und damit ändert sich die Zahl:</strong> C → F sind 5 Halbtonschritte, C → Fis sind 6. Ein <span class="vz-sharp"></span> (Kreuz) an der oberen Note macht den Abstand einen Halbtonschritt größer, ein <span class="vz-flat"></span> (Be) einen kleiner.</p>
+                        <p><strong>Jetzt lernst du:</strong> Halbtonschritte bei Tönen mit Vorzeichen zählen. <strong>Ein Vorzeichen verschiebt einen Ton um genau einen Halbtonschritt, und damit ändert sich die Zahl:</strong> C → F sind 5 Halbtonschritte, C → Fis sind 6. Ein <span class="vz-sharp"></span> (Kreuz) an der oberen Note macht den Abstand einen Halbtonschritt größer, ein <span class="vz-flat"></span> (Be) einen kleiner.</p>
                         <div class="lk-visual" id="lkVisualInt3Augdim"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Halbtonschritte, auch bei Tönen mit Vorzeichen, und tippe die Zahl ein.</div>
                         <div class="lk-tip lk-tip-ask">
@@ -6250,7 +6251,7 @@
                         nope: "Gegeben sind Zahl und Rahmenintervall. Was fehlt dann noch zum vollständigen Namen?"
                     },
                     body: `<p><strong>Du kannst schon:</strong> alle Aufgabentypen aus 4a bis 4d.</p>
-                        <p><strong>Jetzt lernst du:</strong> die Aufgabentypen auseinanderhalten. Jetzt kommen sie gemischt. <strong>Lies jede Aufgabe genau: Was ist gegeben, was ist gefragt?</strong> Drei Typen: Halbtonschritte ↔ Name (4a, 4b), Komplementärintervall (4c), Halbtonschritte + Rahmenintervall → Feinbestimmung (4d).</p>
+                        <p><strong>Jetzt lernst du:</strong> rein, groß, klein, übermäßig und vermindert gemischt bestimmen. Jetzt kommen die Aufgaben von 4a bis 4d gemischt. <strong>Lies jede Aufgabe genau: Was ist gegeben, was ist gefragt?</strong> Drei Typen: Halbtonschritte ↔ Name (4a, 4b), Komplementärintervall (4c), Halbtonschritte + Rahmenintervall → Feinbestimmung (4d).</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Löse jede Aufgabe so, wie es die Aufgabenstellung verlangt.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'int4_grossklein')"><summary>Unsicher bei groß und klein?</summary><div class="lk-ask-a">Groß hat einen Halbtonschritt mehr als klein: kleine Terz 3, große Terz 4. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int4_grossklein', false); return false">Ausführlich nachlesen ›</a></div></details>
@@ -6448,7 +6449,7 @@
                         nope: "Erst der Stammton: 4 Stufen über D. Dann zählen: Passen die 5 Halbtonschritte schon ohne Vorzeichen?"
                     },
                     body: `<p><strong>Du kannst schon:</strong> reine Intervalle auf der Tastatur bilden.</p>
-                        <p><strong>Jetzt lernst du:</strong> den Zielton ins Notensystem schreiben. Dafür brauchst du zwei Schritte: <strong>Das Rahmenintervall gibt den Stammton, die Halbtonschritte entscheiden über ein Vorzeichen.</strong> Die Quinte von D liegt 5 Stufen höher, beim Stammton A. D bis A sind 7 Halbtonschritte, genau die reine Quinte, also ohne Vorzeichen.</p>
+                        <p><strong>Jetzt lernst du:</strong> reine Intervalle ins Notensystem schreiben. Dafür brauchst du zwei Schritte: <strong>Das Rahmenintervall gibt den Stammton, die Halbtonschritte entscheiden über ein Vorzeichen.</strong> Die Quinte von D liegt 5 Stufen höher, beim Stammton A. D bis A sind 7 Halbtonschritte, genau die reine Quinte, also ohne Vorzeichen.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Tippe auf die Linie oder den Zwischenraum des Zieltons. Brauchst du ein Vorzeichen, wähle vorher „<span class="vz-sharp"></span> Kreuz“ oder „<span class="vz-flat"></span> Be“.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'int6_rein')"><summary>Unsicher, wann ein Vorzeichen nötig ist?</summary><div class="lk-ask-a">Wenn die Halbtonschritte nicht passen: Von H bis F sind es nur 6, die reine Quinte braucht 7, also Fis. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int6_rein', false); return false">Ausführlich nachlesen ›</a></div></details>
