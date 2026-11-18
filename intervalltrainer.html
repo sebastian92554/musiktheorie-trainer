@@ -36,7 +36,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(to bottom right, #fff7ed, #fed7aa);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);   /* wie die Landing (Sebo 18.11.2026: ein Hintergrund für Halle und Zimmer) */
             min-height: 100vh;
             padding: 1rem;
             display: flex;
@@ -1070,7 +1070,7 @@
         /* Kopfband wie .site-header der Landing (Slate-Verlauf, Titel zentriert, Untertitel); „‹ Alle Trainer“ links und
            Konto rechts als weiße Textlinks im Band (Sebo 17.11.2026: kein Konto-Banner vor dem Lernen). Das Band läuft über
            den Rand von body (1rem, auf dem Handy 0.5rem; .level-screen hat im IT kein Padding) bis an den Fensterrand. */
-        .site-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 1.6rem 1.5rem 1.4rem; text-align: center; position: relative; margin: -1rem -1rem 1rem; }
+        .site-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 1.6rem 1.5rem 1.4rem; text-align: center; position: relative; margin: -1rem -1rem 1.5rem; }
         .site-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.35rem; letter-spacing: -0.02em; color: #fff; }
         .site-header p { font-size: 1.05rem; opacity: 0.85; max-width: 600px; margin: 0 auto; line-height: 1.5; }
         .band-links { position: absolute; top: 0.8rem; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
@@ -1084,7 +1084,7 @@
         /* Anker einer Blase (Coach Mark) pulsiert wie der Hilfe-Knopf beim Nudge: gefüllt + Ring */
         .band-links .account-bar .acc-btn.coach-target { background: #ea580c; opacity: 1; padding: 0.15rem 0.55rem; border-radius: 999px; box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.30); animation: helpNudgePulse 0.9s ease-in-out 3; }
         @media (max-width: 768px) {
-            .site-header { margin: -0.5rem -0.5rem 1rem; }
+            .site-header { margin: -0.5rem -0.5rem 1.5rem; }
         }
         @media (max-width: 599px) {
             .site-header { padding: 2.2rem 1rem 1.2rem; }
