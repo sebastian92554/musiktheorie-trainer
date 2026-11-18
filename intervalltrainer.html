@@ -1397,17 +1397,6 @@
     <div id="originalApp" class="level-screen">
     <div class="container" id="app">
 
-        <div class="modal-overlay" id="introModal">
-            <div class="modal">
-                <h2 id="introModalTitle">Intervalltrainer – Hilfe</h2>
-                <div id="introModalContent"></div>
-                <button onclick="app.closeIntro()">Verstanden!</button>
-                <button onclick="app.showFeedback()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
-                    Feedback geben
-                </button>
-            </div>
-        </div>
-
         <!-- Lernkarte Overlay -->
         <div class="lernkarte-overlay" id="lernkarteOverlay">
             <div class="lernkarte">
@@ -3285,7 +3274,6 @@
                 this.loadProgress();
                 this.updateAllProgress();
                 this.showQuickStart();
-                document.getElementById('introModal').classList.remove('active');
             },
 
             // ---- localStorage ----
@@ -9501,117 +9489,16 @@
                 // Hilfe geöffnet → Signal aus, help_nudge_followed melden.
                 quickStart.noteHelpOpened();
 
-                const titleEl = document.getElementById('introModalTitle');
-                const contentEl = document.getElementById('introModalContent');
-
                 const inExercise = quickStart.currentLevel !== null &&
                     !document.getElementById('quickStartScreen').classList.contains('active');
 
                 if (inExercise) {
-                    const level = quickStart.currentLevel;
-
                     // Lernkarte statt Hilfe-Modal zeigen (für alle Level mit Lernkarten)
                     const currentSubSkill = quickStart.currentOptions && quickStart.currentOptions[quickStart.currentOptions.length - 1];
                     if (currentSubSkill && this.showLernkarte(currentSubSkill)) {
                         return;
                     }
-                    const opts = quickStart.currentOptions;
-                    const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
-                    const nodeNames = { 'int1': 'Grobbestimmung', 'int2': 'Tastatur', 'int3': 'Halbtonschritte', 'int4': 'Feinbestimmung', 'int5': 'Alles kombiniert', 'int6': 'Tastatur bilden', 'int7': 'Notensystem schreiben' };
-                    const nodeName = nodeNames[nodeId] || '';
-
-                    titleEl.textContent = `Hilfe: ${nodeName}`;
-
-                    const helpTexts = {
-                        'einsteiger': {
-                            'basis': `<p><strong>Grundintervalle (Prime bis Oktave)</strong></p>
-                                <p>Du siehst zwei Noten im Notensystem. Bestimme das Intervall, indem du die Stufen von der unteren zur oberen Note abzählst.</p>
-                                <p><strong>Merkhilfe:</strong> Prime=1, Sekunde=2, Terz=3, Quarte=4, Quinte=5, Sexte=6, Septime=7, Oktave=8.</p>
-                                <p>Zähle die untere Note als 1 mit!</p>`,
-                            'extended': `<p><strong>Erweiterte Intervalle (None bis Duodezime)</strong></p>
-                                <p>Zusätzlich kommen jetzt Intervalle vor, die größer als eine Oktave sind: None (9), Dezime (10), Undezime (11), Duodezime (12).</p>
-                                <p><strong>Tipp:</strong> Eine None = Oktave + Sekunde, eine Dezime = Oktave + Terz usw.</p>`,
-                            'nohelp': `<p><strong>Ohne Dropdown (freie Eingabe)</strong></p>
-                                <p>Statt aus einem Dropdown zu wählen, gibst du den Intervallnamen direkt ein.</p>
-                                <p><strong>Akzeptierte Eingaben:</strong> z.B. "Terz", "Quinte", "Oktave" – Groß-/Kleinschreibung egal.</p>`
-                        },
-                        'aufsteiger': {
-                            'basis': `<p><strong>Stammtöne auf der Tastatur</strong></p>
-                                <p>Du siehst ein Intervall im Notensystem und musst beide Töne auf der Klaviatur finden.</p>
-                                <p>Klicke die zwei richtigen Tasten an.</p>`,
-                            'augdim': `<p><strong>Mit übermäßigen/verminderten Intervallen</strong></p>
-                                <p>Jetzt kommen auch übermäßige und verminderte Intervalle vor. Achte besonders auf die Vorzeichen!</p>`,
-                            'bothclefs': `<p><strong>Beide Schlüssel</strong></p>
-                                <p>Das Intervall kann im Violin- oder Bassschlüssel erscheinen. Achte auf den Schlüssel am Anfang der Notenzeile!</p>`
-                        },
-                        'profi': {
-                            'basis': `<p><strong>Halbtonschritte zählen</strong></p>
-                                <p>Zähle die Halbtonschritte zwischen den zwei Noten. Nutze die Klaviatur als Hilfe: Jeder Schritt zur nächsten Taste (weiß oder schwarz) ist ein Halbtonschritt.</p>`,
-                            'augdim': `<p><strong>Mit übermäßigen/verminderten Intervallen</strong></p>
-                                <p>Die Intervalle können übermäßig oder vermindert sein – die Halbtonschrittzahl weicht dann vom Standard ab.</p>`,
-                            'bothclefs': `<p><strong>Beide Schlüssel</strong></p>
-                                <p>Zähle die Halbtonschritte auch bei Noten im Bassschlüssel korrekt ab.</p>`,
-                            'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
-                                <p>Du bestimmst die Halbtonschritte jetzt rein visuell – ohne Hörbeispiel als Hilfe.</p>
-                                <p><strong>Methode:</strong> Halbtonschritte auf der Klaviatur abzählen. Das funktioniert immer!</p>`
-                        },
-                        'meister': {
-                            'rein': `<p><strong>Reine Intervalle</strong></p>
-                                <p>Lerne die vier reinen Intervalle: reine Prime (0 HS), reine Quarte (5 HS), reine Quinte (7 HS), reine Oktave (12 HS).</p>
-                                <p>Du bekommst abwechselnd HS-Zahlen oder Intervallnamen und gibst das Gegenstück ein.</p>`,
-                            'grossklein': `<p><strong>Große & kleine Intervalle</strong></p>
-                                <p>Sekunden und Terzen gibt es als große und kleine Variante. Sie leiten sich von den reinen Intervallen ab.</p>`,
-                            'komplement': `<p><strong>Komplementärintervalle</strong></p>
-                                <p>Zwei Intervalle ergänzen sich zu einer Oktave (12 HS). Du musst nur die Hälfte auswendig kennen!</p>
-                                <p><strong>Regeln:</strong> groß↔klein, rein↔rein, Summe = 12 HS.</p>`,
-                            'augdim': `<p><strong>Übermäßig & vermindert</strong></p>
-                                <p>Dieselbe HS-Zahl kann verschiedene Intervalle sein. Das Rahmenintervall entscheidet!</p>
-                                <p><strong>Beispiel:</strong> 6 HS mit Rahmenintervall Quarte → ü4, mit Quinte → v5.</p>`,
-                            'alles': `<p><strong>Alle Typen gemischt</strong></p>
-                                <p>Alle Aufgabentypen kommen vor: HS↔Name, Komplementäre, Disambiguierung.</p>`
-                        },
-                        'experte': {
-                            'basis': `<p><strong>Grundbestimmung (rein, groß, klein)</strong></p>
-                                <p>Bestimme das Intervall mit seiner Feinbestimmung: reine Quarte, große Terz, kleine Sexte usw.</p>
-                                <p><strong>Reine Intervalle:</strong> Prime, Quarte, Quinte, Oktave.</p>
-                                <p><strong>Große/Kleine:</strong> Sekunde, Terz, Sexte, Septime.</p>`,
-                            'augdim': `<p><strong>Mit übermäßig/vermindert</strong></p>
-                                <p>Zusätzlich kommen übermäßige und verminderte Intervalle vor. Ein übermäßiges Intervall ist einen Halbton größer, ein vermindertes einen Halbton kleiner als die Grundform.</p>`,
-                            'extended': `<p><strong>Erweiterte Intervalle</strong></p>
-                                <p>Bestimme auch Intervalle jenseits der Oktave präzise (z.B. große None, kleine Dezime).</p>`,
-                            'bothclefs': `<p><strong>Beide Schlüssel</strong></p>
-                                <p>Das Intervall kann in jedem Schlüssel erscheinen. Die Feinbestimmung bleibt gleich.</p>`,
-                            'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
-                                <p>Du bestimmst die Intervalle jetzt rein visuell – ohne Hörbeispiel als Hilfe.</p>
-                                <p><strong>Methode:</strong> Halbtonschritte zählen und die Feinbestimmung ableiten. Alles rein aus der Notation!</p>`
-                        }
-                    };
-
-                    let html = '';
-                    const levelHelp = helpTexts[level] || {};
-                    if (opts && opts.length > 0) {
-                        for (const opt of opts) {
-                            if (levelHelp[opt]) html += levelHelp[opt];
-                        }
-                    }
-                    if (!html) html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Übung als bestanden.</p>';
-                    contentEl.innerHTML = html;
-                } else {
-                    titleEl.textContent = 'Intervalltrainer – Hilfe';
-                    contentEl.innerHTML = `
-                        <p>Willkommen im <strong>Intervalltrainer</strong>! Hier lernst du Schritt für Schritt, Intervalle sicher zu erkennen und zu bestimmen.</p>
-                        <p><strong>So funktioniert's:</strong></p>
-                        <p>Dein Lernpfad besteht aus fünf Kompetenz-Knoten. Klicke auf einen Knoten, um die Übungen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Übung anklicken.</p>
-                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Übung als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
-                        <p><strong>Voraussetzung:</strong> Grundlegende Notenkenntnisse (Notentrainer).</p>
-                    `;
                 }
-
-                document.getElementById('introModal').classList.add('active');
-            },
-
-            closeIntro() {
-                document.getElementById('introModal').classList.remove('active');
             },
 
             // ===== AUDIO ENGINE (Web Audio API, identisch zum DT) =====
@@ -9702,7 +9589,6 @@
             },
 
             showFeedback() {
-                document.getElementById('introModal').classList.remove('active');
                 const modal = document.getElementById('feedbackModal');
                 document.body.appendChild(modal);
                 modal.classList.add('active');

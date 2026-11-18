@@ -1487,18 +1487,6 @@
     <!-- ORIGINAL APP (wird versteckt wenn Quick-Start aktiv) -->
     <div id="originalApp" class="level-screen">
     <div class="container" id="app">
-        <!-- Modal -->
-        <div class="modal-overlay" id="introModal">
-            <div class="modal">
-                <h2 id="introModalTitle">Dreiklangstrainer – Hilfe</h2>
-                <div id="introModalContent"></div>
-                <button onclick="app.closeIntro()">Verstanden!</button>
-                <button onclick="app.showFeedback()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
-                    Feedback geben
-                </button>
-            </div>
-        </div>
-
         <!-- Lernkarte Overlay -->
         <div class="lernkarte-overlay" id="lernkarteOverlay">
             <div class="lernkarte">
@@ -9621,9 +9609,6 @@ const _lernkartenContent = {
                 // Hilfe geöffnet → Signal aus, help_nudge_followed melden.
                 quickStart.noteHelpOpened();
 
-                const titleEl = document.getElementById('introModalTitle');
-                const contentEl = document.getElementById('introModalContent');
-
                 // Prüfe ob wir in einer Übung sind oder im Menü
                 const inExercise = quickStart.currentLevel !== null &&
                     !document.getElementById('quickStartScreen').classList.contains('active');
@@ -9632,152 +9617,10 @@ const _lernkartenContent = {
                     // Lernkarte anzeigen statt altem Hilfe-Modal
                     const currentSub = quickStart.currentOptions[quickStart.currentOptions.length - 1];
                     if (currentSub && this.showLernkarte(currentSub, false)) return;
-
-                    // Fallback: altes Hilfe-Modal (falls keine Lernkarte vorhanden)
-                    const level = quickStart.currentLevel;
-                    const opts = quickStart.currentOptions;
-                    const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
-                    const subs = quickStart.nodeSubSkills[nodeId];
-                    const nodeNames = { 'drei1': 'Tastaturorientierung', 'drei2': 'Terzen bestimmen', 'drei3': 'Dreiklänge benennen', 'drei4': 'Umkehrungen' };
-                    const nodeName = nodeNames[nodeId] || '';
-
-                    titleEl.textContent = `Hilfe: ${nodeName}`;
-
-                    const helpTexts = {
-                        'einsteiger': {
-                            'basis': `<p><strong>Basis: Dur & Moll erkennen</strong></p>
-                                <p>Du siehst einen Dreiklang im Notensystem. Finde die drei Töne auf der Tastatur!</p>
-                                <p><strong>Struktur:</strong><br>
-                                • Dur-Dreiklang: Große Terz (4 HS) + kleine Terz (3 HS) = 7 HS<br>
-                                • Moll-Dreiklang: Kleine Terz (3 HS) + große Terz (4 HS) = 7 HS</p>
-                                <p><strong>Tipp:</strong> Lies die Noten ab und klicke die passenden Tasten auf der Tastatur! Über die Wiedergabe des Hörbeispiels kannst du den Klang vergleichen – Dur klingt hell und fröhlich, Moll klingt dunkel und weich.</p>`,
-                            'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
-                                <p>Die Dreiklänge enthalten jetzt Vorzeichen (♯, ♭). Die Abstände zwischen den Tönen bleiben gleich – nur die Grundtöne ändern sich.</p>
-                                <p><strong>Beispiele:</strong> F♯-Dur, A♭-Moll, D♯-Moll</p>
-                                <p><strong>Tipp:</strong> Achte auf die Vorzeichen vor den Noten – sie zeigen dir die schwarzen Tasten!</p>`,
-                            'range': `<p><strong>Großer Tonumfang</strong></p>
-                                <p>Die Töne des Dreiklangs können jetzt in verschiedenen Oktaven vorkommen. Die Tastatur zeigt dir einen größeren Ausschnitt.</p>
-                                <p><strong>Tipp:</strong> Konzentriere dich auf die Notennamen, nicht auf ihre Position im System!</p>`
-                        },
-                        'aufsteiger': {
-                            'basis': `<p><strong>Terzen bestimmen: Basis</strong></p>
-                                <p>Zähle die Halbtonschritte (HS) zwischen den Tönen des Dreiklangs auf der Tastatur.</p>
-                                <p><strong>Dur-Dreiklang:</strong> Große Terz (4 HS) + kleine Terz (3 HS) = 7 HS</p>
-                                <p><strong>Moll-Dreiklang:</strong> Kleine Terz (3 HS) + große Terz (4 HS) = 7 HS</p>
-                                <p><strong>Tipp:</strong> Zähle die Halbtonschritte auf der Tastatur – schwarze Tasten mitzählen!</p>`,
-                            'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
-                                <p>Die Dreiklänge enthalten jetzt Vorzeichen (♯, ♭). Die Halbtonschritte verraten weiterhin den Typ!</p>
-                                <p><strong>Tipp:</strong> Achte auf die Vorzeichen vor den Noten – sie verschieben die Töne auf der Tastatur.</p>`,
-                            'augmented': `<p><strong>+ Übermäßig & Vermindert</strong></p>
-                                <p>Zusätzlich zu Dur und Moll gibt es zwei weitere Dreiklangtypen:</p>
-                                <p><strong>Übermäßiger Dreiklang:</strong> Große Terz (4 HS) + große Terz (4 HS) = 8 HS</p>
-                                <p><strong>Verminderter Dreiklang:</strong> Kleine Terz (3 HS) + kleine Terz (3 HS) = 6 HS</p>
-                                <p><strong>Klangcharakter:</strong> Übermäßig klingt schwebend und spannungsvoll, Vermindert klingt angespannt und drängend.</p>`,
-                            'range': `<p><strong>Großer Tonumfang</strong></p>
-                                <p>Die Töne können jetzt in verschiedenen Oktaven vorkommen.</p>
-                                <p><strong>Tipp:</strong> Zähle die Halbtonschritte zwischen den Tönen – das funktioniert immer!</p>`,
-                            'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
-                                <p>Du erkennst die Dreiklänge jetzt rein visuell – ohne Hörbeispiel als Hilfe.</p>
-                                <p><strong>Methode:</strong> Halbtonschritte zählen: 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</p>`
-                        },
-                        'profi': {
-                            'basis': `<p><strong>Dreiklänge benennen: Basis</strong></p>
-                                <p>Bestimme den Namen des Dreiklangs — Grundton + Typ (z.B. „C-Dur", „a-Moll").</p>
-                                <p><strong>Methode:</strong> Lies den tiefsten Ton ab (= Grundton), bestimme den Typ über die Halbtonschritte.</p>`,
-                            'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
-                                <p>Die Dreiklänge enthalten jetzt Vorzeichen (♯, ♭).</p>
-                                <p><strong>Beispiele:</strong> F♯-Dur, A♭-Moll, D♯-Moll</p>
-                                <p><strong>Tipp:</strong> Achte auf die Vorzeichen – sie bestimmen den Grundtonnamen!</p>`,
-                            'augmented': `<p><strong>+ Übermäßig & Vermindert</strong></p>
-                                <p>Alle vier Dreiklangtypen können jetzt vorkommen.</p>
-                                <p><strong>Zur Erinnerung:</strong> 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</p>`,
-                            'range': `<p><strong>Großer Tonumfang</strong></p>
-                                <p>Die Töne können jetzt in verschiedenen Oktaven vorkommen.</p>
-                                <p><strong>Methode:</strong> Grundton und Typ bestimmen – die Oktavlage ändert nichts am Namen!</p>`,
-                            'doubleAccidentals': `<p><strong>Mit Doppelvorzeichen</strong></p>
-                                <p>Doppelkreuz (𝄪): Notennamen mit <em>-isis</em> (C → Cisis, F → Fisis)</p>
-                                <p>Doppel-B (𝄫): Notennamen mit <em>-eses</em> (D → Deses, A → Asas)</p>
-                                <p><strong>Enharmonik:</strong> Cisis klingt wie D, Deses klingt wie C – gleicher Ton, andere Schreibweise!</p>`,
-                            'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
-                                <p>Dreiklänge rein visuell benennen – ohne Hörbeispiel als Hilfe.</p>
-                                <p><strong>Methode:</strong> Grundton ablesen, Halbtonschritte zählen, Typ bestimmen!</p>`
-                        },
-                        'meister': {
-                            'basis': `<p><strong>Umkehrungen: Basis</strong></p>
-                                <p>Ein Dreiklang kann in verschiedenen Stellungen auftreten. Der tiefste Ton bestimmt die Stellung:</p>
-                                <p><strong>Grundstellung:</strong> Grundton unten (C-E-G)<br>
-                                <strong>1. Umkehrung:</strong> Terzton unten (E-G-C)<br>
-                                <strong>2. Umkehrung:</strong> Quintton unten (G-C-E)</p>
-                                <p><strong>Methode:</strong> Oktaviere den tiefsten Ton nach oben, bis die Töne in Terzschichtung stehen. Der unterste Ton der Grundstellung ist der Grundton!</p>`,
-                            'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
-                                <p>Umkehrungen mit Vorzeichen (♯, ♭). Die Methode bleibt gleich!</p>
-                                <p><strong>Tipp:</strong> Oktaviere den tiefsten Ton → Grundstellung → Halbtonschritte zählen.</p>`,
-                            'augmented': `<p><strong>+ Übermäßig & Vermindert</strong></p>
-                                <p>Alle vier Dreiklangtypen in allen Umkehrungen.</p>
-                                <p><strong>Zur Erinnerung:</strong> 4+3=Dur, 3+4=Moll, 4+4=Übermäßig, 3+3=Vermindert.</p>`,
-                            'range': `<p><strong>Großer Tonumfang</strong></p>
-                                <p>Alle Umkehrungen, alle Typen, große Tonumfänge.</p>
-                                <p><strong>Methode:</strong> Immer gleich: Tiefsten Ton oktavieren → Grundstellung → Halbtonschritte zählen!</p>`,
-                            'noaudio': `<p><strong>Ohne Hörbeispiel</strong></p>
-                                <p>Umkehrungen rein visuell erkennen – ohne Hörbeispiel als Hilfe.</p>
-                                <p><strong>Methode:</strong> Tiefsten Ton oktavieren → Grundstellung → Halbtonschritte zählen. Alles rein aus der Notation!</p>`,
-                            'doubleAccidentals': `<p><strong>Mit Doppelvorzeichen</strong></p>
-                                <p>Umkehrungen mit Doppelkreuz (𝄪) und Doppel-B (𝄫).</p>
-                                <p><strong>Beispiele:</strong> Cisis-Dur (1. Umkehrung), Ases-Moll (2. Umkehrung)</p>
-                                <p><strong>Methode:</strong> Wie immer: Oktaviere den tiefsten Ton nach oben. Die Halbtonschritte verraten den Typ!</p>`
-                        }
-                    };
-
-                    // Zeige Hilfe für die aktive(n) Option(en)
-                    let html = '';
-                    const levelHelp = helpTexts[level] || {};
-                    if (opts && opts.length > 0) {
-                        for (const opt of opts) {
-                            if (levelHelp[opt]) {
-                                html += levelHelp[opt];
-                            }
-                        }
-                    }
-                    if (!html) {
-                        html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% (8 von 10) gilt die Übung als bestanden. Beim Überspringen: 90% (9 von 10).</p>';
-                    }
-                    contentEl.innerHTML = html;
-
-                } else if (document.getElementById('originalApp').classList.contains('active') && !app.quickStartMode) {
-                    // Freies Üben: Hilfe mit Hinweis auf Einstellungen
-                    titleEl.textContent = 'Freies Üben – Hilfe';
-                    contentEl.innerHTML = `
-                        <p>Im <strong>Freien Üben</strong> trainierst du ohne Bewertung und ohne Zeitdruck. Alle Dreiklang-Typen und Einstellungen stehen dir zur Verfügung.</p>
-                        <p><strong>Eigene Schwerpunkte setzen:</strong> Über das Zahnrad-Symbol (⚙) oben rechts kannst du die Einstellungen öffnen und selbst bestimmen, was geübt wird:</p>
-                        <p>• <strong>Halbtonschritte bestimmen</strong> – HS-Eingabe neben dem Notensystem<br>
-                        • <strong>Übermäßige & verminderte Dreiklänge</strong> – alle 4 Typen<br>
-                        • <strong>Erweiterte Tonarten</strong> – mehr Vorzeichen<br>
-                        • <strong>Doppelvorzeichen</strong> – Cisis, Eses, etc.<br>
-                        • <strong>Umkehrungen</strong> – Grundstellung, 1. und 2. Umkehrung<br>
-                        • <strong>Tastatur-Eingabe</strong> – Töne auf der Klaviatur finden</p>
-                        <p><strong>Tipp:</strong> Über die Wiedergabe des Hörbeispiels neben dem Notensystem kannst du den Dreiklang anhören!</p>
-                    `;
-                } else {
-                    // Menü-Ansicht: Allgemeine Hilfe
-                    titleEl.textContent = 'Dreiklangstrainer – Hilfe';
-                    contentEl.innerHTML = `
-                        <p>Willkommen im <strong>Dreiklangstrainer</strong>! Hier lernst du Schritt für Schritt, Dreiklänge zu erkennen und zu benennen.</p>
-                        <p><strong>So funktioniert's:</strong></p>
-                        <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Übungen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Übung anklicken.</p>
-                        <p><strong>Bewertung:</strong> Ab 80% (8 von 10) gilt eine Übung als bestanden. Beim Überspringen von Stufen brauchst du 90% (9 von 10). Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
-                        <p><strong>Dreiklang-Arten:</strong> Dur (hell), Moll (dunkel), Übermäßig (spannungsvoll), Vermindert (angespannt).</p>
-                    `;
                 }
-
-                document.getElementById('introModal').classList.add('active');
-            },
-
-            closeIntro() {
-                document.getElementById('introModal').classList.remove('active');
             },
 
             showFeedback() {
-                document.getElementById('introModal').classList.remove('active');
                 const modal = document.getElementById('feedbackModal');
                 document.body.appendChild(modal);
                 modal.classList.add('active');
