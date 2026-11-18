@@ -1754,24 +1754,6 @@
             </div>
         </div>
 
-        <!-- Intro/Hilfe Modal -->
-
-        <div class="modal-overlay" id="introModal">
-            <div class="modal">
-                <h2 id="introModalTitle">Tonleitertrainer – Hilfe</h2>
-
-                <div id="introModalContent">
-                    <!-- Wird dynamisch befüllt je nach aktiver Übung -->
-                </div>
-
-                <button onclick="app.closeIntro()">Verstanden!</button>
-
-                <button onclick="app.showFeedbackModal()" style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #4b5563; margin-top: 0.5rem;">
-                    Feedback geben
-                </button>
-            </div>
-        </div>
-
         <!-- Feedback Modal -->
         <div class="modal-overlay" id="feedbackModal">
             <div class="modal">
@@ -3932,7 +3914,6 @@
             this.loadProgress();
             this.updateAllProgress();
             this.showQuickStart();
-            document.getElementById('introModal').classList.remove('active');
         },
 
         // ---- localStorage ----
@@ -10470,9 +10451,6 @@
             // Hilfe geöffnet → Signal aus, help_nudge_followed melden.
             quickStart.noteHelpOpened();
 
-            const titleEl = document.getElementById('introModalTitle');
-            const contentEl = document.getElementById('introModalContent');
-
             // Prüfe ob wir in einer Übung sind oder im Menü
             const inExercise = quickStart.currentLevel !== null &&
                 !document.getElementById('quickStartScreen').classList.contains('active');
@@ -10481,121 +10459,13 @@
                 // Lernkarte zuerst versuchen (höchster aktiver Sub-Skill)
                 const currentSubSkill = quickStart.currentOptions[quickStart.currentOptions.length - 1];
                 if (currentSubSkill && app.showLernkarte(currentSubSkill, false)) {
-                    return; // Lernkarte gezeigt, kein Hilfe-Modal nötig
+                    return;
                 }
-
-                const level = quickStart.currentLevel;
-                const opts = quickStart.currentOptions;
-                const nodeId = Object.keys(quickStart.nodeToLevel).find(k => quickStart.nodeToLevel[k] === level);
-                const subs = quickStart.nodeSubSkills[nodeId];
-                const nodeNames = { 'ton1': 'Ganzton / Halbton', 'ton2': 'Halbtonschritte finden', 'ton3': 'Tonleiter benennen', 'ton4': 'Tonleiter bilden', 'ton5': 'Quintenzirkel' };
-                const nodeName = nodeNames[nodeId] || '';
-
-                titleEl.textContent = `Hilfe: ${nodeName}`;
-
-                const helpTexts = {
-                    'einsteiger': {
-                        'basis': `<p><strong>Stammtöne (C, D, E, F, G, A, H)</strong></p>
-                            <p>Du hörst zwei Töne nacheinander. Entscheide: Ist der Abstand ein <strong>Ganztonschritt</strong> (2 Halbtonschritte) oder ein <strong>Halbtonschritt</strong> (1 Halbtonschritt)?</p>
-                            <p><strong>Merkhilfe:</strong> Zwischen E–F und H–C liegt immer ein Halbtonschritt. Alle anderen Nachbartöne (C–D, D–E, F–G, G–A, A–H) sind Ganztonschritte.</p>
-                            <p>Nutze die Klaviatur unten als Orientierung!</p>`,
-                        'vorzeichen': `<p><strong>Mit Vorzeichen</strong></p>
-                            <p>Jetzt kommen auch Töne mit ♯ und ♭ vor. Der Abstand zwischen zwei Tönen kann ein Ganzton- oder Halbtonschritt sein.</p>
-                            <p><strong>Tipp:</strong> Schau auf die Klaviatur – schwarze Tasten liegen immer einen Halbtonschritt neben weißen Tasten.</p>`
-                    },
-                    'aufsteiger': {
-                        'basis': `<p><strong>Halbtonschritte wählen (Dur &amp; Moll)</strong></p>
-                            <p>Du siehst eine Tonleiter und musst die Stufen markieren, an denen ein <strong>Halbtonschritt</strong> liegt.</p>
-                            <p><strong>Dur-Tonleiter:</strong> Halbtonschritte zwischen Stufe 3–4 und 7–8.</p>
-                            <p><strong>Moll-Tonleiter (natürlich):</strong> Halbtonschritte zwischen Stufe 2–3 und 5–6.</p>`,
-                        'stufenpaare': `<p><strong>Halbton-Paare auswählen</strong></p>
-                            <p>Wähle die richtigen Stufenpaare aus, an denen die Halbtonschritte liegen. Du musst beide Paare korrekt markieren.</p>
-                            <p><strong>Tipp:</strong> Zähle die Stufen der Tonleiter durch und prüfe an jeder Stelle, ob der nächste Ton einen halben oder ganzen Schritt entfernt ist.</p>`,
-                        'mehr_tonarten': `<p><strong>Erweiterte Tonarten</strong></p>
-                            <p>Zusätzlich zu den Grundtonarten kommen jetzt weitere Tonarten mit mehreren Vorzeichen dazu.</p>
-                            <p>Die Regel bleibt gleich – finde die Halbtonschritte!</p>`
-                    },
-                    'profi': {
-                        'muster_lernen': `<p><strong>Tongeschlecht bestimmen (Dur / Moll / Andere)</strong></p>
-                            <p>Du siehst eine Tonleiter und musst erkennen, ob es sich um <strong>Dur</strong>, <strong>Moll</strong> oder eine <strong>andere Tonleiter</strong> handelt.</p>
-                            <p><strong>Tipp:</strong> Schau dir die Halbtonschritte an – sie verraten das Tongeschlecht!</p>`,
-                        'muster_erkennen': `<p><strong>Halbtonschritte finden + Tonleiter benennen</strong></p>
-                            <p>Finde zuerst die Halbtonschritte, dann benenne die Tonleiter (z.B. „C-Dur" oder „a-Moll").</p>
-                            <p>Du brauchst beides: die Halbtonschritt-Positionen UND den Grundton.</p>`,
-                        'alles': `<p><strong>Alle Tonleitern benennen</strong></p>
-                            <p>Jetzt kommen alle Tonleitern vor – Dur, Moll und weitere. Benenne die Tonleiter korrekt.</p>
-                            <p>Du musst Tongeschlecht und Grundton erkennen.</p>`,
-                        'ohne_hilfe': `<p><strong>Ohne Klaviatur-Hilfe</strong></p>
-                            <p>Die Klaviatur wird ausgeblendet. Du musst die Halbtonschritte und Tonleitern aus dem Kopf erkennen.</p>
-                            <p><strong>Tipp:</strong> Denke dir die Klaviatur vor deinem inneren Auge vor!</p>`
-                    },
-                    'meister': {
-                        'aussenkr': `<p><strong>Außenkreis + Merksätze</strong></p>
-                            <p>Der <strong>Quintenzirkel</strong> ordnet alle Dur-Tonarten im Kreis an. Im Uhrzeigersinn kommen die <strong>Kreuz-Tonarten</strong> hinzu, gegen den Uhrzeigersinn die <strong>b-Tonarten</strong>.</p>
-                            <p><strong>Merksatz Kreuz-Tonarten:</strong> <em>„Geh Du Alter Esel Hole Fische"</em> → G (1♯), D (2♯), A (3♯), E (4♯), H (5♯), Fis (6♯)</p>
-                            <p><strong>Merksatz b-Tonarten:</strong> <em>„Freche Buben Essen Aspirin Deshalb Gesund"</em> → F (1♭), B (2♭), Es (3♭), As (4♭), Des (5♭), Ges (6♭)</p>
-                            <p>C-Dur steht ganz oben und hat keine Vorzeichen.</p>`,
-                        'innenkr': `<p><strong>Innenkreis + Mollparallelen</strong></p>
-                            <p>Jede Dur-Tonart hat eine <strong>parallele Molltonart</strong>, die dieselben Vorzeichen teilt. Die Mollparallele liegt eine <strong>kleine Terz tiefer</strong> (3 Halbtöne).</p>
-                            <p><strong>Beispiele:</strong> C-Dur → a-Moll, G-Dur → e-Moll, F-Dur → d-Moll</p>
-                            <p>Im Quintenzirkel stehen die Molltonarten im Innenkreis, direkt neben ihrer Dur-Parallele.</p>`,
-                        'vorz_ableitung': `<p><strong>Vorzeichen-Ableitung</strong></p>
-                            <p>Die Vorzeichen einer Tonart lassen sich direkt aus dem Quintenzirkel ablesen:</p>
-                            <p><strong>Kreuz-Tonarten:</strong> Gehe 2 Stellen im Uhrzeigersinn vor – das ergibt das nächste Kreuz-Vorzeichen. G-Dur → Fis, D-Dur → Fis + Cis, usw.</p>
-                            <p><strong>b-Tonarten:</strong> Gehe 1 Stelle gegen den Uhrzeigersinn zurück – das ergibt das nächste b-Vorzeichen. F-Dur → B, B-Dur → B + Es, usw.</p>
-                            <p>Der <strong>Leitton</strong> ist immer das letzte hinzukommende Kreuz-Vorzeichen — er liegt einen Halbton unter dem Grundton.</p>`,
-                        'symmetrien': `<p><strong>Symmetrien im Quintenzirkel</strong></p>
-                            <p><strong>Tritonus:</strong> Tonarten, die sich im Quintenzirkel gegenüberliegen (6 Quinten Abstand), bilden ein Tritonus-Paar. Beispiel: C ↔ Fis.</p>
-                            <p><strong>Großterz-Dreieck:</strong> Drei Tonarten im Abstand von jeweils 4 Quinten bilden ein gleichseitiges Dreieck. Beispiel: C – E – As.</p>
-                            <p><strong>Kleinterz-Raute:</strong> Vier Tonarten im Abstand von jeweils 3 Quinten bilden eine Raute. Beispiel: C – Es – Fis – A.</p>`,
-                        'verwandte': `<p><strong>Verwandte Tonarten</strong></p>
-                            <p>Tonarten, die im Quintenzirkel direkt <strong>nebeneinander</strong> stehen, sind eng verwandt — sie unterscheiden sich nur um ein Vorzeichen und teilen die meisten Töne.</p>
-                            <p><strong>Beispiel:</strong> G-Dur (1♯) hat als Nachbarn C-Dur (0) und D-Dur (2♯). Alle drei Tonarten teilen fast alle Töne.</p>
-                            <p>Je weiter Tonarten im Quintenzirkel voneinander entfernt sind, desto weniger Töne teilen sie.</p>`,
-                        'enharmonisch': `<p><strong>Enharmonische Verwechslung</strong></p>
-                            <p>Am „Boden" des Quintenzirkels treffen sich Kreuz- und b-Tonarten, die <strong>gleich klingen</strong>, aber unterschiedlich geschrieben werden.</p>
-                            <p><strong>Paare:</strong> Fis-Dur = Ges-Dur, H-Dur = Ces-Dur, Cis-Dur = Des-Dur</p>
-                            <p>Diese heißen <strong>enharmonische Verwechslungen</strong> — gleicher Klang, anderer Name.</p>`
-                    }
-                };
-
-                // Zeige Hilfe für die aktive(n) Option(en)
-                let html = '';
-                const levelHelp = helpTexts[level] || {};
-                if (opts && opts.length > 0) {
-                    for (const opt of opts) {
-                        if (levelHelp[opt]) {
-                            html += levelHelp[opt];
-                        }
-                    }
-                }
-                if (!html) {
-                    html = '<p>Bearbeite die Aufgaben auf dem Bildschirm. Bei 80% richtigen Antworten (8 von 10) gilt die Übung als bestanden.</p>';
-                }
-                contentEl.innerHTML = html;
-
-            } else {
-                // Menü-Ansicht: Allgemeine Hilfe
-                titleEl.textContent = 'Tonleitertrainer – Hilfe';
-                contentEl.innerHTML = `
-                    <p>Willkommen im <strong>Tonleitertrainer</strong>! Hier lernst du Schritt für Schritt, Tonleitern zu erkennen und zu benennen.</p>
-                    <p><strong>So funktioniert's:</strong></p>
-                    <p>Dein Lernpfad besteht aus vier Kompetenz-Knoten. Klicke auf einen Knoten, um die Übungen zu sehen. Der Trainer schlägt dir automatisch die nächste Übung vor – du kannst aber auch eine bestimmte Übung anklicken.</p>
-                    <p><strong>Bewertung:</strong> Ab 80% (8 von 10 richtig) gilt eine Übung als bestanden. Je nach Ergebnis erhältst du 1–3 Sterne (80% / 90% / 100%).</p>
-                    <p><strong>Voraussetzung:</strong> Grundlegende Notenkenntnisse (Notentrainer: Vorzeichen &amp; Bassschlüssel).</p>
-                `;
             }
-
-            document.getElementById('introModal').classList.add('active');
-        },
-
-        closeIntro() {
-            document.getElementById('introModal').classList.remove('active');
         },
 
         // ---- Feedback Modal ----
         showFeedbackModal() {
-            document.getElementById('introModal').classList.remove('active');
             const modal = document.getElementById('feedbackModal');
             document.body.appendChild(modal);
             modal.classList.add('active');
