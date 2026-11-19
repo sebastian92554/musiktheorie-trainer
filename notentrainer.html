@@ -24,8 +24,8 @@
 
     <link rel="canonical" href="https://musiktheorie-trainer.de/notentrainer.html">
 
-    <!-- Favicon: Notentrainer-Icon (Indigo) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%234f46e5' stroke='%234f46e5'%3E%3Cline x1='5' y1='9' x2='19' y2='9' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cline x1='5' y1='13' x2='19' y2='13' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cline x1='5' y1='17' x2='19' y2='17' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cellipse cx='12' cy='13' rx='2.6' ry='2.0' stroke='none' transform='rotate(-18 12 13)'/%3E%3C/g%3E%3C/svg%3E">
+    <!-- Favicon: Notentrainer-Icon (Blau) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%232563eb' stroke='%232563eb'%3E%3Cline x1='5' y1='9' x2='19' y2='9' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cline x1='5' y1='13' x2='19' y2='13' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cline x1='5' y1='17' x2='19' y2='17' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cellipse cx='12' cy='13' rx='2.6' ry='2.0' stroke='none' transform='rotate(-18 12 13)'/%3E%3C/g%3E%3C/svg%3E">
 
     <style>
         * {
@@ -78,7 +78,7 @@
 
         .task-instruction {
             background: #eff6ff;
-            border: 1px solid #c7d2fe;
+            border: 1px solid #cbd5e1;
             border-radius: 10px;
             padding: 10px 14px;
             margin: 0 0 0.5rem 0;
@@ -89,31 +89,11 @@
         .task-instruction-text {
             font-size: 1.05rem;
             font-weight: 600;
-            color: #3730a3;
+            color: #0f172a;
         }
         @media (max-width: 768px) {
             .task-instruction { padding: 8px 12px; }
             .task-instruction-text { font-size: 1rem; }
-        }
-
-        .header {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .title {
-            font-size: 1.875rem;
-            font-weight: bold;
-            color: #312e81;
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: 1.5rem;
-            }
         }
 
         .btn {
@@ -130,7 +110,7 @@
         }
 
         .btn-primary {
-            background: #4f46e5;
+            background: #334155;
             color: white;
             padding: 0.5rem 1rem;
             font-weight: 600;
@@ -141,10 +121,10 @@
         }
 
         .btn-primary:hover {
-            background: #4338ca;
+            background: #1e293b;
         }
 
-        /* ===== SKILLTREE STYLES (Indigo) ===== */
+        /* ===== SKILLTREE STYLES (Slate als Aktionsfarbe, Akzente in Blau – seit 19.11.2026) ===== */
         /* Skilltree Container: 900 px wie die Landing (Sebo 18.11.2026: die Trainer nähern sich der Landing an) */
         .skilltree-container {
             max-width: 900px;
@@ -166,14 +146,29 @@
         .band-links .account-bar .acc-who { font-size: 0.8rem; color: #fff; }
         .band-links .account-bar .acc-who small { color: #cbd5e1; }
         /* Anker einer Blase (Coach Mark) pulsiert wie der Hilfe-Knopf beim Nudge: gefüllt + Ring */
-        .band-links .account-bar .acc-btn.coach-target { background: #4f46e5; opacity: 1; padding: 0.15rem 0.55rem; border-radius: 999px; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.30); animation: helpNudgePulse 0.9s ease-in-out 3; }
+        .band-links .account-bar .acc-btn.coach-target { background: #334155; opacity: 1; padding: 0.15rem 0.55rem; border-radius: 999px; box-shadow: 0 0 0 4px rgba(51,65,85, 0.30); animation: helpNudgePulse 0.9s ease-in-out 3; }
         @media (max-width: 599px) {
             .site-header { padding: 2.2rem 1rem 1.2rem; }
             .site-header h1 { font-size: 1.5rem; }
             .site-header p { font-size: 0.9rem; }
         }
+        /* Handy: zwei Zeilen für die Unterzeile reservieren – das Band bleibt auf Landing, Skilltree und Übung gleich hoch, auch wenn die Übungszeile umbricht (Sebo 19.11.2026) */
+        @media (max-width: 599px) { .site-header p { min-height: 3em; } }
         /* unter 768 px hat body nur 0,5rem Rand (+1rem .level-screen): Band bis an den Fensterrand, nicht darüber hinaus */
         @media (max-width: 768px) { .site-header { margin: -1.5rem -1.5rem 1.5rem; } }
+        /* Trainer-Symbol (wie auf der Landing-Karte) frei auf dem Band, in der hellen Trainerfarbe (Blau; Sebo 19.11.2026:
+           eine Aktionsfarbe für alle Trainer, die Trainerfarbe nur als Etikett und Akzent) */
+        .site-header h1 { display: inline-flex; align-items: center; gap: 0.45em; }
+        .band-icon { color: #60a5fa; display: inline-flex; flex-shrink: 0; }
+        .band-icon svg { width: 1.25em; height: 1.25em; }
+        /* Übungsseite: dasselbe Band statt der weißen Kopfkarte (Entwurf _entwicklung/mock_aktionsfarbe.html). Steht in #originalApp vor
+           .container, darum gelten die Ränder von .site-header; der Fortschrittsbalken ist der untere Rand des Bands. */
+        .site-header-quiz .header-exercise-info { margin-top: 0; }
+        .site-header-quiz .band-sub { margin: 0 auto; }
+        .site-header-quiz .header-exercise-task { color: #fff; opacity: 0.85; font-size: 0.9rem; margin-top: 2px; }
+        .site-header-quiz .header-exercise-task:empty { display: none; }
+        .site-header-quiz .header-progress-dual { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; margin: 0; border-radius: 0; background: rgba(255, 255, 255, 0.28); }
+        .site-header-quiz .header-progress-total, .site-header-quiz .header-progress-correct { border-radius: 0; }
 
         /* Skilltree Card */
         .skilltree-card {
@@ -199,12 +194,12 @@
             gap: 0.3rem;
             font-size: 0.8rem;
             font-weight: 500;
-            color: #4f46e5;
+            color: #334155;
             text-decoration: none;
             cursor: pointer;
             transition: color 0.2s;
         }
-        .st-home-link:hover { color: #4338ca; }
+        .st-home-link:hover { color: #1e293b; }
         .st-home-link svg { flex-shrink: 0; }
 
         /* ---- Skilltree als Landkarte mit Hauptaktion (seit 17.11.2026, Entwurf _entwicklung/mock_nt_skilltree_neu.html) ----
@@ -212,9 +207,9 @@
            Start-Knopf zwei Ebenen tief, Nummern gegen die Anordnung, kein sichtbarer Stand). Jetzt: oben eine Hauptaktion
            („Hier geht's weiter“), darunter die Knoten als Liste mit Ring, Sternen, Haken; der nächste Knoten in Trainerfarbe;
            ein Tipp auf eine Übungszeile startet; die zwei Wege nebeneinander in einem Rahmen „Reihenfolge egal“. */
-        .st-next-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #4f46e5; margin-bottom: 0.35rem; }
-        .st-next { display: flex; align-items: center; gap: 0.8rem; width: 100%; background: #4f46e5; color: #fff; border: none; border-radius: 0.7rem; padding: 0.85rem 1rem; text-align: left; cursor: pointer; font-family: inherit; }
-        .st-next:hover { background: #4338ca; }
+        .st-next-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #2563eb; margin-bottom: 0.35rem; }
+        .st-next { display: flex; align-items: center; gap: 0.8rem; width: 100%; background: #334155; color: #fff; border: none; border-radius: 0.7rem; padding: 0.85rem 1rem; text-align: left; cursor: pointer; font-family: inherit; }
+        .st-next:hover { background: #1e293b; }
         .st-next-code { font-size: 1.4rem; font-weight: 800; opacity: 0.9; flex-shrink: 0; }
         .st-next-text { flex: 1; min-width: 0; }
         .st-next-title { display: block; font-size: 1.02rem; font-weight: 700; line-height: 1.25; }
@@ -224,20 +219,20 @@
 
         .skilltree { display: flex; flex-direction: column; gap: 0.55rem; }
         .st-node { border: 2px solid #d1d5db; border-radius: 0.7rem; background: #fff; }
-        .st-node.next { border-color: #4f46e5; box-shadow: 0 0 0 3px #c7d2fe; }
+        .st-node.next { border-color: #334155; border-left-color: #2563eb; box-shadow: 0 0 0 3px #cbd5e1; }   /* Rahmen Slate (Markierung), Streifen bleibt Blau (Etikett) */
         .st-node.done { border-color: #86efac; background: #f0fdf4; }
         .st-node-head { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.7rem; cursor: pointer; }
         .st-ring { width: 2.3rem; height: 2.3rem; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; position: relative;
-            background: conic-gradient(#4f46e5 calc(var(--p) * 1%), #e2e8f0 0); }
+            background: conic-gradient(#2563eb calc(var(--p) * 1%), #e2e8f0 0); }
         .st-ring::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
-        .st-ring span { position: relative; font-size: 0.8rem; font-weight: 800; color: #312e81; }
+        .st-ring span { position: relative; font-size: 0.8rem; font-weight: 800; color: #1e3a8a; }
         .st-node.done .st-ring { background: #22c55e; }
         .st-node.done .st-ring::before { background: #22c55e; }
         .st-node.done .st-ring span { color: #fff; }
         .st-node-content { flex: 1; min-width: 0; }
-        .st-node-name { font-size: 0.95rem; font-weight: 700; color: #312e81; }
+        .st-node-name { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
         .st-node-meta { font-size: 0.75rem; color: #64748b; margin-top: 1px; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-        .st-tag { font-size: 0.68rem; font-weight: 700; color: #4f46e5; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 999px; padding: 1px 7px; }
+        .st-tag { font-size: 0.68rem; font-weight: 700; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 999px; padding: 1px 7px; }
         .st-node.done .st-tag { color: #166534; background: #dcfce7; border-color: #86efac; }
         .st-stars { color: #f59e0b; letter-spacing: -1px; font-size: 0.8rem; }
         .st-chev { color: #94a3b8; font-size: 0.9rem; transition: transform 0.15s; }
@@ -246,18 +241,18 @@
         .st-node.open .st-rows { display: block; }
         .st-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.3rem; border-radius: 0.5rem; cursor: pointer; }
         .st-row:hover { background: #f8fafc; }
-        .st-row.cur { background: #eef2ff; }
+        .st-row.cur { background: #f1f5f9; }
         .st-dot { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid #cbd5e1; display: grid; place-items: center; font-size: 0.62rem; font-weight: 700; color: #64748b; flex-shrink: 0; background: #fff; }
         .st-row.done .st-dot { background: #22c55e; border-color: #22c55e; color: #fff; }
-        .st-row.cur .st-dot { border-color: #4f46e5; color: #4f46e5; }
+        .st-row.cur .st-dot { border-color: #2563eb; color: #2563eb; }
         .st-row-text { flex: 1; min-width: 0; font-size: 0.82rem; color: #334155; line-height: 1.3; }
         .st-row.done .st-row-text { color: #64748b; }
         .st-row-stars { font-size: 0.72rem; color: #f59e0b; flex-shrink: 0; letter-spacing: -1px; }
-        .st-go { flex-shrink: 0; border: 1.5px solid #4f46e5; background: #fff; color: #4f46e5; border-radius: 0.45rem; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-        .st-row.cur .st-go { background: #4f46e5; color: #fff; }
+        .st-go { flex-shrink: 0; border: 1.5px solid #334155; background: #fff; color: #334155; border-radius: 0.45rem; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .st-row.cur .st-go { background: #334155; color: #fff; }
         .st-row.done .st-go { border-color: #cbd5e1; color: #64748b; }
         .st-pre { font-size: 0.75rem; color: #64748b; padding: 0.35rem 0.7rem 0.55rem; border-top: 1px dashed #e2e8f0; }
-        .st-pre a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+        .st-pre a { color: #2563eb; text-decoration: none; font-weight: 600; }
         /* Zwei Wege nebeneinander im Rahmen: nur ab 600 px. Auf dem Handy eine einfache Liste
            ohne Rahmen und Zwischenzeilen (Sebo 17.11.2026: die Differenzierung dort weglassen). */
         .st-pair { display: contents; }
@@ -270,20 +265,20 @@
             .st-pair-label { display: block; text-align: center; font-size: 0.72rem; color: #64748b; margin: 0 0 0.4rem; }
             .st-branches { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; align-items: start; }
             .st-branch { display: flex; flex-direction: column; gap: 0.5rem; }
-            .st-branch-head { display: block; text-align: center; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; background: #f1f5f9; border-radius: 4px; padding: 2px 8px; }
+            .st-branch-head { display: block; text-align: center; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; background: #f1f5f9; border-radius: 4px; padding: 2px 8px; }
             .st-after { display: block; text-align: center; font-size: 0.72rem; color: #64748b; margin: 0.1rem 0 -0.15rem; }
         }
         .st-progress-info { text-align: center; font-size: 0.78rem; color: #64748b; margin-top: 0.9rem; }
         .st-progress-bar-bg { height: 6px; border-radius: 3px; background: #e2e8f0; margin-top: 0.35rem; overflow: hidden; }
-        .st-progress-bar-fill { height: 100%; background: #4f46e5; border-radius: 3px; transition: width 0.4s ease; }
+        .st-progress-bar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.4s ease; }
 
         /* ---- Angleichung an die Landing (18.11.2026; Entwurf _entwicklung/mock_tt_skilltree_layout.html, im NT 1:1 übernommen): Streifen links an jeder
            Themenkarte, Zeitleiste mit Linie und Ringen auf der Linie (im NT hängt das Paar „Lesen/Schreiben“ mit einem Punkt an der Linie, die Ringe
            bleiben in den Köpfen); auf dem Handy eine einfache Liste wie bisher. Hauptaktion mit Knopf „Start“ statt Pfeil. ---- */
-        .st-node { border-left: 4px solid #4f46e5; }
+        .st-node { border-left: 4px solid #2563eb; }
         .st-node.done { border-left-color: #22c55e; }
-        .skilltree-card.st-next-card { border-left: 4px solid #4f46e5; }
-        .st-next-go { flex-shrink: 0; background: #fff; color: #4f46e5; border-radius: 0.45rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; }
+        .skilltree-card.st-next-card { border-left: 4px solid #2563eb; }
+        .st-next-go { flex-shrink: 0; background: #fff; color: #334155; border-radius: 0.45rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; }
         .st-steps { position: relative; }
         .st-step { display: flex; gap: 0.8rem; align-items: flex-start; }
         .st-step-mark { width: 2.3rem; flex-shrink: 0; display: none; justify-content: center; position: relative; }
@@ -300,18 +295,18 @@
             .st-step.single .st-node-head > .st-ring { display: none; }
         }
         /* Wegweiser (Ankunft über ?knoten=…): das Thema pulsiert viermal wie der Hilfe-Knopf beim Nudge, dann bleibt der Rahmen */
-        .st-node.pulse { border-color: #4f46e5; animation: nodePulse 1.1s ease-in-out 4; box-shadow: 0 0 0 3px #c7d2fe; }
+        .st-node.pulse { border-color: #334155; border-left-color: #2563eb; animation: nodePulse 1.1s ease-in-out 4; box-shadow: 0 0 0 3px #cbd5e1; }
         @keyframes nodePulse {
-            0%   { box-shadow: 0 0 0 0    rgba(79, 70, 229, 0.55); }
-            70%  { box-shadow: 0 0 0 18px rgba(79, 70, 229, 0.0); }
-            100% { box-shadow: 0 0 0 3px  #c7d2fe; }
+            0%   { box-shadow: 0 0 0 0    rgba(51,65,85, 0.55); }
+            70%  { box-shadow: 0 0 0 18px rgba(51,65,85, 0.0); }
+            100% { box-shadow: 0 0 0 3px  #cbd5e1; }
         }
         /* Blase (Coach Mark): wie .help-nudge-bubble, frei auf der Seite positioniert, Pfeil oben oder unten; Tipp irgendwohin schließt */
-        .coach { position: absolute; z-index: 30; background: #4f46e5; color: #fff; font-size: 0.8rem; line-height: 1.4; padding: 0.55rem 0.75rem; border-radius: 0.5rem; max-width: 260px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateY(-5px); transition: opacity 0.22s ease, transform 0.22s ease; pointer-events: none; }
+        .coach { position: absolute; z-index: 30; background: #334155; color: #fff; font-size: 0.8rem; line-height: 1.4; padding: 0.55rem 0.75rem; border-radius: 0.5rem; max-width: 260px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateY(-5px); transition: opacity 0.22s ease, transform 0.22s ease; pointer-events: none; }
         .coach.show { opacity: 1; transform: translateY(0); }
         .coach::after { content: ""; position: absolute; border: 6px solid transparent; }
-        .coach.below::after { bottom: 100%; left: 20px; border-bottom-color: #4f46e5; }
-        .coach.above::after { top: 100%; left: 20px; border-top-color: #4f46e5; }
+        .coach.below::after { bottom: 100%; left: 20px; border-bottom-color: #334155; }
+        .coach.above::after { top: 100%; left: 20px; border-top-color: #334155; }
         .coach.right::after { left: auto; right: 20px; }
         @media (prefers-reduced-motion: reduce) { .st-node.pulse, .band-links .account-bar .acc-btn.coach-target { animation: none; } .coach { transition: none; } }
 
@@ -319,33 +314,33 @@
         .success-container { max-width: 600px; margin: 0 auto; text-align: center; padding: 60px 20px;
             background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             max-height: 85vh; overflow-y: auto; }
-        .success-container h2 { font-size: 2rem; color: #312e81; margin-bottom: 10px; }
+        .success-container h2 { font-size: 2rem; color: #0f172a; margin-bottom: 10px; }
         .level-stars { font-size: 3rem; margin: 20px 0; }
-        .success-stats { background: #eef2ff; border: 2px solid #c7d2fe; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-stats { background: #f1f5f9; border: 2px solid #cbd5e1; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .success-stats p { font-size: 1.1rem; color: #374151; margin: 5px 0; }
         .success-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
         .success-buttons button { padding: 12px 24px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
         .success-buttons .btn-retry { background: #e5e7eb; color: #374151; }
         .success-buttons .btn-retry:hover { background: #d1d5db; }
-        .success-buttons .btn-next { background: #4f46e5; color: white; }
-        .success-buttons .btn-next:hover { background: #4338ca; }
+        .success-buttons .btn-next { background: #334155; color: white; }
+        .success-buttons .btn-next:hover { background: #1e293b; }
         /* GF Stufe 3 — klickbare Empfehlungsliste (neutral, kein eigenes Farbschema, §4.3) */
         .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
         .success-recos:empty { display: none; }
-        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #3730a3;
-            border: 2px solid #4f46e5; cursor: pointer; font-size: 1rem; font-weight: 600;
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #0f172a;
+            border: 2px solid #334155; cursor: pointer; font-size: 1rem; font-weight: 600;
             text-align: left; width: 100%; transition: all 0.2s; }
         .reco-item::before { content: '\2192\00a0'; font-weight: 700; }
-        .reco-item:hover { background: #4f46e5; color: #fff; }
+        .reco-item:hover { background: #334155; color: #fff; }
         /* GF Fehlerliste in B/C — gerahmt, kleiner, eingerückt, klar abgesetzt (nicht grau) */
         .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
-            background: #fff; border: 1px solid #c7d2fe; border-radius: 8px;
+            background: #fff; border: 1px solid #cbd5e1; border-radius: 8px;
             font-size: 0.85rem; color: #374151; text-align: left; }
         .gf-errlist li { margin: 3px 0; line-height: 1.4; }
         /* GF Analyse — jede Problemstelle als klar getrennter Block (nicht grau) */
-        .gf-axis { background: #fff; border: 1px solid #c7d2fe; border-left: 4px solid #4f46e5;
+        .gf-axis { background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid #334155;
             border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
-        .gf-axis strong { color: #3730a3; font-size: 0.95rem; }
+        .gf-axis strong { color: #0f172a; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
 
         /* ===== Staff-Building: Interaktion + Cursors + Tools ===== */
@@ -357,35 +352,29 @@
         .building-tool-btn.active { border-color: #0891b2; background: #ecfeff; color: #0891b2; font-weight: 600; }
         .building-tool-btn:hover { border-color: #94a3b8; }
 
-        /* Header: Responsive Layout */
-        .header {
-            flex-wrap: wrap;
-        }
-        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .header-buttons { display: flex; align-items: center; gap: 4px; }
         .header-reset-btn { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0.5rem; border-radius: 0.5rem; display: none; align-items: center; font-size: 0.85rem; }
         .header-reset-btn.active { display: inline-flex; }
         .header-reset-btn:hover { color: #4b5563; }
         /* Aktions-Zeile unten im Eingabe-Frame: Hilfe (immer) + Reset (nur im Quiz) */
         .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid #f1f5f9; position: relative; }
-        .input-help-btn { background: #eef2ff; border: 1px solid #c7d2fe; color: #4f46e5; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
-        .input-help-btn:hover { background: #e0e7ff; }
+        .input-help-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
+        .input-help-btn:hover { background: #e2e8f0; }
 
         /* Hilfe-Nudge: nach 2 falschen Erstversuchen in Folge einmal pro Durchgang.
            Signalfarbe (gefüllter Button) trägt die Aufmerksamkeit und bleibt stehen,
            bis Hilfe geklickt oder die nächste Aufgabe im Erstversuch richtig ist. */
         .input-help-btn.nudge {
-            background: #4f46e5;
-            border-color: #4f46e5;
+            background: #334155;
+            border-color: #334155;
             color: #fff;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.30);
+            box-shadow: 0 0 0 4px rgba(51,65,85, 0.30);
             animation: helpNudgePulse 0.9s ease-in-out 3;
         }
-        .input-help-btn.nudge:hover { background: #4338ca; border-color: #4338ca; }
+        .input-help-btn.nudge:hover { background: #1e293b; border-color: #1e293b; }
         @keyframes helpNudgePulse {
-            0%   { box-shadow: 0 0 0 0    rgba(79, 70, 229, 0.45); }
-            70%  { box-shadow: 0 0 0 14px rgba(79, 70, 229, 0.0); }
-            100% { box-shadow: 0 0 0 4px  rgba(79, 70, 229, 0.30); }
+            0%   { box-shadow: 0 0 0 0    rgba(51,65,85, 0.45); }
+            70%  { box-shadow: 0 0 0 14px rgba(51,65,85, 0.0); }
+            100% { box-shadow: 0 0 0 4px  rgba(51,65,85, 0.30); }
         }
         /* Blase öffnet nach UNTEN: über .input-actions liegen #feedback und der
            Eingabebereich — nach oben verdeckte sie gemessen 79% des Fehler-
@@ -394,7 +383,7 @@
             position: absolute;
             top: calc(100% + 10px);
             left: 0;
-            background: #4f46e5;
+            background: #334155;
             color: #fff;
             font-size: 0.8rem;
             line-height: 1.4;
@@ -415,22 +404,37 @@
             bottom: 100%;
             left: 20px;
             border: 6px solid transparent;
-            border-bottom-color: #4f46e5;
+            border-bottom-color: #334155;
         }
         @media (prefers-reduced-motion: reduce) {
             .input-help-btn.nudge { animation: none; }
             .help-nudge-bubble { transition: none; }
         }
 
-        /* Header exercise info */
+        /* Kopfzeile der Übung (im Band .site-header-quiz) */
         .header-exercise-info { display: none; width: 100%; margin-top: 0.4rem; }
         .header-exercise-info.active { display: block; }
         .header-exercise-label { font-weight: 600; font-size: 0.9rem; color: #374151; }
         .header-exercise-task { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
         .header-progress-dual { position: relative; height: 6px; border-radius: 3px; background: #e5e7eb; margin-top: 6px; overflow: hidden; }
         .header-progress-total { position: absolute; top: 0; left: 0; height: 100%; background: #fca5a5; border-radius: 3px; transition: width 0.4s ease; }
-        .header-progress-correct { position: absolute; top: 0; left: 0; height: 100%; background: #10b981; border-radius: 3px; transition: width 0.4s ease; }
-        .header-retry-hint { display: none; font-size: 0.75rem; color: #ef4444; margin-top: 3px; font-weight: 600; }
+        .header-progress-correct { position: absolute; top: 0; left: 0; height: 100%; background: #22c55e; border-radius: 3px; transition: width 0.4s ease; }
+        .header-retry-hint {
+            display: none;
+            position: absolute;
+            left: 0; right: 0; bottom: 7px;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            color: #fca5a5;
+            font-weight: 600;
+            text-align: center;
+        }
+        .header-retry-hint.active {
+            display: block;
+        }
+        @media (max-width: 599px) {
+            .header-retry-hint { font-size: 0.75rem; line-height: 1.1; bottom: 6px; }
+        }
         .header-retry-hint.active { display: block; }
 
         .score-text {
@@ -506,7 +510,7 @@
 
         .input-group input:focus {
             outline: none;
-            border-color: #4f46e5;
+            border-color: #334155;
         }
 
         .hint-text {
@@ -570,7 +574,7 @@
 
         .modal h2 {
             font-size: 1.5rem;
-            color: #312e81;
+            color: #0f172a;
             margin-bottom: 15px;
         }
 
@@ -581,7 +585,7 @@
         }
 
         .modal .modal-section {
-            background: #eef2ff;
+            background: #f1f5f9;
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 12px;
@@ -589,7 +593,7 @@
 
         .modal .modal-section h3 {
             font-size: 1rem;
-            color: #312e81;
+            color: #0f172a;
             margin-bottom: 8px;
         }
 
@@ -607,7 +611,7 @@
         .modal button {
             width: 100%;
             padding: 12px;
-            background: #4f46e5;
+            background: #334155;
             color: white;
             border: none;
             border-radius: 8px;
@@ -618,7 +622,7 @@
         }
 
         .modal button:hover {
-            background: #4338ca;
+            background: #1e293b;
         }
 
         /* Mobile Optimierungen - wie im Notentrainer */
@@ -907,7 +911,7 @@
         }
 
         .keyboard-card.keyboard-input .keyboard-hint {
-            color: #4f46e5;
+            color: #334155;
             font-weight: 600;
         }
 
@@ -919,7 +923,7 @@
         }
 
         .keyboard-card.keyboard-input {
-            border: 2px solid #4f46e5;
+            border: 2px solid #334155;
         }
         .keyboard-card.keyboard-viewonly {
             opacity: 0.85;
@@ -1059,7 +1063,7 @@
         }
         .lernkarte h2 {
             font-size: 1.25rem;
-            color: #3730a3;
+            color: #0f172a;
             margin-bottom: 12px;
         }
         .lernkarte p {
@@ -1069,8 +1073,8 @@
             font-size: 0.92rem;
         }
         .lk-visual {
-            background: #eef2ff;
-            border: 1px solid #c7d2fe;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
             border-radius: 10px;
             padding: 12px;
             margin: 10px 0;
@@ -1111,8 +1115,8 @@
         }
         .lk-contrast > div {
             flex: 1;
-            background: #eef2ff;
-            border: 1px solid #c7d2fe;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
             padding: 10px;
             text-align: center;
@@ -1121,12 +1125,12 @@
             font-weight: 600;
             font-size: 0.85rem;
             margin-bottom: 4px;
-            color: #3730a3;
+            color: #0f172a;
         }
         .lernkarte button {
             width: 100%;
             padding: 14px;
-            background: #4f46e5;
+            background: #334155;
             color: white;
             border: none;
             border-radius: 10px;
@@ -1135,11 +1139,11 @@
             cursor: pointer;
             margin-top: 14px;
         }
-        .lernkarte button:hover { background: #4338ca; }
+        .lernkarte button:hover { background: #1e293b; }
         /* Wahl am Kartenende (Deep-Link, Sprung aus einer Karte oder aus „Woran liegt es?“) */
         .lk-next { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
-        .lernkarte button.lk-btn-secondary { background: #fff; color: #4f46e5; border: 2px solid #4f46e5; margin-top: 8px; }
-        .lernkarte button.lk-btn-secondary:hover { background: #eef2ff; }
+        .lernkarte button.lk-btn-secondary { background: #fff; color: #334155; border: 2px solid #334155; margin-top: 8px; }
+        .lernkarte button.lk-btn-secondary:hover { background: #f1f5f9; }
         .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
         /* Rückfragen im Tipp-Kasten („Unsicher bei …?“): Frage klappt eine Kurzantwort
            am Beispiel auf, darunter der Link zur ausführlichen Lernkarte */
@@ -1150,35 +1154,35 @@
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
         .lk-ask summary::-webkit-details-marker { display: none; }
-        .lk-ask summary::after { content: '▾'; color: #4f46e5; font-size: 1rem; transition: transform 0.15s; }
+        .lk-ask summary::after { content: '▾'; color: #334155; font-size: 1rem; transition: transform 0.15s; }
         .lk-ask[open] summary::after { transform: rotate(180deg); }
         .lk-ask-a { padding: 0 12px 10px; font-size: 0.86rem; color: #334155; line-height: 1.45; }
-        .lk-ask-more { display: block; margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #4f46e5; text-decoration: none; }
+        .lk-ask-more { display: block; margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #334155; text-decoration: none; }
         .lk-ask-more:hover { text-decoration: underline; }
         /* ---- Lernkarte als erster Quiz-Schritt (Karten mit step: true, seit 17.11.2026; Muster aus dem TT) ----
            Befund 9. Klasse: Das Overlay (dunkler Hintergrund, weißer Kasten, ein Bestätigen-Knopf)
            wirkt wie ein Cookie-Banner und wird ungelesen weggeklickt. Die Karte steht darum vor der
            ersten Aufgabe dort, wo gleich die Aufgabe steht; am Ende eine Kontrollfrage, erst die
            richtige Antwort gibt „Zur ersten Aufgabe“ frei. Entwurf: _entwicklung/mock_nt_lernkarte_schritt.html */
-        .lk-step { display: none; padding: 18px max(20px, calc(50% - 260px)) 20px; border-top: 4px solid #4f46e5; }   /* Inhalt höchstens 520 px breit wie die Overlay-Karte, sonst skalieren Bilder mit width=100% auf Containerbreite (Sebo 17.11.2026) */
+        .lk-step { display: none; padding: 18px max(20px, calc(50% - 260px)) 20px; border-top: 4px solid #334155; }   /* Inhalt höchstens 520 px breit wie die Overlay-Karte, sonst skalieren Bilder mit width=100% auf Containerbreite (Sebo 17.11.2026) */
         .lk-step.active { display: block; }
-        .lk-step h2 { font-size: 1.25rem; color: #3730a3; margin-bottom: 12px; }
+        .lk-step h2 { font-size: 1.25rem; color: #0f172a; margin-bottom: 12px; }
         .lk-step p { color: #374151; margin-bottom: 8px; line-height: 1.5; font-size: 0.92rem; }
-        .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #4f46e5; margin-bottom: 4px; }
+        .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #334155; margin-bottom: 4px; }
         body.lk-step-open .staff-card, body.lk-step-open #keyboardCard, body.lk-step-open #inputCard, body.lk-step-open #keyboardStatus, body.lk-step-open #feedback { display: none !important; }
         body.lk-step-open .input-card .input-actions { margin-top: 0; padding-top: 0; border-top: none; }
         /* Kontrollfrage als eigener Kasten mit Kicker „Probier es gleich aus“, Gegenstück zu „So geht die Übung“ (Sebo 17.11.2026) */
-        .lk-check { margin-top: 16px; padding: 12px 14px 14px; border: 1.5px solid #c7d2fe; border-radius: 10px; background: #eef2ff; }
+        .lk-check { margin-top: 16px; padding: 12px 14px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; background: #f1f5f9; }
         .lk-check .lk-step-kicker { margin-bottom: 6px; }
         .lk-check .lk-check-visual { background: #fff; margin: 8px 0 4px; }
-        .lk-check-q { font-weight: 600; color: #312e81; font-size: 0.95rem; margin-bottom: 4px; }
+        .lk-check-q { font-weight: 600; color: #0f172a; font-size: 0.95rem; margin-bottom: 4px; }
         .lk-check-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 6px; }
         .lk-check .lk-choice {
             display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
-            background: #fff; color: #312e81; border: 2px solid #c7d2fe; border-radius: 8px;
+            background: #fff; color: #0f172a; border: 2px solid #cbd5e1; border-radius: 8px;
             font-size: 0.88rem; font-weight: 500; cursor: pointer;
         }
-        .lk-check .lk-choice:hover:not(:disabled) { border-color: #4f46e5; background: #eef2ff; }
+        .lk-check .lk-choice:hover:not(:disabled) { border-color: #334155; background: #f1f5f9; }
         .lk-check .lk-choice.right { border-color: #22c55e; background: #dcfce7; color: #166534; font-weight: 600; }
         .lk-check .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
         .lk-check .lk-choice:disabled { cursor: default; }
@@ -1186,13 +1190,13 @@
         .lk-check-fb.ok { color: #166534; }
         .lk-check-fb.nope { color: #991b1b; }
         .lk-go {
-            width: 100%; padding: 14px; background: #4f46e5; color: white; border: none; border-radius: 10px;
+            width: 100%; padding: 14px; background: #334155; color: white; border: none; border-radius: 10px;
             font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 14px;
         }
-        .lk-go:hover { background: #4338ca; }
+        .lk-go:hover { background: #1e293b; }
         .lk-go:disabled { background: #cbd5e1; color: #f8fafc; cursor: default; }
         /* Fortschritt: Schritt „Erklärung“ als erstes Segment vor den 10 Aufgaben */
-        .header-progress-step { display: none; position: absolute; top: 0; left: 0; height: 100%; width: 9.09%; background: #4f46e5; border-radius: 3px; }
+        .header-progress-step { display: none; position: absolute; top: 0; left: 0; height: 100%; width: 9.09%; background: #60a5fa; border-radius: 0; }
         .header-progress-dual.has-step .header-progress-step { display: block; }
         .header-progress-dual.has-step .header-progress-total, .header-progress-dual.has-step .header-progress-correct { left: 9.09%; }
         /* Hilfe neutral (Sebo 17.11.2026): Rückfragen ohne farbige Hülle, Grün bleibt „richtig“ vorbehalten.
@@ -1209,12 +1213,12 @@
         .vz-sharp svg, .vz-flat svg { display: block; }
 
         /* „Woran liegt es?“ nach zwei Fehlversuchen (woranPanel) */
-        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #c7d2fe; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(79,70,229,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1e1b4b; animation: wqIn 0.25s ease-out; }
+        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #cbd5e1; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(51,65,85,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #0f172a; animation: wqIn 0.25s ease-out; }
         @keyframes wqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
         .wq-opts { display: flex; flex-direction: column; gap: 6px; }
-        .wq-opt { text-align: left; border: 1.5px solid #c7d2fe; background: #eef2ff; color: #312e81; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
-        .wq-opt:hover { background: #e0e7ff; }
-        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #3730a3; font-size: 0.88rem; }
+        .wq-opt { text-align: left; border: 1.5px solid #cbd5e1; background: #f1f5f9; color: #0f172a; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+        .wq-opt:hover { background: #e2e8f0; }
+        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #0f172a; font-size: 0.88rem; }
         .wq-wrong { color: #dc2626; }
         #successMessage .wq-panel { margin-top: 14px; }
         /* Mit Fehler-Kästen so breit wie das Woran-Feld: Seitenränder von Endbildschirm und Karte schmaler
@@ -1223,18 +1227,18 @@
         #successMessage:has(.es-boxes) { padding: 14px 10px; }
         /* .success-stats p (1.1rem, grau) gilt im Feld nicht: Feldschrift wie in Liste und Hilfen */
         #successMessage .wq-panel p { font-size: inherit; color: inherit; }
-        #successMessage .wq-panel .wq-sub { color: #3730a3; font-size: 0.88rem; margin: 12px 0 6px; }
+        #successMessage .wq-panel .wq-sub { color: #0f172a; font-size: 0.88rem; margin: 12px 0 6px; }
         /* Endbildschirm-Dialog: Trainer links grau, Schüler rechts in Trainerfarbe; Optionen neutral in eigener Leiste */
         .wq-chat { display: flex; flex-direction: column; gap: 8px; }
         .wq-chat .wq-bub { align-self: flex-start; max-width: 88%; background: #f3f4f6; border-radius: 14px 14px 14px 4px; padding: 8px 12px; }
-        .wq-chat .wq-bub-u { align-self: flex-end; background: #e0e7ff; color: #312e81; border-radius: 14px 14px 4px 14px; }
+        .wq-chat .wq-bub-u { align-self: flex-end; background: #e2e8f0; color: #0f172a; border-radius: 14px 14px 4px 14px; }
         .wq-bar { border-top: 1px solid #e5e7eb; margin-top: 12px; padding-top: 10px; }
         #successMessage .wq-panel .wq-bar-l { font-size: 0.85rem; color: #6b7280; margin: 0 0 6px; }
         .wq-bar .wq-opt { display: flex; gap: 8px; align-items: flex-start; background: #fff; border: 1px solid #d1d5db; color: #1f2937; border-radius: 8px; font-size: inherit; }
         .wq-bar .wq-opt::before { content: ''; flex: none; width: 14px; height: 14px; margin-top: 2px; border: 1.5px solid #9ca3af; border-radius: 50%; }
         .wq-bar .wq-opt:hover { background: #f9fafb; border-color: #9ca3af; }
-        .wq-bar .wq-opt.on { background: #eef2ff; border-color: #6366f1; }
-        .wq-bar .wq-opt.on::before { background: #4f46e5; border-color: #4f46e5; box-shadow: inset 0 0 0 2px #fff; }
+        .wq-bar .wq-opt.on { background: #f1f5f9; border-color: #475569; }
+        .wq-bar .wq-opt.on::before { background: #334155; border-color: #334155; box-shadow: inset 0 0 0 2px #fff; }
         .wq-send:disabled { opacity: 0.45; cursor: default; }
         #successScreen.wq-pending #successButtons { display: none; }
         /* Endbildschirm: Fehlerliste als Bild-Kästen, Übersicht aller Fehler (.es-all) */
@@ -1250,18 +1254,18 @@
         .es-box .es-kb svg { max-width: 150px; margin: 4px auto 0; }
         #successMessage .es-key { font-size: 0.78rem; color: #374151; text-align: center; margin: 4px 0 0; display: flex; gap: 6px; justify-content: center; align-items: center; }
         .es-sw { display: inline-block; width: 12px; height: 12px; border: 1px solid #9ca3af; border-radius: 2px; margin-left: 6px; }
-        #successMessage .es-more { display: block; margin: 4px auto 0; background: none; border: none; padding: 4px 8px; font-size: 0.9rem; color: #4338ca; text-decoration: underline; cursor: pointer; }
+        #successMessage .es-more { display: block; margin: 4px auto 0; background: none; border: none; padding: 4px 8px; font-size: 0.9rem; color: #1e293b; text-decoration: underline; cursor: pointer; }
         .es-all { position: fixed; inset: 0; z-index: 3000; background: rgba(15,23,42,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow: auto; }
-        .es-all-p { background: #eef2ff; border-radius: 14px; width: 100%; max-width: 980px; padding: 12px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
-        .es-all-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #312e81; }
-        .es-x { border: none; background: #e0e7ff; color: #312e81; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+        .es-all-p { background: #f1f5f9; border-radius: 14px; width: 100%; max-width: 980px; padding: 12px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+        .es-all-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #0f172a; }
+        .es-x { border: none; background: #e2e8f0; color: #0f172a; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
         .es-all-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
         .es-n { font-size: 0.8rem; font-weight: 700; color: #6b7280; margin: 0 0 4px; }
         .es-all .es-key { font-size: 0.78rem; text-align: center; margin: 4px 0 0; }
         .wq-kb { zoom: 0.45; margin: 4px auto 0; pointer-events: none; overflow: hidden; width: fit-content; max-width: 100%; }
         .wq-kb .selected { background: #fca5a5 !important; border-color: #dc2626 !important; }
         body.wq-open #feedback, body.wq-open #helpBtn { display: none !important; }
-        .wq-go { display: block; width: 100%; margin-top: 12px; background: #4f46e5; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .wq-go { display: block; width: 100%; margin-top: 12px; background: #334155; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
         /* „Woran liegt es?“ wie der Endbildschirm, als Fenster über der Aufgabe (16.11.2026) */
         .wq-panel .wq-bar { margin-top: 10px; }
         .wq-panel .es-head { font-size: 1.1rem; color: #374151; margin: 0 0 5px; text-align: center; }
@@ -1294,7 +1298,7 @@
                 </a>
                 <div class="account-bar"></div>
             </div>
-            <h1>Notentrainer</h1>
+            <h1><span class="band-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="13" rx="2.6" ry="2.0" stroke="none" transform="rotate(-18 12 13)"/></g></svg></span>Notentrainer</h1>
             <p>Dein Weg durch Noten lesen und schreiben</p>
         </header>
         <div class="skilltree-container">
@@ -1327,7 +1331,19 @@
     
     <!-- Original App (wird zum level-screen) -->
     <div id="originalApp" class="level-screen">
-    
+    <!-- Kopfband wie im Skilltree und auf der Landing (gleiche Maße auf allen drei Ebenen, Sebo 19.11.2026);
+         „‹ Lernpfad“ links wie „‹ Alle Trainer“, Fortschrittsbalken als unterer Rand -->
+    <header class="site-header site-header-quiz">
+        <div class="band-links"><a href="#" class="st-home-link" onclick="quickStart.backToStart(); return false;" title="Zurück zum Lernpfad"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Lernpfad</a></div>
+        <h1><span class="band-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><line x1="5" y1="9" x2="19" y2="9" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="13" x2="19" y2="13" stroke-width="1" stroke-linecap="round" fill="none"/><line x1="5" y1="17" x2="19" y2="17" stroke-width="1" stroke-linecap="round" fill="none"/><ellipse cx="12" cy="13" rx="2.6" ry="2.0" stroke="none" transform="rotate(-18 12 13)"/></g></svg></span><span id="appTitle">Notentrainer</span></h1>
+        <div class="header-exercise-info" id="headerExerciseInfo">
+            <p class="band-sub"><span id="headerExerciseLabel"></span></p>
+            <div class="header-exercise-task" id="headerExerciseTask"></div>
+            <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
+        </div>
+        <div class="header-progress-dual"><div class="header-progress-step" id="headerProgressStep"></div><div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div><div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div></div>
+    </header>
+
     <div class="container" id="app">
         <!-- Lernkarte Overlay -->
         <div class="lernkarte-overlay" id="lernkarteOverlay">
@@ -1390,32 +1406,6 @@
             </div>
         </div>
 
-        <!-- Header -->
-        <div class="card">
-            <div class="header">
-                <div class="header-top">
-                    <div class="title" id="appTitle">Notentrainer</div>
-                    <div class="header-buttons">
-                        <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Lernpfad" style="background:transparent; border:2px solid #4f46e5; color:#4f46e5; padding:0.35rem 0.75rem; font-size:0.9rem; display:inline-flex; align-items:center; gap:0.35rem;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                            Lernpfad
-                        </button>
-                    </div>
-                </div>
-                <div class="header-exercise-info" id="headerExerciseInfo">
-                    <div class="header-exercise-label" id="headerExerciseLabel"></div>
-                    <div class="header-exercise-task" id="headerExerciseTask"></div>
-                    <div class="header-progress-dual">
-                        <div class="header-progress-step" id="headerProgressStep"></div>
-                        <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
-                        <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
-                    </div>
-                    <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
-                </div>
-            </div>
-
-        </div>
-
         <!-- Staff & Keyboard Wrapper -->
         <div class="task-instruction" id="taskInstruction">
             <div class="task-instruction-text" id="taskInstructionText"></div>
@@ -1440,12 +1430,12 @@
                     <div id="staffContainer" style="flex: 0 1 auto;"></div>
                     <div id="audioControls" style="flex: 0 0 auto;">
                         <button type="button" id="audioPlayBtn" onclick="app.playFeedbackTone()" title="Ton abspielen"
-                            style="background: #eff6ff; border: 2px solid #c7d2fe; border-radius: 50%;
+                            style="background: #eff6ff; border: 2px solid #cbd5e1; border-radius: 50%;
                                    cursor: pointer; padding: 8px; width: 40px; height: 40px;
                                    display: flex; align-items: center; justify-content: center;
                                    opacity: 0.7; transition: opacity 0.15s, background 0.15s;"
-                            onmouseenter="this.style.opacity='1';this.style.background='#e0e7ff'" onmouseleave="this.style.opacity='0.7';this.style.background='#eff6ff'">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            onmouseenter="this.style.opacity='1';this.style.background='#e2e8f0'" onmouseleave="this.style.opacity='0.7';this.style.background='#eff6ff'">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
                                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
@@ -2824,7 +2814,7 @@
             let svg = `<svg class="wq-kbsvg" viewBox="-1 0 ${(wi + 1) * W + 2} ${Y + H + 2}" xmlns="http://www.w3.org/2000/svg">`;
             for (let p = start; p <= end; p++) if (isW(p)) {
                 svg += `<rect x="${pos[p].x}" y="${Y}" width="${W}" height="${H}" rx="2" fill="${fill(p) || '#fff'}" stroke="#9ca3af"/>`;
-                if (p % 12 === 0) svg += `<text x="${pos[p].cx}" y="${Y + H - 6}" font-size="9" font-weight="700" fill="#4f46e5" text-anchor="middle">${(k => ErrorTracker.toHelmholtz(k.name, k.octave))(app.pitchToNote(p))}</text>`;
+                if (p % 12 === 0) svg += `<text x="${pos[p].cx}" y="${Y + H - 6}" font-size="9" font-weight="700" fill="#334155" text-anchor="middle">${(k => ErrorTracker.toHelmholtz(k.name, k.octave))(app.pitchToNote(p))}</text>`;
             }
             for (let p = start; p <= end; p++) if (!isW(p)) svg += `<rect x="${pos[p].x}" y="${Y}" width="${BW}" height="${BH}" rx="2" fill="${fill(p) || '#1f2937'}" stroke="#1f2937"/>`;
             brackets.forEach(({ a, b, txt, col, tcol }) => {
@@ -4540,7 +4530,7 @@
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
                             highlightKeys: [
-                                {key:'F',color:'#c7d2fe'}
+                                {key:'F',color:'#cbd5e1'}
                             ],
                             onKeyArrows: [
                                 {from:'F',to:'Fis',label:'♯',color:'#16a34a'},
@@ -4602,7 +4592,7 @@
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
                             highlightKeys: [
-                                {key:'A',color:'#c7d2fe'}
+                                {key:'A',color:'#cbd5e1'}
                             ],
                             onKeyArrows: [
                                 {from:'A',to:'Ais',label:'♯',color:'#16a34a'},
@@ -4643,7 +4633,7 @@
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
                             numOctaves: 2,
-                            highlightKeys: [{key:'C',color:'#c7d2fe'},{key:'F',color:'#c7d2fe'},{key:'C2',color:'#c7d2fe'},{key:'F2',color:'#c7d2fe'}]
+                            highlightKeys: [{key:'C',color:'#cbd5e1'},{key:'F',color:'#cbd5e1'},{key:'C2',color:'#cbd5e1'},{key:'F2',color:'#cbd5e1'}]
                         });
                     }
                 }
@@ -4653,7 +4643,7 @@
                     if (el) {
                         el.innerHTML = this.renderLernkarteTastatur({
                             showBlackLabels: true,
-                            highlightKeys: [{key:'F', color:'#c7d2fe'}],
+                            highlightKeys: [{key:'F', color:'#cbd5e1'}],
                             onKeyArrows: [
                                 {from:'F', to:'Fis', label:'♯', color:'#16a34a'},
                                 {from:'F', to:'E',   label:'♭', color:'#dc2626'}
@@ -4683,7 +4673,7 @@
                     const el = document.getElementById('lkVisualNT_noten4_vorzeichen');
                     if (el) el.innerHTML = this.renderLernkarteTastatur({
                         showBlackLabels: true,
-                        highlightKeys: [{key:'F',color:'#c7d2fe'}],
+                        highlightKeys: [{key:'F',color:'#cbd5e1'}],
                         onKeyArrows: [
                             {from:'F',to:'Fis',label:'\u266F',color:'#16a34a'},
                             {from:'F',to:'E',label:'\u266D',color:'#dc2626'}
@@ -4723,7 +4713,7 @@
                     const el = document.getElementById('lkVisualNT_noten5_vorzeichen');
                     if (el) el.innerHTML = this.renderLernkarteTastatur({
                         showBlackLabels: true,
-                        highlightKeys: [{key:'A',color:'#c7d2fe'}],
+                        highlightKeys: [{key:'A',color:'#cbd5e1'}],
                         onKeyArrows: [
                             {from:'A',to:'Ais',label:'\u266F',color:'#16a34a'},
                             {from:'A',to:'Gis',label:'\u266D',color:'#dc2626'}
@@ -4754,7 +4744,7 @@
                     const el = document.getElementById('lkVisualNT_noten6_vorzeichen');
                     if (el) el.innerHTML = this.renderLernkarteTastatur({
                         showBlackLabels: true,
-                        highlightKeys: [{key:'D',color:'#c7d2fe'}],
+                        highlightKeys: [{key:'D',color:'#cbd5e1'}],
                         onKeyArrows: [
                             {from:'D',to:'Dis',label:'\u266F',color:'#16a34a'},
                             {from:'D',to:'Cis',label:'\u266D',color:'#dc2626'}
@@ -5486,7 +5476,7 @@
                     svg += `<ellipse cx="${c.cx}" cy="${c.y}" rx="${rx}" ry="${ry}" fill="#1f2937" transform="rotate(-20 ${c.cx} ${c.y})"/>`;
 
                     // Label
-                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 4}" text-anchor="middle" font-size="12.5" fill="#3730a3" font-weight="600">${c.label}</text>`;
+                    svg += `<text x="${c.cx}" y="${maxY + 12 + labelH - 4}" text-anchor="middle" font-size="12.5" fill="#0f172a" font-weight="600">${c.label}</text>`;
                 });
 
                 svg += '</svg>';
@@ -5526,7 +5516,7 @@
                 const totalW = pad + clefSpace + lineNotes.length * noteSpace + groupGap + spaceNotes.length * noteSpace + pad;
 
                 // Farben: dezent zweifarbig
-                const lineColor = '#4f46e5';  // Indigo (Linien)
+                const lineColor = '#334155';  // Slate (Linien)
                 const spaceColor = '#0891b2'; // Cyan (Zwischenräume)
 
                 const svgTop = 52 - 16;
@@ -5655,12 +5645,12 @@
                 whiteKeys.forEach((wk, i) => {
                     const x = pad + i * ww;
                     const hl = highlightKeys.find(h => h.key === wk.id);
-                    const fill = hl ? (hl.color || '#c7d2fe') : '#fff';
+                    const fill = hl ? (hl.color || '#cbd5e1') : '#fff';
                     svg += `<rect x="${x}" y="${ky + pad}" width="${ww - 1}" height="${wh}" rx="3" fill="${fill}" stroke="#333" stroke-width="1.5"/>`;
-                    const labelColor = hl ? '#3730a3' : '#666';
+                    const labelColor = hl ? '#0f172a' : '#666';
                     svg += `<text x="${x + ww/2}" y="${ky + pad + wh - 8}" text-anchor="middle" font-size="11" fill="${labelColor}" font-weight="600">${wk.label}</text>`;
                     if (hl && hl.label) {
-                        svg += `<text x="${x + ww/2}" y="${ky + pad + wh + labelSpace - 3}" text-anchor="middle" font-size="12" fill="#3730a3" font-weight="700">${hl.label}</text>`;
+                        svg += `<text x="${x + ww/2}" y="${ky + pad + wh + labelSpace - 3}" text-anchor="middle" font-size="12" fill="#0f172a" font-weight="700">${hl.label}</text>`;
                     }
                 });
 
@@ -5671,7 +5661,7 @@
                         const suffix = wk.id.length > wk.name.length ? wk.id.slice(wk.name.length) : '';
                         const bkId = blackMap[wk.name] + suffix;
                         const hl = highlightKeys.find(h => h.key === bkId);
-                        const fill = hl ? (hl.color || '#c7d2fe') : '#222';
+                        const fill = hl ? (hl.color || '#cbd5e1') : '#222';
                         svg += `<rect x="${bx}" y="${ky + pad}" width="${bw}" height="${bh}" rx="2" fill="${fill}" stroke="#000" stroke-width="1"/>`;
                         if (showBlackLabels) {
                             const customBL = (options._customLabels || []).find(c => c.key === bkId && c.position === 'blackLabel');
@@ -5705,7 +5695,7 @@
                         const fromX = keyPositions[a.from];
                         const labelX = a.labelKey ? keyPositions[a.labelKey] : null;
                         if (fromX === undefined) return;
-                        const color = a.color || '#4f46e5';
+                        const color = a.color || '#334155';
                         const startY = ky + pad + wh - 22;
                         // Tatsächliche Zielposition berechnen
                         const toX = keyPositions[a.to];
@@ -5755,7 +5745,7 @@
                     _customLabels.forEach(cl => {
                         const cx = keyPositions[cl.key];
                         if (cx === undefined) return;
-                        const color = cl.color || '#4f46e5';
+                        const color = cl.color || '#334155';
                         if (cl.position === 'aboveLabel') {
                             // Über dem Stammton-Label der weißen Taste, dezent
                             const ty = ky + pad + wh - 20;
@@ -5806,7 +5796,7 @@
                         const fromX = keyPositions[a.from];
                         const toX = keyPositions[a.to];
                         if (fromX === undefined || toX === undefined) return;
-                        const color = a.color || '#4f46e5';
+                        const color = a.color || '#334155';
                         const midX = (fromX + toX) / 2;
                         const dist = Math.abs(toX - fromX);
                         const bowTop = ky - 8;
@@ -5842,8 +5832,8 @@
                         const midX = (x1 + x2) / 2;
                         const dist = Math.abs(x2 - x1);
                         const bowH = Math.min(dist * 0.6, 14);
-                        svg += `<path d="M${x1},${bowY} Q${midX},${bowY - bowH} ${x2},${bowY}" fill="none" stroke="#3730a3" stroke-width="1.2"/>`;
-                        svg += `<polygon points="${x2},${bowY} ${x2-3},${bowY-3} ${x2-4},${bowY+1}" fill="#3730a3"/>`;
+                        svg += `<path d="M${x1},${bowY} Q${midX},${bowY - bowH} ${x2},${bowY}" fill="none" stroke="#0f172a" stroke-width="1.2"/>`;
+                        svg += `<polygon points="${x2},${bowY} ${x2-3},${bowY-3} ${x2-4},${bowY+1}" fill="#0f172a"/>`;
                     }
                     const efPairs = [];
                     for (let oct = 1; oct <= numOctaves; oct++) {
@@ -5855,7 +5845,7 @@
                     }
                     efPairs.forEach(([a, b]) => {
                         const mx = (keyPositions[a] + keyPositions[b]) / 2;
-                        svg += `<text x="${mx}" y="${bowY - 12}" text-anchor="middle" font-size="7" fill="#3730a3" font-weight="600">½</text>`;
+                        svg += `<text x="${mx}" y="${bowY - 12}" text-anchor="middle" font-size="7" fill="#0f172a" font-weight="600">½</text>`;
                     });
                 }
 
@@ -5866,7 +5856,7 @@
                         const fromX = keyPositions[a.from];
                         const toX = keyPositions[a.to];
                         if (fromX === undefined || toX === undefined) return;
-                        const color = a.color || '#4f46e5';
+                        const color = a.color || '#334155';
                         svg += `<line x1="${fromX}" y1="${arrowY}" x2="${toX}" y2="${arrowY}" stroke="${color}" stroke-width="2"/>`;
                         const dir = toX > fromX ? 1 : -1;
                         svg += `<polygon points="${toX},${arrowY} ${toX - dir*6},${arrowY-4} ${toX - dir*6},${arrowY+4}" fill="${color}"/>`;
@@ -6397,7 +6387,7 @@
 
                             const markerX = i * (whiteKeyWidth + gap) + whiteKeyWidth / 2;
                             const cFontSize = isMobilePortrait ? '0.65rem' : (isMobileLandscape ? '0.8rem' : '0.95rem');
-                            html += `<div style="position:absolute; bottom:8%; left:${markerX}px; transform:translateX(-50%); font-size:${cFontSize}; color:#4f46e5; font-weight:bold; background:rgba(255,255,255,0.9); padding:2px 4px; border-radius:4px; pointer-events:none;">${cLabel}</div>`;
+                            html += `<div style="position:absolute; bottom:8%; left:${markerX}px; transform:translateX(-50%); font-size:${cFontSize}; color:#334155; font-weight:bold; background:rgba(255,255,255,0.9); padding:2px 4px; border-radius:4px; pointer-events:none;">${cLabel}</div>`;
                         }
                     }
                 }
