@@ -58,35 +58,6 @@
             }
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .title {
-            font-size: 1.875rem;
-            font-weight: bold;
-            color: #4c1d95;
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: 1.25rem;
-                flex: 1;
-                min-width: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .header-buttons {
-                flex-shrink: 0;
-                margin-left: auto;
-            }
-        }
-
         .btn {
             background: none;
             border: none;
@@ -106,7 +77,7 @@
         }
 
         .btn-primary {
-            background: #8b5cf6;
+            background: #334155;
             color: white;
             padding: 0.5rem 1rem;
             font-weight: 600;
@@ -117,7 +88,7 @@
         }
 
         .btn-primary:hover {
-            background: #7c3aed;
+            background: #1e293b;
         }
 
         /* Taktart-Erkennung Buttons */
@@ -136,7 +107,7 @@
         }
         .ts-option-btn:hover:not(:disabled) {
             background: #e5e7eb;
-            border-color: #8b5cf6;
+            border-color: #334155;
         }
         .ts-option-btn.ts-correct {
             background: #d1fae5;
@@ -192,7 +163,7 @@
             text-align: center;
             font-weight: 600;
             font-size: 0.95rem;
-            color: #6b21a8;
+            color: #0f172a;
             margin-bottom: 0.25rem;
         }
         .gap-option-btn {
@@ -212,7 +183,7 @@
         }
         .gap-option-btn:hover:not(:disabled) {
             background: #e5e7eb;
-            border-color: #8b5cf6;
+            border-color: #334155;
         }
         .gap-option-symbol {
             display: flex;
@@ -256,16 +227,16 @@
             width: 13px; height: 13px; border-radius: 50%; background: #fff;
             box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform 0.15s;
         }
-        .pulse-toggle input:checked + .pulse-switch { background: #8b5cf6; }
+        .pulse-toggle input:checked + .pulse-switch { background: #334155; }
         .pulse-toggle input:checked + .pulse-switch::after { transform: translateX(15px); }
-        .pulse-toggle input:focus-visible + .pulse-switch { outline: 2px solid #8b5cf6; outline-offset: 2px; }
-        .pulse-toggle-label { font-size: 0.72rem; color: #7c3aed; white-space: nowrap; }
+        .pulse-toggle input:focus-visible + .pulse-switch { outline: 2px solid #334155; outline-offset: 2px; }
+        .pulse-toggle-label { font-size: 0.72rem; color: #1e293b; white-space: nowrap; }
 
         /* Dictation UI */
         .dictation-container { padding: 1rem; }
         .dictation-task-label {
             text-align: center; font-weight: 600; font-size: 0.95rem;
-            color: #6b21a8; margin-bottom: 0.5rem;
+            color: #0f172a; margin-bottom: 0.5rem;
         }
         .dictation-note-buttons {
             display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
@@ -280,15 +251,15 @@
             background: #f3f4f6; font-size: 0.8rem; font-weight: 600; cursor: pointer;
             transition: all 0.15s;
         }
-        .dictation-action-btn:hover:not(:disabled) { border-color: #8b5cf6; background: #ede9fe; }
+        .dictation-action-btn:hover:not(:disabled) { border-color: #334155; background: #e2e8f0; }
         .dictation-action-btn:disabled { opacity: 0.4; cursor: default; }
-        .dictation-check-btn:not(:disabled) { background: #8b5cf6; color: white; border-color: #8b5cf6; }
-        .dictation-check-btn:not(:disabled):hover { background: #7c3aed; }
+        .dictation-check-btn:not(:disabled) { background: #334155; color: white; border-color: #334155; }
+        .dictation-check-btn:not(:disabled):hover { background: #1e293b; }
         .dictation-fill-bar {
             height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;
         }
         .dictation-fill-progress {
-            height: 100%; background: #8b5cf6; border-radius: 2px;
+            height: 100%; background: #334155; border-radius: 2px;
             transition: width 0.2s ease;
         }
 
@@ -298,7 +269,7 @@
             top: calc(50% - 20px);
             left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(139, 92, 246, 0.95);
+            background: rgba(51, 65, 85, 0.95);
             color: white;
             padding: 0.6rem 1.5rem;
             border-radius: 0.75rem;
@@ -307,7 +278,7 @@
             z-index: 200;
             opacity: 0;
             transition: opacity 0.3s, transform 0.3s;
-            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 4px 16px rgba(51, 65, 85, 0.5);
             pointer-events: none;
         }
         .taktart-hint-toast.visible {
@@ -316,7 +287,7 @@
         }
         @keyframes badgePulse {
             0% { transform: scale(1); box-shadow: none; }
-            50% { transform: scale(1.25); box-shadow: 0 0 12px rgba(139, 92, 246, 0.5); }
+            50% { transform: scale(1.25); box-shadow: 0 0 12px rgba(51, 65, 85, 0.5); }
             100% { transform: scale(1); box-shadow: none; }
         }
         .badge-pulse {
@@ -380,8 +351,8 @@
 
         .task-focus-badge {
             display: inline-block;
-            background: #ede9fe; /* Lila */
-            color: #4c1d95;
+            background: #e2e8f0; /* Lila */
+            color: #0f172a;
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-weight: 600;
@@ -399,8 +370,8 @@
 
         /* Einheitliche Aufgabenstellung (wie NT/IT/DT/TT) */
         .task-instruction {
-            background: #faf5ff;
-            border: 1.5px solid #c4b5fd;
+            background: #f8fafc;
+            border: 1.5px solid #64748b;
             border-radius: 0.5rem;
             padding: 10px 14px;
             margin: 0 0 0.5rem 0;
@@ -411,7 +382,7 @@
         .task-instruction-text {
             font-size: 1.05rem;
             font-weight: 600;
-            color: #4c1d95;
+            color: #0f172a;
         }
 
         .text-center {
@@ -425,7 +396,7 @@
         .count-display {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #8b5cf6;
+            color: #334155;
             min-height: 2.2rem;
             line-height: 2.2rem;
             text-align: center;
@@ -450,7 +421,7 @@
         }
 
         .bar-display {
-            border: 3px solid #8b5cf6;
+            border: 3px solid #334155;
             border-radius: 0.5rem;
             padding: 1.5rem 1rem;
             background: white;
@@ -461,7 +432,7 @@
 
         .info-card {
             background: #f9fafb;
-            border-left: 4px solid #8b5cf6;
+            border-left: 4px solid #334155;
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
@@ -536,7 +507,7 @@
 
         .modal h2 {
             font-size: 1.5rem;
-            color: #4c1d95;
+            color: #0f172a;
             margin-bottom: 15px;
         }
 
@@ -547,7 +518,7 @@
         }
 
         .modal .modal-section {
-            background: #ede9fe;
+            background: #e2e8f0;
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 12px;
@@ -555,7 +526,7 @@
 
         .modal .modal-section h3 {
             font-size: 1rem;
-            color: #4c1d95;
+            color: #0f172a;
             margin-bottom: 8px;
         }
 
@@ -573,7 +544,7 @@
         .modal button {
             width: 100%;
             padding: 12px;
-            background: #8b5cf6;
+            background: #334155;
             color: white;
             border: none;
             border-radius: 8px;
@@ -584,7 +555,7 @@
         }
 
         .modal button:hover {
-            background: #7c3aed;
+            background: #1e293b;
         }
 
         .hidden {
@@ -664,7 +635,7 @@
 
         .input-group input:focus {
             outline: none;
-            border-color: #8b5cf6; /* LILA statt Orange */
+            border-color: #334155; /* LILA statt Orange */
         }
 
         .hint-text {
@@ -699,8 +670,8 @@
         }
         .input-row select:focus, .input-row input:focus {
             outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+            border-color: #334155;
+            box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.15);
         }
         .input-buttons {
             display: flex;
@@ -732,8 +703,8 @@
         }
         .rt-input-centered input:focus {
             outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+            border-color: #334155;
+            box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.15);
         }
 
         /* MULTI-INPUT VALIDIERUNG - CSS */
@@ -920,7 +891,10 @@
            Konto rechts als weiße Textlinks im Band (Sebo 17.11.2026: kein Konto-Banner vor dem Lernen). Das Band läuft über
            die Ränder von body und .level-screen (je 1rem) bis an den Fensterrand. */
         .site-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 1.6rem 1.5rem 1.4rem; text-align: center; position: relative; margin: -2rem -2rem 1.5rem; }
-        .site-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.35rem; letter-spacing: -0.02em; color: #fff; }
+        .site-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.35rem; letter-spacing: -0.02em; color: #fff; display: inline-flex; align-items: center; gap: 0.45em; }
+        /* Symbol wie auf der Landing-Karte, frei auf dem Band in heller Trainerfarbe (Etikett; Sebo 19.11.2026) */
+        .band-icon { color: #a78bfa; display: inline-flex; flex-shrink: 0; }
+        .band-icon svg { width: 1.25em; height: 1.25em; }
         .site-header p { font-size: 1.05rem; opacity: 0.85; max-width: 600px; margin: 0 auto; line-height: 1.5; }
         .band-links { position: absolute; top: 0.8rem; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
         .band-links .st-home-link { color: #fff; opacity: 0.85; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
@@ -931,12 +905,14 @@
         .band-links .account-bar .acc-who { font-size: 0.8rem; color: #fff; }
         .band-links .account-bar .acc-who small { color: #cbd5e1; }
         /* Anker einer Blase (Coach Mark) pulsiert wie der Hilfe-Knopf beim Nudge: gefüllt + Ring */
-        .band-links .account-bar .acc-btn.coach-target { background: #8b5cf6; opacity: 1; padding: 0.15rem 0.55rem; border-radius: 999px; box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.30); animation: helpNudgePulse 0.9s ease-in-out 3; }
+        .band-links .account-bar .acc-btn.coach-target { background: #334155; opacity: 1; padding: 0.15rem 0.55rem; border-radius: 999px; box-shadow: 0 0 0 4px rgba(51, 65, 85, 0.30); animation: helpNudgePulse 0.9s ease-in-out 3; }
         @media (max-width: 599px) {
             .site-header { padding: 2.2rem 1rem 1.2rem; }
             .site-header h1 { font-size: 1.5rem; }
             .site-header p { font-size: 0.9rem; }
         }
+        /* Handy: zwei Zeilen für die Unterzeile reservieren – das Band bleibt auf Landing, Skilltree und Übung gleich hoch, auch wenn die Übungszeile umbricht (Sebo 19.11.2026) */
+        @media (max-width: 599px) { .site-header p { min-height: 3em; } }
         /* unter 768 px hat body nur 0,5rem Rand (+1rem .level-screen): Band bis an den Fensterrand, nicht darüber hinaus */
         @media (max-width: 768px) { .site-header { margin: -1.5rem -1.5rem 1.5rem; } }
 
@@ -964,12 +940,12 @@
             gap: 0.3rem;
             font-size: 0.8rem;
             font-weight: 500;
-            color: #8b5cf6;
+            color: #334155;
             text-decoration: none;
             cursor: pointer;
             transition: color 0.2s;
         }
-        .st-home-link:hover { color: #7c3aed; }
+        .st-home-link:hover { color: #1e293b; }
         .st-home-link svg { flex-shrink: 0; }
 
         /* ---- Skilltree als Landkarte mit Hauptaktion (seit 17.11.2026, Entwurf _entwicklung/mock_rt_skilltree_neu.html) ----
@@ -978,8 +954,8 @@
            („Hier geht's weiter“), darunter die Knoten als Liste mit Ring, Sternen, Haken; der nächste Knoten in Trainerfarbe;
            ein Tipp auf eine Übungszeile startet; die zwei Wege nebeneinander in einem Rahmen „Reihenfolge egal“. */
         .st-next-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #8b5cf6; margin-bottom: 0.35rem; }
-        .st-next { display: flex; align-items: center; gap: 0.8rem; width: 100%; background: #8b5cf6; color: #fff; border: none; border-radius: 0.7rem; padding: 0.85rem 1rem; text-align: left; cursor: pointer; font-family: inherit; }
-        .st-next:hover { background: #7c3aed; }
+        .st-next { display: flex; align-items: center; gap: 0.8rem; width: 100%; background: #334155; color: #fff; border: none; border-radius: 0.7rem; padding: 0.85rem 1rem; text-align: left; cursor: pointer; font-family: inherit; }
+        .st-next:hover { background: #1e293b; }
         .st-next-code { font-size: 1.4rem; font-weight: 800; opacity: 0.9; flex-shrink: 0; }
         .st-next-text { flex: 1; min-width: 0; }
         .st-next-title { display: block; font-size: 1.02rem; font-weight: 700; line-height: 1.25; }
@@ -989,20 +965,20 @@
 
         .skilltree { display: flex; flex-direction: column; gap: 0.55rem; }
         .st-node { border: 2px solid #d1d5db; border-radius: 0.7rem; background: #fff; }
-        .st-node.next { border-color: #8b5cf6; box-shadow: 0 0 0 3px #ddd6fe; }
+        .st-node.next { border-color: #334155; box-shadow: 0 0 0 3px #cbd5e1; }
         .st-node.done { border-color: #86efac; background: #f0fdf4; }
         .st-node-head { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.7rem; cursor: pointer; }
         .st-ring { width: 2.3rem; height: 2.3rem; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; position: relative;
             background: conic-gradient(#8b5cf6 calc(var(--p) * 1%), #e2e8f0 0); }
         .st-ring::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
-        .st-ring span { position: relative; font-size: 0.8rem; font-weight: 800; color: #6b21a8; }
+        .st-ring span { position: relative; font-size: 0.8rem; font-weight: 800; color: #4c1d95; }
         .st-node.done .st-ring { background: #22c55e; }
         .st-node.done .st-ring::before { background: #22c55e; }
         .st-node.done .st-ring span { color: #fff; }
         .st-node-content { flex: 1; min-width: 0; }
-        .st-node-name { font-size: 0.95rem; font-weight: 700; color: #6b21a8; }
+        .st-node-name { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
         .st-node-meta { font-size: 0.75rem; color: #64748b; margin-top: 1px; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-        .st-tag { font-size: 0.68rem; font-weight: 700; color: #8b5cf6; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 999px; padding: 1px 7px; }
+        .st-tag { font-size: 0.68rem; font-weight: 700; color: #6d28d9; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 999px; padding: 1px 7px; }
         .st-node.done .st-tag { color: #166534; background: #dcfce7; border-color: #86efac; }
         .st-stars { color: #f59e0b; letter-spacing: -1px; font-size: 0.8rem; }
         .st-chev { color: #94a3b8; font-size: 0.9rem; transition: transform 0.15s; }
@@ -1011,15 +987,15 @@
         .st-node.open .st-rows { display: block; }
         .st-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.3rem; border-radius: 0.5rem; cursor: pointer; }
         .st-row:hover { background: #f8fafc; }
-        .st-row.cur { background: #f5f3ff; }
+        .st-row.cur { background: #f1f5f9; }
         .st-dot { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid #cbd5e1; display: grid; place-items: center; font-size: 0.62rem; font-weight: 700; color: #64748b; flex-shrink: 0; background: #fff; }
         .st-row.done .st-dot { background: #22c55e; border-color: #22c55e; color: #fff; }
         .st-row.cur .st-dot { border-color: #8b5cf6; color: #8b5cf6; }
         .st-row-text { flex: 1; min-width: 0; font-size: 0.82rem; color: #334155; line-height: 1.3; }
         .st-row.done .st-row-text { color: #64748b; }
         .st-row-stars { font-size: 0.72rem; color: #f59e0b; flex-shrink: 0; letter-spacing: -1px; }
-        .st-go { flex-shrink: 0; border: 1.5px solid #8b5cf6; background: #fff; color: #8b5cf6; border-radius: 0.45rem; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-        .st-row.cur .st-go { background: #8b5cf6; color: #fff; }
+        .st-go { flex-shrink: 0; border: 1.5px solid #334155; background: #fff; color: #334155; border-radius: 0.45rem; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .st-row.cur .st-go { background: #334155; color: #fff; }
         .st-row.done .st-go { border-color: #cbd5e1; color: #64748b; }
         .st-pre { font-size: 0.75rem; color: #64748b; padding: 0.35rem 0.7rem 0.55rem; border-top: 1px dashed #e2e8f0; }
         .st-pre a { color: #8b5cf6; text-decoration: none; font-weight: 600; }
@@ -1035,7 +1011,7 @@
             .st-pair-label { display: block; text-align: center; font-size: 0.72rem; color: #64748b; margin: 0 0 0.4rem; }
             .st-branches { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; align-items: start; }
             .st-branch { display: flex; flex-direction: column; gap: 0.5rem; }
-            .st-branch-head { display: block; text-align: center; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; background: #f1f5f9; border-radius: 4px; padding: 2px 8px; }
+            .st-branch-head { display: block; text-align: center; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8b5cf6; background: #f1f5f9; border-radius: 4px; padding: 2px 8px; }
             .st-after { display: block; text-align: center; font-size: 0.72rem; color: #64748b; margin: 0.1rem 0 -0.15rem; }
         }
         .st-progress-info { text-align: center; font-size: 0.78rem; color: #64748b; margin-top: 0.9rem; }
@@ -1045,10 +1021,10 @@
         /* ---- Angleichung an die Landing (18.11.2026; Entwurf _entwicklung/mock_tt_skilltree_layout.html): Streifen links an jeder
            Themenkarte, Zeitleiste mit Linie und Ringen auf der Linie (der Spaltenblock 3–6 mit einem Punkt, Ringe im Kopf); auf dem Handy
            eine einfache Liste wie bisher. Hauptaktion mit Knopf „Start“ statt Pfeil. ---- */
-        .st-node { border-left: 4px solid #8b5cf6; }
+        .st-node, .st-node.next, .st-node.pulse { border-left: 4px solid #8b5cf6; }   /* Streifen in Trainerfarbe (Etikett), auch am offenen Thema, dessen Rahmen Slate ist */
         .st-node.done { border-left-color: #22c55e; }
         .skilltree-card.st-next-card { border-left: 4px solid #8b5cf6; }
-        .st-next-go { flex-shrink: 0; background: #fff; color: #8b5cf6; border-radius: 0.45rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; }
+        .st-next-go { flex-shrink: 0; background: #fff; color: #334155; border-radius: 0.45rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; }
         .st-steps { position: relative; }
         .st-step { display: flex; gap: 0.8rem; align-items: flex-start; }
         .st-step-mark { width: 2.3rem; flex-shrink: 0; display: none; justify-content: center; position: relative; }
@@ -1065,54 +1041,69 @@
             .st-step.single .st-node-head > .st-ring { display: none; }
         }
         /* Wegweiser (Ankunft über ?knoten=…): das Thema pulsiert viermal wie der Hilfe-Knopf beim Nudge, dann bleibt der Rahmen */
-        .st-node.pulse { border-color: #8b5cf6; animation: nodePulse 1.1s ease-in-out 4; box-shadow: 0 0 0 3px #ddd6fe; }
+        .st-node.pulse { border-color: #334155; animation: nodePulse 1.1s ease-in-out 4; box-shadow: 0 0 0 3px #cbd5e1; }
         @keyframes nodePulse {
-            0%   { box-shadow: 0 0 0 0    rgba(139, 92, 246, 0.55); }
-            70%  { box-shadow: 0 0 0 18px rgba(139, 92, 246, 0.0); }
-            100% { box-shadow: 0 0 0 3px  #ddd6fe; }
+            0%   { box-shadow: 0 0 0 0    rgba(51, 65, 85, 0.55); }
+            70%  { box-shadow: 0 0 0 18px rgba(51, 65, 85, 0.0); }
+            100% { box-shadow: 0 0 0 3px  #cbd5e1; }
         }
         /* Blase (Coach Mark): wie .help-nudge-bubble, frei auf der Seite positioniert, Pfeil oben oder unten; Tipp irgendwohin schließt */
-        .coach { position: absolute; z-index: 30; background: #8b5cf6; color: #fff; font-size: 0.8rem; line-height: 1.4; padding: 0.55rem 0.75rem; border-radius: 0.5rem; max-width: 260px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateY(-5px); transition: opacity 0.22s ease, transform 0.22s ease; pointer-events: none; }
+        .coach { position: absolute; z-index: 30; background: #334155; color: #fff; font-size: 0.8rem; line-height: 1.4; padding: 0.55rem 0.75rem; border-radius: 0.5rem; max-width: 260px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateY(-5px); transition: opacity 0.22s ease, transform 0.22s ease; pointer-events: none; }
         .coach.show { opacity: 1; transform: translateY(0); }
         .coach::after { content: ""; position: absolute; border: 6px solid transparent; }
-        .coach.below::after { bottom: 100%; left: 20px; border-bottom-color: #8b5cf6; }
-        .coach.above::after { top: 100%; left: 20px; border-top-color: #8b5cf6; }
+        .coach.below::after { bottom: 100%; left: 20px; border-bottom-color: #334155; }
+        .coach.above::after { top: 100%; left: 20px; border-top-color: #334155; }
         .coach.right::after { left: auto; right: 20px; }
         @media (prefers-reduced-motion: reduce) { .st-node.pulse, .band-links .account-bar .acc-btn.coach-target { animation: none; } .coach { transition: none; } }
 
-        /* Header exercise info */
-        .header-exercise-info { display: none; width: 100%; margin-top: 0.4rem; }
+        /* Übungs-Band: Kopfzeile der Übung als Unterzeile (wie „Dein Weg durch …“ im Skilltree-Band), Balken als unterer Rand */
+        .header-exercise-info { display: none; width: 100%; }
         .header-exercise-info.active { display: block; }
-        .header-exercise-label { font-weight: 600; font-size: 0.9rem; color: #374151; }
-        .header-exercise-task { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
-        .header-progress-dual { position: relative; height: 6px; border-radius: 3px; background: #e5e7eb; margin-top: 6px; overflow: hidden; }
-        .header-progress-total { position: absolute; top: 0; left: 0; height: 100%; background: #fca5a5; border-radius: 3px; transition: width 0.4s ease; }
-        .header-progress-correct { position: absolute; top: 0; left: 0; height: 100%; background: #10b981; border-radius: 3px; transition: width 0.4s ease; }
-        .header-retry-hint { display: none; font-size: 0.75rem; color: #ef4444; margin-top: 3px; font-weight: 600; }
+        .header-exercise-task { font-size: 0.9rem; color: #fff; opacity: 0.85; margin-top: 2px; }
+        .header-exercise-task:empty { display: none; }
+        .header-progress-dual { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; margin: 0; border-radius: 0; background: rgba(255, 255, 255, 0.28); overflow: hidden; }
+        .header-progress-total { position: absolute; top: 0; left: 0; height: 100%; background: #fca5a5; transition: width 0.4s ease; }
+        .header-progress-correct { position: absolute; top: 0; left: 0; height: 100%; background: #22c55e; transition: width 0.4s ease; }
+        .header-retry-hint {
+            display: none;
+            position: absolute;
+            left: 0; right: 0; bottom: 7px;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            color: #fca5a5;
+            font-weight: 600;
+            text-align: center;
+        }
+        .header-retry-hint.active {
+            display: block;
+        }
+        @media (max-width: 599px) {
+            .header-retry-hint { font-size: 0.75rem; line-height: 1.1; bottom: 6px; }
+        }
         .header-retry-hint.active { display: block; }
         .header-reset-btn { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0.5rem; border-radius: 0.5rem; display: none; align-items: center; font-size: 0.85rem; }
         .header-reset-btn.active { display: inline-flex; }
         .header-reset-btn:hover { color: #4b5563; }
         /* Aktions-Zeile unten im Eingabe-Frame: Hilfe (immer) + Reset (nur im Quiz) */
         .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid #f1f5f9; position: relative; }
-        .input-help-btn { background: #f5f3ff; border: 1px solid #ddd6fe; color: #8b5cf6; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
-        .input-help-btn:hover { background: #ede9fe; }
+        .input-help-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.5rem; cursor: pointer; }
+        .input-help-btn:hover { background: #e2e8f0; }
 
         /* Hilfe-Nudge: nach 2 Fehlversuchen in Folge einmal pro Durchgang.
            Signalfarbe (gefüllter Button) trägt die Aufmerksamkeit und bleibt stehen,
            bis Hilfe geklickt oder die nächste Aufgabe im Erstversuch richtig ist. */
         .input-help-btn.nudge {
-            background: #8b5cf6;
-            border-color: #8b5cf6;
+            background: #334155;
+            border-color: #334155;
             color: #fff;
-            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.30);
+            box-shadow: 0 0 0 4px rgba(51, 65, 85, 0.30);
             animation: helpNudgePulse 0.9s ease-in-out 3;
         }
-        .input-help-btn.nudge:hover { background: #7c3aed; border-color: #7c3aed; }
+        .input-help-btn.nudge:hover { background: #1e293b; border-color: #1e293b; }
         @keyframes helpNudgePulse {
-            0%   { box-shadow: 0 0 0 0    rgba(139, 92, 246, 0.45); }
-            70%  { box-shadow: 0 0 0 14px rgba(139, 92, 246, 0.0); }
-            100% { box-shadow: 0 0 0 4px  rgba(139, 92, 246, 0.30); }
+            0%   { box-shadow: 0 0 0 0    rgba(51, 65, 85, 0.45); }
+            70%  { box-shadow: 0 0 0 14px rgba(51, 65, 85, 0.0); }
+            100% { box-shadow: 0 0 0 4px  rgba(51, 65, 85, 0.30); }
         }
         /* Blase öffnet nach UNTEN: über .input-actions liegen Feedback und
            Eingabebereich — dort würde sie das Fehler-Feedback verdecken. */
@@ -1120,7 +1111,7 @@
             position: absolute;
             top: calc(100% + 10px);
             left: 0;
-            background: #8b5cf6;
+            background: #334155;
             color: #fff;
             font-size: 0.8rem;
             line-height: 1.4;
@@ -1141,16 +1132,12 @@
             bottom: 100%;
             left: 20px;
             border: 6px solid transparent;
-            border-bottom-color: #8b5cf6;
+            border-bottom-color: #334155;
         }
         @media (prefers-reduced-motion: reduce) {
             .input-help-btn.nudge { animation: none; }
             .help-nudge-bubble { transition: none; }
         }
-
-        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-
-        .header-buttons { display: flex; align-items: center; gap: 4px; }
 
         /* Success Screen (DT-Pattern) */
         .success-container {
@@ -1165,7 +1152,7 @@
         }
         .success-container h2 {
             font-size: 2rem;
-            color: #6d28d9;
+            color: #0f172a;
             margin-bottom: 10px;
         }
         .level-stars {
@@ -1173,17 +1160,17 @@
             margin: 20px 0;
         }
         .success-stats {
-            background: #ede9fe;
+            background: #e2e8f0;
             padding: 20px;
             border-radius: 12px;
             margin: 20px 0;
         }
         .success-stats p {
             margin: 8px 0;
-            color: #6d28d9;
+            color: #0f172a;
         }
         .success-stats strong {
-            color: #8b5cf6;
+            color: #334155;
         }
         .btn-retry {
             background: #e5e7eb;
@@ -1199,7 +1186,7 @@
         }
         .btn-retry:hover { background: #d1d5db; }
         .btn-next {
-            background: #8b5cf6;
+            background: #334155;
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
@@ -1209,23 +1196,23 @@
             font-size: 1rem;
             transition: background 0.2s;
         }
-        .btn-next:hover { background: #7c3aed; }
+        .btn-next:hover { background: #1e293b; }
 
         /* GF Stufe 3 — Pfad-A Feedback (Struktur 1:1 wie NT/IT/TT/DT, RT-Purple-Palette) */
         .success-recos { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; text-align: left; }
         .success-recos:empty { display: none; }
-        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #6d28d9;
-            border: 2px solid #8b5cf6; cursor: pointer; font-size: 1rem; font-weight: 600;
+        .reco-item { padding: 14px 16px; border-radius: 12px; background: #fff; color: #0f172a;
+            border: 2px solid #334155; cursor: pointer; font-size: 1rem; font-weight: 600;
             text-align: left; width: 100%; transition: all 0.2s; }
         .reco-item::before { content: '\2192\00a0'; font-weight: 700; }
-        .reco-item:hover { background: #8b5cf6; color: #fff; }
-        .gf-axis { background: #fff; border: 1px solid #ddd6fe; border-left: 4px solid #8b5cf6;
+        .reco-item:hover { background: #334155; color: #fff; }
+        .gf-axis { background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid #334155;
             border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 10px 0; text-align: left; }
-        .gf-axis strong { color: #6d28d9; font-size: 0.95rem; }
+        .gf-axis strong { color: #0f172a; font-size: 0.95rem; }
         .gf-axis p { margin: 4px 0 0; font-size: 0.9rem; color: #374151; }
         .gf-errlist { list-style: disc; margin: 12px 0; padding: 10px 14px 10px 32px;
-            background: #fff; border: 1px solid #ddd6fe; border-radius: 8px; text-align: left; }
-        .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #6d28d9; font-size: 0.9rem; }
+            background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; text-align: left; }
+        .gf-errlist li { margin: 3px 0; line-height: 1.4; color: #0f172a; font-size: 0.9rem; }
 
         /* ---- Lernkarten-Overlay ---- */
         .lernkarte-overlay {
@@ -1250,7 +1237,7 @@
         }
         .lernkarte h2 {
             font-size: 1.25rem;
-            color: #4c1d95;
+            color: #0f172a;
             margin-bottom: 12px;
         }
         .lernkarte p {
@@ -1260,8 +1247,8 @@
             font-size: 0.92rem;
         }
         .lk-visual {
-            background: #faf5ff;
-            border: 1px solid #c4b5fd;
+            background: #f8fafc;
+            border: 1px solid #64748b;
             border-radius: 10px;
             padding: 12px;
             margin: 10px 0;
@@ -1302,8 +1289,8 @@
         }
         .lk-contrast > div {
             flex: 1;
-            background: #faf5ff;
-            border: 1px solid #c4b5fd;
+            background: #f8fafc;
+            border: 1px solid #64748b;
             border-radius: 8px;
             padding: 10px;
             text-align: center;
@@ -1312,12 +1299,12 @@
             font-weight: 600;
             font-size: 0.85rem;
             margin-bottom: 4px;
-            color: #4c1d95;
+            color: #0f172a;
         }
         .lernkarte button {
             width: 100%;
             padding: 14px;
-            background: #8b5cf6;
+            background: #334155;
             color: white;
             border: none;
             border-radius: 10px;
@@ -1326,11 +1313,11 @@
             cursor: pointer;
             margin-top: 14px;
         }
-        .lernkarte button:hover { background: #7c3aed; }
+        .lernkarte button:hover { background: #1e293b; }
         /* Wahl am Kartenende (Deep-Link, Sprung aus einer Karte oder aus „Woran liegt es?“) */
         .lk-next { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
-        .lernkarte button.lk-btn-secondary { background: #fff; color: #7c3aed; border: 2px solid #7c3aed; margin-top: 8px; }
-        .lernkarte button.lk-btn-secondary:hover { background: #f5f3ff; }
+        .lernkarte button.lk-btn-secondary { background: #fff; color: #1e293b; border: 2px solid #1e293b; margin-top: 8px; }
+        .lernkarte button.lk-btn-secondary:hover { background: #f1f5f9; }
         .lk-btn-sub { display: block; font-size: 0.78rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
         /* Rückfragen im Tipp-Kasten („Unsicher bei …?“): Frage klappt eine Kurzantwort
            am Beispiel auf, darunter der Link zur ausführlichen Lernkarte */
@@ -1341,18 +1328,18 @@
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
         .lk-ask summary::-webkit-details-marker { display: none; }
-        .lk-ask summary::after { content: '▾'; color: #7c3aed; font-size: 1rem; transition: transform 0.15s; }
+        .lk-ask summary::after { content: '▾'; color: #1e293b; font-size: 1rem; transition: transform 0.15s; }
         .lk-ask[open] summary::after { transform: rotate(180deg); }
         .lk-ask-a { padding: 0 12px 10px; font-size: 0.86rem; color: #334155; line-height: 1.45; }
-        .lk-ask-more { display: block; margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #7c3aed; text-decoration: none; }
+        .lk-ask-more { display: block; margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #1e293b; text-decoration: none; }
         .lk-ask-more:hover { text-decoration: underline; }
         /* Regel-Frage („Welche Regel hast du angewendet?“) */
         .lernkarte .lk-choice {
             display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
-            background: #fff; color: #5b21b6; border: 2px solid #ddd6fe; border-radius: 8px;
+            background: #fff; color: #0f172a; border: 2px solid #cbd5e1; border-radius: 8px;
             font-size: 0.88rem; font-weight: 500; cursor: pointer;
         }
-        .lernkarte .lk-choice:hover:not(:disabled) { border-color: #7c3aed; background: #f5f3ff; }
+        .lernkarte .lk-choice:hover:not(:disabled) { border-color: #1e293b; background: #f1f5f9; }
         .lernkarte .lk-choice.right { border-color: #22c55e; background: #dcfce7; color: #166534; font-weight: 600; }
         .lernkarte .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
         .lernkarte .lk-choice:disabled { cursor: default; }
@@ -1362,25 +1349,25 @@
            wirkt wie ein Cookie-Banner und wird ungelesen weggeklickt. Die Karte steht darum vor der
            ersten Aufgabe dort, wo gleich die Aufgabe steht; am Ende eine Kontrollfrage, erst die
            richtige Antwort gibt „Zur ersten Aufgabe“ frei. Entwurf: _entwicklung/mock_rt_lernkarte_schritt.html */
-        .lk-step { display: none; padding: 18px max(20px, calc(50% - 260px)) 20px; border-top: 4px solid #8b5cf6; }   /* Inhalt höchstens 520 px breit wie die Overlay-Karte, sonst skalieren Bilder mit width=100% auf Containerbreite (Sebo 17.11.2026) */
+        .lk-step { display: none; padding: 18px max(20px, calc(50% - 260px)) 20px; border-top: 4px solid #334155; }   /* Inhalt höchstens 520 px breit wie die Overlay-Karte, sonst skalieren Bilder mit width=100% auf Containerbreite (Sebo 17.11.2026) */
         .lk-step.active { display: block; }
-        .lk-step h2 { font-size: 1.25rem; color: #4c1d95; margin-bottom: 12px; }
+        .lk-step h2 { font-size: 1.25rem; color: #0f172a; margin-bottom: 12px; }
         .lk-step p { color: #374151; margin-bottom: 8px; line-height: 1.5; font-size: 0.92rem; }
-        .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #8b5cf6; margin-bottom: 4px; }
+        .lk-step-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #334155; margin-bottom: 4px; }
         body.lk-step-open #staffCard, body.lk-step-open #tsButtonContainer, body.lk-step-open #gapAnswerContainer, body.lk-step-open #dictationContainer, body.lk-step-open #inputCard { display: none !important; }
                 .lk-check { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
         /* Kontrollfrage als eigener Kasten mit Kicker „Probier es gleich aus“, Gegenstück zu „So geht die Übung“ (Sebo 17.11.2026) */
-        .lk-check { margin-top: 16px; padding: 12px 14px 14px; border: 1.5px solid #ddd6fe; border-radius: 10px; background: #f5f3ff; }
+        .lk-check { margin-top: 16px; padding: 12px 14px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; background: #f1f5f9; }
         .lk-check .lk-step-kicker { margin-bottom: 6px; }
         .lk-check .lk-check-visual { background: #fff; margin: 8px 0 4px; }
-        .lk-check-q { font-weight: 600; color: #4c1d95; font-size: 0.95rem; margin-bottom: 4px; }
+        .lk-check-q { font-weight: 600; color: #0f172a; font-size: 0.95rem; margin-bottom: 4px; }
         .lk-check-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 6px; }
         .lk-check .lk-choice {
             display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px;
-            background: #fff; color: #4c1d95; border: 2px solid #ddd6fe; border-radius: 8px;
+            background: #fff; color: #0f172a; border: 2px solid #cbd5e1; border-radius: 8px;
             font-size: 0.88rem; font-weight: 500; cursor: pointer;
         }
-        .lk-check .lk-choice:hover:not(:disabled) { border-color: #8b5cf6; background: #f5f3ff; }
+        .lk-check .lk-choice:hover:not(:disabled) { border-color: #334155; background: #f1f5f9; }
         .lk-check .lk-choice.right { border-color: #22c55e; background: #dcfce7; color: #166534; font-weight: 600; }
         .lk-check .lk-choice.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
         .lk-check .lk-choice:disabled { cursor: default; }
@@ -1388,13 +1375,13 @@
         .lk-check-fb.ok { color: #166534; }
         .lk-check-fb.nope { color: #991b1b; }
         .lk-go {
-            width: 100%; padding: 14px; background: #8b5cf6; color: white; border: none; border-radius: 10px;
+            width: 100%; padding: 14px; background: #334155; color: white; border: none; border-radius: 10px;
             font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 14px;
         }
-        .lk-go:hover { background: #7c3aed; }
+        .lk-go:hover { background: #1e293b; }
         .lk-go:disabled { background: #cbd5e1; color: #f8fafc; cursor: default; }
         /* Fortschritt: Schritt „Erklärung“ als erstes Segment vor den 10 Aufgaben */
-        .header-progress-step { display: none; position: absolute; top: 0; left: 0; height: 100%; width: 9.09%; background: #8b5cf6; border-radius: 3px; }
+        .header-progress-step { display: none; position: absolute; top: 0; left: 0; height: 100%; width: 9.09%; background: #a78bfa; }
         .header-progress-dual.has-step .header-progress-step { display: block; }
         .header-progress-dual.has-step .header-progress-total, .header-progress-dual.has-step .header-progress-correct { left: 9.09%; }
         /* Hilfe neutral (Sebo 17.11.2026): Rückfragen ohne farbige Hülle, Grün bleibt „richtig“ vorbehalten.
@@ -1403,14 +1390,14 @@
         .lk-ask summary { color: #334155; }
 
         /* „Woran liegt es?“ nach zwei Fehlversuchen (woranPanel) */
-        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #ddd6fe; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(139,92,246,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1f2937; animation: wqIn 0.25s ease-out; }
+        .wq-panel { max-width: 520px; margin: 12px auto 0; background: #fff; border: 2px solid #cbd5e1; border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(51, 65, 85,0.12); text-align: left; font-size: 0.92rem; line-height: 1.45; color: #1f2937; animation: wqIn 0.25s ease-out; }
         @keyframes wqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-        .wq-q { font-weight: 700; margin: 0 0 10px; color: #5b21b6; }
+        .wq-q { font-weight: 700; margin: 0 0 10px; color: #0f172a; }
         .wq-opts { display: flex; flex-direction: column; gap: 6px; }
-        .wq-opt { text-align: left; border: 1.5px solid #ddd6fe; background: #f5f3ff; color: #4c1d95; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
-        .wq-opt:hover { background: #ede9fe; }
+        .wq-opt { text-align: left; border: 1.5px solid #cbd5e1; background: #f1f5f9; color: #0f172a; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+        .wq-opt:hover { background: #e2e8f0; }
         .wq-opt.secondary { background: #fff; border-color: #e5e7eb; color: #4b5563; }
-        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #5b21b6; font-size: 0.88rem; }
+        .wq-sub { margin: 12px 0 6px; font-weight: 600; color: #0f172a; font-size: 0.88rem; }
         .wq-cases { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
         /* Spalte als Block statt Flex: Flex berechnet die Höhe der Takt-SVGs (Breite 100 %) zu klein */
         .wq-cases.wq-col { display: block; }
@@ -1426,7 +1413,7 @@
         .wq-wrong { color: #dc2626; }
         .wq-right { color: #16a34a; }
         .wq-full { width: 100%; text-align: left; }
-        .wq-cmp { border-color: #c4b5fd; }
+        .wq-cmp { border-color: #64748b; }
         body.wq-open #feedback, body.wq-open #additionFeedback, body.wq-open #tsFeedback, body.wq-open #helpBtn { display: none !important; }
         /* RT scrollt auf Tablet/Handy nicht (alles auf einem Bildschirm) → Feld als Fenster über der
            Aufgabe, das selbst scrollt (wie die Lernkarten) */
@@ -1450,18 +1437,18 @@
         #successMessage:has(.es-boxes) { padding: 14px 10px; }
         /* .success-stats p (violett) gilt im Feld nicht: Feldschrift wie in Liste und Hilfen */
         #successMessage .wq-panel p { font-size: inherit; color: inherit; }
-        #successMessage .wq-panel .wq-sub { color: #5b21b6; font-size: 0.88rem; margin: 12px 0 6px; }
+        #successMessage .wq-panel .wq-sub { color: #0f172a; font-size: 0.88rem; margin: 12px 0 6px; }
         /* Endbildschirm-Dialog: Trainer links grau, Schüler rechts in Trainerfarbe; Optionen neutral in eigener Leiste */
         .wq-chat { display: flex; flex-direction: column; gap: 8px; }
         .wq-chat .wq-bub { align-self: flex-start; max-width: 88%; background: #f3f4f6; border-radius: 14px 14px 14px 4px; padding: 8px 12px; }
-        .wq-chat .wq-bub-u { align-self: flex-end; background: #ede9fe; color: #4c1d95; border-radius: 14px 14px 4px 14px; }
+        .wq-chat .wq-bub-u { align-self: flex-end; background: #e2e8f0; color: #0f172a; border-radius: 14px 14px 4px 14px; }
         .wq-bar { border-top: 1px solid #e5e7eb; margin-top: 12px; padding-top: 10px; }
         #successMessage .wq-panel .wq-bar-l { font-size: 0.85rem; color: #6b7280; margin: 0 0 6px; }
         .wq-bar .wq-opt { display: flex; gap: 8px; align-items: flex-start; background: #fff; border: 1px solid #d1d5db; color: #1f2937; border-radius: 8px; font-size: inherit; }
         .wq-bar .wq-opt::before { content: ''; flex: none; width: 14px; height: 14px; margin-top: 2px; border: 1.5px solid #9ca3af; border-radius: 50%; }
         .wq-bar .wq-opt:hover { background: #f9fafb; border-color: #9ca3af; }
-        .wq-bar .wq-opt.on { background: #f5f3ff; border-color: #8b5cf6; }
-        .wq-bar .wq-opt.on::before { background: #7c3aed; border-color: #7c3aed; box-shadow: inset 0 0 0 2px #fff; }
+        .wq-bar .wq-opt.on { background: #f1f5f9; border-color: #334155; }
+        .wq-bar .wq-opt.on::before { background: #1e293b; border-color: #1e293b; box-shadow: inset 0 0 0 2px #fff; }
         .wq-send:disabled { opacity: 0.45; cursor: default; }
         #successScreen.wq-pending #successButtons { display: none; }
         /* Endbildschirm: Fehlerliste als Bild-Kästen, Übersicht aller Fehler (.es-all) */
@@ -1473,14 +1460,14 @@
         .es-box svg.es-ruler { width: auto !important; max-width: 100%; margin: 4px auto 0; }
         .es-row + .es-row { margin-top: 4px; border-top: 1px dashed #e5e7eb; padding-top: 4px; }
         .es-lab { display: block; font-size: 0.75rem; font-weight: 700; color: #374151; margin: 0; }
-        #successMessage .es-more { display: block; margin: 4px auto 0; background: none; border: none; padding: 4px 8px; font-size: 0.9rem; color: #6d28d9; text-decoration: underline; cursor: pointer; }
+        #successMessage .es-more { display: block; margin: 4px auto 0; background: none; border: none; padding: 4px 8px; font-size: 0.9rem; color: #0f172a; text-decoration: underline; cursor: pointer; }
         .es-all { position: fixed; inset: 0; z-index: 3000; background: rgba(15,23,42,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow: auto; }
-        .es-all-p { background: #f5f3ff; border-radius: 14px; width: 100%; max-width: 980px; padding: 12px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
-        .es-all-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #4c1d95; }
-        .es-x { border: none; background: #ede9fe; color: #4c1d95; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+        .es-all-p { background: #f1f5f9; border-radius: 14px; width: 100%; max-width: 980px; padding: 12px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+        .es-all-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #0f172a; }
+        .es-x { border: none; background: #e2e8f0; color: #0f172a; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
         .es-all-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
         .es-n { font-size: 0.8rem; font-weight: 700; color: #6b7280; margin: 0 0 4px; }
-        .wq-go { display: block; width: 100%; margin-top: 12px; background: #8b5cf6; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .wq-go { display: block; width: 100%; margin-top: 12px; background: #334155; color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -1503,7 +1490,7 @@
                 </a>
                 <div class="account-bar"></div>
             </div>
-            <h1>Rhythmustrainer</h1>
+            <h1><span class="band-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><ellipse cx="5" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 5 17)"/><ellipse cx="11" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 11 17)"/><ellipse cx="17" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 17 17)"/><line x1="7.3" y1="16.3" x2="7.3" y2="7" stroke-width="0.8" fill="none"/><line x1="13.3" y1="16.3" x2="13.3" y2="7" stroke-width="0.8" fill="none"/><line x1="19.3" y1="16.3" x2="19.3" y2="7" stroke-width="0.8" fill="none"/><line x1="7.3" y1="7" x2="19.3" y2="7" stroke-width="1.6" stroke-linecap="butt" fill="none"/><text x="13.3" y="4.8" text-anchor="middle" font-size="4.2" font-weight="700" font-family="sans-serif" fill="currentColor" stroke="none">3</text></g></svg></span>Rhythmustrainer</h1>
             <p>Dein Weg durch Notenwerte und Takt</p>
         </header>
         <div class="skilltree-container">
@@ -1545,6 +1532,27 @@
     
     <!-- ORIGINAL APP (wird versteckt wenn Quick-Start aktiv) -->
     <div id="originalApp" class="level-screen active">
+    <!-- Kopfband der Übungsseite: dasselbe Band wie Landing und Skilltree (gleiche Maße), „‹ Lernpfad“ links wie „‹ Alle Trainer“;
+         der Fortschrittsbalken liegt als unterer Rand im Band. IDs bleiben, updateQuizOverlay() & Co. laufen unverändert. -->
+    <header class="site-header site-header-quiz">
+        <div class="band-links">
+            <a href="#" class="st-home-link" onclick="quickStart.backToStart(); return false;" title="Zurück zum Lernpfad">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Lernpfad
+            </a>
+        </div>
+        <h1><span class="band-icon"><svg width="30" height="30" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor"><ellipse cx="5" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 5 17)"/><ellipse cx="11" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 11 17)"/><ellipse cx="17" cy="17" rx="2.2" ry="1.7" stroke="none" transform="rotate(-18 17 17)"/><line x1="7.3" y1="16.3" x2="7.3" y2="7" stroke-width="0.8" fill="none"/><line x1="13.3" y1="16.3" x2="13.3" y2="7" stroke-width="0.8" fill="none"/><line x1="19.3" y1="16.3" x2="19.3" y2="7" stroke-width="0.8" fill="none"/><line x1="7.3" y1="7" x2="19.3" y2="7" stroke-width="1.6" stroke-linecap="butt" fill="none"/><text x="13.3" y="4.8" text-anchor="middle" font-size="4.2" font-weight="700" font-family="sans-serif" fill="currentColor" stroke="none">3</text></g></svg></span><span id="appTitle">Rhythmustrainer</span></h1>
+        <div class="header-exercise-info" id="headerExerciseInfo">
+            <p class="band-sub"><span id="headerExerciseLabel"></span></p>
+            <div class="header-exercise-task" id="headerExerciseTask"></div>
+            <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
+        </div>
+        <div class="header-progress-dual">
+            <div class="header-progress-step" id="headerProgressStep"></div>
+            <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
+            <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
+        </div>
+    </header>
     <div class="container">
 
         <!-- Feedback Modal -->
@@ -1599,37 +1607,14 @@
             </div>
         </div>
 
-        <!-- Header -->
-        <div class="card">
-            <div class="header">
-                <div class="header-top">
-                    <div class="title" id="appTitle">Rhythmustrainer</div>
-                    <div class="header-buttons">
-                        <button class="btn" onclick="quickStart.backToStart()" title="Zurück zum Lernpfad" style="background:transparent; border:2px solid #8b5cf6; color:#8b5cf6; padding:0.35rem 0.75rem; font-size:0.9rem; display:inline-flex; align-items:center; gap:0.35rem;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                            Lernpfad
-                        </button>
-                    </div>
-                </div>
-                <div class="header-exercise-info" id="headerExerciseInfo">
-                    <div class="header-exercise-label" id="headerExerciseLabel"></div>
-                    <div class="header-exercise-task" id="headerExerciseTask"></div>
-                    <div class="header-progress-dual">
-                        <div class="header-progress-step" id="headerProgressStep"></div>
-                        <div class="header-progress-total" id="headerProgressTotal" style="width: 0%"></div>
-                        <div class="header-progress-correct" id="headerProgressCorrect" style="width: 0%"></div>
-                    </div>
-                    <div class="header-retry-hint" id="headerRetryHint">Versuch es noch mal, bevor es weitergeht.</div>
-                </div>
-            </div>
-
-            <!-- Settings Panel -->
+        <!-- Settings Panel (ohne Kopfkarte: der Kopf ist das Band über dem Container; die Karte wäre sonst ein leerer weißer Streifen) -->
+        <div class="hidden">
             <div id="settingsPanel" class="settings-panel hidden">
                 <h3>Einstellungen</h3>
                 
                 <!-- AUFGABENTYP - GANZ OBEN -->
                 <div class="select-group" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-                    <label style="font-weight: 600; color: #4c1d95;">🎯 Aufgabentyp:</label>
+                    <label style="font-weight: 600; color: #0f172a;">🎯 Aufgabentyp:</label>
                     <select id="taskTypeSelect" onchange="app.updateSettings()">
                         <option value="view" selected>Ansichtsmodus (nur Takt anzeigen)</option>
                         <option value="note-addition">Notenwerte addieren</option>
@@ -1675,8 +1660,8 @@
                     <label for="includeTriplets">Triolen einbeziehen</label>
                 </div>
 
-                <div class="select-group" style="margin-top: 0.75rem; border-top: 1px solid #e9d5ff; padding-top: 0.75rem;">
-                    <label style="font-weight: 600; color: #4c1d95;">📖 Hilfestellungen:</label>
+                <div class="select-group" style="margin-top: 0.75rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
+                    <label style="font-weight: 600; color: #0f172a;">📖 Hilfestellungen:</label>
                 </div>
 
                 <div class="checkbox-group">
@@ -1698,11 +1683,11 @@
                 <input type="checkbox" id="showLegend" checked style="display:none;">
 
                 <!-- Tempo-Regler (nur bei Audio-Aufgabentypen sichtbar) -->
-                <div id="tempoControl" class="select-group" style="margin-top: 0.75rem; border-top: 1px solid #e9d5ff; padding-top: 0.75rem; display: none;">
-                    <label style="font-weight: 600; color: #4c1d95;">🎵 Tempo: <span id="tempoValue">80</span> BPM</label>
+                <div id="tempoControl" class="select-group" style="margin-top: 0.75rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem; display: none;">
+                    <label style="font-weight: 600; color: #0f172a;">🎵 Tempo: <span id="tempoValue">80</span> BPM</label>
                     <input type="range" id="tempoSlider" min="40" max="160" value="80" step="5"
                         oninput="app.tempo = Number(this.value); document.getElementById('tempoValue').textContent = this.value;"
-                        style="width: 100%; accent-color: #8b5cf6; margin-top: 0.25rem;">
+                        style="width: 100%; accent-color: #334155; margin-top: 0.25rem;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #9ca3af;">
                         <span>40</span><span>100</span><span>160</span>
                     </div>
@@ -1771,20 +1756,20 @@
                             <span class="pulse-toggle-label">Grundpuls</span>
                         </label>
                         <div id="quizTempoControl" style="display:none; align-items: center; gap: 0.4rem;">
-                            <span style="font-size: 0.75rem; color: #7c3aed; white-space: nowrap;">Tempo</span>
+                            <span style="font-size: 0.75rem; color: #1e293b; white-space: nowrap;">Tempo</span>
                             <input type="range" id="quizTempoSlider" min="40" max="160" value="80" step="5"
                                 oninput="app.tempo = Number(this.value); document.getElementById('quizTempoValue').textContent = this.value; document.getElementById('tempoSlider').value = this.value; document.getElementById('tempoValue').textContent = this.value;"
-                                style="width: 120px; accent-color: #8b5cf6;">
-                            <span style="font-size: 0.8rem; color: #4c1d95; white-space: nowrap; font-weight: 600;" id="quizTempoValue">80</span>
+                                style="width: 120px; accent-color: #334155;">
+                            <span style="font-size: 0.8rem; color: #0f172a; white-space: nowrap; font-weight: 600;" id="quizTempoValue">80</span>
                             <span style="font-size: 0.7rem; color: #9ca3af;">BPM</span>
                         </div>
                         <button type="button" id="playRhythmBtn" onclick="app.playRhythm()" title="Rhythmus anhören"
-                            style="background: #faf5ff; border: 2px solid #c4b5fd; border-radius: 50%;
+                            style="background: #f8fafc; border: 2px solid #64748b; border-radius: 50%;
                                    width: 40px; height: 40px; cursor: pointer; padding: 0;
                                    display: flex; align-items: center; justify-content: center;
                                    opacity: 0.7; transition: opacity 0.15s, background 0.15s;"
-                            onmouseenter="this.style.opacity='1';this.style.background='#ede9fe'" onmouseleave="this.style.opacity='0.7';this.style.background='#faf5ff'">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            onmouseenter="this.style.opacity='1';this.style.background='#e2e8f0'" onmouseleave="this.style.opacity='0.7';this.style.background='#f8fafc'">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
                             </svg>
@@ -2260,10 +2245,10 @@
                 if (main) svg += `<text x="${x}" y="${Y + H + 18}" text-anchor="middle" font-size="11" fill="#6b7280">${q / 2}</text>`;
             }
             let x = X0;
-            const FILL = ['#ddd6fe', '#c4b5fd'];
+            const FILL = ['#cbd5e1', '#64748b'];
             summands.forEach((s, i) => {
                 const w = s.value * W;
-                svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#8b5cf6"/>`;
+                svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#334155"/>`;
                 x += w;
             });
             if (user != null && !isNaN(user)) {
@@ -2288,11 +2273,11 @@
                 if (main) svg += `<text x="${x}" y="${Y + H + 18}" text-anchor="middle" font-size="11" fill="#6b7280">${q / 2}</text>`;
             }
             let x = X0, gx = null, gw = 0;
-            const FILL = ['#ddd6fe', '#c4b5fd'];
+            const FILL = ['#cbd5e1', '#64748b'];
             notes.forEach((n, i) => {
                 const w = n.value * W;
-                if (i === gapIndex) { gx = x; gw = w; svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="#fff" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,3"/>`; }
-                else svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#8b5cf6"/>`;
+                if (i === gapIndex) { gx = x; gw = w; svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="#fff" stroke="#334155" stroke-width="2" stroke-dasharray="5,3"/>`; }
+                else svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#334155"/>`;
                 x += w;
             });
             if (gx !== null) {
@@ -2687,8 +2672,8 @@
                 if (main) svg += `<text x="${x}" y="${Y + H + 16}" text-anchor="middle" font-size="11" fill="#6b7280">${q / 2}</text>`;
             }
             let x = X0;
-            const FILL = ['#ddd6fe', '#c4b5fd'];
-            summands.forEach((s, i) => { const w = s.value * W; svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#8b5cf6"/>`; x += w; });
+            const FILL = ['#cbd5e1', '#64748b'];
+            summands.forEach((s, i) => { const w = s.value * W; svg += `<rect x="${x + 1}" y="${Y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${FILL[i % 2]}" stroke="#334155"/>`; x += w; });
             const xt = X0 + total * W, by = Y - 8;
             svg += `<path d="M ${X0} ${by + 6} V ${by} H ${xt} V ${by + 6}" fill="none" stroke="#000" stroke-width="2"/>`
                 + `<text x="${X0}" y="${by - 7}" text-anchor="start" font-size="14" font-weight="700" fill="#000">richtig: ${num(total)} Viertel</text>`;
@@ -2735,7 +2720,7 @@
                 let x = xb(0);
                 return vs.map((v, i) => {
                     const w = v * W, gap = i === gi;
-                    const r = `<rect x="${x + 1}" y="${y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${gap ? (red ? '#fee2e2' : '#fff') : '#ede9fe'}" stroke="${gap ? (red ? RED : '#000') : '#a78bfa'}" stroke-width="${gap ? 2.5 : 1}"/>`;
+                    const r = `<rect x="${x + 1}" y="${y}" width="${Math.max(w - 2, 2)}" height="${H}" rx="4" fill="${gap ? (red ? '#fee2e2' : '#fff') : '#e2e8f0'}" stroke="${gap ? (red ? RED : '#000') : '#475569'}" stroke-width="${gap ? 2.5 : 1}"/>`;
                     x += w; return r;
                 }).join('');
             };
@@ -6237,7 +6222,7 @@ Gerät:
                     
                     // Plus-Zeichen (außer nach letztem)
                     if (index < summands.length - 1) {
-                        html += `<span style="font-size: 1.5rem; font-weight: 600; color: #7c3aed; margin: 0 0.25rem;">+</span>`;
+                        html += `<span style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin: 0 0.25rem;">+</span>`;
                     }
                 });
                 
@@ -9653,7 +9638,7 @@ Gerät:
             let html = '<div style="display:flex; align-items:flex-end; gap:1.25rem; flex-wrap:wrap; justify-content:center">';
             symbols.forEach(s => {
                 const w = s.width || 40, h = s.height || 40;
-                html += '<span style="text-align:center">' + renderLegendSymbol(s.type, w, h) + '<br><small style="font-size:0.8rem;color:#4c1d95;font-weight:600">' + s.label + '</small></span>';
+                html += '<span style="text-align:center">' + renderLegendSymbol(s.type, w, h) + '<br><small style="font-size:0.8rem;color:#0f172a;font-weight:600">' + s.label + '</small></span>';
             });
             html += '</div>';
             return html;
@@ -9786,7 +9771,7 @@ Gerät:
                 },
                 body: `<p><strong>Du kannst schon:</strong> Ganze, Halbe, Viertel, Achtel und Sechzehntel zusammenrechnen.</p>
                         <p><strong>Jetzt lernst du:</strong> mit punktierten Noten rechnen. <strong>Ein Punkt hinter der Note verlängert sie.</strong> Die Verlängerung ist fest: Der Punkt wirkt bei jeder Note auf dieselbe Weise, auch bei Pausen.</p>
-                        <div style="font-weight:600;text-align:center;color:#5b21b6;margin-bottom:4px">Beispiel</div>
+                        <div style="font-weight:600;text-align:center;color:#0f172a;margin-bottom:4px">Beispiel</div>
                         <div class="lk-visual" id="lkVisualPunktierte"></div>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Rechne aus, wie viele Viertel eine punktierte Note wert ist. Klappt es noch nicht, schauen wir uns an einzelnen Noten genauer an, was der Punkt jedes Mal hinzufügt.</div>
                         <div class="lk-tip lk-tip-ask"><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_8tel')"><summary>Unsicher bei Achteln?</summary><div class="lk-ask-a">Eine Achtel dauert halb so lang wie eine Viertel, also 0,5. Zwei Achtel ergeben eine Viertel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_8tel', false); return false">Ausführlich nachlesen ›</a></div></details><details class="lk-ask" ontoggle="app._askToggled(this, 'rhy1_16tel')"><summary>Unsicher bei Sechzehnteln?</summary><div class="lk-ask-a">Eine Sechzehntel dauert halb so lang wie eine Achtel, also 0,25. Vier Sechzehntel ergeben eine Viertel. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('rhy1_16tel', false); return false">Ausführlich nachlesen ›</a></div></details></div>`,
@@ -9794,8 +9779,8 @@ Gerät:
                     const el = document.getElementById('lkVisualPunktierte');
                     if (!el) return;
                     // Notengleichung: punktierte Halbe = Halbe + Viertel (ohne Zahlen)
-                    const item = (t, l) => `<span style="text-align:center">${renderLegendSymbol(t, 45, 40)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">${l}</small></span>`;
-                    const op = s => `<span style="font-size:1.4rem;font-weight:600;color:#7c3aed">${s}</span>`;
+                    const item = (t, l) => `<span style="text-align:center">${renderLegendSymbol(t, 45, 40)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">${l}</small></span>`;
+                    const op = s => `<span style="font-size:1.4rem;font-weight:600;color:#1e293b">${s}</span>`;
                     el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap">' +
                         item('dotted-half', 'punktierte Halbe') + op('=') + item('half', 'Halbe') + op('+') + item('quarter', 'Viertel') + '</div>';
                 }
@@ -9815,11 +9800,11 @@ Gerät:
                 },
                 body: `<p><strong>Das hast du herausgefunden</strong> (deine Aufgaben):</p>
                     <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:6px 0 8px">
-                    <tr style="color:#5b21b6;font-weight:600;font-size:0.8rem"><td>Note</td><td style="text-align:center">ohne Punkt</td><td style="text-align:center">Punkt</td><td style="text-align:center">punktiert</td></tr>
-                    <tr style="border-top:1px solid #ddd6fe"><td>punktierte Halbe</td><td style="text-align:center">2</td><td style="text-align:center">+ 1</td><td style="text-align:center">= 3</td></tr>
-                    <tr style="border-top:1px solid #ddd6fe"><td>punktierte Viertel</td><td style="text-align:center">1</td><td style="text-align:center">+ 0,5</td><td style="text-align:center">= 1,5</td></tr>
-                    <tr style="border-top:1px solid #ddd6fe"><td>punktierte Achtel</td><td style="text-align:center">0,5</td><td style="text-align:center">+ 0,25</td><td style="text-align:center">= 0,75</td></tr>
-                    <tr style="border-top:1px solid #ddd6fe"><td>punktierte Viertelpause</td><td style="text-align:center">1</td><td style="text-align:center">+ 0,5</td><td style="text-align:center">= 1,5</td></tr>
+                    <tr style="color:#0f172a;font-weight:600;font-size:0.8rem"><td>Note</td><td style="text-align:center">ohne Punkt</td><td style="text-align:center">Punkt</td><td style="text-align:center">punktiert</td></tr>
+                    <tr style="border-top:1px solid #cbd5e1"><td>punktierte Halbe</td><td style="text-align:center">2</td><td style="text-align:center">+ 1</td><td style="text-align:center">= 3</td></tr>
+                    <tr style="border-top:1px solid #cbd5e1"><td>punktierte Viertel</td><td style="text-align:center">1</td><td style="text-align:center">+ 0,5</td><td style="text-align:center">= 1,5</td></tr>
+                    <tr style="border-top:1px solid #cbd5e1"><td>punktierte Achtel</td><td style="text-align:center">0,5</td><td style="text-align:center">+ 0,25</td><td style="text-align:center">= 0,75</td></tr>
+                    <tr style="border-top:1px solid #cbd5e1"><td>punktierte Viertelpause</td><td style="text-align:center">1</td><td style="text-align:center">+ 0,5</td><td style="text-align:center">= 1,5</td></tr>
                     </table>
                     <p><strong>Jetzt lernst du:</strong> punktierte Noten mitrechnen. <strong>Der Punkt fügt immer die Hälfte des Notenwerts hinzu, bei Noten und bei Pausen:</strong> punktierte Halbe 2 + 1 = 3, punktierte Viertel 1 + 0,5 = 1,5.</p>
                     <div class="lk-task"><strong>Deine Aufgabe:</strong> Addiere die gezeigten Notenwerte und tippe die Summe in Vierteln ein.</div>`
@@ -9835,7 +9820,7 @@ Gerät:
                     <div class="lk-hidden" id="lkRuleEvidence">
                         <p style="margin-bottom:0"><strong>Deine Aufgaben:</strong></p>
                         <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:6px 0 8px">
-                            <tr style="color:#5b21b6;font-weight:600;font-size:0.8rem"><td>Note</td><td style="text-align:center">ohne Punkt</td><td style="text-align:center">Punkt</td><td style="text-align:center">punktiert</td></tr>
+                            <tr style="color:#0f172a;font-weight:600;font-size:0.8rem"><td>Note</td><td style="text-align:center">ohne Punkt</td><td style="text-align:center">Punkt</td><td style="text-align:center">punktiert</td></tr>
                             <tbody id="lkRuleRows"></tbody>
                         </table>
                     </div>
@@ -9858,7 +9843,7 @@ Gerät:
                     };
                     const types = (app._rule1e && app._rule1e.probeTypes) || [];
                     document.getElementById('lkRuleRows').innerHTML = types.map(t => rows[t]).filter(Boolean).map(r =>
-                        `<tr style="border-top:1px solid #ddd6fe"><td>${r[0]}</td><td style="text-align:center">${r[1]}</td><td style="text-align:center">${r[2]}</td><td style="text-align:center">${r[3]}</td></tr>`).join('');
+                        `<tr style="border-top:1px solid #cbd5e1"><td>${r[0]}</td><td style="text-align:center">${r[1]}</td><td style="text-align:center">${r[2]}</td><td style="text-align:center">${r[3]}</td></tr>`).join('');
                     // „Verstanden“ erst nach der Antwort
                     const lkBtn = document.querySelector('#lernkarteOverlay .lernkarte > button');
                     if (lkBtn) lkBtn.style.display = 'none';
@@ -9887,24 +9872,24 @@ Gerät:
                             <div style="display:flex;gap:1.5rem;align-items:flex-end;flex-wrap:wrap;justify-content:center">
                                 <span style="text-align:center">
                                     ${renderTripletLegendSymbol('eighth-triplet', 90, 40)}
-                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 Achtel-Triolen = 1</small>
+                                    <br><small style="font-size:0.78rem;color:#0f172a;font-weight:600">3 Achtel-Triolen = 1</small>
                                     <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre Achtel)</small>
                                 </span>
                                 <span style="text-align:center">
                                     ${renderTripletLegendSymbol('quarter-triplet', 90, 40)}
-                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 Viertel-Triolen = 2</small>
+                                    <br><small style="font-size:0.78rem;color:#0f172a;font-weight:600">3 Viertel-Triolen = 2</small>
                                     <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre Viertel)</small>
                                 </span>
                             </div>
                             <div style="display:flex;gap:1.5rem;align-items:flex-end;flex-wrap:wrap;justify-content:center">
                                 <span style="text-align:center">
                                     ${renderTripletLegendSymbol('half-triplet', 100, 40)}
-                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 Halbe-Triolen = 4</small>
+                                    <br><small style="font-size:0.78rem;color:#0f172a;font-weight:600">3 Halbe-Triolen = 4</small>
                                     <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre Halbe)</small>
                                 </span>
                                 <span style="text-align:center">
                                     ${renderTripletLegendSymbol('sixteenth-triplet', 90, 40)}
-                                    <br><small style="font-size:0.78rem;color:#4c1d95;font-weight:600">3 16tel-Triolen = 0,5</small>
+                                    <br><small style="font-size:0.78rem;color:#0f172a;font-weight:600">3 16tel-Triolen = 0,5</small>
                                     <br><small style="font-size:0.7rem;color:#6b7280">(= 2 reguläre 16tel)</small>
                                 </span>
                             </div>
@@ -9932,9 +9917,9 @@ Gerät:
                 render() {
                     const el = document.getElementById('lkVisualTaktarten');
                     if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
-                        <span style="text-align:center">${renderTimeSignature(2,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">2 Viertelschläge</small></span>
-                        <span style="text-align:center">${renderTimeSignature(3,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">3 Viertelschläge</small></span>
-                        <span style="text-align:center">${renderTimeSignature(4,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">4 Viertelschläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(2,4)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">2 Viertelschläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(3,4)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">3 Viertelschläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(4,4)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">4 Viertelschläge</small></span>
                     </div>`;
                 }
             },
@@ -9957,8 +9942,8 @@ Gerät:
                 render() {
                     const el = document.getElementById('lkVisualUnreg1');
                     if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
-                        <span style="text-align:center">${renderTimeSignature(5,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">5 Schläge</small></span>
-                        <span style="text-align:center">${renderTimeSignature(7,4)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">7 Schläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(5,4)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">5 Schläge</small></span>
+                        <span style="text-align:center">${renderTimeSignature(7,4)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">7 Schläge</small></span>
                     </div>`;
                 }
             },
@@ -9981,8 +9966,8 @@ Gerät:
                 render() {
                     const el = document.getElementById('lkVisualUnreg2');
                     if (el) el.innerHTML = `<div style="display:flex;gap:2rem;justify-content:center;align-items:flex-end">
-                        <span style="text-align:center">${renderTimeSignature(7,8)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">7 Achtel</small></span>
-                        <span style="text-align:center">${renderTimeSignature(9,8)}<br><small style="font-size:0.75rem;color:#4c1d95;font-weight:600">9 Achtel</small></span>
+                        <span style="text-align:center">${renderTimeSignature(7,8)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">7 Achtel</small></span>
+                        <span style="text-align:center">${renderTimeSignature(9,8)}<br><small style="font-size:0.75rem;color:#0f172a;font-weight:600">9 Achtel</small></span>
                     </div>`;
                 }
             },
@@ -10588,7 +10573,7 @@ Gerät:
                             <!-- Balken zwischen den Achteln -->
                             <line x1="${eighth1X+12}" y1="${staffY-50}" x2="${eighth2X+12}" y2="${staffY-50}" stroke="#000" stroke-width="4"/>
                             <!-- Fragezeichen -->
-                            <text x="${qX}" y="${staffY+8}" font-size="32" fill="#8b5cf6" font-weight="700" text-anchor="middle">?</text>
+                            <text x="${qX}" y="${staffY+8}" font-size="32" fill="#334155" font-weight="700" text-anchor="middle">?</text>
                         </svg>`;
 
                         el.innerHTML = `
@@ -10598,17 +10583,17 @@ Gerät:
                             </div>
                             <!-- Schrittweise Herleitung -->
                             <div style="font-size:0.85rem;line-height:1.8;color:#374151;text-align:left;padding:0 4px">
-                                <div style="margin-bottom:6px"><strong style="color:#4c1d95">Schritt 1 — Notenwerte zusammenrechnen:</strong><br>
+                                <div style="margin-bottom:6px"><strong style="color:#0f172a">Schritt 1 — Notenwerte zusammenrechnen:</strong><br>
                                     <span style="margin-left:12px">Halbe (2) + Achtel (0,5) + Achtel (0,5) = <strong>3</strong></span></div>
-                                <div><strong style="color:#4c1d95">Schritt 2 — Differenz zur Taktart:</strong><br>
+                                <div><strong style="color:#0f172a">Schritt 2 — Differenz zur Taktart:</strong><br>
                                     <span style="margin-left:12px">Die Taktart <strong>4/4</strong> bedeutet: 4 Viertelschläge füllen den Takt.</span><br>
-                                    <span style="margin-left:12px">4 − 3 = <strong style="color:#8b5cf6">1 → Viertel</strong></span></div>
+                                    <span style="margin-left:12px">4 − 3 = <strong style="color:#334155">1 → Viertel</strong></span></div>
                             </div>
                             <div style="font-size:0.8rem;color:#6b7280;margin:10px 0 6px">Antwort-Buttons:</div>
                             <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
-                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('half',30,30)}<br><small style="font-size:0.7rem">Halbe</small></span>
-                                <span style="text-align:center;background:#ede9fe;border:2px solid #8b5cf6;border-radius:8px;padding:6px 10px">${sym('quarter',30,30)}<br><small style="font-size:0.7rem;color:#8b5cf6;font-weight:700">Viertel ✓</small></span>
-                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('eighth',30,30)}<br><small style="font-size:0.7rem">Achtel</small></span>
+                                <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 10px">${sym('half',30,30)}<br><small style="font-size:0.7rem">Halbe</small></span>
+                                <span style="text-align:center;background:#e2e8f0;border:2px solid #334155;border-radius:8px;padding:6px 10px">${sym('quarter',30,30)}<br><small style="font-size:0.7rem;color:#334155;font-weight:700">Viertel ✓</small></span>
+                                <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 10px">${sym('eighth',30,30)}<br><small style="font-size:0.7rem">Achtel</small></span>
                             </div>`;
                     }
                 }
@@ -10633,11 +10618,11 @@ Gerät:
                     const el = document.getElementById('lkVisualRhy5Punkt');
                     if (el) el.innerHTML = `
                         <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('half',28,28)}<br><small style="font-size:0.65rem">Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-half',28,28)}<br><small style="font-size:0.65rem">P. Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('quarter',28,28)}<br><small style="font-size:0.65rem">Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-quarter',28,28)}<br><small style="font-size:0.65rem">P. Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('eighth',28,28)}<br><small style="font-size:0.65rem">Achtel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${sym('half',28,28)}<br><small style="font-size:0.65rem">Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-half',28,28)}<br><small style="font-size:0.65rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${sym('quarter',28,28)}<br><small style="font-size:0.65rem">Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-quarter',28,28)}<br><small style="font-size:0.65rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${sym('eighth',28,28)}<br><small style="font-size:0.65rem">Achtel</small></span>
                         </div>`;
                 }
             },
@@ -10661,13 +10646,13 @@ Gerät:
                     const el = document.getElementById('lkVisualRhy5_16tel');
                     if (el) el.innerHTML = `
                         <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('half',26,26)}<br><small style="font-size:0.6rem">Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-half',26,26)}<br><small style="font-size:0.6rem">P. Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('quarter',26,26)}<br><small style="font-size:0.6rem">Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-quarter',26,26)}<br><small style="font-size:0.6rem">P. Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('eighth',26,26)}<br><small style="font-size:0.6rem">Achtel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-eighth',26,26)}<br><small style="font-size:0.6rem">P. Achtel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('sixteenth',26,26)}<br><small style="font-size:0.6rem">16tel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('half',26,26)}<br><small style="font-size:0.6rem">Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-half',26,26)}<br><small style="font-size:0.6rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('quarter',26,26)}<br><small style="font-size:0.6rem">Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-quarter',26,26)}<br><small style="font-size:0.6rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('eighth',26,26)}<br><small style="font-size:0.6rem">Achtel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-eighth',26,26)}<br><small style="font-size:0.6rem">P. Achtel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('sixteenth',26,26)}<br><small style="font-size:0.6rem">16tel</small></span>
                         </div>`;
                 }
             },
@@ -10757,9 +10742,9 @@ Gerät:
                             </div>
                             <div style="font-size:0.8rem;color:#6b7280;margin:10px 0 6px">Noten-Buttons:</div>
                             <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:8px">
-                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('half',30,30)}<br><small style="font-size:0.7rem">Halbe</small></span>
-                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('quarter',30,30)}<br><small style="font-size:0.7rem">Viertel</small></span>
-                                <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 10px">${sym('eighth',30,30)}<br><small style="font-size:0.7rem">Achtel</small></span>
+                                <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 10px">${sym('half',30,30)}<br><small style="font-size:0.7rem">Halbe</small></span>
+                                <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 10px">${sym('quarter',30,30)}<br><small style="font-size:0.7rem">Viertel</small></span>
+                                <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 10px">${sym('eighth',30,30)}<br><small style="font-size:0.7rem">Achtel</small></span>
                             </div>
                             <div style="display:flex;gap:0.5rem;justify-content:center">
                                 <span style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:4px 12px;font-size:0.75rem;color:#dc2626">↩ Rückgängig</span>
@@ -10788,11 +10773,11 @@ Gerät:
                     const el = document.getElementById('lkVisualRhy6Punkt');
                     if (el) el.innerHTML = `
                         <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('half',28,28)}<br><small style="font-size:0.65rem">Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-half',28,28)}<br><small style="font-size:0.65rem">P. Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('quarter',28,28)}<br><small style="font-size:0.65rem">Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-quarter',28,28)}<br><small style="font-size:0.65rem">P. Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 8px">${sym('eighth',28,28)}<br><small style="font-size:0.65rem">Achtel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${sym('half',28,28)}<br><small style="font-size:0.65rem">Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-half',28,28)}<br><small style="font-size:0.65rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${sym('quarter',28,28)}<br><small style="font-size:0.65rem">Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${renderDottedLegendSymbol('dotted-quarter',28,28)}<br><small style="font-size:0.65rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:6px 8px">${sym('eighth',28,28)}<br><small style="font-size:0.65rem">Achtel</small></span>
                         </div>`;
                 }
             },
@@ -10816,13 +10801,13 @@ Gerät:
                     const el = document.getElementById('lkVisualRhy6_16tel');
                     if (el) el.innerHTML = `
                         <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('half',26,26)}<br><small style="font-size:0.6rem">Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-half',26,26)}<br><small style="font-size:0.6rem">P. Halbe</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('quarter',26,26)}<br><small style="font-size:0.6rem">Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-quarter',26,26)}<br><small style="font-size:0.6rem">P. Viertel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('eighth',26,26)}<br><small style="font-size:0.6rem">Achtel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-eighth',26,26)}<br><small style="font-size:0.6rem">P. Achtel</small></span>
-                            <span style="text-align:center;background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:5px 7px">${sym('sixteenth',26,26)}<br><small style="font-size:0.6rem">16tel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('half',26,26)}<br><small style="font-size:0.6rem">Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-half',26,26)}<br><small style="font-size:0.6rem">P. Halbe</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('quarter',26,26)}<br><small style="font-size:0.6rem">Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-quarter',26,26)}<br><small style="font-size:0.6rem">P. Viertel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('eighth',26,26)}<br><small style="font-size:0.6rem">Achtel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${renderDottedLegendSymbol('dotted-eighth',26,26)}<br><small style="font-size:0.6rem">P. Achtel</small></span>
+                            <span style="text-align:center;background:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:5px 7px">${sym('sixteenth',26,26)}<br><small style="font-size:0.6rem">16tel</small></span>
                         </div>`;
                 }
             }
