@@ -41,7 +41,10 @@ const SCHOOL_MARKER_TOKEN = 'mt-2026-k7zQ9pX4vB8nL3cF';
 const EVENTS_TYPES = ['page_view', 'quiz_start', 'quiz_complete', 'heartbeat',
   'node_select', 'card_view', 'quiz_abandon', 'landing_click', 'card_dismiss',
   'subskill_dismiss', 'help_nudge', 'help_nudge_followed', 'tip_open', 'self_assess',
-  'help_open', 'wq_error'];
+  'help_open', 'wq_error',
+  // seit 18./19.11.2026: Wegweiser (Ankunft über ?knoten=), Blasen für Erstbesucher, Reiter „Trainer/Themen | Stufen“.
+  // Typen, die hier fehlen, fallen in den Alt-Pfad und werden stillschweigend verworfen – darum immer hier eintragen.
+  'arrive', 'coach', 'view_switch'];
 const EVENTS_HEADERS = ['ts', 'schema', 'env', 'eventType', 'trainer',
   'device', 'referrer', 'sessionId', 'payload'];
 
