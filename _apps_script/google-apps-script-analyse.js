@@ -701,6 +701,30 @@ function runAnalyse() {
   push('  Lesehilfe', 'Ankünfte ohne Start = Chip war nur Orientierung (erlaubt); „Dein Thema“ hoch = die Karte trägt. Blase: Median unter 1,5 s = weggetippt wie das alte Overlay, dann Text oder Moment ändern');
   push('');
 
+  // ANSICHTEN (seit 19.11.2026): view_switch = Reiter „Trainer | Stufen“ (Landing) bzw. „Themen | Stufen“ (Trainer),
+  // payload.to = trainer/stufe. Frage: Schaltet überhaupt jemand auf „Stufen“, und wie oft folgt darauf ein Start?
+  push('— ANSICHTEN (view_switch, alle Segmente) —');
+  const vsB = {};   // trainer → {stufe:{n,start}, trainer:{n,start}}
+  sessions.forEach(s => {
+    const ev = s.evAll || [];
+    ev.forEach((e, i) => {
+      if (e.eventType !== 'view_switch') return;
+      const tr = e.trainer || s.trainer || '?', to = (e.payload || {}).to === 'stufe' ? 'stufe' : 'trainer';
+      const v = vsB[tr] = vsB[tr] || { stufe: { n: 0, start: 0 }, trainer: { n: 0, start: 0 } };
+      v[to].n++;
+      if (ev.slice(i + 1).some(x => x.eventType === 'quiz_start' || (x.eventType === 'landing_click' && (x.payload || {}).via === 'stufe'))) v[to].start++;
+    });
+  });
+  let anyVs = false;
+  Object.keys(vsB).sort().forEach(tr => {
+    const v = vsB[tr]; anyVs = true;
+    push('  ' + tr, 'auf „Stufen“ ' + v.stufe.n + ' (danach Start ' + v.stufe.start + ') · zurück auf Themen/Trainer ' + v.trainer.n);
+  });
+  if (!anyVs) push('  (noch keine view_switch — Reiter noch nicht im Einsatz)');
+  push('');
+  push('  Lesehilfe', 'Wenige Wechsel = der Reiter wird übersehen (dann Blase am Reiter erwägen); Wechsel ohne Start = Stufen werden nur zur Orientierung gelesen');
+  push('');
+
   // LERNKARTEN-DIAGNOSE — „kurz gesehen" × Quiz-Erfolg (Hypothesen-Trennung)
   // 2-5s auf Karte + danach Quiz: Mastery → „kannte es schon"; <80% → „überfordert/abgesprungen".
   // Korreliert pro Session: card_dismiss(fromStart=true) → folgendes quiz_complete für denselben subskill.

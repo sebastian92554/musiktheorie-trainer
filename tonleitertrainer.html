@@ -335,6 +335,39 @@
         .coach.below::after { bottom: 100%; left: 20px; border-bottom-color: #334155; }
         .coach.above::after { top: 100%; left: 20px; border-top-color: #334155; }
         .coach.right::after { left: auto; right: 20px; }
+        /* ---- Zwei Ansichten im Skilltree (19.11.2026; Entwurf _entwicklung/mock_trainer_stufen.html): Reiter „Themen | Stufen“ im Kopf
+           der Weg-Karte wie auf der Landing; „Stufen“ = drei Karten an der Zeitleiste (Könnens-Satz nur für diesen Trainer, Balken in
+           Trainerfarbe, Themen als Klappzeilen mit den Übungen dieser Stufe). Die Karte oben bleibt in beiden Ansichten.
+           „Geschafft“ im ganzen Skilltree in Slate statt Grün (Sebo: passt zum Haken an der Linie; Grün bleibt „richtig“ im Quiz). ---- */
+        .skilltree-title { align-items: flex-end; border-bottom: 2px solid #e2e8f0; margin-bottom: 0.9rem; }
+        .skilltree-title #stMapCount { padding-bottom: 0.5rem; }
+        .lp-switch { display: flex; gap: 0.5rem; margin-bottom: -2px; }
+        .lp-switch button { font: inherit; font-size: 0.95rem; font-weight: 600; color: #94a3b8; background: none; border: 0; border-bottom: 3px solid transparent; padding: 0.2rem 0.7rem 0.45rem; cursor: pointer; }
+        .lp-switch button.on { color: #1e293b; border-bottom-color: #334155; }
+        .lp-switch button:not(.on):hover { color: #475569; }
+        #skilltreeView[hidden], #stufenView[hidden] { display: none; }
+        .sf-kann { font-size: 0.82rem; color: #64748b; line-height: 1.45; padding: 0.5rem 0.3rem 0.2rem; }
+        .sf-bar-row { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: #64748b; margin: 0.6rem 0.3rem 0.2rem; }
+        .sf-bar { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .sf-bar span { display: block; height: 100%; background: #0891b2; border-radius: 3px; }
+        .sf-theme { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.3rem; border-radius: 0.5rem; cursor: pointer; }
+        .sf-theme:hover { background: #f8fafc; }
+        .sf-theme .st-ring { width: 1.7rem; height: 1.7rem; }
+        .sf-theme .st-ring::before { inset: 3px; }
+        .sf-theme .st-ring span { font-size: 0.62rem; }
+        .sf-theme.done .st-ring { background: #334155; } .sf-theme.done .st-ring::before { background: #334155; } .sf-theme.done .st-ring span { color: #fff; }
+        .sf-theme-text { flex: 1; min-width: 0; font-size: 0.85rem; color: #334155; line-height: 1.3; }
+        .sf-theme.done .sf-theme-text { color: #64748b; }
+        .sf-theme-meta { font-size: 0.75rem; color: #64748b; flex-shrink: 0; }
+        .sf-theme-chev { color: #94a3b8; font-size: 0.9rem; flex-shrink: 0; transition: transform 0.15s; }
+        .sf-group.open .sf-theme-chev { transform: rotate(180deg); }
+        .sf-rows { display: none; padding: 0 0 0.3rem 0.9rem; }
+        .sf-group.open .sf-rows { display: block; }
+        .st-node.done .st-ring, .st-step.done .st-step-mark .st-ring { background: #334155; }
+        .st-node.done .st-ring::before, .st-step.done .st-step-mark .st-ring::before { background: #334155; }
+        .st-row.done .st-dot { background: #334155; border-color: #334155; }
+        .st-node.done { border-color: #d1d5db; background: #fff; border-left-color: #0891b2; }
+        .st-node.done .st-tag { color: #334155; background: #f1f5f9; border-color: #cbd5e1; }
         @media (prefers-reduced-motion: reduce) { .st-node.pulse, .band-links .account-bar .acc-btn.coach-target { animation: none; } .coach { transition: none; } }
 
         /* ---- Schreib-Modus (Knoten 4): Werkzeugleiste und interaktives Notensystem; stand vorher im Skilltree-Block
@@ -1734,11 +1767,13 @@
             <div class="skilltree-card st-next-card" id="stNextCard"></div>
             <div class="skilltree-card">
                 <div class="skilltree-title">
-                    <span>Dein Weg</span>
+                    <div class="lp-switch" role="tablist"><button type="button" data-view="trainer" onclick="quickStart.setView('trainer')">Themen</button><button type="button" data-view="stufe" onclick="quickStart.setView('stufe')">Stufen</button></div>
                     <span id="stMapCount"></span>
                 </div>
                 <!-- Landkarte als Zeitleiste (gerendert in updateAllProgress) -->
                 <div class="skilltree st-steps" id="skilltreeView"></div>
+                <!-- Stufen-Ansicht (gerendert in updateAllProgress über _stufenHtml) -->
+                <div class="skilltree st-steps" id="stufenView" hidden></div>
                 <!-- Fortschritt -->
                 <div class="st-progress-info" id="stProgressInfo"></div>
             </div>
@@ -3944,37 +3979,37 @@
         // Sub-Skills pro Knoten (bilden auf bestehende option-IDs ab)
         nodeSubSkills: {
             'ton1': [
-                { id: 'basis', label: 'Stammtöne (C–H)', phrase: 'Ganzton und Halbton unterscheiden', preview: 'Bestimmen des Tonabstands zwischen zwei Stammtönen (Ganz-/Halbton)' },
-                { id: 'vorzeichen', label: '+ Vorzeichen', phrase: 'Abstände mit Vorzeichen bestimmen', preview: 'Bestimmen des Tonabstands zwischen Tönen mit Vorzeichen' },
-                { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Ganzton oder Halbton ohne Hörbeispiel bestimmen', preview: 'Bestimmen des Tonabstands ohne Hörbeispiel' }
+                { id: 'basis', stufe: 1, label: 'Stammtöne (C–H)', phrase: 'Ganzton und Halbton unterscheiden', preview: 'Bestimmen des Tonabstands zwischen zwei Stammtönen (Ganz-/Halbton)' },
+                { id: 'vorzeichen', stufe: 1, label: '+ Vorzeichen', phrase: 'Abstände mit Vorzeichen bestimmen', preview: 'Bestimmen des Tonabstands zwischen Tönen mit Vorzeichen' },
+                { id: 'noaudio', stufe: 3, label: 'ohne Hörbeispiel', phrase: 'Ganzton oder Halbton ohne Hörbeispiel bestimmen', preview: 'Bestimmen des Tonabstands ohne Hörbeispiel' }
             ],
             'ton2': [
-                { id: 'basis', label: 'HS-Stufen wählen', phrase: 'die Halbtonschritte einer Tonleiter finden', preview: 'Bestimmen der Halbtonschritt-Stufen in Dur- und Moll-Tonleitern' },
-                { id: 'stufenpaare', label: 'HS-Paare auswählen', phrase: 'Halbtonschritte als Stufenpaare angeben', preview: 'Auswählen der Halbtonschritt-Paare in der Tonleiter' },
-                { id: 'mehr_tonarten', label: '+ erweiterte Tonarten', phrase: 'Halbtonschritte in Tonleitern mit vielen Vorzeichen finden', preview: 'Bestimmen der Halbtonschritte in erweiterten Tonarten' },
-                { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Halbtonschritte ohne Hörbeispiel finden', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
+                { id: 'basis', stufe: 1, label: 'HS-Stufen wählen', phrase: 'die Halbtonschritte einer Tonleiter finden', preview: 'Bestimmen der Halbtonschritt-Stufen in Dur- und Moll-Tonleitern' },
+                { id: 'stufenpaare', stufe: 2, label: 'HS-Paare auswählen', phrase: 'Halbtonschritte als Stufenpaare angeben', preview: 'Auswählen der Halbtonschritt-Paare in der Tonleiter' },
+                { id: 'mehr_tonarten', stufe: 3, label: '+ erweiterte Tonarten', phrase: 'Halbtonschritte in Tonleitern mit vielen Vorzeichen finden', preview: 'Bestimmen der Halbtonschritte in erweiterten Tonarten' },
+                { id: 'noaudio', stufe: 3, label: 'ohne Hörbeispiel', phrase: 'Halbtonschritte ohne Hörbeispiel finden', preview: 'Bestimmen der Halbtonschritte ohne Hörbeispiel' }
             ],
             'ton3': [
-                { id: 'muster_lernen', label: 'Tongeschlecht bestimmen', phrase: 'Dur und Moll unterscheiden', preview: 'Bestimmen des Tongeschlechts (Dur / Moll / Andere)' },
-                { id: 'muster_erkennen', label: 'HS-Stufen + benennen', phrase: 'eine Tonleiter benennen', preview: 'Halbtonschritt-Stufen finden und Tonleiter benennen' },
-                { id: 'alles', label: 'Ohne Halbtonschritt-Hilfe', phrase: 'Tonleitern ohne markierte Halbtonschritte benennen', preview: 'Benennen von Tonleitern ohne Halbtonschritt-Hilfe' },
-                { id: 'ohne_hilfe', label: 'Ohne Klaviatur-Hilfe', phrase: 'Halbtonschritte ohne Tastatur bestimmen', preview: 'Benennen von Tonleitern ohne Klaviatur-Hilfe' },
-                { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel benennen', preview: 'Benennen von Tonleitern ohne Hörbeispiel' }
+                { id: 'muster_lernen', stufe: 2, label: 'Tongeschlecht bestimmen', phrase: 'Dur und Moll unterscheiden', preview: 'Bestimmen des Tongeschlechts (Dur / Moll / Andere)' },
+                { id: 'muster_erkennen', stufe: 2, label: 'HS-Stufen + benennen', phrase: 'eine Tonleiter benennen', preview: 'Halbtonschritt-Stufen finden und Tonleiter benennen' },
+                { id: 'alles', stufe: 2, label: 'Ohne Halbtonschritt-Hilfe', phrase: 'Tonleitern ohne markierte Halbtonschritte benennen', preview: 'Benennen von Tonleitern ohne Halbtonschritt-Hilfe' },
+                { id: 'ohne_hilfe', stufe: 2, label: 'Ohne Klaviatur-Hilfe', phrase: 'Halbtonschritte ohne Tastatur bestimmen', preview: 'Benennen von Tonleitern ohne Klaviatur-Hilfe' },
+                { id: 'noaudio', stufe: 3, label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel benennen', preview: 'Benennen von Tonleitern ohne Hörbeispiel' }
             ],
             'ton4': [
-                { id: 'tastatur_einfach', label: 'Tastatur (einfach)', phrase: 'eine Tonleiter auf der Tastatur bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
-                { id: 'schreiben_einfach', label: 'Schreiben (einfach)', phrase: 'eine Tonleiter ins Notensystem schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (einfach)' },
-                { id: 'tastatur_schwer', label: 'Tastatur (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen auf der Tastatur bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
-                { id: 'schreiben_schwer', label: 'Schreiben (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (viele Vorzeichen)' },
-                { id: 'noaudio', label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel schreiben', preview: 'Konstruieren von Tonleitern ohne Hörbeispiel' }
+                { id: 'tastatur_einfach', stufe: 2, label: 'Tastatur (einfach)', phrase: 'eine Tonleiter auf der Tastatur bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (einfach)' },
+                { id: 'schreiben_einfach', stufe: 2, label: 'Schreiben (einfach)', phrase: 'eine Tonleiter ins Notensystem schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (einfach)' },
+                { id: 'tastatur_schwer', stufe: 3, label: 'Tastatur (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen auf der Tastatur bilden', preview: 'Konstruieren von Tonleitern auf der Tastatur (viele Vorzeichen)' },
+                { id: 'schreiben_schwer', stufe: 3, label: 'Schreiben (viele Vorzeichen)', phrase: 'Tonleitern mit vielen Vorzeichen schreiben', preview: 'Schreiben von Tonleitern ins Notensystem (viele Vorzeichen)' },
+                { id: 'noaudio', stufe: 3, label: 'Ohne Hörbeispiel', phrase: 'Tonleitern ohne Hörbeispiel schreiben', preview: 'Konstruieren von Tonleitern ohne Hörbeispiel' }
             ],
             'ton5': [
-                { id: 'aussenkr', label: 'Außenkreis + Merksätze', phrase: 'den Quintenzirkel lesen', preview: 'Außenkreis des Quintenzirkels mit Merksätzen' },
-                { id: 'innenkr', label: 'Innenkreis + Mollparallelen', phrase: 'die Mollparallele finden', preview: 'Innenkreis des Quintenzirkels mit Mollparallelen' },
-                { id: 'vorz_ableitung', label: 'Vorzeichen-Ableitung', phrase: 'die Vorzeichen einer Tonart ableiten', preview: 'Ableiten der Vorzeichen aus dem Quintenzirkel' },
-                { id: 'enharmonisch', label: 'Enharmonik', phrase: 'die enharmonisch gleiche Tonart finden', preview: 'Enharmonische Verwechslungen im Quintenzirkel' },
-                { id: 'verwandte', label: 'Verwandte Tonarten', phrase: 'die Nachbarn einer Tonart im Zirkel finden', preview: 'Verwandte Tonarten im Quintenzirkel' },
-                { id: 'symmetrien', label: 'Symmetrien', phrase: 'Tonleiterbeziehungen im Quintenzirkel finden', preview: 'Symmetrien im Quintenzirkel (Tritonus, Dreiecke, Raute)' }
+                { id: 'aussenkr', stufe: 2, label: 'Außenkreis + Merksätze', phrase: 'den Quintenzirkel lesen', preview: 'Außenkreis des Quintenzirkels mit Merksätzen' },
+                { id: 'innenkr', stufe: 2, label: 'Innenkreis + Mollparallelen', phrase: 'die Mollparallele finden', preview: 'Innenkreis des Quintenzirkels mit Mollparallelen' },
+                { id: 'vorz_ableitung', stufe: 2, label: 'Vorzeichen-Ableitung', phrase: 'die Vorzeichen einer Tonart ableiten', preview: 'Ableiten der Vorzeichen aus dem Quintenzirkel' },
+                { id: 'enharmonisch', stufe: 3, label: 'Enharmonik', phrase: 'die enharmonisch gleiche Tonart finden', preview: 'Enharmonische Verwechslungen im Quintenzirkel' },
+                { id: 'verwandte', stufe: 3, label: 'Verwandte Tonarten', phrase: 'die Nachbarn einer Tonart im Zirkel finden', preview: 'Verwandte Tonarten im Quintenzirkel' },
+                { id: 'symmetrien', stufe: 3, label: 'Symmetrien', phrase: 'Tonleiterbeziehungen im Quintenzirkel finden', preview: 'Symmetrien im Quintenzirkel (Tritonus, Dreiecke, Raute)' }
             ]
         },
 
@@ -4029,6 +4064,94 @@
         // Knotentitel in Schülersprache; die Übungszeilen tragen die „Jetzt lernst du“-Phrasen der Karten (nodeSubSkills.phrase).
         nodeOrder: ['ton1', 'ton2', 'ton3', 'ton4', 'ton5'],
         nodeTitles: { ton1: 'Ganzton oder Halbton?', ton2: 'Halbtonschritte finden', ton3: 'Welche Tonleiter ist das?', ton4: 'Tonleiter bilden', ton5: 'Quintenzirkel' },
+        // ---- Zwei Ansichten (19.11.2026): „Themen“ = der Weg, „Stufen“ = drei Stufen quer durch die Trainer (Zuordnung nodeSubSkills[].stufe).
+        //      Die Wahl liegt im selben Merker wie auf der Landing (musik_landing_view); Ankunft per Chip oder Suche zeigt immer die Themen. ----
+        stufenNames: { 1: 'Grundlagen', 2: 'Aufbau', 3: 'Vertiefung' },
+        stufenKann: {   // Könnens-Satz je Stufe, nur für diesen Trainer (auf der Landing steht der Satz über alle Trainer)
+            1: 'Du unterscheidest Ganzton und Halbton und findest die Halbtonschritte einer Tonleiter.',
+            2: 'Du bestimmst Dur und Moll, benennst Tonleitern, bildest sie auf der Tastatur und im Notensystem und liest den Quintenzirkel.',
+            3: 'Du arbeitest ohne Hörbeispiel und mit vielen Vorzeichen und findest im Quintenzirkel Enharmonik, verwandte Tonarten und Symmetrien.'
+        },
+        _openStufen: null,   // aufgeklappte Stufen (Set); null = die erste nicht fertige ist offen
+        _openThemes: null,   // aufgeklappte Themen in den Stufenkarten („2:ton3“); null = nur das Thema mit der aktiven Übung
+        view() { try { return localStorage.getItem('musik_landing_view') === 'stufe' ? 'stufe' : 'trainer'; } catch (e) { return 'trainer'; } },
+        setView(v) {
+            try { localStorage.setItem('musik_landing_view', v); } catch (e) {}
+            try { tracker._send('view_switch', { to: v }); } catch (e) {}
+            this.updateAllProgress();
+        },
+        toggleStufe(l) {
+            if (!this._openStufen) this._openStufen = new Set([...document.querySelectorAll('#stufenView .st-node.open')].map(n => +n.dataset.l));
+            this._openStufen.has(l) ? this._openStufen.delete(l) : this._openStufen.add(l);
+            this.updateAllProgress();
+        },
+        toggleStufeThema(key) {
+            if (!this._openThemes) this._openThemes = new Set([...document.querySelectorAll('#stufenView .sf-group.open')].map(g => g.dataset.key));
+            this._openThemes.has(key) ? this._openThemes.delete(key) : this._openThemes.add(key);
+            this.updateAllProgress();
+        },
+        // Stand je Stufe: Themen mit Übungen dieser Stufe (geschafft/offen) und die nächste offene Übung in Themenreihenfolge
+        _stufenState() {
+            const st = {};
+            [1, 2, 3].forEach(l => st[l] = { done: 0, total: 0, next: null, groups: [] });
+            this.nodeOrder.forEach(nodeId => {
+                const ns = this._nodeState(nodeId);
+                [1, 2, 3].forEach(l => {
+                    const rows = ns.subs.map((sub, i) => ({ sub, i })).filter(x => (x.sub.stufe || 2) === l);
+                    if (!rows.length) return;
+                    const open = rows.filter(x => !ns.mastered.includes(x.sub.id));
+                    st[l].total += rows.length; st[l].done += rows.length - open.length;
+                    if (!st[l].next && open.length) st[l].next = { nodeId, idx: open[0].i, stufe: l };
+                    st[l].groups.push({ nodeId, ns, rows });
+                });
+            });
+            st.firstOpen = [1, 2, 3].find(l => st[l].done < st[l].total) || null;
+            return st;
+        },
+        nextStepStufe() { const st = this._stufenState(); return st.firstOpen ? st[st.firstOpen].next : null; },
+        // Stufenkarten an der Zeitleiste: Kopf wie ein Thema (Ring, Name, Stand, Pfeil), darin Könnens-Satz, Balken und die Themen als
+        // Klappzeilen mit den Übungszeilen dieser Stufe (wie _nodeHtml). Markiert ist nur die aktive Übung (die aus der Karte oben).
+        _stufenHtml(active) {
+            const st = this._stufenState();
+            return [1, 2, 3].map(l => {
+                const s = st[l], done = s.total > 0 && s.done === s.total, pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+                const isOpen = this._openStufen ? this._openStufen.has(l) : l === st.firstOpen;
+                const rows = s.groups.map(g => {
+                    const n = g.rows.length, dn = g.rows.filter(x => g.ns.mastered.includes(x.sub.id)).length, gd = dn === n;
+                    const hasActive = !!active && active.nodeId === g.nodeId && g.rows.some(x => x.i === active.idx);
+                    const key = l + ':' + g.nodeId, open = this._openThemes ? this._openThemes.has(key) : hasActive;
+                    const inner = g.rows.map(x => {
+                        const d = g.ns.mastered.includes(x.sub.id), cur = !d && !!active && active.nodeId === g.nodeId && active.idx === x.i;
+                        return `<div class="st-row${d ? ' done' : ''}${cur ? ' cur' : ''}" onclick="quickStart.startSub('${g.nodeId}', ${x.i}, 'row')">
+                            <div class="st-dot">${d ? '✓' : this._subCode(g.nodeId, x.i)}</div>
+                            <div class="st-row-text">${this._cap(x.sub.phrase || x.sub.label)}</div>
+                            ${d ? `<span class="st-row-stars">${this._starsHtml(g.ns.scores[x.sub.id] || 0)}</span>` : ''}
+                            <button type="button" class="st-go">${d ? 'Noch mal' : (cur ? 'Start' : 'Üben')}</button>
+                        </div>`;
+                    }).join('');
+                    return `<div class="sf-group${open ? ' open' : ''}" data-key="${key}">
+                        <div class="sf-theme${gd ? ' done' : ''}" onclick="quickStart.toggleStufeThema('${key}')">
+                            <div class="st-ring" style="--p:${Math.round(dn / n * 100)}"><span>${gd ? '✓' : g.nodeId.replace(/\D/g, '')}</span></div>
+                            <div class="sf-theme-text">${this.nodeTitles[g.nodeId]}</div>
+                            <span class="sf-theme-meta">${dn} von ${n}</span><span class="sf-theme-chev">▾</span>
+                        </div>
+                        <div class="sf-rows">${inner}</div>
+                    </div>`;
+                }).join('');
+                const bar = s.done && !done ? `<div class="sf-bar-row"><div class="sf-bar"><span style="width:${pct}%"></span></div><span>${s.done} von ${s.total} Übungen geschafft</span></div>` : '';
+                const starSum = s.groups.reduce((a, g) => a + g.rows.reduce((b, x) => b + (g.ns.scores[x.sub.id] || 0), 0), 0);
+                const meta = done ? `<span class="st-tag">Geschafft</span><span class="st-stars">★</span><span>${starSum} von ${s.total * 3} Sternen</span>` : `<span>${s.done} von ${s.total} Übungen</span>`;
+                return `<div class="st-step single${done ? ' done' : ''}"><div class="st-step-mark"><div class="st-ring" style="--p:${pct}"><span>${done ? '✓' : l}</span></div></div><div class="st-step-body">
+                    <div class="st-node${isOpen ? ' open' : ''}${done ? ' done' : ''}" data-l="${l}">
+                        <div class="st-node-head" onclick="quickStart.toggleStufe(${l})">
+                            <div class="st-ring" style="--p:${pct}"><span>${done ? '✓' : l}</span></div>
+                            <div class="st-node-content"><div class="st-node-name">Stufe ${l}: ${this.stufenNames[l]}</div><div class="st-node-meta">${meta}</div></div>
+                            <div class="st-chev">▾</div>
+                        </div>
+                        <div class="st-rows"><div class="sf-kann">${this.stufenKann[l]}</div>${bar}${rows}</div>
+                    </div></div></div>`;
+            }).join('');
+        },
         _openNodes: null,   // aufgeklappte Knoten; null = noch nie gerendert → der nächste Knoten ist offen
         topic: null,        // Wegweiser: Ankunft über ?knoten=ton2[&uebung=b] → { nodeId, idx }; die Karte oben heißt „Dein Thema“
         pulseNode: null,    // Thema, das nach der Ankunft einmal pulsiert
@@ -4057,7 +4180,8 @@
         _cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; },
         updateAllProgress() {
             // Nach der Ankunft über ?knoten= ist das Thema die Hauptaktion; die Empfehlung tritt zurück (bis zur Rückkehr aus dem Quiz)
-            const next = this.topic || this.nextStep();
+            const viewStufe = !this.topic && this.view() === 'stufe';   // Stufen-Ansicht: die Karte oben zeigt die nächste Übung der ersten offenen Stufe
+            const next = this.topic || (viewStufe ? this.nextStepStufe() : this.nextStep());
             if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
             let totalSubs = 0, totalMastered = 0;
             this.nodeOrder.forEach(id => { const st = this._nodeState(id); totalSubs += st.total; totalMastered += st.done; });
@@ -4072,7 +4196,8 @@
                     const title = this.nodeTitles[next.nodeId], phrase = this._cap(sub.phrase || sub.label);
                     const label = this.topic ? `Dein Thema: ${title}` : (first ? 'Hier anfangen' : 'Deine nächste Übung');
                     const sameAsTitle = phrase.toLowerCase().replace(/\?$/, '') === title.toLowerCase().replace(/\?$/, '');
-                    const subLine = `Übung&nbsp;${next.idx + 1}&nbsp;von&nbsp;${this.nodeSubSkills[next.nodeId].length}` + (this.topic || sameAsTitle || next.idx === 0 ? '' : ` · Thema: ${title}`);
+                    const subLine = viewStufe && next.stufe ? `Stufe&nbsp;${next.stufe}` + (sameAsTitle ? '' : ` · Thema: ${title}`)
+                                : `Übung&nbsp;${next.idx + 1}&nbsp;von&nbsp;${this.nodeSubSkills[next.nodeId].length}` + (this.topic || sameAsTitle || next.idx === 0 ? '' : ` · Thema: ${title}`);
                     nextCard.innerHTML = `<div class="st-next-label">${label}</div>
                         <button type="button" class="st-next" onclick="quickStart.startSub('${next.nodeId}', ${next.idx}, '${this.topic ? 'topic' : 'next'}')">
                             <span class="st-next-code">${this._subCode(next.nodeId, next.idx)}</span>
@@ -4100,13 +4225,21 @@
             if (this.pulseNode) { const id = this.pulseNode; this.pulseNode = null; setTimeout(() => { const el = document.getElementById('stNode-' + id); if (el) el.classList.add('pulse'); }, 500); }
             // Blasen für Erstbesucher (je einmal pro Gerät): „Thema“ beim ersten Direktbesuch, „Konto“ nach der ersten bestandenen Übung
             if (document.getElementById('quickStartScreen').classList.contains('active')) {
-                if (totalMastered === 0 && !this.topic) {
+                if (totalMastered === 0 && !this.topic && this.view() === 'trainer') {
                     coach.maybe('thema', () => document.querySelector('#skilltreeView .st-node:not(.open) .st-node-head'),
                         'Jedes Thema hat mehrere Übungen. Tipp es an, um sie zu sehen.', el => el.closest('.st-node').classList.add('pulse'));
                 } else if (totalMastered >= 1 && !(window.Account && Account.isLoggedIn())) {
                     coach.maybe('konto', () => document.querySelector('.site-header .account-bar [data-acc="open-register"]'),
                         'Dein Lernstand bleibt 24 Stunden für dieses Gerät gespeichert. Angemeldet bleibt er erhalten, egal auf welchem Gerät du dich einloggst.', el => el.classList.add('coach-target'));
                 }
+            }
+            // Ansicht: Reiter markieren und Liste tauschen; nach Ankunft per Chip oder Suche („Dein Thema“) gelten die Themen
+            if (this.topic && this.view() !== 'trainer') { try { localStorage.setItem('musik_landing_view', 'trainer'); } catch (e) {} }
+            const curView = this.view(), stufenView = document.getElementById('stufenView'), themenView = document.getElementById('skilltreeView');
+            document.querySelectorAll('.skilltree-title .lp-switch button').forEach(b => b.classList.toggle('on', b.dataset.view === curView));
+            if (stufenView && themenView) {
+                if (curView === 'stufe') { stufenView.innerHTML = this._stufenHtml(next); stufenView.hidden = false; themenView.hidden = true; }
+                else { stufenView.hidden = true; themenView.hidden = false; }
             }
             const count = document.getElementById('stMapCount');
             if (count) count.textContent = `${totalMastered} von ${totalSubs}`;
