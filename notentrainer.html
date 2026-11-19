@@ -3593,7 +3593,9 @@
                     if (keyboardHint) keyboardHint.textContent = 'Tastaturhilfe';
 
                 } else if (level === 'profi') {
-                    app.settings.clef = 'both';
+                    // 3a/3b nur Violinschlüssel, beide Schlüssel ab 3c (Lagen): Bassschlüssel lesen (Knoten 2) ist Stufe 2,
+                    // Tasten finden (3a/3b) Stufe 1 – sonst entstünde eine Lücke in der Stufenfolge (Sebo 19.11.2026)
+                    app.settings.clef = options.includes('lagen') ? 'both' : 'treble';
                     app.settings.requireKeyboard = true;
                     app.settings.requireOctave = false;
                     app.settings.showCMarker = true;
@@ -5107,13 +5109,12 @@
                         ok: "Genau. Zwei schwarze Tasten: C davor. Drei schwarze Tasten: F davor.",
                         nope: "Schau oben: Links neben den zwei schwarzen Tasten liegt C, links neben den drei schwarzen Tasten F."
                     },
-                    body: `<p><strong>Du kannst schon:</strong> Noten im Violin- und im Bassschlüssel benennen.</p>
-                        <p><strong>Jetzt lernst du:</strong> Töne auf der Tastatur finden. Der Schlüssel wechselt von Aufgabe zu Aufgabe. <strong>Auf der Tastatur ist fest: Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.</strong> Von dort gehst du Taste für Taste weiter.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Stammtöne im Violinschlüssel lesen.</p>
+                        <p><strong>Jetzt lernst du:</strong> Töne auf der Tastatur finden. <strong>Auf der Tastatur ist fest: Links neben den zwei schwarzen Tasten liegt immer C, links neben den drei schwarzen Tasten immer F.</strong> Von dort gehst du Taste für Taste weiter.</p>
                         <div class="lk-visual" id="lkVisualNoten3Basis"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note, achte auf den Schlüssel und klicke die passende weiße Taste an. Die Lage spielt noch keine Rolle.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies die Note und klicke die passende weiße Taste an. Die Lage spielt noch keine Rolle.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_basis')"><summary>Unsicher im Violinschlüssel?</summary><div class="lk-ask-a">Von der G-Linie aus abzählen (2. Linie von unten, um sie windet sich der Schlüssel). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_basis')"><summary>Unsicher im Bassschlüssel?</summary><div class="lk-ask-a">Von der F-Linie aus abzählen (4. Linie von unten, zwischen den beiden Punkten). <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 'noten3_vorzeichen': {
@@ -5148,9 +5149,9 @@
                         ok: "Genau. Ab c' ist alles eingestrichen, bis zum c''.",
                         nope: "Die Lage steckt im Strich: e' gehört zur eingestrichenen Oktave, und die beginnt bei c'."
                     },
-                    body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen auf der Tastatur finden, in irgendeiner Lage.</p>
-                        <p><strong>Jetzt lernst du:</strong> Töne in der richtigen Lage auf der Tastatur finden. Jedes G gibt es auf der Tastatur mehrmals: g, g', g'' … <strong>Die C-Tasten sind beschriftet (C, c, c', c''). Von dort zählst du weiter:</strong> g' liegt zwischen c' und c'', das kleine f zwischen c und c'.</p>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies Name und Lage ab und klicke die Taste in dieser Lage an. Orientiere dich an den beschrifteten C-Tasten.</div>
+                    body: `<p><strong>Du kannst schon:</strong> Töne mit Vorzeichen auf der Tastatur finden, in irgendeiner Lage, und Noten im Bassschlüssel lesen.</p>
+                        <p><strong>Jetzt lernst du:</strong> Töne in der richtigen Lage auf der Tastatur finden. Ab jetzt wechselt der Schlüssel von Aufgabe zu Aufgabe. Jedes G gibt es auf der Tastatur mehrmals: g, g', g'' … <strong>Die C-Tasten sind beschriftet (C, c, c', c''). Von dort zählst du weiter:</strong> g' liegt zwischen c' und c'', das kleine f zwischen c und c'.</p>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Lies Name und Lage ab, achte auf den Schlüssel und klicke die Taste in dieser Lage an. Orientiere dich an den beschrifteten C-Tasten.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten1_lagen')"><summary>Unsicher bei den Lagen im Violinschlüssel?</summary><div class="lk-ask-a">c' steht auf der Hilfslinie unter dem System. Ab c'' (3. Zwischenraum) ist alles zweigestrichen. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten1_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'noten2_lagen')"><summary>Unsicher bei den Lagen im Bassschlüssel?</summary><div class="lk-ask-a">Das kleine c liegt im 2. Zwischenraum. Darunter ist alles groß. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('noten2_lagen', false); return false">Ausführlich nachlesen ›</a></div></details>

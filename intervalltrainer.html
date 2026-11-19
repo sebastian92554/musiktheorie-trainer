@@ -3178,8 +3178,8 @@
                             q.currentLevel = 'einsteiger'; q.currentOptions = ['basis']; setM('einsteiger', []);
                             q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
                         } else if (v === 'A2') {
-                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis', 'extended', 'nohelp'];
-                            setM('einsteiger', ['basis', 'extended', 'nohelp']);
+                            q.currentLevel = 'einsteiger'; q.currentOptions = ['basis', 'nohelp', 'extended'];
+                            setM('einsteiger', ['basis', 'nohelp', 'extended']);
                             q.questionsAnswered = 10; q.questionsCorrect = 10; T.gfSession = []; E.reset();
                         } else if (v === 'A3') {
                             q.currentLevel = 'experte'; q.currentOptions = ['basis'];
@@ -3307,9 +3307,10 @@
             // Sub-Skills pro Knoten
             nodeSubSkills: {
                 'int1': [
+                    // Reihenfolge seit 19.11.2026: erst ohne Auswahlfeld (Namen auswendig, Stufe 2), dann nur erweiterte Intervalle (Stufe 3)
                     { id: 'basis', label: 'Grundintervalle (Prime–Oktave)', phrase: 'Intervalle bestimmen', preview: 'Grobes Bestimmen von Grundintervallen (Prime bis Oktave)' },
-                    { id: 'extended', label: '+ erweiterte Intervalle', phrase: 'Intervalle über der Oktave bestimmen', preview: 'Grobes Bestimmen erweiterter Intervalle (None bis Duodezime)' },
-                    { id: 'nohelp', label: 'ohne Dropdown', phrase: 'das Rahmenintervall selbst eintippen', preview: 'Grobes Bestimmen von Intervallen mit Texteingabe' }
+                    { id: 'nohelp', label: 'ohne Dropdown', phrase: 'das Rahmenintervall selbst eintippen', preview: 'Grobes Bestimmen von Intervallen mit Texteingabe' },
+                    { id: 'extended', label: 'erweiterte Intervalle', phrase: 'Intervalle über der Oktave bestimmen', preview: 'Grobes Bestimmen erweiterter Intervalle (None bis Duodezime)' }
                 ],
                 'int2': [
                     { id: 'basis', label: 'Stammtöne auf der Tastatur', phrase: 'beide Töne eines Intervalls auf der Tastatur finden', preview: 'Finden von Intervallen aus Stammtönen auf der Tastatur' },
@@ -3318,7 +3319,7 @@
                 ],
                 'int3': [
                     { id: 'basis', label: 'Halbtonschritte zählen', phrase: 'den Abstand zweier Töne in Halbtonschritten zählen', preview: 'Halbtonschritte zählen und so den Abstand bestimmen' },
-                    { id: 'augdim', label: '+ übermäßig/vermindert', phrase: 'Halbtonschritte bei Tönen mit Vorzeichen zählen', preview: 'Halbtonschritte zählen bei übermäßigen und verminderten Intervallen' },
+                    { id: 'augdim', label: '+ Vorzeichen', phrase: 'Halbtonschritte bei Tönen mit Vorzeichen zählen', preview: 'Halbtonschritte zählen bei übermäßigen und verminderten Intervallen' },
                     { id: 'bothclefs', label: '+ beide Schlüssel', phrase: 'Halbtonschritte auch im Bassschlüssel zählen', preview: 'Halbtonschritte zählen in beiden Schlüsseln' },
                     { id: 'noaudio', label: 'ohne Hörbeispiel', phrase: 'Halbtonschritte ohne Hörbeispiel zählen', preview: 'Halbtonschritte zählen ohne Hörbeispiel' }
                 ],
@@ -5013,7 +5014,8 @@
                 do {
                     // Primen (Intervall 1) ausschließen wenn Tastatureingabe aktiv
                     // Grund: Prime erfordert zweimal dieselbe Taste - nicht sinnvoll umsetzbar
-                    const minInterval = this.settings.requireKeyboard ? 2 : 1;
+                    // int1 „erweiterte Intervalle“ (1c): nur None bis Duodezime, die Grundintervalle sind dort schon zweimal geübt (Sebo 19.11.2026)
+                    const minInterval = (this.settings.showLargeIntervals && this.quickStartMode === 'einsteiger') ? 9 : (this.settings.requireKeyboard ? 2 : 1);
                     // Erweitert: int5 bis Tredezime (13), int1 bis Duodezime (Auswahlfeld endet dort)
                     const maxInterval = this.settings.showLargeIntervals
                         ? (this.quickStartMode === 'experte' ? 13 : 12) : 8;
@@ -5573,7 +5575,7 @@
                 // INT4 Sub-Skills (rein, grossklein, komplement, augdim, alles) sind direkt
                 if (['rein','grossklein','komplement','augdim','alles'].includes(subSkillId) && level === 'meister') return subSkillId;
                 // INT1 Sub-Skills (basis, extended, nohelp) sind direkt
-                if (['basis','extended','nohelp'].includes(subSkillId) && level === 'einsteiger') return subSkillId;
+                if (['basis','nohelp','extended'].includes(subSkillId) && level === 'einsteiger') return subSkillId;
                 // INT2/INT3/INT5: prefixed keys
                 const prefixMap = { 'aufsteiger': 'int2_', 'profi': 'int3_', 'experte': 'int5_', 'bilden_tastatur': 'int6_', 'bilden_staff': 'int7_' };
                 const prefix = prefixMap[level];
@@ -6084,7 +6086,7 @@
                         </div>`
                 },
                 'extended': {
-                    title: '1b — Erweiterte Intervalle — None bis Duodezime',
+                    title: '1c — Erweiterte Intervalle — None bis Duodezime',
                     // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_it_lernkarte_schritt.html
                     step: true,
                     check: {
@@ -6094,16 +6096,16 @@
                         ok: "Genau. Von der Oktave (8) zwei Stufen weiter: 10, die Dezime.",
                         nope: "Die Oktave ist Stufe 8. Zähle die Terz darüber weiter: 9, 10 …"
                     },
-                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle von der Prime bis zur Oktave bestimmen.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle von der Prime bis zur Oktave bestimmen und ihren Namen selbst eintippen.</p>
                         <p><strong>Jetzt lernst du:</strong> Intervalle über der Oktave bestimmen. Du zählst einfach weiter: None (9), Dezime (10), Undezime (11), Duodezime (12). <strong>Jedes davon ist eine Oktave plus ein bekanntes Intervall:</strong> None = Oktave + Sekunde, Dezime = Oktave + Terz, Undezime = Oktave + Quarte, Duodezime = Oktave + Quinte.</p>
                         <div class="lk-visual" id="lkVisualExtended"></div>
-                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Wie in 1a: Zähle die Stufen und wähle im Auswahlfeld, das jetzt bis zur Duodezime reicht.</div>
+                        <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Stufen über die Oktave hinaus und tippe den Namen ein: None, Dezime, Undezime oder Duodezime.</div>
                         <div class="lk-tip lk-tip-ask">
                             <details class="lk-ask" ontoggle="app._askToggled(this, 'int1_basis')"><summary>Unsicher beim Zählen über die Oktave hinaus?</summary><div class="lk-ask-a">Zähle bis zur Oktave und dann weiter: Von C bis zum übernächsten E sind es C, D, E, F, G, A, H, C, D, E, also 10 Stufen: eine Dezime. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 'nohelp': {
-                    title: '1c — Freie Eingabe — Ohne Auswahlfeld',
+                    title: '1b — Freie Eingabe — Ohne Auswahlfeld',
                     // Schritt 0 vor der ersten Aufgabe (statt Overlay) mit Kontrollfrage; abgenommener Text aus mock_it_lernkarte_schritt.html
                     step: true,
                     check: {
@@ -6113,11 +6115,11 @@
                         ok: "Genau. Sexte.",
                         nope: "Zähle die Namen in der Reihe durch: Prime, Sekunde, Terz, Quarte, Quinte, …"
                     },
-                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle bis zur Duodezime bestimmen und im Auswahlfeld wählen.</p>
-                        <p><strong>Jetzt lernst du:</strong> das Rahmenintervall selbst eintippen. Es gibt kein Auswahlfeld mehr, du holst den Namen aus dem Gedächtnis. <strong>Gib den Namen ein: Terz, Quinte, None … Eine Zahl allein gilt nicht.</strong> Groß- und Kleinschreibung ist egal.</p>
+                    body: `<p><strong>Du kannst schon:</strong> Rahmenintervalle von der Prime bis zur Oktave bestimmen und im Auswahlfeld wählen.</p>
+                        <p><strong>Jetzt lernst du:</strong> das Rahmenintervall selbst eintippen. Es gibt kein Auswahlfeld mehr, du holst den Namen aus dem Gedächtnis. <strong>Gib den Namen ein: Terz, Quinte, Oktave … Eine Zahl allein gilt nicht.</strong> Groß- und Kleinschreibung ist egal.</p>
                         <div class="lk-task"><strong>Deine Aufgabe:</strong> Zähle die Stufen und tippe das Rahmenintervall ein, z.&nbsp;B. „Quinte“.</div>
                         <div class="lk-tip lk-tip-ask">
-                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int1_basis')"><summary>Unsicher, wie das Intervall heißt?</summary><div class="lk-ask-a">Prime 1, Sekunde 2, Terz 3, Quarte 4, Quinte 5, Sexte 6, Septime 7, Oktave 8, None 9, Dezime 10, Undezime 11, Duodezime 12. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
+                            <details class="lk-ask" ontoggle="app._askToggled(this, 'int1_basis')"><summary>Unsicher, wie das Intervall heißt?</summary><div class="lk-ask-a">Prime 1, Sekunde 2, Terz 3, Quarte 4, Quinte 5, Sexte 6, Septime 7, Oktave 8. <a class="lk-ask-more" href="#" onclick="app.showLernkarte('int1_basis', false); return false">Ausführlich nachlesen ›</a></div></details>
                         </div>`
                 },
                 // ---- INT2: Aufsteiger (Tastatur) ----
