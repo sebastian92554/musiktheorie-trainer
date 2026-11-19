@@ -71,6 +71,8 @@
             .site-header h1 { font-size: 1.5rem; }
             .site-header p { font-size: 0.9rem; }
         }
+        /* Handy: zwei Zeilen für die Unterzeile reservieren – das Band bleibt auf Landing, Skilltree und Übung gleich hoch, auch wenn die Übungszeile umbricht (Sebo 19.11.2026) */
+        @media (max-width: 599px) { .site-header p { min-height: 3em; } }
 
         /* ── Container ── */
         .container {
@@ -187,8 +189,9 @@
         }
 
         /* Farben pro Trainer */
-        .trainer-card.noten { border-left-color: #4f46e5; }
-        .trainer-card.noten .trainer-icon { background: #eef2ff; color: #4f46e5; }
+        /* NT seit 19.11.2026 in Blau statt Indigo (Sebo: Indigo zu nah am Violett des Rhythmustrainers) */
+        .trainer-card.noten { border-left-color: #2563eb; }
+        .trainer-card.noten .trainer-icon { background: #eff6ff; color: #2563eb; }
 
         .trainer-card.intervall { border-left-color: #ea580c; }
         .trainer-card.intervall .trainer-icon { background: #fff7ed; color: #ea580c; }
@@ -258,7 +261,7 @@
 
         .tc-chip:hover, .tc-chip:focus-visible { border-color: currentColor; }
 
-        .trainer-card.noten .tc-chip { background: #eef2ff; color: #4338ca; }
+        .trainer-card.noten .tc-chip { background: #eff6ff; color: #1d4ed8; }
         .trainer-card.intervall .tc-chip { background: #fff7ed; color: #c2410c; }
         .trainer-card.tonleiter .tc-chip { background: #ecfeff; color: #0e7490; }
         .trainer-card.dreiklang .tc-chip { background: #ecfdf5; color: #047857; }
@@ -622,7 +625,7 @@
             ['Zählzeiten (1 und 2 und …)', 'rhy3_basis'], ['Rhythmussilben (du te dei te)', 'rhy4_basis'], ['Rhythmusdiktat', 'rhy6_8tel'],
             ['Takt ergänzen (fehlender Notenwert)', 'rhy5_8tel']
         ];
-        const TRAINER_COLOR = { nt: '#4f46e5', it: '#ea580c', dt: '#10b981', tt: '#0891b2', rt: '#8b5cf6' };
+        const TRAINER_COLOR = { nt: '#2563eb', it: '#ea580c', dt: '#10b981', tt: '#0891b2', rt: '#8b5cf6' };
         // Wegweiser (18.11.2026): Trainer, die ?knoten= verstehen, zeigen das Thema aufgeklappt und pulsierend mit der Karte
         // „Dein Thema“ statt der Erklärung als Fenster (Sebo: Chip = Wegweiser, Ankunft im Zimmer mit offener Tür). Suche und
         // Kurzcode mit Buchstabe nennen zusätzlich die Übung (&uebung=b). ?lernkarte=<Schlüssel> bleibt der Rückfall.
