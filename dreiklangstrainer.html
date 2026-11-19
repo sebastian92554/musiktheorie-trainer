@@ -4760,8 +4760,10 @@ const _lernkartenContent = {
         render() {
             const speakerSvg = (midi) => `<svg onclick="playTriad(${JSON.stringify(midi)})" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;cursor:pointer;opacity:0.5;margin-left:4px;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
             // C eingestrichen: pos=-2, E: pos=0, G: pos=2, Eb: pos=0 mit flat
-            const staffCDur = renderQuizStaff([{pos:-2},{pos:0},{pos:2}]);
-            const staffCMoll = renderQuizStaff([{pos:-2},{pos:0,flat:true},{pos:2}]);
+            // Beide Systeme mit derselben Breite (noteX 125): Das ♭ rückt sonst nur das rechte Bild nach rechts, der viewBox wird breiter
+            // und das Bild bei width 100 % kleiner als das linke (Sebo 19.11.2026: Kontrastpaar soll symmetrisch wirken)
+            const staffCDur = renderQuizStaff([{pos:-2},{pos:0},{pos:2}], null, { noteX: 125 });
+            const staffCMoll = renderQuizStaff([{pos:-2},{pos:0,flat:true},{pos:2}], null, { noteX: 125 });
             // Ohne HS-Pfeile: die Abstände erschließt erst drei2 (Regel finden)
             const left = renderLernkarteTastatur({ numOctaves:1, title:'C-Dur', highlightKeys:[{key:'C',color:'#bbf7d0'},{key:'E',color:'#bbf7d0'},{key:'G',color:'#bbf7d0'}] });
             const right = renderLernkarteTastatur({ numOctaves:1, title:'c-Moll', highlightKeys:[{key:'C',color:'#fecaca'},{key:'Dis',displayName:'Es',color:'#f87171'},{key:'G',color:'#fecaca'}], showBlackLabels:true });
