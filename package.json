@@ -1,0 +1,14 @@
+{
+  "name": "musiktheorie-trainer",
+  "private": true,
+  "description": "Build für Netlify: minifiziert die Root-Dateien (Quelle) nach dist/ (Produktion). Lokal: npm run build && npm run check",
+  "scripts": {
+    "build": "node _build/minify.js",
+    "check": "node _build/check.js",
+    "deploy": "npm run build && npm run check"
+  },
+  "devDependencies": {
+    "html-minifier-terser": "7.2.0",
+    "terser": "5.36.0"
+  }
+}

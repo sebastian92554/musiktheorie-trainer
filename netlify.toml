@@ -1,0 +1,8 @@
+# Netlify baut dist/ aus den Root-Dateien (Quelle) – konservativ minifiziert, danach geprüft (_build/check.js).
+# Schlägt Build oder Prüfung fehl, bleibt die bisherige Seite online.
+[build]
+  command = "npm ci && npm run build && npm run check"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"

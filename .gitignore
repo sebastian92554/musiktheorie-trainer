@@ -12,3 +12,7 @@ _entwicklung/
 # Claude Code / Cowork
 CLAUDE.md
 .skills/
+
+# Build (Netlify erzeugt dist/ aus den Root-Dateien)
+node_modules/
+dist/
