@@ -1040,6 +1040,10 @@
         .st-row.done .st-dot { background: #334155; border-color: #334155; }
         .st-node.done { border-color: #d1d5db; background: #fff; border-left-color: #10b981; }
         .st-node.done .st-tag { color: #334155; background: #f1f5f9; border-color: #cbd5e1; }
+        /* Weiterleitung in den nächsten Trainer der Stufe (Fußzeile der fertigen Stufenkarte) und Pulsieren der Themenzeile nach Ankunft */
+        .sf-weiter { font-size: 0.8rem; color: #64748b; padding: 0.45rem 0.3rem 0.2rem; }
+        .sf-weiter a { color: #10b981; font-weight: 600; text-decoration: none; }
+        .sf-group.pulse .sf-theme { animation: nodePulse 1.1s ease-in-out 4; }
         @media (prefers-reduced-motion: reduce) { .st-node.pulse, .band-links .account-bar .acc-btn.coach-target { animation: none; } .coach { transition: none; } }
 
         /* Building-Tools (♯ Kreuz / ♭ Be) — aus NT/TT übernommen */
@@ -3501,6 +3505,43 @@
                 this.updateAllProgress();
             },
             // Stand je Stufe: Themen mit Übungen dieser Stufe (geschafft/offen) und die nächste offene Übung in Themenreihenfolge
+            // ---- Stufe über alle Trainer (20.11.2026): Die Karte oben zeigt in der Stufen-Ansicht die nächste offene Übung der Stufe in
+            //      der Reihenfolge der Landing (nt, it, tt, dt, rt) – auch wenn sie in einem anderen Trainer liegt („Weiter im …“, Start startet
+            //      sie dort). Liste der Übungen aus register.js (erzeugt), Lernstand der anderen Trainer aus dem localStorage wie auf der Landing. ----
+            stufenCode: 'dt',
+            stufenOrder: ['nt', 'it', 'tt', 'dt', 'rt'],
+            _otherMastered(code, level) {
+                try {
+                    const p = JSON.parse(localStorage.getItem(REGISTER[code].store) || 'null');
+                    if (!p || (p.timestamp && Date.now() - p.timestamp > 24 * 60 * 60 * 1000)) return [];
+                    return (p[level] && p[level].mastered) || [];
+                } catch (e) { return []; }
+            },
+            nextStepStufeGlobal(l) {
+                if (typeof REGISTER === 'undefined') { const n = this._stufenState()[l].next; return n ? { ...n, own: true } : null; }
+                for (const c of this.stufenOrder) {
+                    const t = REGISTER[c]; if (!t) continue;
+                    const own = c === this.stufenCode;
+                    for (const node of t.nodes) {
+                        const mastered = own ? ((this.progress[node.level] || {}).mastered || []) : this._otherMastered(c, node.level);
+                        for (let i = 0; i < node.subs.length; i++) {
+                            const s = node.subs[i];
+                            if (s[4] !== l || mastered.includes(s[1].slice(s[1].indexOf('_') + 1))) continue;
+                            return { c, t, node, idx: i, sub: s, stufe: l, own, nodeId: own ? this.nodeOrder.find(id => id.replace(/\D/g, '') === String(node.n)) : null };
+                        }
+                    }
+                }
+                return null;
+            },
+            // Themenzeile in der Stufenkarte der Übung (Schlüssel „<Stufe>:<Knoten>“ – ein Thema kann in mehreren Stufen stehen)
+            _stufeGroupEl(nodeId, idx) { const sub = (this.nodeSubSkills[nodeId] || [])[idx] || {}; return document.querySelector('#stufenView .sf-group[data-key="' + (sub.stufe || 2) + ':' + nodeId + '"]'); },
+            nextStufeGlobal() { for (const l of [1, 2, 3]) { const n = this.nextStepStufeGlobal(l); if (n) return n; } return null; },
+            // Link in den anderen Trainer: Thema aufgeklappt, Übung markiert; mit start= startet sie dort sofort
+            stufeHref(g, start) { return `${g.t.file}?knoten=${g.t.prefix}${g.node.n}&uebung=${String.fromCharCode(97 + g.idx)}` + (start ? '&start=' + start : ''); },
+            goStufeNext(g) {
+                try { tracker.nodeSelect({ node: g.c + g.node.n, subskill: g.sub[1].slice(g.sub[1].indexOf('_') + 1), where: 'stufe_next' }); } catch (e) {}
+                location.href = this.stufeHref(g, 'stufe');
+            },
             _stufenState() {
                 const st = {};
                 [1, 2, 3].forEach(l => st[l] = { done: 0, total: 0, next: null, groups: [] });
@@ -3525,7 +3566,8 @@
                 const st = this._stufenState();
                 return [1, 2, 3].map(l => {
                     const s = st[l], done = s.total > 0 && s.done === s.total, pct = s.total ? Math.round(s.done / s.total * 100) : 0;
-                    const isOpen = this._openStufen ? this._openStufen.has(l) : l === st.firstOpen;
+                    const activeStufe = active && this.nodeSubSkills[active.nodeId] ? ((this.nodeSubSkills[active.nodeId][active.idx] || {}).stufe || 2) : null;
+                    const isOpen = this._openStufen ? this._openStufen.has(l) : l === (activeStufe || st.firstOpen);
                     const rows = s.groups.map(g => {
                         const n = g.rows.length, dn = g.rows.filter(x => g.ns.mastered.includes(x.sub.id)).length, gd = dn === n;
                         const hasActive = !!active && active.nodeId === g.nodeId && g.rows.some(x => x.i === active.idx);
@@ -3550,6 +3592,8 @@
                     }).join('');
                     const bar = s.done && !done ? `<div class="sf-bar-row"><div class="sf-bar"><span style="width:${pct}%"></span></div><span>${s.done} von ${s.total} Übungen geschafft</span></div>` : '';
                     const starSum = s.groups.reduce((a, g) => a + g.rows.reduce((b, x) => b + (g.ns.scores[x.sub.id] || 0), 0), 0);
+                    const g = done ? this.nextStepStufeGlobal(l) : null;   // eigener Teil fertig: wo geht die Stufe weiter?
+                    const weiter = g && !g.own ? `<div class="sf-weiter">Dein Teil von Stufe ${l} ist geschafft. <a href="${this.stufeHref(g)}">Weiter im ${g.t.name} ›</a></div>` : (done && !g ? `<div class="sf-weiter">Stufe ${l} ist in allen Trainern geschafft.</div>` : '');
                     const meta = done ? `<span class="st-tag">Geschafft</span><span class="st-stars">★</span><span>${starSum} von ${s.total * 3} Sternen</span>` : `<span>${s.done} von ${s.total} Übungen</span>`;
                     return `<div class="st-step single${done ? ' done' : ''}"><div class="st-step-mark"><div class="st-ring" style="--p:${pct}"><span>${done ? '✓' : l}</span></div></div><div class="st-step-body">
                         <div class="st-node${isOpen ? ' open' : ''}${done ? ' done' : ''}" data-l="${l}">
@@ -3558,7 +3602,7 @@
                                 <div class="st-node-content"><div class="st-node-name">Stufe ${l}: ${this.stufenNames[l]}</div><div class="st-node-meta">${meta}</div></div>
                                 <div class="st-chev">▾</div>
                             </div>
-                            <div class="st-rows"><div class="sf-kann">${this.stufenKann[l]}</div>${bar}${rows}</div>
+                            <div class="st-rows"><div class="sf-kann">${this.stufenKann[l]}</div>${weiter}${bar}${rows}</div>
                         </div></div></div>`;
                 }).join('');
             },
@@ -3591,7 +3635,8 @@
             updateAllProgress() {
                 // Nach der Ankunft über ?knoten= ist das Thema die Hauptaktion; die Empfehlung tritt zurück (bis zur Rückkehr aus dem Quiz)
                 const viewStufe = !this.topic && this.view() === 'stufe';   // Stufen-Ansicht: die Karte oben zeigt die nächste Übung der ersten offenen Stufe
-                const next = this.topic || (viewStufe ? this.nextStepStufe() : this.nextStep());
+                const gnext = viewStufe ? this.nextStufeGlobal() : null;   // nächste Übung der Stufe über alle Trainer (Landing-Reihenfolge)
+                const next = this.topic || (viewStufe ? (gnext && gnext.own ? { nodeId: gnext.nodeId, idx: gnext.idx, stufe: gnext.stufe } : null) : this.nextStep());
                 if (!this._openNodes) this._openNodes = new Set(next ? [next.nodeId] : []);
                 let totalSubs = 0, totalMastered = 0;
                 this.nodeOrder.forEach(id => { const st = this._nodeState(id); totalSubs += st.total; totalMastered += st.done; });
@@ -3600,7 +3645,18 @@
                 // das Thema steht in der Unterzeile erst ab der 2. Übung – die 1. Übung heißt fast immer wie das Thema; Knopf „Start“ statt Pfeil
                 const nextCard = document.getElementById('stNextCard');
                 if (nextCard) {
-                    if (next) {
+                    if (viewStufe && !this.topic && gnext && !gnext.own) {
+                        // Die Stufe geht in einem anderen Trainer weiter: Karte „Weiter im …“, Start startet die Übung dort
+                        const letter = String.fromCharCode(97 + gnext.idx), phrase = this._cap(gnext.sub[3] || gnext.sub[2]);
+                        this._gnext = gnext;
+                        nextCard.innerHTML = `<div class="st-next-label">Weiter im ${gnext.t.name}</div>
+                                <button type="button" class="st-next" onclick="quickStart.goStufeNext(quickStart._gnext)">
+                                    <span class="st-next-code">${gnext.node.n}${letter}</span>
+                                    <span class="st-next-text"><span class="st-next-title">${phrase}</span><span class="st-next-sub">Stufe&nbsp;${gnext.stufe} · ${gnext.t.name} · ${gnext.node.chip}</span></span>
+                                    <span class="st-next-go">Start</span>
+                                </button>
+                                <div class="st-next-note">Stufe ${gnext.stufe} geht im ${gnext.t.name} weiter. Hier hast du ${totalMastered} von ${totalSubs} Übungen geschafft.</div>`;
+                    } else if (next) {
                         const sub = this.nodeSubSkills[next.nodeId][next.idx];
                         const first = totalMastered === 0;
                         const title = this.nodeTitles[next.nodeId], phrase = this._cap(sub.phrase || sub.label);
@@ -3616,7 +3672,9 @@
                             </button>
                             <div class="st-next-note">${this.topic ? 'Jede Übung erklärt zuerst kurz, dann löst du zehn Aufgaben. Unten siehst du, was sonst noch dazugehört.' : (first ? 'Du kannst auch unten eine andere Übung wählen.' : `Du hast ${totalMastered} von ${totalSubs} Übungen geschafft.`)}</div>`;
                     } else {
-                        nextCard.innerHTML = `<div class="st-next-label">Alles geschafft</div><div class="st-next-note">Du hast alle ${totalSubs} Übungen gemeistert. Unten kannst du jede noch einmal üben.</div>`;
+                        nextCard.innerHTML = viewStufe
+                        ? `<div class="st-next-label">Alles geschafft</div><div class="st-next-note">Alle drei Stufen sind in allen Trainern geschafft. Unten kannst du jede Übung noch einmal üben.</div>`
+                        : `<div class="st-next-label">Alles geschafft</div><div class="st-next-note">Du hast alle ${totalSubs} Übungen gemeistert. Unten kannst du jede noch einmal üben.</div>`;
                     }
                 }
 
@@ -3631,7 +3689,7 @@
                     `<div class="st-step"><div class="st-step-mark"><div class="st-step-dot"></div></div><div class="st-step-body"><div class="st-pair"><div class="st-pair-label">Erkennen und Bilden: Reihenfolge egal</div><div class="st-branches"><div class="st-branch"><div class="st-branch-head">Dreiklänge erkennen</div>${this._nodeHtml('drei3', next)}${this._nodeHtml('drei4', next)}</div><div class="st-branch"><div class="st-branch-head">Dreiklänge bilden</div>${this._nodeHtml('drei5', next)}${this._nodeHtml('drei6', next)}${this._nodeHtml('drei7', next)}${this._nodeHtml('drei8', next)}</div></div></div></div></div>`;
                 }
                 // Wegweiser: das Thema pulsiert einmal, sobald es im Bild ist
-                if (this.pulseNode) { const id = this.pulseNode; this.pulseNode = null; setTimeout(() => { const el = document.getElementById('stNode-' + id); if (el) el.classList.add('pulse'); }, 500); }
+                if (this.pulseNode) { const id = this.pulseNode; this.pulseNode = null; setTimeout(() => { const el = this.view() === 'stufe' ? this._stufeGroupEl(id, this.topic && this.topic.nodeId === id ? this.topic.idx : 0) : document.getElementById('stNode-' + id); if (el) el.classList.add('pulse'); }, 500); }
                 // Blasen für Erstbesucher (je einmal pro Gerät): „Thema“ beim ersten Direktbesuch, „Konto“ nach der ersten bestandenen Übung
                 if (document.getElementById('quickStartScreen').classList.contains('active')) {
                     if (totalMastered === 0 && !this.topic && this.view() === 'trainer') {
@@ -3643,7 +3701,6 @@
                     }
                 }
                 // Ansicht: Reiter markieren und Liste tauschen; nach Ankunft per Chip oder Suche („Dein Thema“) gelten die Themen
-                if (this.topic && this.view() !== 'trainer') { try { localStorage.setItem('musik_landing_view', 'trainer'); } catch (e) {} }
                 const curView = this.view(), stufenView = document.getElementById('stufenView'), themenView = document.getElementById('skilltreeView');
                 document.querySelectorAll('.skilltree-title .lp-switch button').forEach(b => b.classList.toggle('on', b.dataset.view === curView));
                 if (stufenView && themenView) {
@@ -3744,7 +3801,8 @@
                 const nodeId = url.searchParams.get('knoten');
                 if (!nodeId || !this.nodeSubSkills[nodeId]) return;
                 const letter = url.searchParams.get('uebung') || '';
-                url.searchParams.delete('knoten'); url.searchParams.delete('uebung');
+                const start = url.searchParams.get('start') || '';   // 'landing' (Startzeile der Landing) oder 'stufe' (Weiterleitung aus einem Trainer)
+                url.searchParams.delete('knoten'); url.searchParams.delete('uebung'); url.searchParams.delete('start');
                 history.replaceState(null, '', url);
                 const subs = this.nodeSubSkills[nodeId];
                 let idx = letter ? letter.charCodeAt(0) - 97 : -1;
@@ -3758,9 +3816,10 @@
                 this.selectedSub = letter ? { nodeId, index: idx } : null;
                 this.pulseNode = nodeId;
                 coach.cancel();   // die „Thema“-Blase des ersten Renderns ist hier überflüssig, das Pulsieren erklärt es selbst
-                try { tracker._send('arrive', { node: nodeId, subskill: subs[idx].id, via: letter ? 'search' : 'chip' }); } catch (e) {}
+                try { tracker._send('arrive', { node: nodeId, subskill: subs[idx].id, via: start ? 'start_' + start : (letter ? 'search' : 'chip') }); } catch (e) {}
                 this.updateAllProgress();
-                setTimeout(() => { const el = document.getElementById('stNode-' + nodeId); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 50);
+                if (start) { this.pulseNode = null; this.startSub(nodeId, idx, 'start_' + start); return; }   // „Start“ auf der Landing bzw. Weiterleitung: Übung sofort beginnen
+                setTimeout(() => { const el = (this.view() === 'stufe' ? this._stufeGroupEl(nodeId, idx) : null) || document.getElementById('stNode-' + nodeId); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 50);
             },
 
             // ---- Save Sub-Skill Score ----
@@ -9994,6 +10053,7 @@ Gerät:
     <footer class="site-footer" style="text-align:center; padding:1.5rem 1rem; color:#94a3b8; font-size:0.75rem; line-height:1.6;">
         <a onclick="app.showFeedback()" style="color:#64748b; text-decoration:none; cursor:pointer;">Feedback</a> · <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
     </footer>
+    <script src="register.js"></script>
     <script src="account.js"></script>
     <script>
         // Account-Komponente: Speicher-Status-Icon aktivieren + nach Login Fortschritt neu laden

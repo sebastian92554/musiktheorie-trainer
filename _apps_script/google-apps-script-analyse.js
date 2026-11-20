@@ -663,8 +663,9 @@ function runAnalyse() {
     ev.forEach((e, i) => {
       if (e.eventType === 'arrive') {
         const tr = e.trainer || s.trainer || '?', p = e.payload || {};
-        const via = p.via === 'search' ? 'search' : 'chip';
-        const a = arrB[tr] = arrB[tr] || { chip: { n: 0, start: 0, topic: 0 }, search: { n: 0, start: 0, topic: 0 } };
+        // seit 20.11.2026 auch start_landing (Startzeile der Landing) und start_stufe (Weiterleitung aus einem Trainer): die Übung startet sofort
+        const via = p.via === 'search' ? 'search' : (String(p.via || '').indexOf('start_') === 0 ? 'start' : 'chip');
+        const a = arrB[tr] = arrB[tr] || { chip: { n: 0, start: 0, topic: 0 }, search: { n: 0, start: 0, topic: 0 }, start: { n: 0, start: 0, topic: 0 } };
         a[via].n++;
         const rest = ev.slice(i + 1);
         if (rest.some(x => x.eventType === 'quiz_start')) a[via].start++;
@@ -680,9 +681,9 @@ function runAnalyse() {
   let anyArr = false;
   Object.keys(arrB).sort().forEach(tr => {
     const a = arrB[tr];
-    ['chip', 'search'].forEach(via => {
-      const v = a[via]; if (!v.n) return; anyArr = true;
-      push('  ' + tr + ' · ' + (via === 'chip' ? 'Chip' : 'Suche/Kurzcode'), v.n + ' Ankünfte · danach Übung gestartet ' + v.start + ' (' + _pct(v.start, v.n) + '%) · davon über „Dein Thema“ ' + v.topic);
+    ['chip', 'search', 'start'].forEach(via => {
+      const v = a[via]; if (!v || !v.n) return; anyArr = true;
+      push('  ' + tr + ' · ' + (via === 'chip' ? 'Chip' : via === 'search' ? 'Suche/Kurzcode' : 'Start (Landing/Weiterleitung)'), v.n + ' Ankünfte · danach Übung gestartet ' + v.start + ' (' + _pct(v.start, v.n) + '%) · davon über „Dein Thema“ ' + v.topic);
     });
   });
   if (!anyArr) push('  (noch keine arrive — Wegweiser noch nicht im Einsatz)');
