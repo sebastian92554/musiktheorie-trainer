@@ -954,6 +954,12 @@
             overflow-y: auto;
         }
 
+        /* Belohnung: 🎉 bei Bestehen, 🏆 wenn der ganze Trainer geschafft ist (Sebo 20.11.2026) */
+
+        .success-emoji { font-size: 3rem; line-height: 1; margin-bottom: 0.5rem; }
+
+        .success-emoji:empty { display: none; }
+
         .success-container h2 {
             font-size: 2rem;
             color: #0f172a;
@@ -1451,6 +1457,7 @@
     <!-- Success Screen (nach 10 Fragen, Tonleitertrainer-Pattern) -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
+            <div class="success-emoji" id="successEmoji"></div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
 
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
@@ -1499,7 +1506,7 @@
         <!-- Feedback Modal -->
         <div class="modal-overlay" id="feedbackModal">
             <div class="modal">
-                <h2>💬 Feedback & Verbesserungsvorschläge</h2>
+                <h2>Feedback & Verbesserungsvorschläge</h2>
                 <p style="margin-bottom: 1rem; color: #4b5563;">
                     Deine Meinung hilft mir, den Intervalltrainer zu verbessern!
                 </p>
@@ -1524,17 +1531,17 @@
                         </label>
                         <select id="feedbackCategory" style="width: 100%; max-width: 400px; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;">
                             <option value="">Bitte wählen...</option>
-                            <option value="bug">🐛 Fehler melden</option>
-                            <option value="feature">✨ Feature-Wunsch</option>
-                            <option value="improvement">💡 Verbesserungsvorschlag</option>
-                            <option value="praise">👍 Lob</option>
-                            <option value="other">💬 Sonstiges</option>
+                            <option value="bug">Fehler melden</option>
+                            <option value="feature">Feature-Wunsch</option>
+                            <option value="improvement">Verbesserungsvorschlag</option>
+                            <option value="praise">Lob</option>
+                            <option value="other">Sonstiges</option>
                         </select>
                     </div>
                     
                     <div style="display: flex; gap: 0.5rem;">
                         <button type="submit" class="btn-primary" style="flex: 1;">
-                            📧 Feedback senden
+                            Feedback senden
                         </button>
                         <button type="button" onclick="app.closeFeedback()" style="flex: 1; padding: 0.75rem; background: #e5e7eb; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">
                             Abbrechen
@@ -4292,6 +4299,7 @@
                     this.markCurrentOptionAsMastered();
                     _stars.textContent = '⭐'.repeat(starCount);
                     const tier = this._gfMilestoneTier();
+                    document.getElementById('successEmoji').textContent = tier === 'trainer' ? '🏆' : '🎉';
                     if (tier === 'trainer') {
                         _t.textContent = 'Intervalltrainer geschafft!';
                         _msg.innerHTML = '<p>Alles im Intervalltrainer sitzt jetzt. Starke Leistung.</p>';
@@ -4307,6 +4315,7 @@
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
                         + '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 } else {
+                    document.getElementById('successEmoji').textContent = '';
                     const perf = this._gfDimPerf();
                     const scope = this._gfAxesInScope();
                     // order = Prerequisite-Tiefe → die schwache, TIEFER liegende
@@ -7665,7 +7674,7 @@
 
                 let isCorrect = false;
                 let feedback = '';
-                let feedbackLead = 'Prüfe nochmal.';
+                let feedbackLead = '⚠️ Prüfe nochmal.';
                 // GF: getrennte Achsen-Signale (anzahl=Größe, qual=Qualität,
                 // hs=Halbtöne). null = von dieser Aufgabe nicht geprüft.
                 let _aOk = null, _qOk = null, _hOk = null, _errLine = null;
@@ -7678,7 +7687,7 @@
                     if (!input) return;
                     if (!input.value.trim()) {
                         const feedbackEl = document.getElementById('feedback');
-                        feedbackEl.textContent = '💡 Bitte eine Antwort eingeben.';
+                        feedbackEl.textContent = 'Bitte eine Antwort eingeben.';
                         feedbackEl.className = 'feedback incorrect';
                         feedbackEl.classList.remove('hidden');
                         setTimeout(() => feedbackEl.classList.add('hidden'), 2000);
@@ -7715,7 +7724,7 @@
                     const caseMode = !!task.caseMode;
                     if (!htInput.value.trim() && (caseMode || !nameInput.value.trim())) {
                         const feedbackEl = document.getElementById('feedback');
-                        feedbackEl.textContent = caseMode ? '💡 Bitte die Halbtonschritte eingeben.' : '💡 Bitte beide Felder ausfüllen.';
+                        feedbackEl.textContent = caseMode ? 'Bitte die Halbtonschritte eingeben.' : 'Bitte beide Felder ausfüllen.';
                         feedbackEl.className = 'feedback incorrect';
                         feedbackEl.classList.remove('hidden');
                         setTimeout(() => feedbackEl.classList.add('hidden'), 2000);
@@ -7825,7 +7834,7 @@
                         const existingFB = feedbackEl.querySelector('.int4-feedback');
                         if (existingFB) existingFB.remove();
                         feedbackEl.insertAdjacentHTML('afterbegin',
-                            `<div class="int4-feedback" style="margin-bottom:8px;color:#dc2626;font-size:0.88rem;font-weight:500">⚠️ ${feedbackLead} ${feedback}</div>`);
+                            `<div class="int4-feedback" style="margin-bottom:8px;color:#dc2626;font-size:0.88rem;font-weight:500">${feedbackLead} ${feedback}</div>`);
                     }
                     // Eingabefelder leeren für neuen Versuch
                     const ii = document.getElementById('intervalInput'); if (ii) ii.value = '';
@@ -8907,7 +8916,7 @@
                         if (!quizDone) this.generateInterval();
                     }, 1200);
                 } else {
-                    if (fb) { fb.innerHTML = '⚠ Nicht ganz — versuch es nochmal.'; fb.className = 'feedback incorrect'; fb.classList.remove('hidden'); }
+                    if (fb) { fb.innerHTML = 'Nicht ganz — versuch es nochmal.'; fb.className = 'feedback incorrect'; fb.classList.remove('hidden'); }
                     if (quickStart.isActive) quickStart.handleAnswer(false);
                     setTimeout(() => {
                         this.inputLocked = false;
@@ -9258,7 +9267,7 @@
                         // Richtige Töne, falsche Oktavlage
                         feedbackEl.classList.remove('hidden');
                         feedbackEl.className = 'feedback incorrect';
-                        feedbackEl.innerHTML = `⚠️ <strong>Richtige Töne, falsche Oktavlage!</strong><br>` +
+                        feedbackEl.innerHTML = `<strong>Richtige Töne, falsche Oktavlage!</strong><br>` +
                             `<span style="font-size:0.9em;">Gesucht: ${expDist} HS — Gewählt: ${selDist} HS</span>`;
 
                         if (!this.validationState.hasBeenChecked) {
@@ -9886,11 +9895,11 @@
                 const category = document.getElementById('feedbackCategory').value;
                 
                 const categoryLabels = {
-                    'bug': '🐛 Fehler',
-                    'feature': '✨ Feature-Wunsch',
-                    'improvement': '💡 Verbesserung',
-                    'praise': '👍 Lob',
-                    'other': '💬 Sonstiges'
+                    'bug': 'Fehler',
+                    'feature': 'Feature-Wunsch',
+                    'improvement': 'Verbesserung',
+                    'praise': 'Lob',
+                    'other': 'Sonstiges'
                 };
                 
                 const subject = category ? `Intervalltrainer Feedback: ${categoryLabels[category]}` : 'Intervalltrainer Feedback';

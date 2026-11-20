@@ -1547,14 +1547,14 @@
     <!-- Success Screen (nach 10 Fragen) -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
-            <div style="font-size: 4rem; margin-bottom: 20px;" id="successEmoji">🎉</div>
+            <div style="font-size: 4rem; margin-bottom: 20px;" id="successEmoji"></div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
             
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
             <p id="successScore" style="font-size: 1.5rem; color: #4b5563; margin: 20px 0;">8 von 10 richtig (80%)</p>
             
             <div class="success-stats" id="successMessage">
-                <p><strong>💡 Nächster Schritt:</strong></p>
+                <p><strong>Nächster Schritt:</strong></p>
                 <p>Nimm jetzt Achtelnoten dazu!</p>
             </div>
             <div class="success-recos" id="successRecos"></div>
@@ -1593,7 +1593,7 @@
         <!-- Feedback Modal -->
         <div class="modal-overlay" id="feedbackModal">
             <div class="modal">
-                <h2>💬 Feedback & Verbesserungsvorschläge</h2>
+                <h2>Feedback & Verbesserungsvorschläge</h2>
                 <p style="margin-bottom: 1rem; color: #4b5563;">
                     Deine Meinung hilft mir, den Rhythmustrainer zu verbessern!
                 </p>
@@ -1618,17 +1618,17 @@
                         </label>
                         <select id="feedbackCategory" style="width: 100%; max-width: 400px; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;">
                             <option value="">Bitte wählen...</option>
-                            <option value="bug">🐛 Fehler melden</option>
-                            <option value="feature">✨ Feature-Wunsch</option>
-                            <option value="improvement">💡 Verbesserungsvorschlag</option>
-                            <option value="praise">👍 Lob</option>
-                            <option value="other">💬 Sonstiges</option>
+                            <option value="bug">Fehler melden</option>
+                            <option value="feature">Feature-Wunsch</option>
+                            <option value="improvement">Verbesserungsvorschlag</option>
+                            <option value="praise">Lob</option>
+                            <option value="other">Sonstiges</option>
                         </select>
                     </div>
 
                     <div style="display: flex; gap: 0.5rem;">
                         <button type="submit" class="btn-primary" style="flex: 1;">
-                            📧 Feedback senden
+                            Feedback senden
                         </button>
                         <button type="button" onclick="app.closeFeedback()" style="flex: 1; padding: 0.75rem; background: #e5e7eb; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">
                             Abbrechen
@@ -1649,7 +1649,7 @@
                 
                 <!-- AUFGABENTYP - GANZ OBEN -->
                 <div class="select-group" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-                    <label style="font-weight: 600; color: #0f172a;">🎯 Aufgabentyp:</label>
+                    <label style="font-weight: 600; color: #0f172a;">Aufgabentyp:</label>
                     <select id="taskTypeSelect" onchange="app.updateSettings()">
                         <option value="view" selected>Ansichtsmodus (nur Takt anzeigen)</option>
                         <option value="note-addition">Notenwerte addieren</option>
@@ -1696,7 +1696,7 @@
                 </div>
 
                 <div class="select-group" style="margin-top: 0.75rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
-                    <label style="font-weight: 600; color: #0f172a;">📖 Hilfestellungen:</label>
+                    <label style="font-weight: 600; color: #0f172a;">Hilfestellungen:</label>
                 </div>
 
                 <div class="checkbox-group">
@@ -1719,7 +1719,7 @@
 
                 <!-- Tempo-Regler (nur bei Audio-Aufgabentypen sichtbar) -->
                 <div id="tempoControl" class="select-group" style="margin-top: 0.75rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem; display: none;">
-                    <label style="font-weight: 600; color: #0f172a;">🎵 Tempo: <span id="tempoValue">80</span> BPM</label>
+                    <label style="font-weight: 600; color: #0f172a;">Tempo: <span id="tempoValue">80</span> BPM</label>
                     <input type="range" id="tempoSlider" min="40" max="160" value="80" step="5"
                         oninput="app.tempo = Number(this.value); document.getElementById('tempoValue').textContent = this.value;"
                         style="width: 100%; accent-color: #334155; margin-top: 0.25rem;">
@@ -1749,7 +1749,7 @@
         <div class="card" id="staffCard">
             <!-- Aufgaben-Fokussierung (nur bei Zählzeit-Aufgabe sichtbar) -->
             <div class="text-center hidden" id="taskFocusText">
-                <span class="task-focus-badge" id="taskFocusBadge">🎯 Auf welcher Zählzeit ist diese Note?</span>
+                <span class="task-focus-badge" id="taskFocusBadge">Auf welcher Zählzeit ist diese Note?</span>
             </div>
             
             <!-- ADDITIONS-AUFGABE (versteckt wenn nicht aktiv) -->
@@ -1821,7 +1821,7 @@
 
                     <!-- Interaction Hint (device-aware) -->
                     <div class="interaction-hint" id="interactionHint">
-                        💡 <span id="interactionHintText">Tippe auf eine Note für Zählzeit und Dauer</span>
+                        <span id="interactionHintText">Tippe auf eine Note für Zählzeit und Dauer</span>
                     </div>
                 </div>
             </div>
@@ -4494,22 +4494,22 @@
                 if (isDictation) {
                     // Dictation-Sterne: basierend auf Erstversuche-richtig
                     if (firstTryCorrect >= 9) {
-                        emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
+                        emoji = '🎉'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
                     } else if (firstTryCorrect >= 7) {
-                        emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+                        emoji = '🎉'; title = 'GESCHAFFT!'; stars = '⭐⭐';
                     } else if (firstTryCorrect >= 5) {
-                        emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
+                        emoji = '🎉'; title = 'BESTANDEN!'; stars = '⭐';
                     } else {
                         emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
                     }
                 } else {
                     // Standard-Sterne: 100%=3, 90%=2, 80%=1, <80%=0
                     if (percentage === 100) {
-                        emoji = '★★★'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
+                        emoji = '🎉'; title = 'PERFEKT!'; stars = '⭐⭐⭐';
                     } else if (percentage >= 90) {
-                        emoji = '★★'; title = 'GESCHAFFT!'; stars = '⭐⭐';
+                        emoji = '🎉'; title = 'GESCHAFFT!'; stars = '⭐⭐';
                     } else if (percentage >= 80) {
-                        emoji = '★'; title = 'BESTANDEN!'; stars = '⭐';
+                        emoji = '🎉'; title = 'BESTANDEN!'; stars = '⭐';
                     } else {
                         emoji = ''; title = 'WEITER ÜBEN!'; stars = '';
                     }
@@ -4584,26 +4584,27 @@
                     if (nextUnmastered) {
                         if (isDictation && firstTryCorrect < 9) {
                             messageEl.innerHTML = `
-                                <p><strong>💡 Nächster Schritt:</strong></p>
+                                <p><strong>Nächster Schritt:</strong></p>
                                 <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
                                 <p style="font-size:0.8rem;color:#64748b;margin-top:0.3rem;">Für 3 Sterne: 9 von 10 auf Anhieb richtig.</p>
                             `;
                         } else {
                             messageEl.innerHTML = `
-                                <p><strong>💡 Nächster Schritt:</strong></p>
+                                <p><strong>Nächster Schritt:</strong></p>
                                 <p>Nimm jetzt „${nextUnmastered.label}" dazu!</p>
                             `;
                         }
                     } else {
                         const tier = this._gfMilestoneTier();
                         if (tier === 'trainer') {
+                            document.getElementById('successEmoji').textContent = '🏆';
                             messageEl.innerHTML = `
-                                <p><strong>🏆 Rhythmustrainer geschafft!</strong></p>
+                                <p><strong>Rhythmustrainer geschafft!</strong></p>
                                 <p>Alles im Rhythmustrainer sitzt jetzt. Starke Leistung.</p>
                             `;
                         } else {
                             messageEl.innerHTML = `
-                                <p><strong>🏆 ${this.nodeTitles[nodeId] || 'Geschafft!'}</strong></p>
+                                <p><strong>${this.nodeTitles[nodeId] || 'Geschafft!'}</strong></p>
                                 <p>Geschafft! Das kannst du jetzt, mit allem, was dazugehört. Weiter so.</p>
                             `;
                         }
@@ -4646,9 +4647,9 @@
                             return '<div class="gf-axis"><p>' + s + '</p></div>';
                         }).join('');
                     } else if (isDictation) {
-                        html += '<p><strong>💪 Weiter üben!</strong></p><p>Zum Bestehen: 5 von 10 auf Anhieb richtig.</p>';
+                        html += '<p><strong>Weiter üben!</strong></p><p>Zum Bestehen: 5 von 10 auf Anhieb richtig.</p>';
                     } else {
-                        html += '<p><strong>💪 Tipp:</strong></p><p>Übe noch etwas, um die 80% zu schaffen!</p>';
+                        html += '<p><strong>Tipp:</strong></p><p>Übe noch etwas, um die 80% zu schaffen!</p>';
                     }
                     // Add-on: Lernkarte zu schnell weggeklickt? (PLAN_GF-Lernkartendauer §4)
                     const _lastSub = (this.currentOptions && this.currentOptions.length)
@@ -5157,11 +5158,11 @@
                 const category = document.getElementById('feedbackCategory').value;
 
                 const categoryLabels = {
-                    'bug': '🐛 Fehler',
-                    'feature': '✨ Feature-Wunsch',
-                    'improvement': '💡 Verbesserung',
-                    'praise': '👍 Lob',
-                    'other': '💬 Sonstiges'
+                    'bug': 'Fehler',
+                    'feature': 'Feature-Wunsch',
+                    'improvement': 'Verbesserung',
+                    'praise': 'Lob',
+                    'other': 'Sonstiges'
                 };
 
                 const subject = category ? `Rhythmustrainer Feedback: ${categoryLabels[category]}` : 'Rhythmustrainer Feedback';
@@ -6465,7 +6466,7 @@ Gerät:
                             setTimeout(() => btn.classList.remove('ts-wrong'), 600);
                         }
                     });
-                    this._showTsFeedback('⚠ Prüfe nochmal — zähle die Notenwerte zusammen!', false);
+                    this._showTsFeedback('⚠️ Prüfe nochmal — zähle die Notenwerte zusammen!', false);
                 }
 
                 // Score tracken (nur erster Versuch)
@@ -9126,7 +9127,7 @@ Gerät:
                 // Leere Eingabe: Hinweis statt Fehler
                 if (!userAnswer) {
                     const feedback = document.getElementById('feedback');
-                    feedback.textContent = '💡 Bitte eine Antwort eingeben.';
+                    feedback.textContent = 'Bitte eine Antwort eingeben.';
                     feedback.className = 'feedback incorrect';
                     feedback.classList.remove('hidden');
                     setTimeout(() => { feedback.classList.add('hidden'); }, 2000);
@@ -9264,7 +9265,7 @@ Gerät:
                 
                 // Leere Eingabe: Hinweis statt Fehler
                 if (!input.value.trim()) {
-                    feedback.textContent = '💡 Bitte eine Antwort eingeben.';
+                    feedback.textContent = 'Bitte eine Antwort eingeben.';
                     feedback.className = 'feedback incorrect';
                     feedback.classList.remove('hidden');
                     setTimeout(() => { feedback.classList.add('hidden'); }, 2000);
@@ -9369,7 +9370,7 @@ Gerät:
                         r1e.caseTypes = [t, ...['dotted-half', 'dotted-quarter', 'dotted-eighth', 'dotted-quarter-rest'].filter(x => x !== t)];
                         r1e.caseIdx = 0;
                         quickStart.showTaskInstruction(`${this._dotCaseText(t)} Wie viele Viertel ist sie wert?`);
-                        feedback.innerHTML = '⚠️ <strong>Nicht ganz.</strong> Schauen wir genauer hin, woraus die Note besteht.';
+                        feedback.innerHTML = '<strong>Nicht ganz.</strong> Schauen wir genauer hin, woraus die Note besteht.';
                     } else {
                         feedback.innerHTML = `⚠️ <strong>Prüfe nochmal:</strong><br>Summe: <span style="color:#ef4444;">✗</span>`;
                     }

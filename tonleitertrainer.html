@@ -388,6 +388,12 @@
             padding: 60px 20px;
         }
 
+        /* Belohnung: 🎉 bei Bestehen, 🏆 wenn der ganze Trainer geschafft ist (Sebo 20.11.2026) */
+
+        .success-emoji { font-size: 3rem; line-height: 1; margin-bottom: 0.5rem; }
+
+        .success-emoji:empty { display: none; }
+
         .success-container h2 {
             font-size: 2rem;
             color: #0f172a;
@@ -1782,6 +1788,7 @@
     <!-- ======================== SUCCESS SCREEN ======================== -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
+            <div class="success-emoji" id="successEmoji"></div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
 
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
@@ -1834,7 +1841,7 @@
         <!-- Feedback Modal -->
         <div class="modal-overlay" id="feedbackModal">
             <div class="modal">
-                <h2>💬 Feedback & Verbesserungsvorschläge</h2>
+                <h2>Feedback & Verbesserungsvorschläge</h2>
                 <p style="margin-bottom: 1rem; color: #4b5563;">
                     Deine Meinung hilft mir, den Tonleitertrainer zu verbessern!
                 </p>
@@ -1859,17 +1866,17 @@
                         </label>
                         <select id="feedbackCategory" style="width: 100%; max-width: 400px; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;">
                             <option value="">Bitte wählen...</option>
-                            <option value="bug">🐛 Fehler melden</option>
-                            <option value="feature">✨ Feature-Wunsch</option>
-                            <option value="improvement">💡 Verbesserungsvorschlag</option>
-                            <option value="praise">👍 Lob</option>
-                            <option value="other">💬 Sonstiges</option>
+                            <option value="bug">Fehler melden</option>
+                            <option value="feature">Feature-Wunsch</option>
+                            <option value="improvement">Verbesserungsvorschlag</option>
+                            <option value="praise">Lob</option>
+                            <option value="other">Sonstiges</option>
                         </select>
                     </div>
 
                     <div style="display: flex; gap: 0.5rem;">
                         <button type="submit" class="btn-primary" style="flex: 1;">
-                            📧 Feedback senden
+                            Feedback senden
                         </button>
                         <button type="button" onclick="app.closeFeedbackModal()" style="flex: 1; padding: 0.75rem; background: #e5e7eb; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">
                             Abbrechen
@@ -1891,7 +1898,7 @@
 
         <!-- Fallback Hint (for Profi fallback) -->
         <div class="fallback-hint" id="fallbackHint">
-            ⚠️ Markiere die Halbtonschritte dieser Tonleiter, um weiterzumachen!
+            Markiere die Halbtonschritte dieser Tonleiter, um weiterzumachen!
         </div>
 
         <!-- (Audio Controls sind jetzt direkt in der Staff Card) -->
@@ -4836,6 +4843,7 @@
                 this.markCurrentOptionAsMastered();
                 _stars.textContent = '⭐'.repeat(starCount);
                 const tier = this._gfMilestoneTier();
+                    document.getElementById('successEmoji').textContent = tier === 'trainer' ? '🏆' : '🎉';
                 if (tier === 'trainer') {
                     _t.textContent = 'Tonleitertrainer geschafft!';
                     _msg.innerHTML = '<p>Alles im Tonleitertrainer sitzt jetzt. Starke Leistung.</p>';
@@ -4851,7 +4859,8 @@
                 _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
                     + '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
             } else {
-                const perf = this._gfDimPerf();
+                document.getElementById('successEmoji').textContent = '';
+                    const perf = this._gfDimPerf();
                 const scope = this._gfAxesInScope();
                 // order = Prerequisite-Tiefe → die schwache, TIEFER liegende
                 // Achse landet auf idx 0 (= primäre Ursache, DAG-Walk).
@@ -7454,11 +7463,11 @@
                 const nMissing = question.correct.length - nRight;
                 let headline;
                 if (nWrong === 0) {
-                    headline = `⚠️ Richtig so weit, es fehlt noch ${nMissing === 1 ? 'eine Tonart' : nMissing + ' Tonarten'}.`;
+                    headline = `Richtig so weit, es fehlt noch ${nMissing === 1 ? 'eine Tonart' : nMissing + ' Tonarten'}.`;
                 } else if (nRight === 0) {
-                    headline = nWrong === 1 ? '⚠️ Die gewählte Tonart passt nicht.' : '⚠️ Keine der gewählten Tonarten passt.';
+                    headline = nWrong === 1 ? 'Die gewählte Tonart passt nicht.' : 'Keine der gewählten Tonarten passt.';
                 } else {
-                    headline = `⚠️ ${nRight === 1 ? 'Eine Tonart stimmt' : nRight + ' Tonarten stimmen'}, ${nWrong === 1 ? 'eine passt nicht' : nWrong + ' passen nicht'}.`;
+                    headline = `${nRight === 1 ? 'Eine Tonart stimmt' : nRight + ' Tonarten stimmen'}, ${nWrong === 1 ? 'eine passt nicht' : nWrong + ' passen nicht'}.`;
                 }
                 this._showQzMerksatzHint(question, headline);
                 this._handleQzAnswer(false, null, true);
@@ -10339,7 +10348,7 @@
                 r3a.caseTypes = [t, t, o, o];
                 r3a.caseIdx = 0;
                 this._musterCase = true;
-                this.showFeedback(false, `⚠️ <strong>Nicht ganz.</strong> Das ist ${this.currentScale.displayName}. Schauen wir genauer hin, wo die Halbtonschritte liegen.`);
+                this.showFeedback(false, `<strong>Nicht ganz.</strong> Das ist ${this.currentScale.displayName}. Schauen wir genauer hin, wo die Halbtonschritte liegen.`);
 
                 if (quickStart.isActive) {
                     quickStart._probeMiss = true;
@@ -10383,7 +10392,7 @@
             const anyPairSelected = this.stepPairSelections && this.stepPairSelections.some(s => s);
             if (!anyPairSelected) {
                 // Hint: step pairs must be selected first — no error, no counter impact
-                this.showFeedback(false, '💡 Wähle zuerst die Halbtonschritt-Stufen aus!');
+                this.showFeedback(false, 'Wähle zuerst die Halbtonschritt-Stufen aus!');
                 // Reset input if "Kein Dur/Moll" button was pressed
                 if (input.value === 'Kein Dur/Moll') input.value = '';
                 // Don't lock input — let user continue working on the task
@@ -10750,11 +10759,11 @@
             const category = document.getElementById('feedbackCategory').value;
 
             const categoryLabels = {
-                'bug': '🐛 Fehler',
-                'feature': '✨ Feature-Wunsch',
-                'improvement': '💡 Verbesserung',
-                'praise': '👍 Lob',
-                'other': '💬 Sonstiges'
+                'bug': 'Fehler',
+                'feature': 'Feature-Wunsch',
+                'improvement': 'Verbesserung',
+                'praise': 'Lob',
+                'other': 'Sonstiges'
             };
 
             const subject = category ? `Tonleitertrainer Feedback: ${categoryLabels[category]}` : 'Tonleitertrainer Feedback';

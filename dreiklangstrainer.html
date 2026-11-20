@@ -1060,6 +1060,12 @@
             margin-top: 10vh;
         }
 
+        /* Belohnung: 🎉 bei Bestehen, 🏆 wenn der ganze Trainer geschafft ist (Sebo 20.11.2026) */
+
+        .success-emoji { font-size: 3rem; line-height: 1; margin-bottom: 0.5rem; }
+
+        .success-emoji:empty { display: none; }
+
         .success-container h2 {
             font-size: 2rem;
             color: #166534;
@@ -1529,6 +1535,7 @@
     <!-- Success Screen (nach 10 Fragen) -->
     <div id="successScreen" class="level-screen">
         <div class="success-container">
+            <div class="success-emoji" id="successEmoji"></div>
             <h2 id="successTitle">SUPER GEMACHT!</h2>
 
             <div class="level-stars" id="successStars">⭐⭐⭐</div>
@@ -1569,7 +1576,7 @@
         <!-- Feedback Modal -->
         <div class="modal-overlay" id="feedbackModal">
             <div class="modal">
-                <h2>💬 Feedback & Verbesserungsvorschläge</h2>
+                <h2>Feedback & Verbesserungsvorschläge</h2>
                 <p style="margin-bottom: 1rem; color: #4b5563;">
                     Deine Meinung hilft mir, den Dreiklangstrainer zu verbessern!
                 </p>
@@ -1594,17 +1601,17 @@
                         </label>
                         <select id="feedbackCategory" style="width: 100%; max-width: 400px; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;">
                             <option value="">Bitte wählen...</option>
-                            <option value="bug">🐛 Fehler melden</option>
-                            <option value="feature">✨ Feature-Wunsch</option>
-                            <option value="improvement">💡 Verbesserungsvorschlag</option>
-                            <option value="praise">👍 Lob</option>
-                            <option value="other">💬 Sonstiges</option>
+                            <option value="bug">Fehler melden</option>
+                            <option value="feature">Feature-Wunsch</option>
+                            <option value="improvement">Verbesserungsvorschlag</option>
+                            <option value="praise">Lob</option>
+                            <option value="other">Sonstiges</option>
                         </select>
                     </div>
                     
                     <div style="display: flex; gap: 0.5rem;">
                         <button type="submit" class="btn-primary" style="flex: 1;">
-                            📧 Feedback senden
+                            Feedback senden
                         </button>
                         <button type="button" onclick="app.closeFeedback()" style="flex: 1; padding: 0.75rem; background: #e5e7eb; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">
                             Abbrechen
@@ -4235,6 +4242,7 @@
                     this.markCurrentOptionAsMastered();
                     _stars.textContent = '⭐'.repeat(starCount);
                     const tier = this._gfMilestoneTier();
+                    document.getElementById('successEmoji').textContent = tier === 'trainer' ? '🏆' : '🎉';
                     if (tier === 'trainer') {
                         _t.textContent = 'Dreiklangstrainer geschafft!';
                         _msg.innerHTML = '<p>Alles im Dreiklangstrainer sitzt jetzt. Starke Leistung.</p>';
@@ -4253,6 +4261,7 @@
                     _btn.innerHTML = '<button class="btn-retry" onclick="quickStart.retry()">Nochmal</button>'
                         + '<button class="btn-next" onclick="quickStart.backToStart()">Zur Übersicht</button>';
                 } else {
+                    document.getElementById('successEmoji').textContent = '';
                     const perf = this._gfDimPerf();
                     const scope = this._gfAxesInScope();
                     // order = Prerequisite-Tiefe → die schwache, TIEFER liegende
@@ -8158,7 +8167,7 @@ const _lernkartenContent = {
                 const isClickable = this.quickStartMode === 'einsteiger' || (this.buildingMode && this.buildingIsKeyboard) || (!this.quickStartMode && this.settings.requireKeyboard);
                 // Auch bei „Prüfe nochmal" färben — die Meldung nennt seit Nov 2026 keine Lösung („Richtig: …") mehr
                 const _fbEl = document.getElementById('feedback');
-                const showCorrect = !!_fbEl && !_fbEl.classList.contains('hidden') && (_fbEl.textContent.includes('Richtig') || _fbEl.textContent.includes('Prüfe nochmal'));
+                const showCorrect = !!_fbEl && !_fbEl.classList.contains('hidden') && (_fbEl.textContent.includes('Richtig') || _fbEl.textContent.includes('⚠️ Prüfe nochmal'));
                 const lockedKeys = this.lockedKeys || [];
 
                 // Visuelle Unterscheidung: Orientierungstastatur vs. Aufgabentastatur
@@ -9553,7 +9562,7 @@ const _lernkartenContent = {
                         if (artSel) artSel.disabled = true;
                         feedbackEl.classList.remove('hidden');
                         feedbackEl.className = 'feedback incorrect';
-                        feedbackEl.innerHTML = `⚠️ <strong>Nicht ganz.</strong> Das ist ${this._drei2ChordName(correctRootNote, t)}. Schauen wir genauer hin, wie viele Halbtonschritte zwischen den Tönen liegen.`;
+                        feedbackEl.innerHTML = `<strong>Nicht ganz.</strong> Das ist ${this._drei2ChordName(correctRootNote, t)}. Schauen wir genauer hin, wie viele Halbtonschritte zwischen den Tönen liegen.`;
                         // Neu zählen: alle Auswahlen frei, Art-Auswahl entfällt
                         setTimeout(() => {
                             ['hsSelect1', 'hsSelect2'].forEach(id => {
@@ -9899,11 +9908,11 @@ const _lernkartenContent = {
                 const category = document.getElementById('feedbackCategory').value;
                 
                 const categoryLabels = {
-                    'bug': '🐛 Fehler',
-                    'feature': '✨ Feature-Wunsch',
-                    'improvement': '💡 Verbesserung',
-                    'praise': '👍 Lob',
-                    'other': '💬 Sonstiges'
+                    'bug': 'Fehler',
+                    'feature': 'Feature-Wunsch',
+                    'improvement': 'Verbesserung',
+                    'praise': 'Lob',
+                    'other': 'Sonstiges'
                 };
                 
                 const subject = category ? `Dreiklangstrainer Feedback: ${categoryLabels[category]}` : 'Dreiklangstrainer Feedback';
