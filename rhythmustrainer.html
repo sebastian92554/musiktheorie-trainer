@@ -12,6 +12,9 @@
     <meta name="robots" content="index, follow">
 
     <link rel="canonical" href="https://musiktheorie-trainer.de/rhythmustrainer.html">
+    <!-- Konto und Stufenliste: früh laden, aber nicht blockieren (defer: Download parallel zum Einlesen, Ausführung vor DOMContentLoaded; 20.11.2026) -->
+    <script src="register.js" defer></script>
+    <script src="account.js" defer></script>
 
     <!-- Favicon: Rhythmustrainer-Icon (Violett) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%238b5cf6' stroke='%238b5cf6'%3E%3Cellipse cx='5' cy='17' rx='2.2' ry='1.7' stroke='none' transform='rotate(-18 5 17)'/%3E%3Cellipse cx='11' cy='17' rx='2.2' ry='1.7' stroke='none' transform='rotate(-18 11 17)'/%3E%3Cellipse cx='17' cy='17' rx='2.2' ry='1.7' stroke='none' transform='rotate(-18 17 17)'/%3E%3Cline x1='7.3' y1='16.3' x2='7.3' y2='7' stroke-width='0.8' fill='none'/%3E%3Cline x1='13.3' y1='16.3' x2='13.3' y2='7' stroke-width='0.8' fill='none'/%3E%3Cline x1='19.3' y1='16.3' x2='19.3' y2='7' stroke-width='0.8' fill='none'/%3E%3Cline x1='7.3' y1='7' x2='19.3' y2='7' stroke-width='1.6' stroke-linecap='butt' fill='none'/%3E%3Ctext x='13.3' y='4.8' text-anchor='middle' font-size='4.2' font-weight='700' font-family='sans-serif' fill='%238b5cf6' stroke='none'%3E3%3C/text%3E%3C/g%3E%3C/svg%3E">
@@ -896,7 +899,7 @@
         .band-icon { color: #a78bfa; display: inline-flex; flex-shrink: 0; }
         .band-icon svg { width: 1.25em; height: 1.25em; }
         .site-header p { font-size: 1.05rem; opacity: 0.85; max-width: 600px; margin: 0 auto; line-height: 1.5; }
-        .band-links { position: absolute; top: 0.8rem; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
+        .band-links { position: absolute; top: 0.8rem; left: 50%; transform: translateX(-50%); width: min(100%, 900px); display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
         .band-links .st-home-link { color: #fff; opacity: 0.85; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
         .band-links .st-home-link:hover { opacity: 1; text-decoration: underline; }
         .band-links .account-bar { gap: 0.7rem; }
@@ -11023,14 +11026,15 @@ Gerät:
     <footer class="site-footer" style="text-align:center; padding:1.5rem 1rem; color:#94a3b8; font-size:0.75rem; line-height:1.6;">
         <a onclick="app.showFeedback()" style="color:#64748b; text-decoration:none; cursor:pointer;">Feedback</a> · <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
     </footer>
-    <script src="register.js"></script>
-    <script src="account.js"></script>
     <script>
         // Account-Komponente: Speicher-Status-Icon aktivieren + nach Login Fortschritt neu laden
-        if (window.Account) {
-            Account.enableSaveStatus();
-            Account.onSync = function () { location.reload(); };
-        }
+        // (account.js ist defer im Head → steht erst bei DOMContentLoaded bereit)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Account) {
+                Account.enableSaveStatus();
+                Account.onSync = function () { location.reload(); };
+            }
+        });
     </script>
 </body>
 </html>

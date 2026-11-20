@@ -1,0 +1,9 @@
+# Netlify-Header (20.11.2026): Die Edge darf die Dateien behalten und im Hintergrund erneuern – sonst kostet der erste
+# Abruf einer selten genutzten Seite 1,5 s (Weg zum Ursprung). Ein Deploy leert den Edge-Cache, Altes wird nie ausgeliefert.
+# Browser-Cache für HTML bleibt Netlify-Standard (nachfragen); account.js und register.js dürfen eine Stunde ohne Nachfrage bleiben.
+/*
+  Netlify-CDN-Cache-Control: public, durable, s-maxage=86400, stale-while-revalidate=604800
+/account.js
+  Cache-Control: public, max-age=3600, must-revalidate
+/register.js
+  Cache-Control: public, max-age=3600, must-revalidate

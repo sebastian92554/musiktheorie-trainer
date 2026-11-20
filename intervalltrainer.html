@@ -23,6 +23,9 @@
     <meta property="twitter:description" content="Lerne Intervalle spielerisch im Browser - kostenlos und ohne Anmeldung">
 
     <link rel="canonical" href="https://musiktheorie-trainer.de/intervalltrainer.html">
+    <!-- Konto und Stufenliste: früh laden, aber nicht blockieren (defer: Download parallel zum Einlesen, Ausführung vor DOMContentLoaded; 20.11.2026) -->
+    <script src="register.js" defer></script>
+    <script src="account.js" defer></script>
 
     <!-- Favicon: Intervalltrainer-Icon (Orange) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%23ea580c' stroke='%23ea580c'%3E%3Cline x1='7' y1='9' x2='18' y2='9' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cline x1='7' y1='13' x2='18' y2='13' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cline x1='7' y1='17' x2='18' y2='17' stroke-width='1' stroke-linecap='round' fill='none'/%3E%3Cellipse cx='12' cy='17' rx='2.4' ry='1.9' stroke='none' transform='rotate(-18 12 17)'/%3E%3Cellipse cx='12' cy='9' rx='2.4' ry='1.9' stroke='none' transform='rotate(-18 12 9)'/%3E%3Cpath d='M 21 9 H 23 V 17 H 21' stroke-width='1' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E">
@@ -1054,7 +1057,7 @@
         .site-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 1.6rem 1.5rem 1.4rem; text-align: center; position: relative; margin: -1rem -1rem 1.5rem; }
         .site-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.35rem; letter-spacing: -0.02em; color: #fff; }
         .site-header p { font-size: 1.05rem; opacity: 0.85; max-width: 600px; margin: 0 auto; line-height: 1.5; }
-        .band-links { position: absolute; top: 0.8rem; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
+        .band-links { position: absolute; top: 0.8rem; left: 50%; transform: translateX(-50%); width: min(100%, 900px); display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
         .band-links .st-home-link { color: #fff; opacity: 0.85; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
         .band-links .st-home-link:hover { opacity: 1; text-decoration: underline; }
         .band-links .account-bar { gap: 0.7rem; }
@@ -10040,14 +10043,15 @@ Gerät:
     <footer class="site-footer" style="text-align:center; padding:1.5rem 1rem; color:#94a3b8; font-size:0.75rem; line-height:1.6;">
         <a onclick="app.showFeedback()" style="color:#64748b; text-decoration:none; cursor:pointer;">Feedback</a> · <a href="impressum.html" style="color:#64748b; text-decoration:none;">Impressum</a> · <a href="datenschutz.html" style="color:#64748b; text-decoration:none;">Datenschutz</a>
     </footer>
-    <script src="register.js"></script>
-    <script src="account.js"></script>
     <script>
         // Account-Komponente: Speicher-Status-Icon aktivieren + nach Login Fortschritt neu laden
-        if (window.Account) {
-            Account.enableSaveStatus();
-            Account.onSync = function () { location.reload(); };
-        }
+        // (account.js ist defer im Head → steht erst bei DOMContentLoaded bereit)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Account) {
+                Account.enableSaveStatus();
+                Account.onSync = function () { location.reload(); };
+            }
+        });
     </script>
 </body>
 </html>
