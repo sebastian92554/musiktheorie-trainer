@@ -901,7 +901,7 @@
         .site-header p { font-size: 1.05rem; opacity: 0.85; max-width: 600px; margin: 0 auto; line-height: 1.5; }
         .band-links { position: absolute; top: 0.8rem; left: 50%; transform: translateX(-50%); width: min(100%, 900px); display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; font-size: 0.8rem; }
         .band-links .st-home-link { color: #fff; opacity: 0.85; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
-        .band-links .st-home-link:hover { opacity: 1; text-decoration: underline; }
+        .band-links .st-home-link:hover { color: #fff; opacity: 1; text-decoration: underline; }   /* color: sonst gewinnt .st-home-link:hover (Dunkelgrau) auf dem dunklen Band */
         .band-links .account-bar { gap: 0.7rem; }
         .band-links .account-bar .acc-btn { background: none; color: #fff; opacity: 0.85; padding: 0; font-size: 0.8rem; font-weight: 500; border-radius: 0; }
         .band-links .account-bar .acc-btn:hover { background: none; opacity: 1; text-decoration: underline; }
@@ -3900,6 +3900,7 @@
             startFromSkilltree() {
                 if (!this.selectedNode) return;
                 coach.cancel();   // eine offene Blase gehört zum Skilltree, nicht ins Quiz
+                this._histPush();   // Verlaufseintrag: die Browser-Zurück-Taste führt zum Lernpfad, nicht aus dem Trainer
 
                 const nodeId = this.selectedNode;
                 const level = this.nodeToLevel[nodeId];
@@ -4866,10 +4867,34 @@
                 this.start(this.currentLevel, this.currentOptions);
             },
 
-            backToStart() {
-                if (this.isActive) {
-                    try { tracker.quizAbandon(this.questionsAnswered || 0, 'back'); } catch (e) {}
+            // ---- Browser-Zurück-Taste (20.11.2026): Beim Start einer Übung legt der Trainer einen Verlaufseintrag an. „Zurück“ im
+            //      Browser (oder die Wischgeste) führt dann zum Lernpfad wie „‹ Lernpfad“ (quiz_abandon mit exit browser_back); erst das
+            //      zweite „Zurück“ verlässt den Trainer. „‹ Lernpfad“ und „Zur Übersicht“ nehmen den Eintrag wieder zurück. ----
+            _histPush() {
+                if (this._histQuiz) return;
+                try { history.pushState({ quiz: true }, ''); this._histQuiz = true; } catch (e) { return; }
+                if (!this._histBound) {
+                    this._histBound = true;
+                    window.addEventListener('popstate', () => {
+                        if (this._histSkip) { this._histSkip = false; return; }   // eigenes history.back() aus _histPop
+                        if (!this._histQuiz) return;
+                        this._histQuiz = false;
+                        this.backToStart('browser');
+                    });
                 }
+            },
+            _histPop(via) {
+                if (via === 'browser' || !this._histQuiz) return;
+                this._histQuiz = false;
+                this._histSkip = true;
+                setTimeout(() => { this._histSkip = false; }, 1000);   // falls kein popstate kommt
+                try { history.back(); } catch (e) {}
+            },
+            backToStart(via) {
+                if (this.isActive) {
+                    try { tracker.quizAbandon(this.questionsAnswered || 0, via === 'browser' ? 'browser_back' : 'back'); } catch (e) {}
+                }
+                this._histPop(via);
                 const lastNode = this.selectedNode;
                 app._closeLernkarteStep(false);
                 this.hideQuizOverlay();
